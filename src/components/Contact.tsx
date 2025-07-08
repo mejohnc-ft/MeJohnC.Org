@@ -65,7 +65,7 @@ const Contact = () => {
               </a>
 
               <a
-                href="https://github.com/jonathan-christensen"
+                href="https://github.com/mejohnc-ft"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-all duration-300 group"
