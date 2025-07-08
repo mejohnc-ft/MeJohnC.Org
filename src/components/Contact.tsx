@@ -52,7 +52,7 @@ const Contact = () => {
             <h3 className="text-2xl font-bold text-white mb-6">Find Me Online</h3>
             <div className="space-y-4">
               <a
-                href="https://linkedin.com/in/jonathan-christensen"
+                href="https://www.linkedin.com/in/mejohnc/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-all duration-300 group"
