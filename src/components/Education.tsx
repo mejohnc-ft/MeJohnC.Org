@@ -121,26 +121,35 @@ const Education = () => {
               </div>
               
               <p className="text-lg text-gray-300 leading-relaxed mb-6">
-                Committed to staying current with emerging technologies in AI, automation, and cloud infrastructure. 
-                Actively pursuing advanced certifications in Azure, Microsoft 365, and automation platforms.
+                Technology evolves rapidly, and so do I. Currently pursuing advanced certifications in Azure architecture, 
+                AI/ML specializations, and exploring cutting-edge automation platforms. My learning approach combines 
+                hands-on experimentation with formal certification paths to ensure both theoretical knowledge and practical expertise.
               </p>
 
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid md:grid-cols-3 gap-4 mb-8">
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                   <Zap className="w-6 h-6 text-cyan-400 mb-2" />
-                  <div className="font-semibold mb-1">Azure Certifications</div>
-                  <div className="text-sm text-gray-300">In Progress</div>
+                  <div className="font-semibold mb-1">Azure Architecture</div>
+                  <div className="text-sm text-gray-300">AZ-104, AZ-305 Track</div>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                   <Zap className="w-6 h-6 text-blue-400 mb-2" />
                   <div className="font-semibold mb-1">AI/ML Specialization</div>
-                  <div className="text-sm text-gray-300">Ongoing</div>
+                  <div className="text-sm text-gray-300">LLM Integration & Prompt Engineering</div>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                   <Zap className="w-6 h-6 text-purple-400 mb-2" />
-                  <div className="font-semibold mb-1">Automation Platforms</div>
-                  <div className="text-sm text-gray-300">Advanced</div>
+                  <div className="font-semibold mb-1">Next-Gen Platforms</div>
+                  <div className="text-sm text-gray-300">Exploring Zapier Central, GitHub Actions</div>
                 </div>
+              </div>
+              
+              <div className="border-t border-white/20 pt-6">
+                <h4 className="font-semibold text-white mb-3">Learning Philosophy</h4>
+                <p className="text-gray-300 leading-relaxed">
+                  "The best automation engineers are perpetual students. Every new tool, API, or framework 
+                  is an opportunity to solve problems more elegantly and efficiently."
+                </p>
               </div>
             </div>
           </div>

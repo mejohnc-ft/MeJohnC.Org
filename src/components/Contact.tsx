@@ -33,9 +33,13 @@ const Contact = () => {
               <MessageCircle className="w-6 h-6 mr-3 text-blue-400" />
               Let's Connect
             </h3>
+            <p className="text-gray-300 mb-6 leading-relaxed">
+              Whether you're looking to streamline operations, implement AI-driven automation, 
+              or discuss how intelligent systems can transform your organization, I'd love to hear from you.
+            </p>
             <div className="space-y-4">
               <a
-                href="mailto:mejohnwc@gmail.com"
+                href="mailto:mejohnwc@gmail.com?subject=Professional Inquiry&body=Hi Jonathan,%0D%0A%0D%0AI'm interested in discussing automation opportunities.%0D%0A%0D%0ABest regards"
                 className="flex items-center p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-all duration-300 group"
               >
                 <Mail className="w-6 h-6 text-blue-400 mr-4 group-hover:scale-110 transition-transform duration-300" />
@@ -44,6 +48,11 @@ const Contact = () => {
                   <p className="text-gray-300">mejohnwc@gmail.com</p>
                 </div>
               </a>
+              
+              <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                <h4 className="font-semibold text-white mb-2">Response Time</h4>
+                <p className="text-sm text-gray-300">I typically respond within 24 hours during business days</p>
+              </div>
             </div>
           </div>
 
@@ -96,7 +105,7 @@ const Contact = () => {
         {/* Call to Action */}
         <div className="text-center mt-12">
           <a
-            href="mailto:mejohnwc@gmail.com"
+            href="mailto:mejohnwc@gmail.com?subject=Let's Start a Conversation&body=Hi Jonathan,%0D%0A%0D%0AI'd like to explore how we can work together.%0D%0A%0D%0APlease let me know when you're available for a brief call.%0D%0A%0D%0ABest regards"
             className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-semibold text-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 group"
           >
             <Zap className="w-5 h-5 mr-2 group-hover:animate-pulse" />

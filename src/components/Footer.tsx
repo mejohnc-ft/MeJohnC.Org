@@ -77,6 +77,7 @@ const Footer = () => {
             </p>
             <a
               href="mailto:mejohnwc@gmail.com"
+              href="mailto:mejohnwc@gmail.com?subject=Let's Connect&body=Hi Jonathan,%0D%0A%0D%0AI'd like to connect with you.%0D%0A%0D%0ABest regards"
               className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-1"
             >
               <Zap className="w-4 h-4 mr-2" />
