@@ -1,11 +1,18 @@
 import React from 'react';
 import { Download, Mail, MapPin, Zap, Bot, Code2 } from 'lucide-react';
-import { downloadResume } from '../lib/supabase';
 
 const Hero = () => {
   const handleDownloadResume = async () => {
-    const success = await downloadResume();
-    if (!success) {
+    try {
+      // Create a link to download the resume from the public directory
+      const link = document.createElement('a');
+      link.href = '/Resume 2025.pdf';
+      link.download = 'Jonathan_Christensen_Resume_2025.pdf';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error downloading resume:', error);
       // Fallback to email if download fails
       window.location.href = "mailto:mejohnwc@gmail.com?subject=Resume%20Request&body=Hi%20Jonathan%2C%0D%0A%0D%0AI%27d%20like%20to%20request%20a%20copy%20of%20your%20resume.%0D%0A%0D%0ABest%20regards";
     }
