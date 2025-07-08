@@ -46,8 +46,6 @@ const Footer = () => {
               <a
                 href="mailto:mejohnwc@gmail.com"
                 className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center hover:bg-white/20 transition-all duration-300 group"
-                target="_blank"
-                rel="noopener noreferrer"
               >
                 <Mail className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform duration-300" />
               </a>
@@ -79,8 +77,6 @@ const Footer = () => {
             <a
               href="mailto:mejohnwc@gmail.com?subject=Let%27s%20Connect&body=Hi%20Jonathan%2C%0D%0A%0D%0AI%27d%20like%20to%20connect%20with%20you.%0D%0A%0D%0ABest%20regards"
               className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-              target="_blank"
-              rel="noopener noreferrer"
             >
               <Zap className="w-4 h-4 mr-2" />
               Start a Conversation
