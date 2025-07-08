@@ -8,7 +8,11 @@ const Education = () => {
     { name: "Microsoft AZ-900", category: "Azure Fundamentals", color: "blue" },
     { name: "LPI Linux Essentials", category: "System Administration", color: "green" },
     { name: "Nerdio Certified Professional", category: "Cloud Infrastructure", color: "purple" },
-    { name: "Notary Public - California", category: "Professional Services", color: "orange" }
+    { name: "Notary Public - California", category: "Professional Services", color: "orange" },
+    { name: "Google Data Analytics Certificate", category: "Data Analytics", color: "blue" },
+    { name: "IBM Data Analysis & Visualization", category: "Data Science", color: "purple" },
+    { name: "Google Project Management Certificate", category: "Project Management", color: "green" },
+    { name: "IBM Data Analyst Prof. Series Cert", category: "Data Analytics", color: "purple" }
   ];
 
   const getColorClasses = (color: string) => {
