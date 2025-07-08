@@ -26,14 +26,14 @@ function App() {
       <div id="experience">
         <Experience />
       </div>
+      <div id="education">
+        <Education />
+      </div>
       <div id="projects">
         <Projects />
       </div>
       <div id="case-studies">
         <CaseStudies />
-      </div>
-      <div id="education">
-        <Education />
       </div>
       <div id="contact">
         <Contact />

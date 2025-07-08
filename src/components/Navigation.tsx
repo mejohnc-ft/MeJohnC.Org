@@ -15,12 +15,9 @@ const Navigation = () => {
   }, []);
 
   const navItems = [
-    { label: 'Home', href: '#hero' },
-    { label: 'About', href: '#summary' },
-    { label: 'Skills', href: '#skills' },
+    { label: 'About & Skills', href: '#summary' },
     { label: 'Experience', href: '#experience' },
-    { label: 'Projects', href: '#projects' },
-    { label: 'Case Studies', href: '#case-studies' },
+    { label: 'Projects & Case Studies', href: '#projects' },
     { label: 'Education', href: '#education' },
     { label: 'Contact', href: '#contact' }
   ];
