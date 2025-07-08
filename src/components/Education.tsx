@@ -3,10 +3,8 @@ import { GraduationCap, Award, Calendar, BookOpen, Target, Zap } from 'lucide-re
 
 const Education = () => {
   const certifications = [
-    { name: "ITIL Foundation", category: "Process Management", color: "blue" },
     { name: "JumpCloud Certified Professional", category: "Identity Management", color: "green" },
     { name: "Microsoft AZ-900", category: "Azure Fundamentals", color: "blue" },
-    { name: "LPI Linux Essentials", category: "System Administration", color: "green" },
     { name: "Nerdio Certified Professional", category: "Cloud Infrastructure", color: "purple" },
     { name: "Notary Public - California", category: "Professional Services", color: "orange" },
     { name: "Google Data Analytics Certificate", category: "Data Analytics", color: "blue" },
