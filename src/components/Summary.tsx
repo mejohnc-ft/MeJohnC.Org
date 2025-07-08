@@ -73,12 +73,12 @@ const Summary = () => {
                 <p className="text-lg md:text-xl text-gray-700 leading-relaxed mb-6">
                   Experienced AI Automation Engineer with a passion for creating intelligent systems that transform how organizations operate. 
                   Specializing in <span className="font-semibold text-blue-600">Microsoft 365 ecosystems</span>, <span className="font-semibold text-purple-600">n8n automation workflows</span>, 
-                  and <span className="font-semibold text-cyan-600">Azure infrastructure</span>.
+                  <span className="font-semibold text-cyan-600">Azure infrastructure</span>, and <span className="font-semibold text-green-600">Apple Business Manager integration</span>.
                 </p>
                 <p className="text-lg text-gray-600 leading-relaxed">
-                  I bridge the gap between complex technical systems and practical business outcomes, 
-                  delivering solutions that scale with organizational growth and adapt to evolving needs. Every automation I build 
-                  is designed with the end user in mind, ensuring technology serves people, not the other way around.
+                  From designing AI-driven service desk workflows to managing 6,000+ users across hybrid environments, 
+                  I bridge the gap between complex technical systems and practical business outcomes. Every automation I build 
+                  is designed with the end user in mind, delivering 2-3× faster provisioning times and maintaining 99.8% customer satisfaction.
                 </p>
               </div>
             </div>
@@ -86,16 +86,16 @@ const Summary = () => {
             {/* Stats or achievements */}
             <div className="grid grid-cols-3 gap-6 mt-8 pt-8 border-t border-gray-200/50">
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600 mb-1">80%</div>
-                <div className="text-sm text-gray-600">Reduction in Manual Tasks</div>
+                <div className="text-2xl font-bold text-blue-600 mb-1">2-3×</div>
+                <div className="text-sm text-gray-600">Faster Provisioning</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600 mb-1">100+</div>
-                <div className="text-sm text-gray-600">Workflows Automated</div>
+                <div className="text-2xl font-bold text-purple-600 mb-1">6,000+</div>
+                <div className="text-sm text-gray-600">Users Supported</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-cyan-600 mb-1">24/7</div>
-                <div className="text-sm text-gray-600">System Reliability</div>
+                <div className="text-2xl font-bold text-cyan-600 mb-1">99.8%</div>
+                <div className="text-sm text-gray-600">Customer Satisfaction</div>
               </div>
             </div>
           </div>

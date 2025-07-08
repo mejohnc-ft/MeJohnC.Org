@@ -15,14 +15,14 @@ const Skills = () => {
       icon: <Cloud className="w-6 h-6" />,
       gradient: "from-purple-500 to-pink-500",
       bgGradient: "from-purple-50 to-pink-50",
-      skills: ["Azure", "Intune", "Entra ID", "SCCM", "Graph API", "Proxmox", "Docker"]
+      skills: ["Azure", "Intune", "Entra ID", "SCCM", "Graph API", "Apple Business Manager", "Proxmox", "Docker"]
     },
     {
       title: "Scripting & Development",
       icon: <Code className="w-6 h-6" />,
       gradient: "from-emerald-500 to-teal-500",
       bgGradient: "from-emerald-50 to-teal-50",
-      skills: ["PowerShell", "Bash", "AppleScript", "JavaScript", "Python", "REST APIs"]
+      skills: ["PowerShell", "Bash", "AppleScript", "JavaScript", "Python", "macOS Management", "REST APIs"]
     },
     {
       title: "Support & Operations",

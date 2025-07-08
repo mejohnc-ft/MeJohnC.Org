@@ -4,69 +4,86 @@ import { Building, Calendar, ChevronRight, Zap, TrendingUp, Users } from 'lucide
 const Experience = () => {
   const experiences = [
     {
-      title: "AI Automation Engineer II",
+      title: "AI Automation Engineer",
       company: "centrexIT",
-      period: "2023 - Present",
+      period: "Aug 2023 - Present",
       location: "San Diego, CA",
       highlights: [
-        "Designed and implemented AI-powered automation workflows using n8n and Microsoft Graph API",
-        "Built comprehensive user provisioning systems reducing manual tasks by 80%",
-        "Developed internal tools for cross-functional teams improving operational efficiency",
-        "Led migration of legacy systems to modern cloud-based automation infrastructure"
+        "Designed and deployed automated workflows in n8n, Make.com, and Power Automate to reduce onboarding, offboarding, and provisioning times by 2–3×",
+        "Developed internal tools using Microsoft Graph API, PowerShell, and OCR (Whisper.cpp, Tesseract, Bolt) to normalize and route client intake forms across domains",
+        "Built AI-driven workflows for service desk triage, intake parsing, and ticket resolution using HaloPSA, custom LLMs, and webhooks",
+        "Containerized and managed workflows using Docker and deployed on internal systems running Proxmox and Zero Touch frameworks",
+        "Maintained integration across Microsoft 365, Entra ID, Azure AD, and Intune for device lifecycle management and policy compliance"
       ],
-      technologies: ["n8n", "Azure", "Microsoft Graph API", "PowerShell", "Entra ID"],
+      technologies: ["n8n", "Make.com", "Power Automate", "Microsoft Graph API", "PowerShell", "Docker", "Proxmox"],
       gradient: "from-blue-500 to-cyan-500",
       bgGradient: "from-blue-50 to-cyan-50"
     },
     {
-      title: "Systems Administrator",
+      title: "Field Support Engineer II",
       company: "centrexIT",
-      period: "2022 - 2023",
+      period: "Aug 2024 - Present",
       location: "San Diego, CA",
       highlights: [
-        "Managed Microsoft 365 environments for multiple enterprise clients",
-        "Implemented security frameworks and compliance monitoring solutions",
-        "Automated routine maintenance tasks using PowerShell and Azure automation",
-        "Provided tier-3 support for complex infrastructure issues"
+        "Frontline response for over 6,000 users across dozens of clients, maintaining 99.8% CSAT and adhering to strict SLA and KPI targets",
+        "On-site support for corporate networking and hardware infrastructure: switches, firewalls, racks, CCTV, and Wi-Fi systems",
+        "Coordinated logistics and scheduling for multi-site projects and support visits; safely operated company vehicles and handled secured equipment",
+        "Collaborated on cross-functional upgrade and field automation projects with provisioning and service teams"
       ],
-      technologies: ["Microsoft 365", "Azure AD", "SCCM", "PowerShell", "Intune"],
+      technologies: ["Networking", "Hardware Support", "CCTV", "Wi-Fi", "Multi-site Coordination"],
       gradient: "from-purple-500 to-pink-500",
       bgGradient: "from-purple-50 to-pink-50"
     },
     {
-      title: "IT Support Specialist",
-      company: "Various Organizations",
-      period: "2020 - 2022",
-      location: "Remote/Hybrid",
+      title: "Provisioning Engineer",
+      company: "centrexIT",
+      period: "Jan 2022 - Aug 2024",
+      location: "San Diego, CA",
       highlights: [
-        "Provided technical support across diverse IT environments",
-        "Developed documentation and training materials for end users",
-        "Collaborated with teams to identify automation opportunities",
-        "Built foundational expertise in modern IT infrastructure"
+        "Led endpoint provisioning across hybrid and cloud environments using Intune, SCCM, and Entra ID",
+        "Architected and deployed automated device deployment pipelines and compliance frameworks using Conditional Access, Autopilot, and Windows provisioning tools",
+        "Integrated Azure AD and Intune to centralize configuration, application deployment, and MDM policy enforcement",
+        "Authored and maintained a comprehensive suite of SOPs, internal KBs, and training materials used across departments",
+        "Collaborated with service, sales, and engineering teams to deliver scalable onboarding solutions for clients across diverse industries"
       ],
-      technologies: ["ServiceNow", "Zendesk", "Windows Server", "Active Directory"],
+      technologies: ["Intune", "SCCM", "Entra ID", "Autopilot", "Conditional Access", "Azure AD"],
       gradient: "from-emerald-500 to-teal-500",
       bgGradient: "from-emerald-50 to-teal-50"
+    },
+    {
+      title: "Service Technician I",
+      company: "Safemark",
+      period: "Sep 2018 - Apr 2021",
+      location: "San Diego, CA",
+      highlights: [
+        "Provided technical support for mobility and physical security systems across corporate environments",
+        "Diagnosed and resolved hardware/software issues across Windows deployments, managing device configurations and service updates",
+        "Participated in cross-team service improvement projects, ensuring alignment with security and operations standards",
+        "Contributed to system monitoring, maintenance, and field repairs with minimal supervision"
+      ],
+      technologies: ["Windows", "Security Systems", "Hardware Support", "System Monitoring"],
+      gradient: "from-orange-500 to-amber-500",
+      bgGradient: "from-orange-50 to-amber-50"
     }
   ];
 
   const achievements = [
     {
       icon: <TrendingUp className="w-6 h-6" />,
-      metric: "80%",
-      description: "Reduction in manual provisioning tasks",
+      metric: "2-3×",
+      description: "Faster onboarding/offboarding times",
       color: "text-blue-600"
     },
     {
       icon: <Users className="w-6 h-6" />,
-      metric: "500+",
-      description: "Users automated across platforms",
+      metric: "6,000+",
+      description: "Users supported across clients",
       color: "text-purple-600"
     },
     {
       icon: <Zap className="w-6 h-6" />,
-      metric: "24/7",
-      description: "Automated workflow monitoring",
+      metric: "99.8%",
+      description: "Customer satisfaction rating",
       color: "text-cyan-600"
     }
   ];
