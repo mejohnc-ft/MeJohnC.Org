@@ -89,17 +89,17 @@ const Experience = () => {
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-br from-white via-gray-50 to-blue-50">
+    <section className="py-20 bg-gradient-to-br from-gray-900 via-gray-800 to-blue-900">
       <div className="max-w-4xl mx-auto px-4">
         <div className="text-center mb-16">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-6">
             <Building className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
             Professional Journey
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto mb-8"></div>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
             Building expertise in automation and infrastructure across dynamic technology environments
           </p>
         </div>
@@ -107,12 +107,12 @@ const Experience = () => {
         {/* Achievements */}
         <div className="grid md:grid-cols-3 gap-6 mb-16">
           {achievements.map((achievement, index) => (
-            <div key={index} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 hover:shadow-lg transition-all duration-300 text-center">
-              <div className={`inline-flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl mb-4 ${achievement.color}`}>
+            <div key={index} className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 hover:shadow-lg transition-all duration-300 text-center">
+              <div className={`inline-flex items-center justify-center w-12 h-12 bg-gray-700 rounded-xl mb-4 ${achievement.color}`}>
                 {achievement.icon}
               </div>
               <div className={`text-3xl font-bold mb-2 ${achievement.color}`}>{achievement.metric}</div>
-              <div className="text-gray-600 text-sm">{achievement.description}</div>
+              <div className="text-gray-300 text-sm">{achievement.description}</div>
             </div>
           ))}
         </div>
@@ -121,15 +121,15 @@ const Experience = () => {
           {experiences.map((exp, index) => (
             <div key={index} className="group relative">
               <div className={`absolute inset-0 bg-gradient-to-r ${exp.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-2xl blur-xl`}></div>
-              <div className={`relative bg-gradient-to-br ${exp.bgGradient} rounded-2xl p-8 border border-white/50 hover:shadow-xl transition-all duration-300`}>
+              <div className="relative bg-gradient-to-br from-gray-800 to-gray-700 rounded-2xl p-8 border border-gray-600/50 hover:shadow-xl transition-all duration-300">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
                   <div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">{exp.title}</h3>
-                    <div className="flex items-center text-gray-600 mb-2">
+                    <h3 className="text-2xl font-bold text-white mb-2">{exp.title}</h3>
+                    <div className="flex items-center text-gray-300 mb-2">
                       <Building className="w-5 h-5 mr-2" />
                       <span className="text-lg font-medium">{exp.company}</span>
                     </div>
-                    <div className="flex items-center text-gray-500">
+                    <div className="flex items-center text-gray-400">
                       <Calendar className="w-4 h-4 mr-2" />
                       <span>{exp.period}</span>
                       <span className="mx-2">•</span>
@@ -144,8 +144,8 @@ const Experience = () => {
                 <div className="mb-6">
                   <ul className="space-y-3">
                     {exp.highlights.map((highlight, highlightIndex) => (
-                      <li key={highlightIndex} className="flex items-start text-gray-700">
-                        <ChevronRight className="w-5 h-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
+                      <li key={highlightIndex} className="flex items-start text-gray-200">
+                        <ChevronRight className="w-5 h-5 text-blue-400 mr-3 mt-0.5 flex-shrink-0" />
                         <span>{highlight}</span>
                       </li>
                     ))}
@@ -156,7 +156,7 @@ const Experience = () => {
                   {exp.technologies.map((tech, techIndex) => (
                     <span
                       key={techIndex}
-                      className="px-3 py-1 bg-white/80 backdrop-blur-sm text-gray-700 rounded-full text-sm font-medium border border-white/50 hover:border-gray-200 transition-all duration-300"
+                      className="px-3 py-1 bg-gray-700/80 backdrop-blur-sm text-gray-200 rounded-full text-sm font-medium border border-gray-600/50 hover:border-gray-500 transition-all duration-300"
                     >
                       {tech}
                     </span>

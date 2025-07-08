@@ -24,13 +24,13 @@ const Summary = () => {
   ];
 
   return (
-    <section className="py-20 bg-white relative overflow-hidden">
+    <section className="py-20 bg-gray-900 relative overflow-hidden">
       {/* Background pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-100 via-transparent to-purple-100"></div>
-        <div className="absolute top-20 left-20 w-32 h-32 border border-blue-200 rounded-lg rotate-12"></div>
-        <div className="absolute bottom-20 right-20 w-40 h-40 border border-purple-200 rounded-full"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 border border-cyan-200 rounded-lg rotate-45"></div>
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-500/20 via-transparent to-purple-500/20"></div>
+        <div className="absolute top-20 left-20 w-32 h-32 border border-blue-400 rounded-lg rotate-12"></div>
+        <div className="absolute bottom-20 right-20 w-40 h-40 border border-purple-400 rounded-full"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 border border-cyan-400 rounded-lg rotate-45"></div>
       </div>
 
       <div className="max-w-4xl mx-auto px-4 relative z-10">
@@ -38,9 +38,9 @@ const Summary = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-6">
             <Lightbulb className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
             Building the Future of
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
               Intelligent Automation
             </span>
           </h2>
@@ -56,26 +56,26 @@ const Summary = () => {
                 </div>
                 <div className={`absolute inset-0 bg-gradient-to-r ${principle.gradient} rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-xl`}></div>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">{principle.title}</h3>
-              <p className="text-gray-600 leading-relaxed">{principle.description}</p>
+              <h3 className="text-xl font-bold text-white mb-3">{principle.title}</h3>
+              <p className="text-gray-300 leading-relaxed">{principle.description}</p>
             </div>
           ))}
         </div>
 
         <div className="relative">
-          <div className="bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 rounded-3xl p-8 md:p-12 border border-gray-200/50 shadow-xl">
+          <div className="bg-gradient-to-br from-gray-800 via-blue-900/50 to-purple-900/50 rounded-3xl p-8 md:p-12 border border-gray-700/50 shadow-xl">
             <div className="flex items-start mb-6">
               <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-3 rounded-xl mr-4">
                 <Target className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">My Mission</h3>
-                <p className="text-lg md:text-xl text-gray-700 leading-relaxed mb-6">
+                <h3 className="text-2xl font-bold text-white mb-4">My Mission</h3>
+                <p className="text-lg md:text-xl text-gray-200 leading-relaxed mb-6">
                   Experienced AI Automation Engineer with a passion for creating intelligent systems that transform how organizations operate. 
-                  Specializing in <span className="font-semibold text-blue-600">Microsoft 365 ecosystems</span>, <span className="font-semibold text-purple-600">n8n automation workflows</span>, 
-                  <span className="font-semibold text-cyan-600">Azure infrastructure</span>, and <span className="font-semibold text-green-600">Apple Business Manager integration</span>.
+                  Specializing in <span className="font-semibold text-blue-400">Microsoft 365 ecosystems</span>, <span className="font-semibold text-purple-400">n8n automation workflows</span>, 
+                  <span className="font-semibold text-cyan-400">Azure infrastructure</span>, and <span className="font-semibold text-green-400">Apple Business Manager integration</span>.
                 </p>
-                <p className="text-lg text-gray-600 leading-relaxed">
+                <p className="text-lg text-gray-300 leading-relaxed">
                   From designing AI-driven service desk workflows to managing 6,000+ users across hybrid environments, 
                   I bridge the gap between complex technical systems and practical business outcomes. Every automation I build 
                   is designed with the end user in mind, delivering 2-3× faster provisioning times and maintaining 99.8% customer satisfaction.
@@ -84,18 +84,18 @@ const Summary = () => {
             </div>
 
             {/* Stats or achievements */}
-            <div className="grid grid-cols-3 gap-6 mt-8 pt-8 border-t border-gray-200/50">
+            <div className="grid grid-cols-3 gap-6 mt-8 pt-8 border-t border-gray-600/50">
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600 mb-1">2-3×</div>
-                <div className="text-sm text-gray-600">Faster Provisioning</div>
+                <div className="text-2xl font-bold text-blue-400 mb-1">2-3×</div>
+                <div className="text-sm text-gray-400">Faster Provisioning</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600 mb-1">6,000+</div>
-                <div className="text-sm text-gray-600">Users Supported</div>
+                <div className="text-2xl font-bold text-purple-400 mb-1">6,000+</div>
+                <div className="text-sm text-gray-400">Users Supported</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-cyan-600 mb-1">99.8%</div>
-                <div className="text-sm text-gray-600">Customer Satisfaction</div>
+                <div className="text-2xl font-bold text-cyan-400 mb-1">99.8%</div>
+                <div className="text-sm text-gray-400">Customer Satisfaction</div>
               </div>
             </div>
           </div>

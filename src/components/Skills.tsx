@@ -55,17 +55,17 @@ const Skills = () => {
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-blue-50">
+    <section className="py-20 bg-gradient-to-br from-gray-800 via-gray-900 to-blue-900">
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-16">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-6">
             <Zap className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
             Technical Arsenal
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto mb-8"></div>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
             A comprehensive toolkit for building intelligent automation solutions and scalable infrastructure
           </p>
         </div>
@@ -75,12 +75,12 @@ const Skills = () => {
           {highlights.map((highlight, index) => (
             <div key={index} className="group relative">
               <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-10 transition-opacity duration-300 rounded-2xl blur-xl"></div>
-              <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 hover:border-gray-300/50 transition-all duration-300 hover:shadow-xl">
+              <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300 hover:shadow-xl">
                 <div className={`inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r ${highlight.gradient} rounded-xl mb-4 text-white`}>
                   {highlight.icon}
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">{highlight.title}</h3>
-                <p className="text-gray-600">{highlight.description}</p>
+                <h3 className="text-xl font-bold text-white mb-2">{highlight.title}</h3>
+                <p className="text-gray-300">{highlight.description}</p>
               </div>
             </div>
           ))}
@@ -91,19 +91,19 @@ const Skills = () => {
           {skillCategories.map((category, index) => (
             <div key={index} className="group relative">
               <div className={`absolute inset-0 bg-gradient-to-r ${category.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-2xl blur-xl`}></div>
-              <div className={`relative bg-gradient-to-br ${category.bgGradient} rounded-2xl p-8 border border-white/50 hover:shadow-xl transition-all duration-300`}>
+              <div className="relative bg-gradient-to-br from-gray-800 to-gray-700 rounded-2xl p-8 border border-gray-600/50 hover:shadow-xl transition-all duration-300">
                 <div className="flex items-center mb-6">
                   <div className={`p-3 rounded-xl bg-gradient-to-r ${category.gradient} text-white group-hover:scale-110 transition-transform duration-300`}>
                     {category.icon}
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 ml-4">{category.title}</h3>
+                  <h3 className="text-2xl font-bold text-white ml-4">{category.title}</h3>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-3">
                   {category.skills.map((skill, skillIndex) => (
                     <div
                       key={skillIndex}
-                      className="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-xl text-sm font-medium text-gray-700 border border-white/50 hover:border-gray-200 transition-all duration-300 hover:scale-105 hover:shadow-md text-center"
+                      className="px-4 py-2 bg-gray-700/80 backdrop-blur-sm rounded-xl text-sm font-medium text-gray-200 border border-gray-600/50 hover:border-gray-500 transition-all duration-300 hover:scale-105 hover:shadow-md text-center"
                     >
                       {skill}
                     </div>
