@@ -76,8 +76,7 @@ const Footer = () => {
               Ready to discuss your next automation project or explore collaboration opportunities?
             </p>
             <a
-              href="mailto:mejohnwc@gmail.com"
-              href="mailto:mejohnwc@gmail.com?subject=Let's Connect&body=Hi Jonathan,%0D%0A%0D%0AI'd like to connect with you.%0D%0A%0D%0ABest regards"
+              href="mailto:mejohnwc@gmail.com?subject=Let%27s%20Connect&body=Hi%20Jonathan%2C%0D%0A%0D%0AI%27d%20like%20to%20connect%20with%20you.%0D%0A%0D%0ABest%20regards"
               className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-1"
             >
               <Zap className="w-4 h-4 mr-2" />

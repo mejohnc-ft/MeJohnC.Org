@@ -39,7 +39,7 @@ const Contact = () => {
             </p>
             <div className="space-y-4">
               <a
-                href="mailto:mejohnwc@gmail.com?subject=Professional Inquiry&body=Hi Jonathan,%0D%0A%0D%0AI'm interested in discussing automation opportunities.%0D%0A%0D%0ABest regards"
+                href="mailto:mejohnwc@gmail.com?subject=Professional%20Inquiry&body=Hi%20Jonathan%2C%0D%0A%0D%0AI%27m%20interested%20in%20discussing%20automation%20opportunities.%0D%0A%0D%0ABest%20regards"
                 className="flex items-center p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-all duration-300 group"
               >
                 <Mail className="w-6 h-6 text-blue-400 mr-4 group-hover:scale-110 transition-transform duration-300" />
@@ -105,7 +105,7 @@ const Contact = () => {
         {/* Call to Action */}
         <div className="text-center mt-12">
           <a
-            href="mailto:mejohnwc@gmail.com?subject=Let's Start a Conversation&body=Hi Jonathan,%0D%0A%0D%0AI'd like to explore how we can work together.%0D%0A%0D%0APlease let me know when you're available for a brief call.%0D%0A%0D%0ABest regards"
+            href="mailto:mejohnwc@gmail.com?subject=Let%27s%20Start%20a%20Conversation&body=Hi%20Jonathan%2C%0D%0A%0D%0AI%27d%20like%20to%20explore%20how%20we%20can%20work%20together.%0D%0A%0D%0APlease%20let%20me%20know%20when%20you%27re%20available%20for%20a%20brief%20call.%0D%0A%0D%0ABest%20regards"
             className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-semibold text-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 group"
           >
             <Zap className="w-5 h-5 mr-2 group-hover:animate-pulse" />

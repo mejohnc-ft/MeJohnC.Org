@@ -69,6 +69,27 @@ const Education = () => {
                     <Calendar className="w-4 h-4 mr-2" />
                     <span className="font-medium">Expected December 2025</span>
                   </div>
+                  
+                  <div className="mt-4 pt-4 border-t border-gray-200/50">
+                    <h5 className="font-semibold text-gray-800 mb-2">Relevant Coursework</h5>
+                    <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                      <div>• Systems Analysis & Design</div>
+                      <div>• Database Management</div>
+                      <div>• Project Management</div>
+                      <div>• Business Process Analysis</div>
+                      <div>• Information Security</div>
+                      <div>• Strategic IT Planning</div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 pt-4 border-t border-gray-200/50">
+                    <h5 className="font-semibold text-gray-800 mb-2">Academic Focus</h5>
+                    <p className="text-sm text-gray-600 leading-relaxed">
+                      Combining technical expertise with business acumen to bridge the gap between 
+                      IT solutions and organizational objectives. Emphasis on project lifecycle management, 
+                      stakeholder communication, and strategic technology implementation.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
