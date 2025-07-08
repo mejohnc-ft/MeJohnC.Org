@@ -1,7 +1,16 @@
 import React from 'react';
 import { Download, Mail, MapPin, Zap, Bot, Code2 } from 'lucide-react';
+import { downloadResume } from '../lib/supabase';
 
 const Hero = () => {
+  const handleDownloadResume = async () => {
+    const success = await downloadResume();
+    if (!success) {
+      // Fallback to email if download fails
+      window.location.href = "mailto:mejohnwc@gmail.com?subject=Resume%20Request&body=Hi%20Jonathan%2C%0D%0A%0D%0AI%27d%20like%20to%20request%20a%20copy%20of%20your%20resume.%0D%0A%0D%0ABest%20regards";
+    }
+  };
+
   return (
     <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 relative overflow-hidden">
       {/* Floating automation elements */}
@@ -57,8 +66,8 @@ const Hero = () => {
 
         {/* Enhanced CTA buttons */}
         <div className="flex flex-col sm:flex-row gap-6 justify-center">
-          <a
-            href="mailto:mejohnwc@gmail.com?subject=Resume%20Request&body=Hi%20Jonathan%2C%0D%0A%0D%0AI%27d%20like%20to%20request%20a%20copy%20of%20your%20resume.%0D%0A%0D%0ABest%20regards"
+          <button
+            onClick={handleDownloadResume}
             className="group relative bg-gradient-to-r from-gray-900 to-gray-800 text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:from-gray-800 hover:to-gray-700 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-2 overflow-hidden inline-block"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -66,7 +75,7 @@ const Hero = () => {
               <Download className="w-5 h-5 mr-2 group-hover:animate-bounce" />
               Download Resume
             </div>
-          </a>
+          </button>
           
           <a
             href="mailto:mejohnwc@gmail.com?subject=Let%27s%20Connect%20-%20Opportunity%20Discussion&body=Hi%20Jonathan%2C%0D%0A%0D%0AI%27d%20like%20to%20discuss%20potential%20opportunities%20with%20you.%0D%0A%0D%0ABest%20regards"
