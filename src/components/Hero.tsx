@@ -87,6 +87,8 @@ const Hero = () => {
           <a
             href="mailto:mejohnwc@gmail.com?subject=Let%27s%20Connect%20-%20Opportunity%20Discussion&body=Hi%20Jonathan%2C%0D%0A%0D%0AI%27d%20like%20to%20discuss%20potential%20opportunities%20with%20you.%0D%0A%0D%0ABest%20regards"
             className="group relative bg-white/10 backdrop-blur-sm text-white px-8 py-4 rounded-2xl font-semibold text-lg border-2 border-white/20 hover:border-blue-400 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-2 overflow-hidden inline-block"
+            target="_blank"
+            rel="noopener noreferrer"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative flex items-center">

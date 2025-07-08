@@ -231,6 +231,8 @@ const CaseStudies = () => {
             <a
               href="mailto:mejohnwc@gmail.com?subject=Case%20Study%20Discussion&body=Hi%20Jonathan%2C%0D%0A%0D%0AI%27m%20interested%20in%20discussing%20how%20your%20automation%20case%20studies%20could%20apply%20to%20our%20organization.%0D%0A%0D%0ABest%20regards"
               className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 group"
+              target="_blank"
+              rel="noopener noreferrer"
             >
               <Zap className="w-5 h-5 mr-2 group-hover:animate-pulse" />
               Discuss Your Automation Needs
