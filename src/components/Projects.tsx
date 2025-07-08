@@ -163,11 +163,13 @@ const Projects = () => {
               could transform your organization's workflows and efficiency.
             </p>
             <a
-              href="mailto:mejohnwc@gmail.com?subject=Project%20Discussion&body=Hi%20Jonathan%2C%0D%0A%0D%0AI%27m%20interested%20in%20learning%20more%20about%20your%20automation%20projects%20and%20how%20they%20might%20apply%20to%20our%20organization.%0D%0A%0D%0ABest%20regards"
+              href="https://christensenconsulting.co/"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 group"
             >
               <Zap className="w-5 h-5 mr-2 group-hover:animate-pulse" />
-              Discuss Your Project
+              Visit Christensen Consulting
             </a>
           </div>
         </div>
