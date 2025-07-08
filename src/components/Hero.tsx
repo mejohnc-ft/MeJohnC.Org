@@ -25,17 +25,6 @@ const Hero = () => {
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full mix-blend-screen filter blur-xl animate-pulse"></div>
         <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-full mix-blend-screen filter blur-xl animate-pulse delay-1000"></div>
         <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full mix-blend-screen filter blur-xl animate-pulse delay-2000"></div>
-        
-        {/* Floating tech icons */}
-        <div className="absolute top-20 left-20 opacity-30 animate-bounce">
-          <Bot className="w-12 h-12 text-blue-400" />
-        </div>
-        <div className="absolute top-40 right-32 opacity-30 animate-bounce delay-1000">
-          <Code2 className="w-10 h-10 text-purple-400" />
-        </div>
-        <div className="absolute bottom-32 left-32 opacity-30 animate-bounce delay-2000">
-          <Zap className="w-14 h-14 text-cyan-400" />
-        </div>
       </div>
 
       <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
