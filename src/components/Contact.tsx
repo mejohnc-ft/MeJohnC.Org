@@ -1,117 +1,84 @@
-import React from 'react';
-import { Mail, Linkedin, Github, Calendar, MessageCircle, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Mail, Linkedin, Github, Calendar } from 'lucide-react';
 
 const Contact = () => {
-  return (
-    <section className="py-20 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 relative overflow-hidden">
-      {/* Animated circuit pattern background */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 w-32 h-32 border border-blue-400 rounded-lg animate-pulse"></div>
-        <div className="absolute top-32 right-20 w-24 h-24 border border-purple-400 rounded-full animate-ping"></div>
-        <div className="absolute bottom-20 left-1/4 w-40 h-40 border border-cyan-400 rounded-lg animate-pulse delay-1000"></div>
-        <div className="absolute bottom-32 right-1/3 w-28 h-28 border border-green-400 rounded-full animate-ping delay-2000"></div>
-      </div>
+  const links = [
+    {
+      label: "Email",
+      href: "mailto:mejohnwc@gmail.com",
+      icon: Mail,
+      value: "mejohnwc@gmail.com"
+    },
+    {
+      label: "LinkedIn",
+      href: "https://www.linkedin.com/in/mejohnc/",
+      icon: Linkedin,
+      value: "/in/mejohnc"
+    },
+    {
+      label: "GitHub",
+      href: "https://github.com/mejohnc-ft",
+      icon: Github,
+      value: "@mejohnc-ft"
+    },
+    {
+      label: "Calendar",
+      href: "https://calendly.com/jonathan-christensen",
+      icon: Calendar,
+      value: "Book a call"
+    }
+  ];
 
-      <div className="max-w-4xl mx-auto px-4 relative z-10">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-6">
-            <Zap className="w-8 h-8 text-white" />
-          </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Ready to Automate the Future?
+  return (
+    <section id="contact" className="py-24 bg-card">
+      <div className="max-w-4xl mx-auto px-6">
+        {/* Section header */}
+        <div className="mb-16">
+          <span className="font-mono text-sm text-primary uppercase tracking-widest">
+            Contact
+          </span>
+          <h2 className="text-4xl md:text-5xl font-black text-foreground mt-2 mb-6">
+            Get in touch
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-blue-400 to-purple-500 mx-auto mb-8"></div>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            Let's discuss how we can streamline your workflows and build intelligent systems together.
+          <p className="text-lg text-muted-foreground max-w-xl">
+            I respond within 24 hours. Let's talk about AI agents, automation,
+            or whatever you're building.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Direct Contact */}
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-            <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
-              <MessageCircle className="w-6 h-6 mr-3 text-blue-400" />
-              Let's Connect
-            </h3>
-            <p className="text-gray-300 mb-6 leading-relaxed">
-              Whether you're looking to streamline operations, implement AI-driven automation, 
-              or discuss how intelligent systems can transform your organization, I'd love to hear from you.
-            </p>
-            <div className="space-y-4">
-              <a
-                href="mailto:mejohnwc@gmail.com?subject=Professional%20Inquiry&body=Hi%20Jonathan%2C%0D%0A%0D%0AI%27m%20interested%20in%20discussing%20automation%20opportunities.%0D%0A%0D%0ABest%20regards"
-                className="flex items-center p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-all duration-300 group"
-              >
-                <Mail className="w-6 h-6 text-blue-400 mr-4 group-hover:scale-110 transition-transform duration-300" />
-                <div>
-                  <p className="font-medium text-white">Email</p>
-                  <p className="text-gray-300">mejohnwc@gmail.com</p>
+        {/* Links grid */}
+        <div className="grid md:grid-cols-2 gap-4 mb-12">
+          {links.map((link, index) => (
+            <a
+              key={index}
+              href={link.href}
+              target={link.href.startsWith('mailto') ? undefined : '_blank'}
+              rel={link.href.startsWith('mailto') ? undefined : 'noopener noreferrer'}
+              className="flex items-center gap-4 p-4 border border-border hover:border-primary transition-colors group"
+            >
+              <link.icon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              <div>
+                <div className="font-mono text-xs text-muted-foreground uppercase tracking-wider">
+                  {link.label}
                 </div>
-              </a>
-              
-              <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                <h4 className="font-semibold text-white mb-2">Response Time</h4>
-                <p className="text-sm text-gray-300">I typically respond within 24 hours during business days</p>
+                <div className="text-foreground group-hover:text-primary transition-colors">
+                  {link.value}
+                </div>
               </div>
-            </div>
-          </div>
-
-          {/* Social Links */}
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-            <h3 className="text-2xl font-bold text-white mb-6">Find Me Online</h3>
-            <div className="space-y-4">
-              <a
-                href="https://www.linkedin.com/in/mejohnc/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-all duration-300 group"
-              >
-                <Linkedin className="w-6 h-6 text-blue-400 mr-4 group-hover:scale-110 transition-transform duration-300" />
-                <div>
-                  <p className="font-medium text-white">LinkedIn</p>
-                  <p className="text-gray-300">Professional network</p>
-                </div>
-              </a>
-
-              <a
-                href="https://github.com/mejohnc-ft"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-all duration-300 group"
-              >
-                <Github className="w-6 h-6 text-gray-300 mr-4 group-hover:scale-110 transition-transform duration-300" />
-                <div>
-                  <p className="font-medium text-white">GitHub</p>
-                  <p className="text-gray-300">Code & projects</p>
-                </div>
-              </a>
-
-              <a
-                href="https://calendly.com/jonathan-christensen"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-all duration-300 group"
-              >
-                <Calendar className="w-6 h-6 text-green-400 mr-4 group-hover:scale-110 transition-transform duration-300" />
-                <div>
-                  <p className="font-medium text-white">Schedule a Call</p>
-                  <p className="text-gray-300">Book a meeting</p>
-                </div>
-              </a>
-            </div>
-          </div>
+            </a>
+          ))}
         </div>
 
-        {/* Call to Action */}
-        <div className="text-center mt-12">
-          <a
-            href="mailto:mejohnwc@gmail.com?subject=Let%27s%20Start%20a%20Conversation&body=Hi%20Jonathan%2C%0D%0A%0D%0AI%27d%20like%20to%20explore%20how%20we%20can%20work%20together.%0D%0A%0D%0APlease%20let%20me%20know%20when%20you%27re%20available%20for%20a%20brief%20call.%0D%0A%0D%0ABest%20regards"
-            className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-semibold text-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 group"
-          >
-            <Zap className="w-5 h-5 mr-2 group-hover:animate-pulse" />
-            Start the Conversation
+        {/* CTA */}
+        <Button
+          asChild
+          className="bg-primary text-primary-foreground hover:bg-primary/90 font-mono uppercase tracking-wider px-8 py-6 text-sm"
+        >
+          <a href="mailto:mejohnwc@gmail.com?subject=Let%27s%20Connect&body=Hi%20Jonathan%2C%0D%0A%0D%0AI%27d%20like%20to%20discuss...%0D%0A%0D%0ABest%20regards">
+            <Mail className="w-4 h-4 mr-2" />
+            Send an email
           </a>
-        </div>
+        </Button>
       </div>
     </section>
   );
