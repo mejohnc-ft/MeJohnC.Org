@@ -74,6 +74,9 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          VITE_GHOST_URL: ${{ secrets.VITE_GHOST_URL }}
+          VITE_GHOST_CONTENT_API_KEY: ${{ secrets.VITE_GHOST_CONTENT_API_KEY }}
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

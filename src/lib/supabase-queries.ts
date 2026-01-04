@@ -1,5 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { getSupabase } from './supabase';
+import { getSupabase, supabase } from './supabase';
 import { handleQueryResult } from './errors';
 import { STORAGE_BUCKET, SUPABASE_ERROR_CODES } from './constants';
 
