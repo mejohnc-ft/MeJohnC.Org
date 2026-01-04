@@ -381,7 +381,7 @@ const ProjectTimeline = ({
       </div>
 
       {/* Expanded Content */}
-      <div className="relative overflow-hidden min-h-[180px]">
+      <div className="relative min-h-[200px]">
         <AnimatePresence mode="wait">
           {expandedId && (
             <motion.div
@@ -390,10 +390,9 @@ const ProjectTimeline = ({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -100 }}
               transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="absolute inset-0"
             >
               <div
-                className="p-6 rounded border bg-card/50 backdrop-blur-sm h-full"
+                className="p-6 pb-8 rounded border bg-card/50 backdrop-blur-sm"
                 style={{
                   borderColor: theme.primary,
                   boxShadow: `0 0 20px ${theme.glow}`,
@@ -413,7 +412,7 @@ const ProjectTimeline = ({
                         <span className="text-muted-foreground">—</span>
                         <span className="text-foreground font-semibold">{item.phase}</span>
                       </div>
-                      <p className="text-muted-foreground leading-relaxed">{item.content}</p>
+                      <p className="text-muted-foreground leading-relaxed mb-2">{item.content}</p>
                     </div>
                   ))}
               </div>
