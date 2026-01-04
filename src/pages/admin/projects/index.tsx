@@ -23,6 +23,10 @@ const AdminProjectsList = () => {
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
 
   const fetchData = useCallback(async () => {
+    if (!supabase) {
+      setIsLoading(false);
+      return;
+    }
     try {
       const data = await getProjects(true, supabase);
       setProjects(data);

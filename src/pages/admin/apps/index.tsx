@@ -35,6 +35,10 @@ const AdminAppsList = () => {
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
 
   const fetchData = useCallback(async () => {
+    if (!supabase) {
+      setIsLoading(false);
+      return;
+    }
     try {
       const [appsData, suitesData] = await Promise.all([
         getApps(true, supabase), // Include all statuses

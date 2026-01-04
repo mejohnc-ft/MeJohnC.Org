@@ -29,6 +29,10 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     async function fetchStats() {
+      if (!supabase) {
+        setIsLoading(false);
+        return;
+      }
       try {
         const [appsResult, projectsResult, postsResult, draftsResult] = await Promise.all([
           supabase.from('apps').select('id', { count: 'exact', head: true }),
@@ -51,7 +55,7 @@ const AdminDashboard = () => {
     }
 
     fetchStats();
-     
+
   }, [supabase]);
 
   const statCards = [

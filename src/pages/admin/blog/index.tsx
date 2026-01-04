@@ -24,6 +24,10 @@ const AdminBlogList = () => {
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
 
   const fetchPosts = useCallback(async () => {
+    if (!supabase) {
+      setIsLoading(false);
+      return;
+    }
     try {
       const data = await getBlogPosts(true, supabase); // Include unpublished
       setPosts(data);
