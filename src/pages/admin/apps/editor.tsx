@@ -54,23 +54,6 @@ const AppEditor = () => {
   const [error, setError] = useState<string | null>(null);
   const [autoSlug, setAutoSlug] = useState(true);
 
-  useEffect(() => {
-    fetchSuites();
-    if (id) {
-      fetchApp(id);
-    }
-  }, [id, fetchSuites, fetchApp]);
-
-  // Auto-generate slug from name
-  useEffect(() => {
-    if (autoSlug && formData.name) {
-      setFormData((prev) => ({
-        ...prev,
-        slug: generateSlug(formData.name),
-      }));
-    }
-  }, [formData.name, autoSlug]);
-
   const fetchSuites = useCallback(async () => {
     if (!supabase) return;
     try {
@@ -85,7 +68,6 @@ const AppEditor = () => {
     if (!supabase) return;
     try {
       const data = await getAppById(appId, supabase);
-
       setFormData({
         suite_id: data.suite_id,
         name: data.name,
@@ -111,12 +93,27 @@ const AppEditor = () => {
     }
   }, [supabase]);
 
-  // Handle version restore by refetching the app
   const handleVersionRestore = useCallback(() => {
     if (id) {
       fetchApp(id);
     }
   }, [id, fetchApp]);
+
+  useEffect(() => {
+    fetchSuites();
+    if (id) {
+      fetchApp(id);
+    }
+  }, [id, fetchSuites, fetchApp]);
+
+  useEffect(() => {
+    if (autoSlug && formData.name) {
+      setFormData((prev) => ({
+        ...prev,
+        slug: generateSlug(formData.name),
+      }));
+    }
+  }, [formData.name, autoSlug]);
 
   async function handleSave(makeAvailable = false) {
     if (!supabase) {

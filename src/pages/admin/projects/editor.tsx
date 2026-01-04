@@ -50,22 +50,6 @@ const ProjectEditor = () => {
   const [error, setError] = useState<string | null>(null);
   const [autoSlug, setAutoSlug] = useState(true);
 
-  useEffect(() => {
-    if (id) {
-      fetchProject(id);
-    }
-  }, [id, fetchProject]);
-
-  // Auto-generate slug from name
-  useEffect(() => {
-    if (autoSlug && formData.name) {
-      setFormData((prev) => ({
-        ...prev,
-        slug: generateSlug(formData.name),
-      }));
-    }
-  }, [formData.name, autoSlug]);
-
   const fetchProject = useCallback(async (projectId: string) => {
     if (!supabase) return;
     try {
@@ -94,12 +78,26 @@ const ProjectEditor = () => {
     }
   }, [supabase]);
 
-  // Handle version restore by refetching the project
   const handleVersionRestore = useCallback(() => {
     if (id) {
       fetchProject(id);
     }
   }, [id, fetchProject]);
+
+  useEffect(() => {
+    if (id) {
+      fetchProject(id);
+    }
+  }, [id, fetchProject]);
+
+  useEffect(() => {
+    if (autoSlug && formData.name) {
+      setFormData((prev) => ({
+        ...prev,
+        slug: generateSlug(formData.name),
+      }));
+    }
+  }, [formData.name, autoSlug]);
 
   async function handleSave(publish = false, schedule = false) {
     if (!supabase) {

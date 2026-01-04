@@ -51,32 +51,6 @@ const BlogEditor = () => {
   const [error, setError] = useState<string | null>(null);
   const [autoSlug, setAutoSlug] = useState(true);
 
-  useEffect(() => {
-    if (id) {
-      fetchPost(id);
-    }
-  }, [id, fetchPost]);
-
-  // Auto-generate slug from title
-  useEffect(() => {
-    if (autoSlug && formData.title) {
-      setFormData((prev) => ({
-        ...prev,
-        slug: generateSlug(formData.title),
-      }));
-    }
-  }, [formData.title, autoSlug]);
-
-  // Auto-calculate reading time
-  useEffect(() => {
-    if (formData.content) {
-      setFormData((prev) => ({
-        ...prev,
-        reading_time: calculateReadingTime(formData.content),
-      }));
-    }
-  }, [formData.content]);
-
   const fetchPost = useCallback(async (postId: string) => {
     if (!supabase) return;
     try {
@@ -96,7 +70,7 @@ const BlogEditor = () => {
         meta_description: post.meta_description,
         og_image: post.og_image,
       });
-      setAutoSlug(false); // Don't auto-update slug for existing posts
+      setAutoSlug(false);
     } catch (err) {
       captureException(err instanceof Error ? err : new Error(String(err)), { context: 'BlogEditor.fetchPost' });
       setError('Post not found');
@@ -105,12 +79,35 @@ const BlogEditor = () => {
     }
   }, [supabase]);
 
-  // Handle version restore by refetching the post
   const handleVersionRestore = useCallback(() => {
     if (id) {
       fetchPost(id);
     }
   }, [id, fetchPost]);
+
+  useEffect(() => {
+    if (id) {
+      fetchPost(id);
+    }
+  }, [id, fetchPost]);
+
+  useEffect(() => {
+    if (autoSlug && formData.title) {
+      setFormData((prev) => ({
+        ...prev,
+        slug: generateSlug(formData.title),
+      }));
+    }
+  }, [formData.title, autoSlug]);
+
+  useEffect(() => {
+    if (formData.content) {
+      setFormData((prev) => ({
+        ...prev,
+        reading_time: calculateReadingTime(formData.content),
+      }));
+    }
+  }, [formData.content]);
 
   async function handleSave(publish = false, schedule = false) {
     if (!supabase) {
