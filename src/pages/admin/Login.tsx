@@ -54,7 +54,7 @@ const AdminLogin = () => {
                 identityPreviewEditButton: 'text-primary',
               },
             }}
-            redirectUrl="/admin"
+            fallbackRedirectUrl="/admin"
             signUpUrl="/admin/login"
           />
         </div>

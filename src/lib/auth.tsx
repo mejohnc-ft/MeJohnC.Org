@@ -61,7 +61,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+    <ClerkProvider
+      publishableKey={CLERK_PUBLISHABLE_KEY}
+      signInFallbackRedirectUrl="/admin"
+      signUpFallbackRedirectUrl="/admin"
+    >
       <AuthContextProvider>{children}</AuthContextProvider>
     </ClerkProvider>
   );
