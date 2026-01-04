@@ -5,8 +5,12 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    /* Warm Dark Brown + Amber Theme */
+  /* ============================================
+     WARM THEME - Dark brown + amber/orange
+     Default theme with rich, warm colors
+     ============================================ */
+  :root,
+  [data-theme="warm"] {
     --background: 20 20% 5%;
     --foreground: 30 10% 95%;
     --card: 20 15% 8%;
@@ -27,6 +31,57 @@
     --input: 25 8% 20%;
     --ring: 25 95% 53%;
     --radius: 0.125rem;
+
+    /* Theme-specific colors for direct use */
+    --theme-primary-hsl: 25 95% 53%;
+    --theme-bg-card-hsl: 20 15% 8%;
+  }
+
+  /* ============================================
+     CRISP THEME - Light engineering paper + teal
+     Clean, professional with stippled paper texture
+     Accent palette:
+     - #036661 (177, 94%, 21%) - Primary teal
+     - #6ba29f (177, 23%, 53%) - Light teal
+     - #114945 (176, 62%, 18%) - Secondary teal
+     - #062e24 (165, 77%, 10%) - Dark teal
+     - #05100e (169, 52%, 4%) - Near black
+     ============================================ */
+  [data-theme="crisp"] {
+    --background: 60 10% 97%;
+    --foreground: 169 52% 8%;
+    --card: 60 15% 99%;
+    --card-foreground: 169 52% 8%;
+    --popover: 60 15% 99%;
+    --popover-foreground: 169 52% 8%;
+    --primary: 177 94% 21%;
+    --primary-foreground: 60 10% 97%;
+    --secondary: 60 8% 92%;
+    --secondary-foreground: 169 52% 8%;
+    --muted: 60 6% 90%;
+    --muted-foreground: 176 20% 40%;
+    --accent: 177 94% 21%;
+    --accent-foreground: 60 10% 97%;
+    --destructive: 0 84% 45%;
+    --destructive-foreground: 60 10% 97%;
+    --border: 177 15% 80%;
+    --input: 177 15% 85%;
+    --ring: 177 94% 21%;
+    --radius: 0.125rem;
+
+    /* Theme-specific colors for direct use */
+    --theme-primary-hsl: 177 94% 21%;
+    --theme-bg-card-hsl: 60 15% 99%;
+
+    /* Crisp theme accent gradient stops */
+    --crisp-teal-50: 177 23% 53%;
+    --crisp-teal-100: 177 30% 45%;
+    --crisp-teal-200: 177 50% 35%;
+    --crisp-teal-300: 177 70% 28%;
+    --crisp-teal-400: 177 94% 21%;
+    --crisp-teal-500: 176 62% 18%;
+    --crisp-teal-600: 165 77% 10%;
+    --crisp-teal-700: 169 52% 4%;
   }
 }
 
@@ -40,12 +95,31 @@
 
   html {
     scroll-behavior: smooth;
+    /* Fluid base font size: 16px at 320px → 18px at 1280px */
+    font-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
   }
 
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     line-height: 1.6;
+  }
+
+  /* Fluid typography for headings */
+  h1 {
+    font-size: clamp(2rem, 1.5rem + 2.5vw, 3.5rem);
+  }
+
+  h2 {
+    font-size: clamp(1.5rem, 1.25rem + 1.25vw, 2.25rem);
+  }
+
+  h3 {
+    font-size: clamp(1.25rem, 1.1rem + 0.75vw, 1.75rem);
+  }
+
+  h4 {
+    font-size: clamp(1.125rem, 1rem + 0.5vw, 1.5rem);
   }
 }
 
@@ -60,32 +134,58 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: hsl(20 15% 8%);
+  background: hsl(var(--card));
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(25 95% 53%);
+  background: hsl(var(--primary));
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(25 95% 45%);
+  background: hsl(var(--primary) / 0.8);
 }
 
 /* Selection */
 ::selection {
-  background: hsl(25 95% 53% / 0.3);
-  color: hsl(0 0% 98%);
+  background: hsl(var(--primary) / 0.3);
+  color: hsl(var(--foreground));
 }
 
-/* Focus styles */
+/* Focus styles - visible outlines for keyboard accessibility (WCAG 2.4.7) */
+:focus {
+  outline: none;
+}
+
 :focus-visible {
-  outline: 2px solid hsl(25 95% 53%);
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Form elements get focus ring on keyboard navigation */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid hsl(var(--primary));
   outline-offset: 2px;
 }
 
 /* Smooth transitions for interactive elements */
 button, a {
   transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+/* Buttons and links get visible focus ring for keyboard users */
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Contact card focus/selection styles */
+.contact-card-glow {
+  border-color: hsl(var(--primary)) !important;
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.5), 0 0 40px hsl(var(--primary) / 0.3), inset 0 0 20px hsl(var(--primary) / 0.1) !important;
+  transition: border-color 0.1s ease-out, box-shadow 0.1s ease-out !important;
 }
 
 /* Print styles */
@@ -100,50 +200,67 @@ button, a {
   }
 }
 
+/* ============================================
+   REDUCED MOTION - Accessibility
+   Respect user's motion preferences
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Disable skeleton pulse animation */
+  .animate-pulse {
+    animation: none !important;
+  }
+
+  /* Ensure critical content is still visible */
+  [data-framer-component-type] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 /* Brutalist utilities */
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+}
 
-  /* Terminal cursor blink */
-  .cursor-blink::after {
-    content: '_';
-    animation: blink 1s step-end infinite;
-  }
+/* ============================================
+   CRISP THEME - Stippled Paper Background
+   Engineering notebook dot grid pattern
+   ============================================ */
+[data-theme="crisp"] body {
+  background-image:
+    /* Subtle stipple dots */
+    radial-gradient(circle at center, hsl(177 30% 75% / 0.3) 1px, transparent 1px),
+    /* Faint engineering grid dots */
+    radial-gradient(circle at center, hsl(177 40% 65% / 0.15) 0.5px, transparent 0.5px);
+  background-size:
+    20px 20px,
+    5px 5px;
+  background-position:
+    0 0,
+    2.5px 2.5px;
+  background-attachment: fixed;
+}
 
-  @keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0; }
-  }
+/* Crisp theme card styling - clean paper appearance */
+[data-theme="crisp"] .bg-card {
+  background-image: none;
+  box-shadow:
+    0 1px 3px hsl(177 20% 70% / 0.2),
+    0 0 0 1px hsl(177 20% 85% / 0.5);
+}
 
-  /* Hover underline reveal */
-  .hover-underline {
-    position: relative;
-  }
-
-  .hover-underline::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    width: 0;
-    height: 1px;
-    background: hsl(25 95% 53%);
-    transition: width 0.2s ease;
-  }
-
-  .hover-underline:hover::after {
-    width: 100%;
-  }
-
-  /* Stark border hover */
-  .border-hover {
-    border-color: transparent;
-    transition: border-color 0.15s ease;
-  }
-
-  .border-hover:hover {
-    border-color: hsl(25 95% 53%);
-  }
+/* Crisp theme transitions */
+[data-theme="crisp"] {
+  transition: background-color 0.3s ease, color 0.3s ease;
 }

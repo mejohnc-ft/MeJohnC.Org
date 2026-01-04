@@ -1,21 +1,25 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Save, Eye, Loader2, Send } from 'lucide-react';
+import { ArrowLeft, Save, Eye, Loader2, Send, Search } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
-import EditorPanel, { Field, Input, Select, TagInput } from '@/components/admin/EditorPanel';
+import EditorPanel, { Field, Input, Select, TagInput, Textarea } from '@/components/admin/EditorPanel';
 import MarkdownEditor from '@/components/admin/MarkdownEditor';
 import ImageUploader from '@/components/admin/ImageUploader';
+import VersionHistory from '@/components/admin/VersionHistory';
 import { Button } from '@/components/ui/button';
+import { useSupabaseClient } from '@/lib/supabase';
 import {
   getAppSuites,
+  getAppById,
   createApp,
   updateApp,
   generateSlug,
   type App,
   type AppSuite
 } from '@/lib/supabase-queries';
-import { supabase } from '@/lib/supabase';
+import { captureException } from '@/lib/sentry';
+import { useSEO } from '@/lib/seo';
 
 type AppFormData = Omit<App, 'id' | 'created_at' | 'updated_at' | 'suite'>;
 
@@ -29,14 +33,19 @@ const initialFormData: AppFormData = {
   external_url: '',
   demo_url: '',
   tech_stack: [],
-  status: 'draft',
+  status: 'planned',
   order_index: 0,
+  meta_title: null,
+  meta_description: null,
+  og_image: null,
 };
 
 const AppEditor = () => {
+  useSEO({ title: 'App Editor', noIndex: true });
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isEditing = !!id;
+  const supabase = useSupabaseClient();
 
   const [formData, setFormData] = useState<AppFormData>(initialFormData);
   const [suites, setSuites] = useState<AppSuite[]>([]);
@@ -50,7 +59,7 @@ const AppEditor = () => {
     if (id) {
       fetchApp(id);
     }
-  }, [id]);
+  }, [id, fetchSuites, fetchApp]);
 
   // Auto-generate slug from name
   useEffect(() => {
@@ -62,24 +71,18 @@ const AppEditor = () => {
     }
   }, [formData.name, autoSlug]);
 
-  async function fetchSuites() {
+  const fetchSuites = useCallback(async () => {
     try {
-      const data = await getAppSuites();
+      const data = await getAppSuites(supabase);
       setSuites(data);
     } catch (err) {
-      console.error('Error fetching suites:', err);
+      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'AppEditor.fetchSuites' });
     }
-  }
+  }, [supabase]);
 
-  async function fetchApp(appId: string) {
+  const fetchApp = useCallback(async (appId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('apps')
-        .select('*')
-        .eq('id', appId)
-        .single();
-
-      if (error) throw error;
+      const data = await getAppById(appId, supabase);
 
       setFormData({
         suite_id: data.suite_id,
@@ -93,17 +96,27 @@ const AppEditor = () => {
         tech_stack: data.tech_stack || [],
         status: data.status,
         order_index: data.order_index,
+        meta_title: data.meta_title,
+        meta_description: data.meta_description,
+        og_image: data.og_image,
       });
       setAutoSlug(false);
     } catch (err) {
-      console.error('Error fetching app:', err);
+      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'AppEditor.fetchApp' });
       setError('App not found');
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [supabase]);
 
-  async function handleSave(publish = false) {
+  // Handle version restore by refetching the app
+  const handleVersionRestore = useCallback(() => {
+    if (id) {
+      fetchApp(id);
+    }
+  }, [id, fetchApp]);
+
+  async function handleSave(makeAvailable = false) {
     if (!formData.name.trim()) {
       setError('Name is required');
       return;
@@ -115,25 +128,25 @@ const AppEditor = () => {
     try {
       const dataToSave = {
         ...formData,
-        status: publish ? 'published' : formData.status,
+        status: makeAvailable ? 'available' : formData.status,
       } as AppFormData;
 
       if (isEditing && id) {
-        await updateApp(id, dataToSave);
+        await updateApp(id, dataToSave, supabase);
       } else {
-        const newApp = await createApp(dataToSave);
+        const newApp = await createApp(dataToSave, supabase);
         navigate(`/admin/apps/${newApp.id}/edit`, { replace: true });
       }
 
-      if (publish) {
+      if (makeAvailable) {
         setFormData((prev) => ({
           ...prev,
-          status: 'published',
+          status: 'available',
         }));
       }
     } catch (err) {
-      console.error('Error saving app:', err);
-      setError('Failed to save app');
+      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'AppEditor.saveApp' });
+      setError('Failed to save app. Make sure you have permission.');
     } finally {
       setIsSaving(false);
     }
@@ -172,7 +185,7 @@ const AppEditor = () => {
             </Link>
 
             <div className="flex items-center gap-2">
-              {formData.status === 'published' && formData.description && (
+              {formData.status === 'available' && formData.description && (
                 <Button asChild variant="ghost" size="sm">
                   <Link to={`/apps/${formData.slug}`} target="_blank">
                     <Eye className="w-4 h-4 mr-2" />
@@ -193,7 +206,7 @@ const AppEditor = () => {
                 )}
                 Save
               </Button>
-              {formData.status !== 'published' && (
+              {formData.status !== 'available' && (
                 <Button
                   size="sm"
                   onClick={() => handleSave(true)}
@@ -204,7 +217,7 @@ const AppEditor = () => {
                   ) : (
                     <Send className="w-4 h-4 mr-2" />
                   )}
-                  Publish
+                  Make Available
                 </Button>
               )}
             </div>
@@ -317,10 +330,11 @@ const AppEditor = () => {
           <Field label="Status">
             <Select
               value={formData.status}
-              onChange={(e) => updateField('status', e.target.value as 'draft' | 'published' | 'archived')}
+              onChange={(e) => updateField('status', e.target.value as 'planned' | 'in_development' | 'available' | 'archived')}
               options={[
-                { value: 'draft', label: 'Draft' },
-                { value: 'published', label: 'Published' },
+                { value: 'planned', label: 'Planned' },
+                { value: 'in_development', label: 'In Development' },
+                { value: 'available', label: 'Available' },
                 { value: 'archived', label: 'Archived' },
               ]}
             />
@@ -333,6 +347,62 @@ const AppEditor = () => {
               onChange={(e) => updateField('order_index', parseInt(e.target.value) || 0)}
             />
           </Field>
+
+          {/* SEO Section */}
+          <div className="pt-4 border-t border-border">
+            <div className="flex items-center gap-2 mb-4">
+              <Search className="w-4 h-4 text-muted-foreground" />
+              <h3 className="text-sm font-medium text-foreground">SEO Settings</h3>
+            </div>
+
+            <Field label="Meta Title" description="Overrides page title in search results">
+              <Input
+                value={formData.meta_title || ''}
+                onChange={(e) => updateField('meta_title', e.target.value || null)}
+                placeholder={formData.name || 'App name...'}
+                maxLength={60}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                {(formData.meta_title || formData.name || '').length}/60
+              </p>
+            </Field>
+
+            <Field label="Meta Description" description="Shown in search results">
+              <Textarea
+                value={formData.meta_description || ''}
+                onChange={(e) => updateField('meta_description', e.target.value || null)}
+                placeholder={formData.tagline || 'Brief description for search engines...'}
+                rows={3}
+                maxLength={160}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                {(formData.meta_description || formData.tagline || '').length}/160
+              </p>
+            </Field>
+
+            <Field label="Social Image" description="Image for social sharing (OG image)">
+              <ImageUploader
+                value={formData.og_image || ''}
+                onChange={(value) => updateField('og_image', value || null)}
+                folder="og-images"
+                aspectRatio="video"
+              />
+              {!formData.og_image && formData.icon_url && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Falls back to app icon
+                </p>
+              )}
+            </Field>
+          </div>
+
+          {/* Version History - only show for existing apps */}
+          {isEditing && id && (
+            <VersionHistory
+              tableName="apps"
+              recordId={id}
+              onRestore={handleVersionRestore}
+            />
+          )}
         </EditorPanel>
       </div>
     </AdminLayout>

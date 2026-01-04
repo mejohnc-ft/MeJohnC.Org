@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { motion } from 'framer-motion';
 import { ReactNode } from 'react';
 
@@ -36,7 +37,7 @@ const PageTransition = ({ children }: PageTransitionProps) => {
       initial="initial"
       animate="animate"
       exit="exit"
-      className="min-h-screen"
+      className="h-full"
     >
       {children}
     </motion.div>

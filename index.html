@@ -3,14 +3,84 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#f97316" />
+    <link rel="apple-touch-icon" href="/icon-192.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jonathan Christensen - AI Automation Engineer</title>
     <meta name="description" content="Jonathan Christensen is an AI Automation Engineer II specializing in Microsoft 365, Azure, and automation workflows. Based in San Diego, CA." />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://mejohnc.org/" />
+    <meta property="og:title" content="Jonathan Christensen - AI Automation Engineer" />
+    <meta property="og:description" content="AI Automation Engineer specializing in agentic systems, Microsoft 365, Azure, and automation workflows." />
+    <meta property="og:image" content="https://mejohnc.org/og-image.png" />
+    <meta property="og:site_name" content="Jonathan Christensen" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://mejohnc.org/" />
+    <meta name="twitter:title" content="Jonathan Christensen - AI Automation Engineer" />
+    <meta name="twitter:description" content="AI Automation Engineer specializing in agentic systems, Microsoft 365, Azure, and automation workflows." />
+    <meta name="twitter:image" content="https://mejohnc.org/og-image.png" />
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://mejohnc.org/" />
+
+    <!-- DNS Prefetch for external services -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+
+    <!-- Preconnect for critical resources -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Preload critical assets -->
+    <link rel="preload" href="/favicon.svg" as="image" type="image/svg+xml" />
+
+    <!-- Font stylesheet -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+      /* Critical styles - prevent flash on load */
+      html, body { background: hsl(20, 20%, 5%); }
+      [data-theme="crisp"], [data-theme="crisp"] body { background: hsl(60, 10%, 97%); }
+      /* Hide all scrollbars until styles are ready */
+      * { scrollbar-width: none; }
+      *::-webkit-scrollbar { width: 0; height: 0; }
+      /* Enable styled scrollbars when ready */
+      .scroll-ready, .scroll-ready * { scrollbar-width: thin; }
+      .scroll-ready ::-webkit-scrollbar { width: 8px; height: 8px; }
+      .scroll-ready ::-webkit-scrollbar-track { background: hsl(20, 15%, 8%); }
+      .scroll-ready ::-webkit-scrollbar-thumb { background: hsl(25, 95%, 53%); }
+      .scroll-ready[data-theme="crisp"] ::-webkit-scrollbar-track { background: hsl(60, 15%, 99%); }
+      .scroll-ready[data-theme="crisp"] ::-webkit-scrollbar-thumb { background: hsl(177, 94%, 21%); }
+      .scroll-ready { scrollbar-color: hsl(25, 95%, 53%) hsl(20, 15%, 8%); }
+      .scroll-ready[data-theme="crisp"] { scrollbar-color: hsl(177, 94%, 21%) hsl(60, 15%, 99%); }
+    </style>
   </head>
   <body>
+    <script>
+      // Set theme and enable scrollbars immediately before render
+      (function() {
+        var theme = localStorage.getItem('resume-site-theme');
+        if (theme === 'warm' || theme === 'crisp') {
+          document.documentElement.setAttribute('data-theme', theme);
+        }
+        // Enable styled scrollbars after theme is set
+        document.documentElement.classList.add('scroll-ready');
+
+        // Register service worker for PWA support
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/sw.js').catch(function(err) {
+              console.log('ServiceWorker registration failed:', err);
+            });
+          });
+        }
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

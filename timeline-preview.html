@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Success Timeline Preview</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --background: hsl(20, 20%, 5%);
+      --foreground: hsl(30, 10%, 95%);
+      --card: hsl(20, 15%, 8%);
+      --primary: hsl(25, 95%, 53%);
+      --muted: hsl(25, 10%, 55%);
+      --border: hsl(25, 8%, 20%);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--background);
+      color: var(--foreground);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+      padding: 60px 24px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 900;
+      margin-bottom: 48px;
+    }
+
+    /* Growth Curve SVG */
+    .growth-curve {
+      width: 100%;
+      height: 60px;
+      margin-bottom: 16px;
+    }
+
+    .growth-line {
+      fill: none;
+      stroke: var(--primary);
+      stroke-width: 2;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 8px var(--primary));
+    }
+
+    .growth-dot {
+      fill: var(--primary);
+      filter: drop-shadow(0 0 6px var(--primary));
+    }
+
+    /* Timeline Bar */
+    .timeline-bar {
+      display: flex;
+      height: 48px;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 32px;
+      position: relative;
+    }
+
+    .timeline-segment {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--background);
+      position: relative;
+    }
+
+    /* Gradient from muted to amber */
+    .timeline-segment:nth-child(1) { background: hsl(25, 15%, 30%); }
+    .timeline-segment:nth-child(2) { background: hsl(25, 40%, 40%); }
+    .timeline-segment:nth-child(3) { background: hsl(25, 70%, 48%); }
+    .timeline-segment:nth-child(4) { background: var(--primary); }
+
+    .timeline-segment::after {
+      content: '';
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--foreground);
+      border: 2px solid var(--background);
+    }
+
+    .timeline-segment:nth-child(4)::after {
+      background: var(--primary);
+      box-shadow: 0 0 12px var(--primary);
+    }
+
+    /* Arrow at end */
+    .timeline-arrow {
+      position: absolute;
+      right: -20px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-top: 24px solid transparent;
+      border-bottom: 24px solid transparent;
+      border-left: 20px solid var(--primary);
+    }
+
+    /* Phase Labels */
+    .phase-labels {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .phase-label {
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* Era Cards */
+    .era-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .era-grid, .phase-labels {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .timeline-bar {
+        flex-wrap: wrap;
+      }
+      .timeline-segment {
+        flex: 1 1 50%;
+      }
+    }
+
+    @media (max-width: 500px) {
+      .era-grid, .phase-labels {
+        grid-template-columns: 1fr;
+      }
+      .timeline-segment {
+        flex: 1 1 100%;
+      }
+    }
+
+    .era-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 20px;
+      transition: border-color 0.2s ease;
+    }
+
+    .era-card:hover {
+      border-color: var(--primary);
+    }
+
+    .era-card h3 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+    }
+
+    .era-card ul {
+      list-style: none;
+    }
+
+    .era-card li {
+      position: relative;
+      padding-left: 16px;
+      font-size: 13px;
+      color: var(--foreground);
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+
+    .era-card li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--primary);
+    }
+
+    /* Future card glow */
+    .era-card.future {
+      border-color: var(--primary);
+      box-shadow: 0 0 20px hsla(25, 95%, 53%, 0.15);
+    }
+
+    .era-card.future li::before {
+      box-shadow: 0 0 6px var(--primary);
+    }
+
+    /* Footer note */
+    .preview-note {
+      margin-top: 60px;
+      padding: 20px;
+      background: var(--card);
+      border: 1px dashed var(--border);
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="section-label">Success Story</div>
+    <h1>Provisioning Success Roadmap</h1>
+
+    <!-- Growth Curve SVG -->
+    <svg class="growth-curve" viewBox="0 0 1200 60" preserveAspectRatio="none">
+      <path class="growth-line" d="M0,55 Q150,50 300,45 T600,30 T900,15 T1200,5" />
+      <circle class="growth-dot" cx="150" cy="52" r="5" />
+      <circle class="growth-dot" cx="450" cy="38" r="5" />
+      <circle class="growth-dot" cx="750" cy="22" r="5" />
+      <circle class="growth-dot" cx="1050" cy="10" r="5" />
+    </svg>
+
+    <!-- Timeline Bar -->
+    <div class="timeline-bar">
+      <div class="timeline-segment">2022-2023</div>
+      <div class="timeline-segment">2024</div>
+      <div class="timeline-segment">2025</div>
+      <div class="timeline-segment">2026+</div>
+      <div class="timeline-arrow"></div>
+    </div>
+
+    <!-- Phase Labels -->
+    <div class="phase-labels">
+      <div class="phase-label">Recovery & Foundation</div>
+      <div class="phase-label">Automation & Knowledge</div>
+      <div class="phase-label">Optimization & Growth</div>
+      <div class="phase-label">Future State</div>
+    </div>
+
+    <!-- Era Cards -->
+    <div class="era-grid">
+      <div class="era-card">
+        <h3>2022-2023</h3>
+        <ul>
+          <li>Cleared COVID backlog (&lt;6 months/72Tk)</li>
+          <li>Created inventory sheets</li>
+          <li>Standardized and maintained SOPs & SLAs</li>
+          <li>Reintroduced media sanitization</li>
+        </ul>
+      </div>
+
+      <div class="era-card">
+        <h3>2024</h3>
+        <ul>
+          <li>Completed Immy.Bot buildout</li>
+          <li>Standardized Provisioning KB</li>
+        </ul>
+      </div>
+
+      <div class="era-card">
+        <h3>2025</h3>
+        <ul>
+          <li>Achieved in-house one-touch provisions for >75% of clients</li>
+          <li>Provisioning turnaround &lt;5 business days</li>
+          <li>Largest provisioning month ever (October 2025)</li>
+          <li>Launched brand new Inventory system with enhanced UX</li>
+          <li>Successfully handed off to a new hire</li>
+          <li>Established Provisioning ToolBox with 15 knowledge pieces</li>
+          <li>Ended year with fully automated provisioning & inventory intake systems</li>
+        </ul>
+      </div>
+
+      <div class="era-card future">
+        <h3>2026+</h3>
+        <ul>
+          <li>Autopilot/White glove configuration for all clients & environments</li>
+          <li>Implemented 3rd party logistics for cost reduction & SLA maintenance</li>
+          <li>Eliminated reliance on office for inventory & logistics</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Preview Note -->
+    <div class="preview-note">
+      📋 PREVIEW: This is a standalone HTML file matching your site's design system.<br>
+      Open this file in your browser to see how the timeline will look before integration.
+    </div>
+  </div>
+</body>
+</html>

@@ -8,6 +8,8 @@ interface MarkdownEditorProps {
   onChange: (value: string) => void;
   placeholder?: string;
   minHeight?: string;
+  id?: string;
+  'aria-label'?: string;
 }
 
 const MarkdownEditor = ({
@@ -15,6 +17,8 @@ const MarkdownEditor = ({
   onChange,
   placeholder = 'Write your content in markdown...',
   minHeight = '400px',
+  id,
+  'aria-label': ariaLabel,
 }: MarkdownEditorProps) => {
   const [showPreview, setShowPreview] = useState(false);
 
@@ -75,6 +79,8 @@ const MarkdownEditor = ({
         ) : (
           <motion.textarea
             key="editor"
+            id={id}
+            aria-label={ariaLabel}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

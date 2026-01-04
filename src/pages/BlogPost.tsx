@@ -1,29 +1,123 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Clock, Calendar, Loader2, FileText } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
+import DOMPurify from 'dompurify';
+import { ArrowLeft, Clock, Calendar, Loader2, FileText, Eye } from 'lucide-react';
 import PageTransition from '@/components/PageTransition';
-import MarkdownRenderer from '@/components/MarkdownRenderer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { getBlogPostBySlug, type BlogPost as BlogPostType } from '@/lib/supabase-queries';
+import { getGhostPostBySlug } from '@/lib/ghost';
+import { getBlogPostBySlug } from '@/lib/supabase-queries';
 import { formatDate } from '@/lib/markdown';
+import { useSEO, useJsonLd } from '@/lib/seo';
+import { analytics } from '@/lib/analytics';
+import { captureException } from '@/lib/sentry';
 
-const BlogPost = () => {
+// Unified display type
+interface DisplayPost {
+  title: string;
+  slug: string;
+  published_at: string | null;
+  reading_time: number | null;
+  feature_image: string | null;
+  tags: string[];
+  content: string;
+  contentType: 'markdown' | 'html';
+}
+
+const BlogPostPage = () => {
   const { slug } = useParams<{ slug: string }>();
-  const [post, setPost] = useState<BlogPostType | null>(null);
+  const [searchParams] = useSearchParams();
+  const isPreview = searchParams.get('preview') === 'true';
+  const [post, setPost] = useState<DisplayPost | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Dynamic SEO based on post data (noindex for preview mode)
+  useSEO(
+    post
+      ? {
+          title: isPreview ? `[Preview] ${post.title}` : post.title,
+          description: post.content.slice(0, 160).replace(/[#*_`]/g, '') + '...',
+          image: post.feature_image || undefined,
+          url: `/blog/${post.slug}`,
+          type: 'article',
+          publishedTime: post.published_at || undefined,
+          noIndex: isPreview,
+        }
+      : { title: 'Blog Post', url: `/blog/${slug}`, noIndex: isPreview }
+  );
+
+  useJsonLd(
+    post
+      ? {
+          type: 'Article',
+          headline: post.title,
+          description: post.content.slice(0, 160).replace(/[#*_`]/g, ''),
+          image: post.feature_image || undefined,
+          datePublished: post.published_at || undefined,
+          url: `/blog/${post.slug}`,
+        }
+      : { type: 'Article', headline: 'Blog Post' }
+  );
+
+  // Track blog read when post is loaded (not in preview mode)
+  useEffect(() => {
+    if (post && !isPreview) {
+      analytics.trackBlogRead(post.slug, post.title);
+    }
+  }, [post, isPreview]);
 
   useEffect(() => {
     async function fetchPost() {
       if (!slug) return;
 
       try {
-        const data = await getBlogPostBySlug(slug);
-        setPost(data);
+        // Try local Supabase first
+        const localPost = await getBlogPostBySlug(slug).catch(() => null);
+
+        if (localPost) {
+          setPost({
+            title: localPost.title,
+            slug: localPost.slug,
+            published_at: localPost.published_at,
+            reading_time: localPost.reading_time,
+            feature_image: localPost.cover_image,
+            tags: localPost.tags || [],
+            content: localPost.content,
+            contentType: 'markdown',
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        // Try Ghost if not found locally
+        const ghostPost = await getGhostPostBySlug(slug);
+
+        if (ghostPost) {
+          setPost({
+            title: ghostPost.title,
+            slug: ghostPost.slug,
+            published_at: ghostPost.published_at || null,
+            reading_time: ghostPost.reading_time || null,
+            feature_image: ghostPost.feature_image || null,
+            tags: ghostPost.tags?.map(t => t.name) || [],
+            content: ghostPost.html || '',
+            contentType: 'html',
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        setError('Post not found');
       } catch (err) {
-        console.error('Error fetching post:', err);
+        captureException(err instanceof Error ? err : new Error(String(err)), {
+          context: 'BlogPost.fetchPost',
+          slug,
+        });
         setError('Post not found');
       } finally {
         setIsLoading(false);
@@ -63,6 +157,15 @@ const BlogPost = () => {
 
   return (
     <PageTransition>
+      {/* Preview Banner */}
+      {isPreview && (
+        <div className="sticky top-0 z-50 bg-yellow-500/90 backdrop-blur-sm text-yellow-950 px-4 py-2">
+          <div className="max-w-3xl mx-auto flex items-center justify-center gap-2 text-sm font-medium">
+            <Eye className="w-4 h-4" />
+            <span>Preview Mode - This post is not published</span>
+          </div>
+        </div>
+      )}
       <article className="min-h-[calc(100vh-4rem)] py-20 px-6">
         <div className="max-w-3xl mx-auto">
           {/* Back link */}
@@ -120,7 +223,7 @@ const BlogPost = () => {
           </motion.header>
 
           {/* Cover Image */}
-          {post.cover_image && (
+          {post.feature_image && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -128,7 +231,7 @@ const BlogPost = () => {
               className="mb-12"
             >
               <img
-                src={post.cover_image}
+                src={post.feature_image}
                 alt={post.title}
                 className="w-full rounded-lg shadow-lg"
               />
@@ -140,8 +243,18 @@ const BlogPost = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
+            className="prose prose-invert max-w-none"
           >
-            <MarkdownRenderer content={post.content} />
+            {post.contentType === 'markdown' ? (
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeHighlight]}
+              >
+                {post.content}
+              </ReactMarkdown>
+            ) : (
+              <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }} />
+            )}
           </motion.div>
 
           {/* Footer */}
@@ -171,4 +284,4 @@ const BlogPost = () => {
   );
 };
 
-export default BlogPost;
+export default BlogPostPage;

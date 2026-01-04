@@ -1,19 +1,33 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Clock, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/lib/markdown';
-import type { BlogPost } from '@/lib/supabase-queries';
+
+// Unified post type that works with both local and Ghost posts
+interface UnifiedPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  feature_image: string | null;
+  published_at: string | null;
+  reading_time: number | null;
+  tags: string[];
+  source: 'local' | 'ghost';
+}
 
 interface BlogCardProps {
-  post: BlogPost;
+  post: UnifiedPost;
   index?: number;
   featured?: boolean;
 }
 
-const BlogCard = ({ post, index = 0, featured = false }: BlogCardProps) => {
+const BlogCard = memo(function BlogCard({ post, index = 0, featured = false }: BlogCardProps) {
   return (
     <motion.article
+      aria-labelledby={`blog-title-${post.id}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
@@ -23,14 +37,13 @@ const BlogCard = ({ post, index = 0, featured = false }: BlogCardProps) => {
         className={`group block ${featured ? 'md:flex gap-8' : ''}`}
       >
         {/* Cover Image */}
-        {post.cover_image && (
+        {post.feature_image && (
           <div
-            className={`relative overflow-hidden rounded-lg bg-muted ${
-              featured ? 'md:w-1/2 aspect-video' : 'aspect-video mb-4'
-            }`}
+            className={`relative overflow-hidden rounded-lg bg-muted ${featured ? 'md:w-1/2 aspect-video' : 'aspect-video mb-4'
+              }`}
           >
             <img
-              src={post.cover_image}
+              src={post.feature_image}
               alt={post.title}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
@@ -39,7 +52,7 @@ const BlogCard = ({ post, index = 0, featured = false }: BlogCardProps) => {
         )}
 
         {/* Content */}
-        <div className={featured && post.cover_image ? 'md:w-1/2 flex flex-col justify-center' : ''}>
+        <div className={featured && post.feature_image ? 'md:w-1/2 flex flex-col justify-center' : ''}>
           {/* Tags */}
           {post.tags && post.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-3">
@@ -53,9 +66,9 @@ const BlogCard = ({ post, index = 0, featured = false }: BlogCardProps) => {
 
           {/* Title */}
           <h2
-            className={`font-bold text-foreground group-hover:text-primary transition-colors ${
-              featured ? 'text-2xl md:text-3xl' : 'text-xl'
-            }`}
+            id={`blog-title-${post.id}`}
+            className={`font-bold text-foreground group-hover:text-primary transition-colors ${featured ? 'text-2xl md:text-3xl' : 'text-xl'
+              }`}
           >
             {post.title}
           </h2>
@@ -86,6 +99,6 @@ const BlogCard = ({ post, index = 0, featured = false }: BlogCardProps) => {
       </Link>
     </motion.article>
   );
-};
+});
 
 export default BlogCard;

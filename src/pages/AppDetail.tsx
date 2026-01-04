@@ -9,12 +9,25 @@ import PageTransition from '@/components/PageTransition';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { getAppsBySlug, type App, type AppSuite } from '@/lib/supabase-queries';
+import { captureException } from '@/lib/sentry';
+import { useSEO, useJsonLd, personSchema } from '@/lib/seo';
 
 const AppDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const [app, setApp] = useState<(App & { suite: AppSuite | null }) | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // SEO - update when app data loads
+  useSEO({
+    title: app?.name || 'App Details',
+    description: app?.tagline || app?.meta_description || 'View app details and features.',
+    url: `/apps/${slug}`,
+    image: app?.icon_url || undefined,
+    type: 'website',
+  });
+
+  useJsonLd(personSchema);
 
   useEffect(() => {
     async function fetchApp() {
@@ -24,7 +37,7 @@ const AppDetail = () => {
         const data = await getAppsBySlug(slug);
         setApp(data);
       } catch (err) {
-        console.error('Error fetching app:', err);
+        captureException(err instanceof Error ? err : new Error(String(err)), { context: 'AppDetail.fetchApp', slug });
         setError('App not found');
       } finally {
         setIsLoading(false);

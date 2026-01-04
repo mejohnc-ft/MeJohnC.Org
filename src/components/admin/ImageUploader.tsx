@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, Link as LinkIcon, Loader2, Image } from 'lucide-react';
 import { uploadFile } from '@/lib/supabase-queries';
+import { captureException } from '@/lib/sentry';
 import { Button } from '@/components/ui/button';
 
 interface ImageUploaderProps {
@@ -53,7 +54,7 @@ const ImageUploader = ({
       const url = await uploadFile(file, path);
       onChange(url);
     } catch (err) {
-      console.error('Upload error:', err);
+      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'ImageUploader.upload' });
       setError('Failed to upload image');
     } finally {
       setIsUploading(false);

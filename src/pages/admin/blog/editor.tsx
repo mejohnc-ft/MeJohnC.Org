@@ -1,12 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Save, Eye, Loader2, Send } from 'lucide-react';
+import { ArrowLeft, Save, Eye, Loader2, Send, Clock, Search } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
 import EditorPanel, { Field, Input, Textarea, Select, TagInput } from '@/components/admin/EditorPanel';
 import MarkdownEditor from '@/components/admin/MarkdownEditor';
 import ImageUploader from '@/components/admin/ImageUploader';
+import VersionHistory from '@/components/admin/VersionHistory';
 import { Button } from '@/components/ui/button';
+import { useSupabaseClient } from '@/lib/supabase';
 import {
   getBlogPostById,
   createBlogPost,
@@ -15,6 +17,8 @@ import {
   calculateReadingTime,
   type BlogPost
 } from '@/lib/supabase-queries';
+import { useSEO } from '@/lib/seo';
+import { captureException } from '@/lib/sentry';
 
 type PostFormData = Omit<BlogPost, 'id' | 'created_at' | 'updated_at'>;
 
@@ -27,13 +31,19 @@ const initialFormData: PostFormData = {
   tags: [],
   status: 'draft',
   published_at: null,
+  scheduled_for: null,
   reading_time: null,
+  meta_title: null,
+  meta_description: null,
+  og_image: null,
 };
 
 const BlogEditor = () => {
+  useSEO({ title: 'Blog Editor', noIndex: true });
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isEditing = !!id;
+  const supabase = useSupabaseClient();
 
   const [formData, setFormData] = useState<PostFormData>(initialFormData);
   const [isLoading, setIsLoading] = useState(isEditing);
@@ -45,7 +55,7 @@ const BlogEditor = () => {
     if (id) {
       fetchPost(id);
     }
-  }, [id]);
+  }, [id, fetchPost]);
 
   // Auto-generate slug from title
   useEffect(() => {
@@ -67,9 +77,9 @@ const BlogEditor = () => {
     }
   }, [formData.content]);
 
-  async function fetchPost(postId: string) {
+  const fetchPost = useCallback(async (postId: string) => {
     try {
-      const post = await getBlogPostById(postId);
+      const post = await getBlogPostById(postId, supabase);
       setFormData({
         title: post.title,
         slug: post.slug,
@@ -79,18 +89,29 @@ const BlogEditor = () => {
         tags: post.tags || [],
         status: post.status,
         published_at: post.published_at,
+        scheduled_for: post.scheduled_for,
         reading_time: post.reading_time,
+        meta_title: post.meta_title,
+        meta_description: post.meta_description,
+        og_image: post.og_image,
       });
       setAutoSlug(false); // Don't auto-update slug for existing posts
     } catch (err) {
-      console.error('Error fetching post:', err);
+      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'BlogEditor.fetchPost' });
       setError('Post not found');
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [supabase]);
 
-  async function handleSave(publish = false) {
+  // Handle version restore by refetching the post
+  const handleVersionRestore = useCallback(() => {
+    if (id) {
+      fetchPost(id);
+    }
+  }, [id, fetchPost]);
+
+  async function handleSave(publish = false, schedule = false) {
     if (!formData.title.trim()) {
       setError('Title is required');
       return;
@@ -99,36 +120,46 @@ const BlogEditor = () => {
       setError('Content is required');
       return;
     }
+    if (schedule && !formData.scheduled_for) {
+      setError('Please select a scheduled date and time');
+      return;
+    }
 
     setError(null);
     setIsSaving(true);
 
     try {
+      let status = formData.status;
+      let published_at = formData.published_at;
+
+      if (publish) {
+        status = 'published';
+        published_at = published_at || new Date().toISOString();
+      } else if (schedule) {
+        status = 'scheduled';
+      }
+
       const dataToSave = {
         ...formData,
-        status: publish ? 'published' : formData.status,
-        published_at: publish && !formData.published_at
-          ? new Date().toISOString()
-          : formData.published_at,
+        status,
+        published_at,
       } as PostFormData;
 
       if (isEditing && id) {
-        await updateBlogPost(id, dataToSave);
+        await updateBlogPost(id, dataToSave, supabase);
       } else {
-        const newPost = await createBlogPost(dataToSave);
+        const newPost = await createBlogPost(dataToSave, supabase);
         navigate(`/admin/blog/${newPost.id}/edit`, { replace: true });
       }
 
-      if (publish) {
-        setFormData((prev) => ({
-          ...prev,
-          status: 'published',
-          published_at: dataToSave.published_at,
-        }));
-      }
+      setFormData((prev) => ({
+        ...prev,
+        status,
+        published_at,
+      }));
     } catch (err) {
-      console.error('Error saving post:', err);
-      setError('Failed to save post');
+      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'BlogEditor.savePost' });
+      setError('Failed to save post. Make sure you have permission.');
     } finally {
       setIsSaving(false);
     }
@@ -167,6 +198,15 @@ const BlogEditor = () => {
             </Link>
 
             <div className="flex items-center gap-2">
+              {/* Preview button - works for drafts and scheduled */}
+              {formData.slug && formData.status !== 'published' && (
+                <Button asChild variant="ghost" size="sm">
+                  <Link to={`/blog/${formData.slug}?preview=true`} target="_blank">
+                    <Eye className="w-4 h-4 mr-2" />
+                    Preview
+                  </Link>
+                </Button>
+              )}
               {formData.status === 'published' && (
                 <Button asChild variant="ghost" size="sm">
                   <Link to={`/blog/${formData.slug}`} target="_blank">
@@ -178,7 +218,7 @@ const BlogEditor = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleSave(false)}
+                onClick={() => handleSave(false, false)}
                 disabled={isSaving}
               >
                 {isSaving ? (
@@ -188,10 +228,25 @@ const BlogEditor = () => {
                 )}
                 Save Draft
               </Button>
+              {formData.status !== 'published' && formData.scheduled_for && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => handleSave(false, true)}
+                  disabled={isSaving}
+                >
+                  {isSaving ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Clock className="w-4 h-4 mr-2" />
+                  )}
+                  Schedule
+                </Button>
+              )}
               {formData.status !== 'published' && (
                 <Button
                   size="sm"
-                  onClick={() => handleSave(true)}
+                  onClick={() => handleSave(true, false)}
                   disabled={isSaving}
                 >
                   {isSaving ? (
@@ -219,21 +274,30 @@ const BlogEditor = () => {
               )}
 
               {/* Title */}
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) => updateField('title', e.target.value)}
-                placeholder="Post title..."
-                className="w-full text-4xl font-bold bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none"
-              />
+              <div>
+                <label htmlFor="post-title" className="sr-only">Post title</label>
+                <input
+                  id="post-title"
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => updateField('title', e.target.value)}
+                  placeholder="Post title..."
+                  aria-required="true"
+                  className="w-full text-4xl font-bold bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none"
+                />
+              </div>
 
               {/* Content */}
-              <MarkdownEditor
-                value={formData.content}
-                onChange={(value) => updateField('content', value)}
-                placeholder="Write your post content in markdown..."
-                minHeight="500px"
-              />
+              <div>
+                <label htmlFor="post-content" className="sr-only">Post content (Markdown)</label>
+                <MarkdownEditor
+                  id="post-content"
+                  value={formData.content}
+                  onChange={(value) => updateField('content', value)}
+                  placeholder="Write your post content in markdown..."
+                  minHeight="500px"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -280,13 +344,25 @@ const BlogEditor = () => {
           <Field label="Status">
             <Select
               value={formData.status}
-              onChange={(e) => updateField('status', e.target.value as 'draft' | 'published')}
+              onChange={(e) => updateField('status', e.target.value as 'draft' | 'published' | 'scheduled')}
               options={[
                 { value: 'draft', label: 'Draft' },
+                { value: 'scheduled', label: 'Scheduled' },
                 { value: 'published', label: 'Published' },
               ]}
             />
           </Field>
+
+          {formData.status !== 'published' && (
+            <Field label="Schedule For" description="Auto-publish at this date/time">
+              <Input
+                type="datetime-local"
+                value={formData.scheduled_for ? formData.scheduled_for.slice(0, 16) : ''}
+                onChange={(e) => updateField('scheduled_for', e.target.value ? new Date(e.target.value).toISOString() : null)}
+                min={new Date().toISOString().slice(0, 16)}
+              />
+            </Field>
+          )}
 
           {formData.reading_time && (
             <div className="pt-4 border-t border-border">
@@ -294,6 +370,62 @@ const BlogEditor = () => {
                 Reading time: ~{formData.reading_time} min
               </p>
             </div>
+          )}
+
+          {/* SEO Section */}
+          <div className="pt-4 border-t border-border">
+            <div className="flex items-center gap-2 mb-4">
+              <Search className="w-4 h-4 text-muted-foreground" />
+              <h3 className="text-sm font-medium text-foreground">SEO Settings</h3>
+            </div>
+
+            <Field label="Meta Title" description="Overrides page title in search results">
+              <Input
+                value={formData.meta_title || ''}
+                onChange={(e) => updateField('meta_title', e.target.value || null)}
+                placeholder={formData.title || 'Page title...'}
+                maxLength={60}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                {(formData.meta_title || formData.title || '').length}/60
+              </p>
+            </Field>
+
+            <Field label="Meta Description" description="Shown in search results">
+              <Textarea
+                value={formData.meta_description || ''}
+                onChange={(e) => updateField('meta_description', e.target.value || null)}
+                placeholder={formData.excerpt || 'Brief description for search engines...'}
+                rows={3}
+                maxLength={160}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                {(formData.meta_description || formData.excerpt || '').length}/160
+              </p>
+            </Field>
+
+            <Field label="Social Image" description="Image for social sharing (OG image)">
+              <ImageUploader
+                value={formData.og_image || ''}
+                onChange={(value) => updateField('og_image', value || null)}
+                folder="og-images"
+                aspectRatio="video"
+              />
+              {!formData.og_image && formData.cover_image && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Falls back to cover image
+                </p>
+              )}
+            </Field>
+          </div>
+
+          {/* Version History - only show for existing posts */}
+          {isEditing && id && (
+            <VersionHistory
+              tableName="blog_posts"
+              recordId={id}
+              onRestore={handleVersionRestore}
+            />
           )}
         </EditorPanel>
       </div>

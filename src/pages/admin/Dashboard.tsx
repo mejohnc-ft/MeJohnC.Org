@@ -1,20 +1,27 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { AppWindow, FileText, Plus, ArrowRight } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { AppWindow, FileText, Plus, ArrowRight, FolderKanban } from 'lucide-react';
+import { useSupabaseClient } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import AdminLayout from '@/components/AdminLayout';
+import AuditLogViewer from '@/components/admin/AuditLogViewer';
+import { useSEO } from '@/lib/seo';
+import { captureException } from '@/lib/sentry';
 
 interface Stats {
   appsCount: number;
+  projectsCount: number;
   blogPostsCount: number;
   draftPostsCount: number;
 }
 
 const AdminDashboard = () => {
+  useSEO({ title: 'Admin Dashboard', noIndex: true });
+  const supabase = useSupabaseClient();
   const [stats, setStats] = useState<Stats>({
     appsCount: 0,
+    projectsCount: 0,
     blogPostsCount: 0,
     draftPostsCount: 0,
   });
@@ -23,26 +30,29 @@ const AdminDashboard = () => {
   useEffect(() => {
     async function fetchStats() {
       try {
-        const [appsResult, postsResult, draftsResult] = await Promise.all([
+        const [appsResult, projectsResult, postsResult, draftsResult] = await Promise.all([
           supabase.from('apps').select('id', { count: 'exact', head: true }),
+          supabase.from('projects').select('id', { count: 'exact', head: true }),
           supabase.from('blog_posts').select('id', { count: 'exact', head: true }).eq('status', 'published'),
           supabase.from('blog_posts').select('id', { count: 'exact', head: true }).eq('status', 'draft'),
         ]);
 
         setStats({
           appsCount: appsResult.count ?? 0,
+          projectsCount: projectsResult.count ?? 0,
           blogPostsCount: postsResult.count ?? 0,
           draftPostsCount: draftsResult.count ?? 0,
         });
       } catch (error) {
-        console.error('Error fetching stats:', error);
+        captureException(error instanceof Error ? error : new Error(String(error)), { context: 'Dashboard.fetchStats' });
       } finally {
         setIsLoading(false);
       }
     }
 
     fetchStats();
-  }, []);
+     
+  }, [supabase]);
 
   const statCards = [
     {
@@ -52,6 +62,14 @@ const AdminDashboard = () => {
       href: '/admin/apps',
       color: 'text-blue-500',
       bgColor: 'bg-blue-500/10',
+    },
+    {
+      label: 'Projects',
+      value: stats.projectsCount,
+      icon: FolderKanban,
+      href: '/admin/projects',
+      color: 'text-purple-500',
+      bgColor: 'bg-purple-500/10',
     },
     {
       label: 'Published Posts',
@@ -83,7 +101,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {statCards.map((stat, index) => {
             const Icon = stat.icon;
             return (
@@ -119,7 +137,7 @@ const AdminDashboard = () => {
         {/* Quick Actions */}
         <div>
           <h2 className="text-xl font-semibold text-foreground mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -135,7 +153,29 @@ const AdminDashboard = () => {
                 <div className="flex-1">
                   <h3 className="font-medium text-foreground">Add New App</h3>
                   <p className="text-sm text-muted-foreground">
-                    Showcase a new project or tool
+                    Showcase a new tool
+                  </p>
+                </div>
+                <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              </Link>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
+            >
+              <Link
+                to="/admin/projects/new"
+                className="flex items-center gap-4 p-4 bg-card border border-border rounded-lg hover:border-primary/50 transition-colors group"
+              >
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <Plus className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-medium text-foreground">Add Project</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Add a portfolio project
                   </p>
                 </div>
                 <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -157,7 +197,7 @@ const AdminDashboard = () => {
                 <div className="flex-1">
                   <h3 className="font-medium text-foreground">Write New Post</h3>
                   <p className="text-sm text-muted-foreground">
-                    Share your thoughts and insights
+                    Share insights
                   </p>
                 </div>
                 <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -165,6 +205,15 @@ const AdminDashboard = () => {
             </motion.div>
           </div>
         </div>
+
+        {/* Recent Activity */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <AuditLogViewer limit={10} showFilters={true} />
+        </motion.div>
 
         {/* View Site Button */}
         <div className="pt-4">

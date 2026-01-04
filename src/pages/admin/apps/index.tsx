@@ -1,46 +1,67 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Plus, AppWindow, Edit, Trash2, ExternalLink, Loader2, FolderOpen } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, AppWindow, Edit, Trash2, ExternalLink, Loader2, FolderOpen, CheckSquare, Square, Send, Archive } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { getApps, getAppSuites, deleteApp, deleteAppSuite, type App, type AppSuite } from '@/lib/supabase-queries';
+import { useSupabaseClient } from '@/lib/supabase';
+import { getApps, getAppSuites, deleteApp, deleteAppSuite, bulkDeleteApps, bulkUpdateAppStatus, type App, type AppSuite } from '@/lib/supabase-queries';
+import { useSEO } from '@/lib/seo';
+import { captureException } from '@/lib/sentry';
+
+const statusLabels: Record<string, string> = {
+  planned: 'Planned',
+  in_development: 'In Development',
+  available: 'Available',
+  archived: 'Archived',
+};
+
+const statusColors: Record<string, string> = {
+  planned: 'secondary',
+  in_development: 'outline',
+  available: 'default',
+  archived: 'secondary',
+};
 
 const AdminAppsList = () => {
+  useSEO({ title: 'Manage Apps', noIndex: true });
+  const supabase = useSupabaseClient();
   const [apps, setApps] = useState<(App & { suite: AppSuite | null })[]>([]);
   const [suites, setSuites] = useState<AppSuite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  async function fetchData() {
+  const fetchData = useCallback(async () => {
     try {
       const [appsData, suitesData] = await Promise.all([
-        getApps(true), // Include unpublished
-        getAppSuites(),
+        getApps(true, supabase), // Include all statuses
+        getAppSuites(supabase),
       ]);
       setApps(appsData);
       setSuites(suitesData);
     } catch (err) {
-      console.error('Error fetching data:', err);
+      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'AdminApps.fetchData' });
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [supabase]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   async function handleDeleteApp(id: string) {
     if (!confirm('Are you sure you want to delete this app?')) return;
 
     setDeletingId(id);
     try {
-      await deleteApp(id);
+      await deleteApp(id, supabase);
       setApps(apps.filter((a) => a.id !== id));
     } catch (err) {
-      console.error('Error deleting app:', err);
+      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'AdminApps.deleteApp' });
     } finally {
       setDeletingId(null);
     }
@@ -57,12 +78,76 @@ const AdminAppsList = () => {
 
     setDeletingId(id);
     try {
-      await deleteAppSuite(id);
+      await deleteAppSuite(id, supabase);
       setSuites(suites.filter((s) => s.id !== id));
     } catch (err) {
-      console.error('Error deleting suite:', err);
+      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'AdminApps.deleteSuite' });
     } finally {
       setDeletingId(null);
+    }
+  }
+
+  // Bulk operations
+  function toggleSelect(id: string) {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.size === apps.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(apps.map((a) => a.id)));
+    }
+  }
+
+  async function handleBulkDelete() {
+    if (!confirm(`Are you sure you want to delete ${selectedIds.size} app(s)?`)) return;
+
+    setIsBulkProcessing(true);
+    try {
+      await bulkDeleteApps(Array.from(selectedIds), supabase);
+      setApps(apps.filter((a) => !selectedIds.has(a.id)));
+      setSelectedIds(new Set());
+    } catch (err) {
+      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'AdminApps.bulkDelete' });
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  }
+
+  async function handleBulkMakeAvailable() {
+    setIsBulkProcessing(true);
+    try {
+      await bulkUpdateAppStatus(Array.from(selectedIds), 'available', supabase);
+      setApps(apps.map((a) =>
+        selectedIds.has(a.id) ? { ...a, status: 'available' as const } : a
+      ));
+      setSelectedIds(new Set());
+    } catch (err) {
+      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'AdminApps.bulkUpdate' });
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  }
+
+  async function handleBulkArchive() {
+    setIsBulkProcessing(true);
+    try {
+      await bulkUpdateAppStatus(Array.from(selectedIds), 'archived', supabase);
+      setApps(apps.map((a) =>
+        selectedIds.has(a.id) ? { ...a, status: 'archived' as const } : a
+      ));
+      setSelectedIds(new Set());
+    } catch (err) {
+      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'AdminApps.bulkArchive' });
+    } finally {
+      setIsBulkProcessing(false);
     }
   }
 
@@ -154,6 +239,60 @@ const AdminAppsList = () => {
               </section>
             )}
 
+            {/* Bulk Actions Toolbar */}
+            <AnimatePresence>
+              {selectedIds.size > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="flex items-center gap-4 p-4 bg-primary/10 border border-primary/20 rounded-lg"
+                >
+                  <span className="text-sm font-medium text-foreground">
+                    {selectedIds.size} selected
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleBulkMakeAvailable}
+                      disabled={isBulkProcessing}
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      Make Available
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleBulkArchive}
+                      disabled={isBulkProcessing}
+                    >
+                      <Archive className="w-4 h-4 mr-2" />
+                      Archive
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleBulkDelete}
+                      disabled={isBulkProcessing}
+                      className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
+                    </Button>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setSelectedIds(new Set())}
+                    className="ml-auto"
+                  >
+                    Clear selection
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Apps */}
             <section>
               <h2 className="text-lg font-semibold text-foreground mb-4">All Apps</h2>
@@ -175,14 +314,44 @@ const AdminAppsList = () => {
                 </div>
               ) : (
                 <div className="bg-card border border-border rounded-lg divide-y divide-border">
+                  {/* Select All Header */}
+                  <div className="flex items-center gap-4 p-4 bg-muted/30">
+                    <button
+                      onClick={toggleSelectAll}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label={selectedIds.size === apps.length ? 'Deselect all apps' : 'Select all apps'}
+                    >
+                      {selectedIds.size === apps.length ? (
+                        <CheckSquare className="w-5 h-5" />
+                      ) : (
+                        <Square className="w-5 h-5" />
+                      )}
+                    </button>
+                    <span className="text-sm text-muted-foreground">
+                      {selectedIds.size === apps.length ? 'Deselect all' : 'Select all'}
+                    </span>
+                  </div>
                   {apps.map((app, index) => (
                     <motion.div
                       key={app.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className="flex items-center gap-4 p-4"
+                      className={`flex items-center gap-4 p-4 ${selectedIds.has(app.id) ? 'bg-primary/5' : ''}`}
                     >
+                      {/* Checkbox */}
+                      <button
+                        onClick={() => toggleSelect(app.id)}
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                        aria-label={selectedIds.has(app.id) ? `Deselect ${app.name}` : `Select ${app.name}`}
+                      >
+                        {selectedIds.has(app.id) ? (
+                          <CheckSquare className="w-5 h-5 text-primary" />
+                        ) : (
+                          <Square className="w-5 h-5" />
+                        )}
+                      </button>
+
                       {/* Icon */}
                       <div className="w-12 h-12 flex-shrink-0 rounded-xl overflow-hidden bg-muted">
                         {app.icon_url ? (
@@ -204,8 +373,8 @@ const AdminAppsList = () => {
                           <h3 className="font-semibold text-foreground">
                             {app.name}
                           </h3>
-                          <Badge variant={app.status === 'published' ? 'default' : 'secondary'}>
-                            {app.status}
+                          <Badge variant={statusColors[app.status] as 'default' | 'secondary' | 'outline'}>
+                            {statusLabels[app.status]}
                           </Badge>
                           {app.suite && (
                             <Badge variant="outline">{app.suite.name}</Badge>

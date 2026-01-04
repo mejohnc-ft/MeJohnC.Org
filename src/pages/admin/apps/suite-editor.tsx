@@ -5,13 +5,15 @@ import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
 import { Field, Input, Textarea } from '@/components/admin/EditorPanel';
 import { Button } from '@/components/ui/button';
+import { useSupabaseClient } from '@/lib/supabase';
 import {
   createAppSuite,
   updateAppSuite,
   generateSlug,
   type AppSuite
 } from '@/lib/supabase-queries';
-import { supabase } from '@/lib/supabase';
+import { useSEO } from '@/lib/seo';
+import { captureException } from '@/lib/sentry';
 
 type SuiteFormData = Omit<AppSuite, 'id' | 'created_at' | 'updated_at'>;
 
@@ -23,9 +25,11 @@ const initialFormData: SuiteFormData = {
 };
 
 const SuiteEditor = () => {
+  useSEO({ title: 'Edit App Suite', noIndex: true });
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isEditing = !!id;
+  const supabase = useSupabaseClient();
 
   const [formData, setFormData] = useState<SuiteFormData>(initialFormData);
   const [isLoading, setIsLoading] = useState(isEditing);
@@ -33,23 +37,7 @@ const SuiteEditor = () => {
   const [error, setError] = useState<string | null>(null);
   const [autoSlug, setAutoSlug] = useState(true);
 
-  useEffect(() => {
-    if (id) {
-      fetchSuite(id);
-    }
-  }, [id]);
-
-  // Auto-generate slug from name
-  useEffect(() => {
-    if (autoSlug && formData.name) {
-      setFormData((prev) => ({
-        ...prev,
-        slug: generateSlug(formData.name),
-      }));
-    }
-  }, [formData.name, autoSlug]);
-
-  async function fetchSuite(suiteId: string) {
+  const fetchSuite = useCallback(async (suiteId: string) => {
     try {
       const { data, error } = await supabase
         .from('app_suites')
@@ -67,12 +55,28 @@ const SuiteEditor = () => {
       });
       setAutoSlug(false);
     } catch (err) {
-      console.error('Error fetching suite:', err);
+      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'SuiteEditor.fetchSuite' });
       setError('Suite not found');
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [supabase]);
+
+  useEffect(() => {
+    if (id) {
+      fetchSuite(id);
+    }
+  }, [id, fetchSuite]);
+
+  // Auto-generate slug from name
+  useEffect(() => {
+    if (autoSlug && formData.name) {
+      setFormData((prev) => ({
+        ...prev,
+        slug: generateSlug(formData.name),
+      }));
+    }
+  }, [formData.name, autoSlug]);
 
   async function handleSave() {
     if (!formData.name.trim()) {
@@ -89,14 +93,14 @@ const SuiteEditor = () => {
 
     try {
       if (isEditing && id) {
-        await updateAppSuite(id, formData);
+        await updateAppSuite(id, formData, supabase);
       } else {
-        await createAppSuite(formData);
+        await createAppSuite(formData, supabase);
       }
       navigate('/admin/apps');
     } catch (err) {
-      console.error('Error saving suite:', err);
-      setError('Failed to save suite');
+      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'SuiteEditor.saveSuite' });
+      setError('Failed to save suite. Make sure you have permission.');
     } finally {
       setIsSaving(false);
     }
