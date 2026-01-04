@@ -70,11 +70,9 @@ interface ExperienceItemData {
 // Memoized individual experience item to prevent unnecessary re-renders
 const ExperienceItem = memo(function ExperienceItem({
   exp,
-  index,
   isLast
 }: {
   exp: ExperienceItemData;
-  index: number;
   isLast: boolean;
 }) {
   return (
@@ -201,7 +199,6 @@ const Experience = ({ focused = false }: ExperienceProps) => {
             <ExperienceItem
               key={index}
               exp={exp}
-              index={index}
               isLast={index === experiences.length - 1}
             />
           ))}

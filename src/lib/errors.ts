@@ -45,7 +45,7 @@ export function handleSupabaseError(
 ): void {
   if (!error) return;
 
-  const { operation, allowNotFound, returnFallback, fallback } = options;
+  const { operation, allowNotFound, returnFallback } = options;
 
   // Handle "not found" errors gracefully if allowed
   if (allowNotFound && error.code === SUPABASE_ERROR_CODES.NOT_FOUND) {
