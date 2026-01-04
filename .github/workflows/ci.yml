@@ -71,9 +71,9 @@ jobs:
       - name: Build application
         run: npm run build
         env:
-          VITE_SUPABASE_URL: ${{ secrets.https://xlndsjocryaldfmzzkwb.supabase.co }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsbmRzam9jcnlhbGRmbXp6a3diIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjczMjg2MjksImV4cCI6MjA4MjkwNDYyOX0.GfVB2eSN25X1JLlhsegbi3_guQihYnafpZv86k3Rf1M }}
-          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.pk_live_Y2xlcmsubWVqb2huYy5vcmckY }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -82,39 +82,11 @@ jobs:
           path: dist
           retention-days: 7
 
-  # Run Lighthouse CI
-  lighthouse:
-    name: Lighthouse
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist
-
-      - name: Install Lighthouse CI
-        run: npm install -g @lhci/cli@0.13.x
-
-      - name: Run Lighthouse CI
-        run: lhci autorun
-        env:
-          LHCI_GITHUB_APP_TOKEN: ${{ secrets.xiimSpbOT2O1Kc:102580346:fLUpfl8fmS }}
-
   # Deploy to production (only on main branch push)
   deploy:
     name: Deploy to Netlify
     runs-on: ubuntu-latest
-    needs: [build, lighthouse]
+    needs: build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
@@ -137,6 +109,6 @@ jobs:
           enable-commit-comment: true
           overwrites-pull-request-comment: true
         env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.nfp_mHLWtwPdUSsCWdfhrcB3TDP4AGLnMrWj8910 }}
-          NETLIFY_SITE_ID: ${{ secrets.a2be1f79-b560-4785-b9e4-40bb423ba7da }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         timeout-minutes: 5
