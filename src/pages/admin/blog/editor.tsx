@@ -78,6 +78,7 @@ const BlogEditor = () => {
   }, [formData.content]);
 
   const fetchPost = useCallback(async (postId: string) => {
+    if (!supabase) return;
     try {
       const post = await getBlogPostById(postId, supabase);
       setFormData({
@@ -112,6 +113,10 @@ const BlogEditor = () => {
   }, [id, fetchPost]);
 
   async function handleSave(publish = false, schedule = false) {
+    if (!supabase) {
+      setError('Database not configured');
+      return;
+    }
     if (!formData.title.trim()) {
       setError('Title is required');
       return;

@@ -72,6 +72,7 @@ const AppEditor = () => {
   }, [formData.name, autoSlug]);
 
   const fetchSuites = useCallback(async () => {
+    if (!supabase) return;
     try {
       const data = await getAppSuites(supabase);
       setSuites(data);
@@ -81,6 +82,7 @@ const AppEditor = () => {
   }, [supabase]);
 
   const fetchApp = useCallback(async (appId: string) => {
+    if (!supabase) return;
     try {
       const data = await getAppById(appId, supabase);
 
@@ -117,6 +119,10 @@ const AppEditor = () => {
   }, [id, fetchApp]);
 
   async function handleSave(makeAvailable = false) {
+    if (!supabase) {
+      setError('Database not configured');
+      return;
+    }
     if (!formData.name.trim()) {
       setError('Name is required');
       return;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
@@ -38,6 +38,7 @@ const SuiteEditor = () => {
   const [autoSlug, setAutoSlug] = useState(true);
 
   const fetchSuite = useCallback(async (suiteId: string) => {
+    if (!supabase) return;
     try {
       const { data, error } = await supabase
         .from('app_suites')
@@ -79,6 +80,10 @@ const SuiteEditor = () => {
   }, [formData.name, autoSlug]);
 
   async function handleSave() {
+    if (!supabase) {
+      setError('Database not configured');
+      return;
+    }
     if (!formData.name.trim()) {
       setError('Name is required');
       return;

@@ -67,6 +67,7 @@ const ProjectEditor = () => {
   }, [formData.name, autoSlug]);
 
   const fetchProject = useCallback(async (projectId: string) => {
+    if (!supabase) return;
     try {
       const data = await getProjectById(projectId, supabase);
       setFormData({
@@ -101,6 +102,10 @@ const ProjectEditor = () => {
   }, [id, fetchProject]);
 
   async function handleSave(publish = false, schedule = false) {
+    if (!supabase) {
+      setError('Database not configured');
+      return;
+    }
     if (!formData.name.trim()) {
       setError('Name is required');
       return;
