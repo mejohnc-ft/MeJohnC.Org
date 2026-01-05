@@ -37,7 +37,26 @@ export const ANIMATION = {
 // Storage
 export const STORAGE_BUCKET = 'mejohnc.org';
 
-// Supabase error codes
+// localStorage keys (centralized to avoid magic strings)
+export const STORAGE_KEYS = {
+  SUPABASE_SETTINGS: 'supabase_settings',
+  ANALYTICS_SETTINGS: 'analytics_settings',
+  GHOST_SETTINGS: 'ghost_settings',
+  THEME: 'resume-site-theme',
+  PWA_DISMISSED: 'pwa-dismissed',
+  ANALYTICS_CONSENT: 'analytics_consent',
+} as const;
+
+// Supabase/PostgreSQL error codes
 export const SUPABASE_ERROR_CODES = {
+  // PostgREST errors
   NOT_FOUND: 'PGRST116',
+  // PostgreSQL errors
+  UNIQUE_VIOLATION: '23505',
+  FOREIGN_KEY_VIOLATION: '23503',
+  CHECK_VIOLATION: '23514',
+  NOT_NULL_VIOLATION: '23502',
+  // Auth errors
+  INVALID_CREDENTIALS: 'invalid_credentials',
+  JWT_EXPIRED: 'jwt_expired',
 } as const;
