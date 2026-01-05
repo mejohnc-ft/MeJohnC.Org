@@ -8,7 +8,7 @@ import MarkdownEditor from '@/components/admin/MarkdownEditor';
 import ImageUploader from '@/components/admin/ImageUploader';
 import VersionHistory from '@/components/admin/VersionHistory';
 import { Button } from '@/components/ui/button';
-import { useSupabaseClient } from '@/lib/supabase';
+import { useAuthenticatedSupabase } from '@/lib/supabase';
 import {
   getAppSuites,
   getAppById,
@@ -45,7 +45,7 @@ const AppEditor = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isEditing = !!id;
-  const supabase = useSupabaseClient();
+  const { supabase } = useAuthenticatedSupabase();
 
   const [formData, setFormData] = useState<AppFormData>(initialFormData);
   const [suites, setSuites] = useState<AppSuite[]>([]);

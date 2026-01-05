@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AppWindow, FileText, Plus, ArrowRight, FolderKanban } from 'lucide-react';
-import { useSupabaseClient } from '@/lib/supabase';
+import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import AdminLayout from '@/components/AdminLayout';
 import AuditLogViewer from '@/components/admin/AuditLogViewer';
@@ -18,7 +18,7 @@ interface Stats {
 
 const AdminDashboard = () => {
   useSEO({ title: 'Admin Dashboard', noIndex: true });
-  const supabase = useSupabaseClient();
+  const { supabase } = useAuthenticatedSupabase();
   const [stats, setStats] = useState<Stats>({
     appsCount: 0,
     projectsCount: 0,

@@ -5,7 +5,7 @@ import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
 import { Field, Input, Textarea } from '@/components/admin/EditorPanel';
 import { Button } from '@/components/ui/button';
-import { useSupabaseClient } from '@/lib/supabase';
+import { useAuthenticatedSupabase } from '@/lib/supabase';
 import {
   createAppSuite,
   updateAppSuite,
@@ -29,7 +29,7 @@ const SuiteEditor = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isEditing = !!id;
-  const supabase = useSupabaseClient();
+  const { supabase } = useAuthenticatedSupabase();
 
   const [formData, setFormData] = useState<SuiteFormData>(initialFormData);
   const [isLoading, setIsLoading] = useState(isEditing);

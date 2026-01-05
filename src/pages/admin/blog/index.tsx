@@ -5,7 +5,7 @@ import { Plus, FileText, Edit, Trash2, Eye, Loader2, CheckSquare, Square, Send, 
 import AdminLayout from '@/components/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useSupabaseClient } from '@/lib/supabase';
+import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { getBlogPosts, deleteBlogPost, bulkDeleteBlogPosts, bulkUpdateBlogPostStatus, type BlogPost } from '@/lib/supabase-queries';
 import { formatDate } from '@/lib/markdown';
 import { useSEO } from '@/lib/seo';
@@ -15,7 +15,7 @@ const AdminBlogList = () => {
   useSEO({ title: 'Manage Blog Posts', noIndex: true });
   const [searchParams] = useSearchParams();
   const statusFilter = searchParams.get('status');
-  const supabase = useSupabaseClient();
+  const { supabase } = useAuthenticatedSupabase();
 
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);

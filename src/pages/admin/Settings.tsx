@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/lib/auth';
 import { useSession } from '@clerk/clerk-react';
-import { getSupabaseSettings, saveSupabaseSettings, useSupabaseClient } from '@/lib/supabase';
+import { getSupabaseSettings, saveSupabaseSettings, useAuthenticatedSupabase } from '@/lib/supabase';
 import { getAnalyticsSettings, saveAnalyticsSettings } from '@/lib/analytics';
 import { getGhostSettings, saveGhostSettings } from '@/lib/ghost';
 import { useSEO, clearSEOCache } from '@/lib/seo';
@@ -83,7 +83,7 @@ const Settings = () => {
   useSEO({ title: 'Configuration', noIndex: true });
   const { user } = useAuth();
   const { session } = useSession();
-  const supabase = useSupabaseClient();
+  const { supabase } = useAuthenticatedSupabase();
 
   // Visibility toggles
   const [showGhostKey, setShowGhostKey] = useState(false);

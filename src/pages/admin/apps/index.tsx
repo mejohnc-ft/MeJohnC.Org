@@ -5,7 +5,7 @@ import { Plus, AppWindow, Edit, Trash2, ExternalLink, Loader2, FolderOpen, Check
 import AdminLayout from '@/components/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useSupabaseClient } from '@/lib/supabase';
+import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { getApps, getAppSuites, deleteApp, deleteAppSuite, bulkDeleteApps, bulkUpdateAppStatus, type App, type AppSuite } from '@/lib/supabase-queries';
 import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
@@ -26,7 +26,7 @@ const statusColors: Record<string, string> = {
 
 const AdminAppsList = () => {
   useSEO({ title: 'Manage Apps', noIndex: true });
-  const supabase = useSupabaseClient();
+  const { supabase } = useAuthenticatedSupabase();
   const [apps, setApps] = useState<(App & { suite: AppSuite | null })[]>([]);
   const [suites, setSuites] = useState<AppSuite[]>([]);
   const [isLoading, setIsLoading] = useState(true);

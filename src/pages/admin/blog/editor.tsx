@@ -8,7 +8,7 @@ import MarkdownEditor from '@/components/admin/MarkdownEditor';
 import ImageUploader from '@/components/admin/ImageUploader';
 import VersionHistory from '@/components/admin/VersionHistory';
 import { Button } from '@/components/ui/button';
-import { useSupabaseClient } from '@/lib/supabase';
+import { useAuthenticatedSupabase } from '@/lib/supabase';
 import {
   getBlogPostById,
   createBlogPost,
@@ -43,7 +43,7 @@ const BlogEditor = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isEditing = !!id;
-  const supabase = useSupabaseClient();
+  const { supabase, isLoading: authLoading } = useAuthenticatedSupabase();
 
   const [formData, setFormData] = useState<PostFormData>(initialFormData);
   const [isLoading, setIsLoading] = useState(isEditing);
@@ -174,7 +174,7 @@ const BlogEditor = () => {
     setFormData((prev) => ({ ...prev, [key]: value }));
   }
 
-  if (isLoading) {
+  if (isLoading || authLoading) {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center h-[60vh]">

@@ -23,7 +23,7 @@ import AdminLayout from '@/components/AdminLayout';
 import MarkdownEditor from '@/components/admin/MarkdownEditor';
 import { Field, Input, Textarea, Select, TagInput } from '@/components/admin/EditorPanel';
 import { Button } from '@/components/ui/button';
-import { useSupabaseClient } from '@/lib/supabase';
+import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { useSEO } from '@/lib/seo';
 import { useTheme } from '@/lib/theme';
 import { captureException } from '@/lib/sentry';
@@ -95,7 +95,7 @@ const iconComponents: Record<ContactIcon, LucideIcon> = {
 // HERO TAB (Home page content)
 // ============================================
 const HeroTab = () => {
-  const supabase = useSupabaseClient();
+  const { supabase } = useAuthenticatedSupabase();
   const [, setContent] = useState<SiteContent | null>(null);
   const [name, setName] = useState('Jonathan Christensen');
   const [title, setTitle] = useState('AI Automation Engineer');
@@ -212,7 +212,7 @@ const HeroTab = () => {
 // ABOUT TAB
 // ============================================
 const AboutTab = () => {
-  const supabase = useSupabaseClient();
+  const { supabase } = useAuthenticatedSupabase();
   const [, setContent] = useState<SiteContent | null>(null);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -296,7 +296,7 @@ const AboutTab = () => {
 // CONTACT TAB
 // ============================================
 const ContactTab = () => {
-  const supabase = useSupabaseClient();
+  const { supabase } = useAuthenticatedSupabase();
   const [links, setLinks] = useState<ContactLink[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -511,11 +511,12 @@ const ContactTab = () => {
 // WORK HISTORY TAB
 // ============================================
 const WorkHistoryTab = () => {
-  const supabase = useSupabaseClient();
+  const { supabase } = useAuthenticatedSupabase();
   const [entries, setEntries] = useState<WorkHistoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     company: '',
@@ -546,6 +547,7 @@ const WorkHistoryTab = () => {
   };
 
   const handleSave = async () => {
+    setError(null);
     try {
       if (editingId) {
         const updated = await updateWorkHistoryEntry(editingId, formData, supabase);
@@ -560,6 +562,7 @@ const WorkHistoryTab = () => {
       resetForm();
     } catch (err) {
       captureException(err instanceof Error ? err : new Error(String(err)), { context: 'Profile.saveWorkHistory' });
+      setError('Failed to save work history entry. Make sure you have permission.');
     }
   };
 
@@ -576,11 +579,13 @@ const WorkHistoryTab = () => {
   };
 
   const handleDelete = async (id: string) => {
+    setError(null);
     try {
       await deleteWorkHistoryEntry(id, supabase);
       setEntries(entries.filter((e) => e.id !== id));
     } catch (err) {
       captureException(err instanceof Error ? err : new Error(String(err)), { context: 'Profile.deleteWorkHistory' });
+      setError('Failed to delete work history entry. Make sure you have permission.');
     }
   };
 
@@ -613,6 +618,17 @@ const WorkHistoryTab = () => {
       exit={{ opacity: 0, y: -10 }}
       className="space-y-6"
     >
+      {/* Error display */}
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500"
+        >
+          {error}
+        </motion.div>
+      )}
+
       {/* List */}
       <div className="space-y-2">
         {entries.map((entry, index) => (
@@ -747,11 +763,12 @@ const WorkHistoryTab = () => {
 // CASE STUDIES TAB
 // ============================================
 const CaseStudiesTab = () => {
-  const supabase = useSupabaseClient();
+  const { supabase } = useAuthenticatedSupabase();
   const [studies, setStudies] = useState<CaseStudy[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     metric: '',
     title: '',
@@ -781,6 +798,7 @@ const CaseStudiesTab = () => {
   };
 
   const handleSave = async () => {
+    setError(null);
     try {
       if (editingId) {
         const updated = await updateCaseStudy(editingId, formData, supabase);
@@ -795,6 +813,7 @@ const CaseStudiesTab = () => {
       resetForm();
     } catch (err) {
       captureException(err instanceof Error ? err : new Error(String(err)), { context: 'Profile.saveCaseStudy' });
+      setError('Failed to save case study. Make sure you have permission.');
     }
   };
 
@@ -810,11 +829,13 @@ const CaseStudiesTab = () => {
   };
 
   const handleDelete = async (id: string) => {
+    setError(null);
     try {
       await deleteCaseStudy(id, supabase);
       setStudies(studies.filter((s) => s.id !== id));
     } catch (err) {
       captureException(err instanceof Error ? err : new Error(String(err)), { context: 'Profile.deleteCaseStudy' });
+      setError('Failed to delete case study. Make sure you have permission.');
     }
   };
 
@@ -847,6 +868,17 @@ const CaseStudiesTab = () => {
       exit={{ opacity: 0, y: -10 }}
       className="space-y-6"
     >
+      {/* Error display */}
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500"
+        >
+          {error}
+        </motion.div>
+      )}
+
       {/* List */}
       <div className="space-y-2">
         {studies.map((study, index) => (
@@ -1131,13 +1163,14 @@ const TimelinePreview = ({ entries }: { entries: TimelineEntry[] }) => {
 };
 
 const TimelinesTab = () => {
-  const supabase = useSupabaseClient();
+  const { supabase } = useAuthenticatedSupabase();
   const [timelines, setTimelines] = useState<Timeline[]>([]);
   const [selectedTimeline, setSelectedTimeline] = useState<Timeline | null>(null);
   const [entries, setEntries] = useState<TimelineEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingEntries, setIsLoadingEntries] = useState(false);
   const [viewMode, setViewMode] = useState<'edit' | 'preview'>('edit');
+  const [error, setError] = useState<string | null>(null);
 
   // Timeline form state
   const [isAddingTimeline, setIsAddingTimeline] = useState(false);
@@ -1208,6 +1241,7 @@ const TimelinesTab = () => {
   };
 
   const handleSaveTimeline = async () => {
+    setError(null);
     try {
       if (editingTimelineId) {
         const updated = await updateTimeline(editingTimelineId, timelineForm, supabase);
@@ -1226,6 +1260,7 @@ const TimelinesTab = () => {
       resetTimelineForm();
     } catch (err) {
       captureException(err instanceof Error ? err : new Error(String(err)), { context: 'Profile.saveTimeline' });
+      setError('Failed to save timeline. Make sure you have permission.');
     }
   };
 
@@ -1242,6 +1277,7 @@ const TimelinesTab = () => {
 
   const handleDeleteTimeline = async (id: string) => {
     if (!confirm('Delete this timeline and all its entries?')) return;
+    setError(null);
     try {
       await deleteTimeline(id, supabase);
       const remaining = timelines.filter((t) => t.id !== id);
@@ -1251,11 +1287,13 @@ const TimelinesTab = () => {
       }
     } catch (err) {
       captureException(err instanceof Error ? err : new Error(String(err)), { context: 'Profile.deleteTimeline' });
+      setError('Failed to delete timeline. Make sure you have permission.');
     }
   };
 
   const handleSaveEntry = async () => {
     if (!selectedTimeline) return;
+    setError(null);
     try {
       if (editingEntryId) {
         const updated = await updateTimelineEntry(editingEntryId, entryForm, supabase);
@@ -1270,6 +1308,7 @@ const TimelinesTab = () => {
       resetEntryForm();
     } catch (err) {
       captureException(err instanceof Error ? err : new Error(String(err)), { context: 'Profile.saveEntry' });
+      setError('Failed to save entry. Make sure you have permission.');
     }
   };
 
@@ -1286,11 +1325,13 @@ const TimelinesTab = () => {
   };
 
   const handleDeleteEntry = async (id: string) => {
+    setError(null);
     try {
       await deleteTimelineEntry(id, supabase);
       setEntries(entries.filter((e) => e.id !== id));
     } catch (err) {
       captureException(err instanceof Error ? err : new Error(String(err)), { context: 'Profile.deleteEntry' });
+      setError('Failed to delete entry. Make sure you have permission.');
     }
   };
 
@@ -1320,6 +1361,17 @@ const TimelinesTab = () => {
       exit={{ opacity: 0, y: -10 }}
       className="space-y-6"
     >
+      {/* Error display */}
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500"
+        >
+          {error}
+        </motion.div>
+      )}
+
       {/* Timeline Selector */}
       <div className="flex items-center gap-4 p-4 bg-card border border-border rounded-lg">
         <span className="text-sm font-medium text-muted-foreground">Timeline:</span>

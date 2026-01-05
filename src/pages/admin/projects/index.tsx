@@ -5,7 +5,7 @@ import { Plus, FolderKanban, Edit, Trash2, ExternalLink, Loader2, CheckSquare, S
 import AdminLayout from '@/components/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useSupabaseClient } from '@/lib/supabase';
+import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { getProjects, deleteProject, bulkDeleteProjects, bulkUpdateProjectStatus, type Project } from '@/lib/supabase-queries';
 import { formatDate } from '@/lib/markdown';
 import { useSEO } from '@/lib/seo';
@@ -15,7 +15,7 @@ const AdminProjectsList = () => {
   useSEO({ title: 'Manage Projects', noIndex: true });
   const [searchParams] = useSearchParams();
   const statusFilter = searchParams.get('status');
-  const supabase = useSupabaseClient();
+  const { supabase } = useAuthenticatedSupabase();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
