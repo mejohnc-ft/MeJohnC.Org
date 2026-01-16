@@ -325,12 +325,33 @@ const AdminNewsDashboard = () => {
     }
   }, [supabase, columnView, columnConfigs, fetchColumnArticles]);
 
-  // Update a specific column's configuration
+  // Fetch a single column's articles
+  const fetchSingleColumnArticles = useCallback(async (config: ColumnFeedConfig) => {
+    if (!supabase) return;
+
+    setColumnLoading(prev => ({ ...prev, [config.id]: true }));
+
+    try {
+      const articles = await fetchColumnArticles(config);
+      setColumnArticles(prev => ({ ...prev, [config.id]: articles }));
+    } catch (error) {
+      captureException(error instanceof Error ? error : new Error(String(error)), {
+        context: 'AdminNewsDashboard.fetchSingleColumnArticles',
+      });
+    } finally {
+      setColumnLoading(prev => ({ ...prev, [config.id]: false }));
+    }
+  }, [supabase, fetchColumnArticles]);
+
+  // Update a specific column's configuration and immediately fetch its articles
   const updateColumnConfig = useCallback((columnId: string, type: ColumnFeedConfig['type'], value: string, label: string) => {
+    const newConfig = { id: columnId, type, value, label };
     setColumnConfigs(prev => prev.map(c =>
-      c.id === columnId ? { ...c, type, value, label } : c
+      c.id === columnId ? newConfig : c
     ));
-  }, []);
+    // Immediately fetch articles for the updated column
+    fetchSingleColumnArticles(newConfig);
+  }, [fetchSingleColumnArticles]);
 
   useEffect(() => {
     fetchData();
@@ -345,13 +366,6 @@ const AdminNewsDashboard = () => {
       }
     }
   }, [fetchArticles, fetchAllColumnArticles, feedTabs.length, mainTab, columnView]);
-
-  // Refetch column articles when column configs change
-  useEffect(() => {
-    if (mainTab === 'feed' && columnView > 1) {
-      fetchAllColumnArticles();
-    }
-  }, [columnConfigs, mainTab, columnView, fetchAllColumnArticles]);
 
   // Selection handlers
   const toggleSelection = (id: string) => {
@@ -882,35 +896,51 @@ const AdminNewsDashboard = () => {
                 })}
               </div>
 
-              {/* Column View Toggle */}
-              <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
-                <button
-                  onClick={() => setColumnView(1)}
-                  className={`p-2 rounded transition-colors ${
-                    columnView === 1 ? 'bg-background shadow-sm' : 'hover:bg-background/50'
-                  }`}
-                  title="Single column"
-                >
-                  <LayoutGrid className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setColumnView(2)}
-                  className={`p-2 rounded transition-colors ${
-                    columnView === 2 ? 'bg-background shadow-sm' : 'hover:bg-background/50'
-                  }`}
-                  title="Two columns"
-                >
-                  <Columns2 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setColumnView(3)}
-                  className={`p-2 rounded transition-colors ${
-                    columnView === 3 ? 'bg-background shadow-sm' : 'hover:bg-background/50'
-                  }`}
-                  title="Three columns"
-                >
-                  <Columns3 className="w-4 h-4" />
-                </button>
+              {/* Column View Toggle - Modern Segmented Control */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground hidden sm:inline">View:</span>
+                <div className="relative flex items-center bg-muted/50 border border-border rounded-xl p-1">
+                  {/* Sliding background indicator */}
+                  <motion.div
+                    className="absolute h-[calc(100%-8px)] bg-gradient-to-r from-primary/90 to-primary rounded-lg shadow-lg"
+                    initial={false}
+                    animate={{
+                      width: 'calc(33.333% - 2px)',
+                      x: columnView === 1 ? '2px' : columnView === 2 ? 'calc(100% + 2px)' : 'calc(200% + 2px)',
+                    }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  />
+                  <button
+                    onClick={() => setColumnView(1)}
+                    className={`relative z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                      columnView === 1 ? 'text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    title="List view"
+                  >
+                    <LayoutGrid className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">List</span>
+                  </button>
+                  <button
+                    onClick={() => setColumnView(2)}
+                    className={`relative z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                      columnView === 2 ? 'text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    title="Two column feeds"
+                  >
+                    <Columns2 className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">2-Col</span>
+                  </button>
+                  <button
+                    onClick={() => setColumnView(3)}
+                    className={`relative z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                      columnView === 3 ? 'text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    title="Three column feeds"
+                  >
+                    <Columns3 className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">3-Col</span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1132,14 +1162,37 @@ const AdminNewsDashboard = () => {
             {/* Multi-Column Feed View */}
             {columnView > 1 && (
               <div className={`grid ${getGridClass()} gap-4`}>
-                {columnConfigs.slice(0, columnView).map((config) => {
+                {columnConfigs.slice(0, columnView).map((config, idx) => {
                   const colArticles = columnArticles[config.id] || [];
                   const isLoading = columnLoading[config.id];
 
+                  // Get color for category
+                  const getCategoryColor = () => {
+                    if (config.type === 'category') {
+                      const cat = categories.find(c => c.slug === config.value);
+                      return cat?.color || 'blue';
+                    }
+                    return null;
+                  };
+                  const categoryColor = getCategoryColor();
+
                   return (
-                    <div key={config.id} className="flex flex-col bg-card border border-border rounded-lg overflow-hidden">
+                    <div key={config.id} className="flex flex-col bg-card border border-border rounded-xl overflow-hidden shadow-sm">
                       {/* Column Header with Feed Selector */}
-                      <div className="p-3 border-b border-border bg-muted/30">
+                      <div className="p-3 border-b border-border bg-gradient-to-r from-muted/50 to-muted/30">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className={`w-2 h-2 rounded-full ${
+                            categoryColor ? getCategoryColorClass(categoryColor) :
+                            config.type === 'unread' ? 'bg-blue-500' :
+                            config.type === 'bookmarked' ? 'bg-yellow-500' :
+                            config.type === 'curated' ? 'bg-green-500' :
+                            'bg-primary'
+                          }`} />
+                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                            Feed {idx + 1}
+                          </span>
+                          {isLoading && <Loader2 className="w-3 h-3 animate-spin text-primary ml-auto" />}
+                        </div>
                         <select
                           value={`${config.type}:${config.value}`}
                           onChange={(e) => {
@@ -1156,7 +1209,7 @@ const AdminNewsDashboard = () => {
                             else if (type === 'curated') label = 'Curated';
                             updateColumnConfig(config.id, type as ColumnFeedConfig['type'], value, label);
                           }}
-                          className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm font-medium"
+                          className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm font-semibold cursor-pointer hover:border-primary/50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                         >
                           <optgroup label="Filters">
                             <option value="all:">All Articles</option>
@@ -1179,9 +1232,10 @@ const AdminNewsDashboard = () => {
                             </optgroup>
                           )}
                         </select>
-                        <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                          <span>{colArticles.length} articles</span>
-                          {isLoading && <Loader2 className="w-3 h-3 animate-spin" />}
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-xs text-muted-foreground">
+                            {colArticles.length} {colArticles.length === 1 ? 'article' : 'articles'}
+                          </span>
                         </div>
                       </div>
 
