@@ -198,7 +198,6 @@ const AdminContentList = () => {
   }
 
   async function handleUncurate(id: string) {
-    if (!confirm('Remove this article from curated content?')) return;
     setUncuratingId(id);
     try {
       await curateArticle(id, false, undefined, supabase!);
@@ -304,6 +303,7 @@ const AdminContentList = () => {
   // Count stats
   const localPublished = localPosts.filter(p => p.status === 'published').length;
   const localDrafts = localPosts.filter(p => p.status === 'draft').length;
+  const localScheduled = localPosts.filter(p => p.status === 'scheduled').length;
 
   return (
     <AdminLayout>
@@ -386,6 +386,11 @@ const AdminContentList = () => {
             <Link to="/admin/blog?tab=me&status=draft">
               <Badge variant={statusFilter === 'draft' ? 'default' : 'secondary'}>
                 Drafts ({localDrafts})
+              </Badge>
+            </Link>
+            <Link to="/admin/blog?tab=me&status=scheduled">
+              <Badge variant={statusFilter === 'scheduled' ? 'default' : 'secondary'}>
+                Scheduled ({localScheduled})
               </Badge>
             </Link>
           </div>
