@@ -259,6 +259,7 @@ export const NewsArticleSchema = z.object({
   description: z.string().nullable(),
   content: z.string().nullable(),
   url: z.string(),
+  source_url: z.string().nullable(),  // The source's own article page (for link-blogs)
   image_url: z.string().nullable(),
   author: z.string().nullable(),
   published_at: z.string().nullable(),

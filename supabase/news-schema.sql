@@ -45,7 +45,8 @@ CREATE TABLE IF NOT EXISTS news_articles (
   title TEXT NOT NULL,
   description TEXT,
   content TEXT, -- Full content if available
-  url TEXT NOT NULL,
+  url TEXT NOT NULL, -- Primary link (external for link-blogs, article for regular blogs)
+  source_url TEXT, -- The source's own article page (for link-blogs like Daring Fireball)
   image_url TEXT,
   author TEXT,
   published_at TIMESTAMPTZ,

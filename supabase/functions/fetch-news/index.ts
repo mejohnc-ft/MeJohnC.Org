@@ -4,7 +4,6 @@
 // Set up cron: Use Supabase Dashboard > Database > Extensions > pg_cron
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
-import { DOMParser } from 'https://deno.land/x/deno_dom@v0.1.43/deno-dom-wasm.ts'
 
 // CORS headers for browser requests
 const corsHeaders = {
@@ -31,122 +30,176 @@ interface ParsedArticle {
   description: string | null
   content: string | null
   url: string
+  source_url: string | null  // The article's own page URL (for link-blogs like Daring Fireball)
   image_url: string | null
   author: string | null
   published_at: string | null
 }
 
-// Parse RSS/Atom feed XML
-function parseRssFeed(xml: string, sourceId: string): ParsedArticle[] {
+// Helper to extract text between XML tags using regex
+function extractTag(xml: string, tag: string): string | null {
+  const regex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i')
+  const match = xml.match(regex)
+  return match ? match[1].trim() : null
+}
+
+// Helper to extract attribute from XML tag
+function extractAttr(xml: string, tag: string, attr: string): string | null {
+  const regex = new RegExp(`<${tag}[^>]*${attr}=["']([^"']+)["']`, 'i')
+  const match = xml.match(regex)
+  return match ? match[1] : null
+}
+
+// Helper to extract href from link with specific rel attribute
+function extractLinkByRel(xml: string, rel: string): string | null {
+  // Match <link ... rel="related" ... href="url"> in any order
+  const regex = new RegExp(`<link[^>]*rel=["']${rel}["'][^>]*href=["']([^"']+)["']|<link[^>]*href=["']([^"']+)["'][^>]*rel=["']${rel}["']`, 'i')
+  const match = xml.match(regex)
+  return match ? (match[1] || match[2]) : null
+}
+
+// Parse RSS feed using regex (more reliable for various feed formats)
+function parseRssWithRegex(xml: string, sourceId: string): ParsedArticle[] {
   const articles: ParsedArticle[] = []
 
-  try {
-    const doc = new DOMParser().parseFromString(xml, 'text/xml')
-    if (!doc) return articles
+  // Match RSS 2.0 <item> elements
+  const itemRegex = /<item[^>]*>([\s\S]*?)<\/item>/gi
+  let match
 
-    // Try RSS 2.0 format first
-    let items = doc.querySelectorAll('item')
+  while ((match = itemRegex.exec(xml)) !== null) {
+    try {
+      const itemXml = match[1]
 
-    // If no items, try Atom format
-    if (items.length === 0) {
-      items = doc.querySelectorAll('entry')
-    }
+      const title = extractTag(itemXml, 'title') || ''
+      const link = extractTag(itemXml, 'link') || ''
+      const description = extractTag(itemXml, 'description')
+      const content = extractTag(itemXml, 'content:encoded')
+      const pubDate = extractTag(itemXml, 'pubDate')
+      const author = extractTag(itemXml, 'author') || extractTag(itemXml, 'dc:creator')
+      const guid = extractTag(itemXml, 'guid') || link
 
-    for (const item of items) {
-      try {
-        // RSS 2.0 fields
-        let title = item.querySelector('title')?.textContent?.trim() || ''
-        let link = item.querySelector('link')?.textContent?.trim() || ''
-        let description = item.querySelector('description')?.textContent?.trim() || null
-        let content = item.querySelector('content\\:encoded')?.textContent?.trim() || null
-        let pubDate = item.querySelector('pubDate')?.textContent?.trim() || null
-        const author = item.querySelector('author')?.textContent?.trim() ||
-                       item.querySelector('dc\\:creator')?.textContent?.trim() || null
-        let guid = item.querySelector('guid')?.textContent?.trim() || link
+      // Try to extract image
+      const imageUrl = extractAttr(itemXml, 'media:content', 'url') ||
+                     extractAttr(itemXml, 'media:thumbnail', 'url') ||
+                     extractAttr(itemXml, 'enclosure', 'url')
 
-        // Atom format fallbacks
-        if (!title) {
-          title = item.querySelector('title')?.textContent?.trim() || ''
-        }
-        if (!link) {
-          const linkEl = item.querySelector('link[href]')
-          link = linkEl?.getAttribute('href') || ''
-        }
-        if (!description) {
-          description = item.querySelector('summary')?.textContent?.trim() || null
-        }
-        if (!content) {
-          content = item.querySelector('content')?.textContent?.trim() || null
-        }
-        if (!pubDate) {
-          pubDate = item.querySelector('published')?.textContent?.trim() ||
-                   item.querySelector('updated')?.textContent?.trim() || null
-        }
-        if (!guid) {
-          guid = item.querySelector('id')?.textContent?.trim() || link
-        }
-
-        // Extract image from various sources
-        let imageUrl: string | null = null
-
-        // Check media:content or media:thumbnail
-        const mediaContent = item.querySelector('media\\:content, media\\:thumbnail')
-        if (mediaContent) {
-          imageUrl = mediaContent.getAttribute('url')
-        }
-
-        // Check enclosure
-        if (!imageUrl) {
-          const enclosure = item.querySelector('enclosure[type^="image"]')
-          if (enclosure) {
-            imageUrl = enclosure.getAttribute('url')
+      // Parse publish date
+      let publishedAt: string | null = null
+      if (pubDate) {
+        try {
+          const date = new Date(pubDate)
+          if (!isNaN(date.getTime())) {
+            publishedAt = date.toISOString()
           }
+        } catch {
+          // Invalid date
         }
-
-        // Try to extract image from content/description HTML
-        if (!imageUrl && (content || description)) {
-          const htmlContent = content || description || ''
-          const imgMatch = htmlContent.match(/<img[^>]+src=["']([^"']+)["']/)
-          if (imgMatch) {
-            imageUrl = imgMatch[1]
-          }
-        }
-
-        // Parse and validate publish date
-        let publishedAt: string | null = null
-        if (pubDate) {
-          try {
-            const date = new Date(pubDate)
-            if (!isNaN(date.getTime())) {
-              publishedAt = date.toISOString()
-            }
-          } catch {
-            // Invalid date, leave as null
-          }
-        }
-
-        if (title && link) {
-          articles.push({
-            source_id: sourceId,
-            external_id: guid || link,
-            title: title.substring(0, 500), // Limit title length
-            description: description?.substring(0, 2000) || null,
-            content: content?.substring(0, 50000) || null,
-            url: link,
-            image_url: imageUrl,
-            author: author?.substring(0, 200) || null,
-            published_at: publishedAt,
-          })
-        }
-      } catch (itemError) {
-        console.error('Error parsing item:', itemError)
       }
+
+      if (title && link) {
+        articles.push({
+          source_id: sourceId,
+          external_id: guid || link,
+          title: title.substring(0, 500),
+          description: description?.substring(0, 2000) || null,
+          content: content?.substring(0, 50000) || null,
+          url: link,
+          source_url: null,  // RSS feeds don't typically have separate source URLs
+          image_url: imageUrl,
+          author: author?.substring(0, 200) || null,
+          published_at: publishedAt,
+        })
+      }
+    } catch (e) {
+      console.error('Error parsing RSS item:', e)
     }
-  } catch (parseError) {
-    console.error('Error parsing RSS feed:', parseError)
   }
 
   return articles
+}
+
+// Parse Atom feed using regex
+function parseAtomWithRegex(xml: string, sourceId: string): ParsedArticle[] {
+  const articles: ParsedArticle[] = []
+
+  // Match Atom <entry> elements
+  const entryRegex = /<entry[^>]*>([\s\S]*?)<\/entry>/gi
+  let match
+
+  while ((match = entryRegex.exec(xml)) !== null) {
+    try {
+      const entryXml = match[1]
+
+      const title = extractTag(entryXml, 'title') || ''
+
+      // For Atom feeds, get the alternate link (external) and related link (source page)
+      // Daring Fireball uses: alternate = external link, related = DF article page
+      const alternateLink = extractLinkByRel(entryXml, 'alternate') || extractAttr(entryXml, 'link', 'href') || ''
+      const relatedLink = extractLinkByRel(entryXml, 'related')
+
+      const summary = extractTag(entryXml, 'summary')
+      const content = extractTag(entryXml, 'content')
+      const published = extractTag(entryXml, 'published') || extractTag(entryXml, 'updated')
+      const authorName = extractTag(entryXml, 'name') // Inside <author> tag
+      const id = extractTag(entryXml, 'id') || alternateLink
+
+      // Parse publish date
+      let publishedAt: string | null = null
+      if (published) {
+        try {
+          const date = new Date(published)
+          if (!isNaN(date.getTime())) {
+            publishedAt = date.toISOString()
+          }
+        } catch {
+          // Invalid date
+        }
+      }
+
+      if (title && alternateLink) {
+        articles.push({
+          source_id: sourceId,
+          external_id: id || alternateLink,
+          title: title.substring(0, 500),
+          description: summary?.substring(0, 2000) || null,
+          content: content?.substring(0, 50000) || null,
+          url: alternateLink,  // External link (where headline points)
+          source_url: relatedLink,  // The blog's own article page (for commentary)
+          image_url: null,
+          author: authorName?.substring(0, 200) || null,
+          published_at: publishedAt,
+        })
+      }
+    } catch (e) {
+      console.error('Error parsing Atom entry:', e)
+    }
+  }
+
+  return articles
+}
+
+// Parse RSS/Atom feed - try regex first (more reliable)
+function parseRssFeed(xml: string, sourceId: string): ParsedArticle[] {
+  // Detect feed type and parse with regex
+  const isAtom = xml.includes('<feed') && xml.includes('xmlns="http://www.w3.org/2005/Atom"')
+  const isRss = xml.includes('<rss') || xml.includes('<item>')
+
+  console.log(`Feed type detection - Atom: ${isAtom}, RSS: ${isRss}`)
+
+  if (isRss) {
+    const articles = parseRssWithRegex(xml, sourceId)
+    console.log(`Regex parser found ${articles.length} RSS articles`)
+    return articles
+  }
+
+  if (isAtom) {
+    const articles = parseAtomWithRegex(xml, sourceId)
+    console.log(`Regex parser found ${articles.length} Atom articles`)
+    return articles
+  }
+
+  console.error('Unknown feed format')
+  return []
 }
 
 // Fetch a single RSS source
