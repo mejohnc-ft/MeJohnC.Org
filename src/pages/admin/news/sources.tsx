@@ -7,12 +7,10 @@ import {
   Rss,
   Globe,
   Loader2,
-  RefreshCw,
   Trash2,
   Edit2,
   CheckCircle,
   XCircle,
-  ExternalLink,
 } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
 import { Button } from '@/components/ui/button';

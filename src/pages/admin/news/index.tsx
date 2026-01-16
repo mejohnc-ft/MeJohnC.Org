@@ -13,9 +13,7 @@ import {
   BookmarkCheck,
   Check,
   Archive,
-  MoreHorizontal,
   Search,
-  Eye,
   Star,
 } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
@@ -27,7 +25,6 @@ import {
   getNewsDashboardTabs,
   getNewsArticles,
   getNewsStats,
-  getNewsCategories,
   getNewsSources,
   markArticleRead,
   markArticlesRead,
@@ -37,7 +34,6 @@ import {
   type NewsDashboardTab,
   type NewsArticle,
   type NewsSource,
-  type NewsCategory,
   type NewsArticleQueryOptions,
 } from '@/lib/supabase-queries';
 
@@ -61,14 +57,12 @@ const AdminNewsDashboard = () => {
   const [tabs, setTabs] = useState<NewsDashboardTab[]>([]);
   const [activeTab, setActiveTab] = useState<string>('all');
   const [articles, setArticles] = useState<ArticleWithSource[]>([]);
-  const [categories, setCategories] = useState<NewsCategory[]>([]);
   const [sources, setSources] = useState<NewsSource[]>([]);
   const [stats, setStats] = useState<NewsStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedSource, setSelectedSource] = useState<string>('');
 
   // Fetch initial data
@@ -76,15 +70,13 @@ const AdminNewsDashboard = () => {
     if (!supabase) return;
 
     try {
-      const [tabsData, categoriesData, sourcesData, statsData] = await Promise.all([
+      const [tabsData, sourcesData, statsData] = await Promise.all([
         getNewsDashboardTabs(true, supabase),
-        getNewsCategories(supabase),
         getNewsSources(true, supabase),
         getNewsStats(supabase),
       ]);
 
       setTabs(tabsData);
-      setCategories(categoriesData);
       setSources(sourcesData);
       setStats(statsData);
 

@@ -10,8 +10,6 @@ import {
   WorkHistoryEntrySchema,
   NewsCategorySchema,
   NewsSourceSchema,
-  NewsArticleSchema,
-  NewsFilterSchema,
   NewsDashboardTabSchema,
   parseResponse,
   parseArrayResponse,
