@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { STORAGE_KEYS } from './constants';
 
 export type Theme = 'warm' | 'crisp';
 
@@ -11,12 +12,10 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const THEME_KEY = 'resume-site-theme';
-
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(THEME_KEY);
+      const stored = localStorage.getItem(STORAGE_KEYS.THEME);
       if (stored === 'warm' || stored === 'crisp') {
         return stored;
       }
@@ -27,7 +26,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const root = document.documentElement;
     root.setAttribute('data-theme', theme);
-    localStorage.setItem(THEME_KEY, theme);
+    localStorage.setItem(STORAGE_KEYS.THEME, theme);
   }, [theme]);
 
   const setTheme = (newTheme: Theme) => {

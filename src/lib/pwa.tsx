@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { captureException } from './sentry';
+import { STORAGE_KEYS } from './constants';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -91,12 +92,12 @@ export function PWAProvider({ children }: PWAProviderProps) {
   const dismiss = () => {
     setIsDismissed(true);
     // Store dismissal in localStorage for 7 days
-    localStorage.setItem('pwa-dismissed', String(Date.now() + 7 * 24 * 60 * 60 * 1000));
+    localStorage.setItem(STORAGE_KEYS.PWA_DISMISSED, String(Date.now() + 7 * 24 * 60 * 60 * 1000));
   };
 
   // Check if user dismissed the prompt recently
   useEffect(() => {
-    const dismissedUntil = localStorage.getItem('pwa-dismissed');
+    const dismissedUntil = localStorage.getItem(STORAGE_KEYS.PWA_DISMISSED);
     if (dismissedUntil && Number(dismissedUntil) > Date.now()) {
       setIsDismissed(true);
     }

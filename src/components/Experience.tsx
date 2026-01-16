@@ -11,54 +11,6 @@ interface ExperienceProps {
   focused?: boolean;
 }
 
-// Fallback data if database is empty
-const defaultExperiences = [
-  {
-    title: "AI Automation Engineer II",
-    company: "centrexIT",
-    period: "2023 — Present",
-    highlights: [
-      "Designed agentic workflows in n8n, Make.com, and Power Automate—reduced provisioning time by 70%",
-      "Built AI-driven service desk triage using custom LLM pipelines, cutting manual routing by 60%",
-      "Developed internal tools with Graph API, PowerShell, and OCR for automated intake processing",
-      "Containerized workflows with Docker on Proxmox; maintained M365/Entra/Intune integrations at scale"
-    ],
-    tech: ["n8n", "Make.com", "Graph API", "Docker", "LLMs", "PowerShell"]
-  },
-  {
-    title: "Field Support Engineer II",
-    company: "centrexIT",
-    period: "2024 — Present",
-    highlights: [
-      "Frontline support for 6,000+ users across dozens of clients—99.8% CSAT, strict SLA adherence",
-      "On-site infrastructure: switches, firewalls, racks, CCTV, Wi-Fi deployments",
-      "Cross-functional coordination on field automation and multi-site upgrade projects"
-    ],
-    tech: ["Networking", "Hardware", "CCTV", "Multi-site Ops"]
-  },
-  {
-    title: "Provisioning Engineer",
-    company: "centrexIT",
-    period: "2022 — 2024",
-    highlights: [
-      "Led endpoint provisioning across hybrid environments—Intune, SCCM, Entra ID",
-      "Architected Autopilot + Conditional Access deployment pipelines",
-      "Authored SOPs and training materials used across all departments"
-    ],
-    tech: ["Intune", "SCCM", "Entra ID", "Autopilot", "Azure AD"]
-  },
-  {
-    title: "Service Technician I",
-    company: "Safemark",
-    period: "2018 — 2021",
-    highlights: [
-      "Technical support for mobility and physical security systems",
-      "Windows deployments, device configurations, field repairs"
-    ],
-    tech: ["Windows", "Security Systems", "Hardware"]
-  }
-];
-
 interface ExperienceItemData {
   title: string;
   company: string;
@@ -129,8 +81,9 @@ const ExperienceItem = memo(function ExperienceItem({
 const Experience = ({ focused = false }: ExperienceProps) => {
   const { setFocusLevel } = useKeyboardFocus();
   const supabase = useSupabaseClient();
-  const [experiences, setExperiences] = useState<ExperienceItemData[]>(defaultExperiences);
+  const [experiences, setExperiences] = useState<ExperienceItemData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -149,13 +102,13 @@ const Experience = ({ focused = false }: ExperienceProps) => {
         captureException(err instanceof Error ? err : new Error(String(err)), {
           context: 'Experience.fetchWorkHistory',
         });
-        // Keep default experiences on error
+        setError('Unable to load work history');
       } finally {
         setIsLoading(false);
       }
     }
     fetchData();
-     
+
   }, [supabase]);
 
   if (isLoading) {
@@ -169,11 +122,48 @@ const Experience = ({ focused = false }: ExperienceProps) => {
     );
   }
 
+  if (error || experiences.length === 0) {
+    return (
+      <section
+        id="experience"
+        className="min-h-[calc(100vh-8rem)] py-12 bg-background"
+      >
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="mb-10">
+            <span className="font-mono text-sm text-primary uppercase tracking-widest">
+              Experience
+            </span>
+            <h2 className="text-3xl md:text-4xl font-black text-foreground mt-2">
+              Work History
+            </h2>
+          </div>
+          <div className="text-center py-12 text-muted-foreground">
+            {error ? (
+              <p>{error}</p>
+            ) : (
+              <p>No work history entries yet. Add them in the admin panel.</p>
+            )}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section
       id="experience"
-      className="min-h-[calc(100vh-8rem)] py-12 bg-background cursor-pointer"
+      className="min-h-[calc(100vh-8rem)] py-12 bg-background"
+      role="region"
+      aria-labelledby="experience-heading"
+      tabIndex={0}
       onClick={() => setFocusLevel('workHistory')}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          setFocusLevel('workHistory');
+        }
+      }}
+      onFocus={() => setFocusLevel('workHistory')}
     >
       <div className="max-w-4xl mx-auto px-6">
         {/* Section header */}
@@ -188,7 +178,7 @@ const Experience = ({ focused = false }: ExperienceProps) => {
           >
             Experience
           </span>
-          <h2 className="text-3xl md:text-4xl font-black text-foreground mt-2">
+          <h2 id="experience-heading" className="text-3xl md:text-4xl font-black text-foreground mt-2">
             Work History
           </h2>
         </div>

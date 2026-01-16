@@ -1,6 +1,8 @@
 // Google Analytics 4 configuration
 // Configure via Admin Settings or VITE_GA_MEASUREMENT_ID env variable
 
+import { STORAGE_KEYS } from './constants';
+
 declare global {
   interface Window {
     gtag: (...args: unknown[]) => void;
@@ -8,7 +10,60 @@ declare global {
   }
 }
 
-const GA_STORAGE_KEY = 'analytics_settings';
+// Consent state: 'granted' | 'denied' | null (not yet decided)
+type ConsentState = 'granted' | 'denied' | null;
+
+// Check if user has given analytics consent
+export function getAnalyticsConsent(): ConsentState {
+  try {
+    const consent = localStorage.getItem(STORAGE_KEYS.ANALYTICS_CONSENT);
+    if (consent === 'granted' || consent === 'denied') {
+      return consent;
+    }
+  } catch {
+    // Ignore storage errors
+  }
+  return null;
+}
+
+// Set analytics consent (call this from a consent banner/dialog)
+export function setAnalyticsConsent(consent: 'granted' | 'denied'): void {
+  try {
+    localStorage.setItem(STORAGE_KEYS.ANALYTICS_CONSENT, consent);
+
+    // If consent was just granted, initialize analytics
+    if (consent === 'granted' && !window.gtag) {
+      initAnalytics();
+    }
+
+    // Update GA4 consent state if already loaded
+    if (window.gtag) {
+      window.gtag('consent', 'update', {
+        analytics_storage: consent,
+      });
+    }
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+// Check if analytics consent is required (respects Do Not Track)
+export function isConsentRequired(): boolean {
+  // Respect Do Not Track browser setting
+  if (navigator.doNotTrack === '1') {
+    return false; // DNT means don't track, period
+  }
+  return getAnalyticsConsent() === null;
+}
+
+// Check if tracking is allowed
+function isTrackingAllowed(): boolean {
+  // Respect Do Not Track browser setting
+  if (navigator.doNotTrack === '1') {
+    return false;
+  }
+  return getAnalyticsConsent() === 'granted';
+}
 
 // Settings interface
 interface AnalyticsSettings {
@@ -24,7 +79,7 @@ export function getAnalyticsSettings(): AnalyticsSettings {
 
   // Check localStorage for override
   try {
-    const saved = localStorage.getItem(GA_STORAGE_KEY);
+    const saved = localStorage.getItem(STORAGE_KEYS.ANALYTICS_SETTINGS);
     if (saved) {
       const parsed = JSON.parse(saved);
       if (parsed.measurementId?.trim()) {
@@ -43,10 +98,10 @@ export function saveAnalyticsSettings(settings: AnalyticsSettings): void {
   const measurementId = settings.measurementId?.trim() || '';
 
   if (measurementId) {
-    localStorage.setItem(GA_STORAGE_KEY, JSON.stringify({ measurementId }));
+    localStorage.setItem(STORAGE_KEYS.ANALYTICS_SETTINGS, JSON.stringify({ measurementId }));
   } else {
     // Clear localStorage override so env var takes precedence
-    localStorage.removeItem(GA_STORAGE_KEY);
+    localStorage.removeItem(STORAGE_KEYS.ANALYTICS_SETTINGS);
   }
 }
 
@@ -71,6 +126,14 @@ export function initAnalytics(): void {
     return;
   }
 
+  // Check for user consent before loading analytics
+  if (!isTrackingAllowed()) {
+    if (import.meta.env.DEV) {
+      console.log('[Analytics] Skipped - no consent or DNT enabled');
+    }
+    return;
+  }
+
   // Load Google Analytics script
   const script = document.createElement('script');
   script.async = true;
@@ -82,6 +145,11 @@ export function initAnalytics(): void {
   window.gtag = function gtag(...args: unknown[]) {
     window.dataLayer.push(args);
   };
+
+  // Set default consent state
+  window.gtag('consent', 'default', {
+    analytics_storage: 'granted', // Already verified consent above
+  });
 
   window.gtag('js', new Date());
   window.gtag('config', measurementId, {
@@ -95,7 +163,7 @@ export function initAnalytics(): void {
 
 // Track page views (call this on route changes)
 export function trackPageView(path: string, title?: string): void {
-  if (!getMeasurementId() || !window.gtag) return;
+  if (!isTrackingAllowed() || !getMeasurementId() || !window.gtag) return;
 
   window.gtag('event', 'page_view', {
     page_path: path,
@@ -108,7 +176,7 @@ export function trackEvent(
   eventName: string,
   parameters?: Record<string, unknown>
 ): void {
-  if (!getMeasurementId() || !window.gtag) return;
+  if (!isTrackingAllowed() || !getMeasurementId() || !window.gtag) return;
 
   window.gtag('event', eventName, parameters);
 }

@@ -3,6 +3,34 @@ import { captureException } from './sentry';
 import { SUPABASE_ERROR_CODES } from './constants';
 
 /**
+ * Error Handling Strategy
+ *
+ * This module provides standardized error handling for Supabase operations:
+ *
+ * **Read Operations (fetching data):**
+ * - Use `handleQueryResult` with `returnFallback: true` for graceful degradation
+ * - This allows the UI to render with empty/default data if fetch fails
+ * - Errors are still logged to Sentry for investigation
+ *
+ * **Write Operations (create/update/delete):**
+ * - Throw errors directly so callers know the operation failed
+ * - UI should catch these and show error messages to users
+ *
+ * **Example usage:**
+ *
+ * // Read operation - returns fallback on error
+ * const data = handleQueryResult(result, error, {
+ *   operation: 'getItems',
+ *   returnFallback: true,
+ *   fallback: [],
+ * });
+ *
+ * // Write operation - throws on error
+ * if (error) throw error;
+ * return data;
+ */
+
+/**
  * Custom error class for Supabase operations
  */
 export class SupabaseQueryError extends Error {
@@ -19,6 +47,42 @@ export class SupabaseQueryError extends Error {
     this.hint = error.hint;
     this.operation = operation;
   }
+
+  /**
+   * Returns a user-friendly error message
+   */
+  toUserMessage(): string {
+    switch (this.code) {
+      case SUPABASE_ERROR_CODES.NOT_FOUND:
+        return 'The requested item was not found.';
+      case SUPABASE_ERROR_CODES.UNIQUE_VIOLATION:
+        return 'This item already exists.';
+      case SUPABASE_ERROR_CODES.FOREIGN_KEY_VIOLATION:
+        return 'This item is referenced by other data and cannot be modified.';
+      default:
+        return 'An unexpected error occurred. Please try again.';
+    }
+  }
+}
+
+/**
+ * Check if an error is a "not found" error
+ */
+export function isNotFoundError(error: PostgrestError | null): boolean {
+  return error?.code === SUPABASE_ERROR_CODES.NOT_FOUND;
+}
+
+/**
+ * Create a standardized error message for logging
+ */
+export function formatErrorForLogging(error: unknown, context: string): string {
+  if (error instanceof SupabaseQueryError) {
+    return `[${context}] ${error.operation}: ${error.message} (code: ${error.code})`;
+  }
+  if (error instanceof Error) {
+    return `[${context}] ${error.message}`;
+  }
+  return `[${context}] Unknown error: ${String(error)}`;
 }
 
 /**

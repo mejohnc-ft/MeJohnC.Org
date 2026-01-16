@@ -1,5 +1,5 @@
 {
-  "name": "vite-react-typescript-starter",
+  "name": "resume-site",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -14,6 +14,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "typecheck": "tsc --noEmit",
     "lighthouse": "lhci autorun",
     "prepare": "husky || true"

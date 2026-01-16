@@ -1,6 +1,25 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { captureException } from '@/lib/sentry';
 
+/**
+ * Data Fetching Hooks
+ *
+ * This module provides hooks for data fetching with loading, error, and refetch support.
+ *
+ * **Current limitations:**
+ * - No request deduplication: Multiple components fetching the same data will make
+ *   multiple network requests
+ * - No caching: Data is refetched every time a component mounts
+ *
+ * **Future improvement:**
+ * Consider migrating to @tanstack/react-query for:
+ * - Automatic request deduplication
+ * - Smart caching with configurable stale times
+ * - Background refetching
+ * - Pagination and infinite scroll support
+ * - Devtools for debugging
+ */
+
 interface UseDataFetchingOptions<T> {
   /** Initial data value before fetch completes */
   initialData?: T;
@@ -65,6 +84,14 @@ export function useDataFetching<T>(
   const fetchFnRef = useRef(fetchFn);
   fetchFnRef.current = fetchFn;
 
+  // Track previous deps for shallow comparison (avoids JSON.stringify issues with functions/circular refs)
+  const prevDepsRef = useRef<unknown[]>(deps);
+  const depsChanged = deps.length !== prevDepsRef.current.length ||
+    deps.some((dep, i) => !Object.is(dep, prevDepsRef.current[i]));
+  if (depsChanged) {
+    prevDepsRef.current = deps;
+  }
+
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -102,15 +129,19 @@ export function useDataFetching<T>(
     setIsLoading(false);
   }, [initialData]);
 
-  // Serialize deps for stable comparison
-  const depsKey = JSON.stringify(deps);
+  // Track dep changes with a counter for stable effect dependency
+  const depsVersionRef = useRef(0);
+  if (depsChanged) {
+    depsVersionRef.current += 1;
+  }
+  const depsVersion = depsVersionRef.current;
 
   // Fetch on mount and when deps change
   useEffect(() => {
     if (fetchOnMount) {
       fetchData();
     }
-  }, [fetchOnMount, fetchData, depsKey]);
+  }, [fetchOnMount, fetchData, depsVersion]);
 
   // Cleanup on unmount
   useEffect(() => {

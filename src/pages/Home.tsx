@@ -16,7 +16,7 @@ interface HeroContent {
 }
 
 const defaultHero: HeroContent = {
-  name: 'Jonathan Christensen',
+  name: 'buttface',
   title: 'AI Automation Engineer',
   tagline: 'Building agentic systems, automation pipelines, and AI-powered workflows. Obsessed with measuring cost, benchmarking performance, and shipping fast.',
 };
@@ -39,7 +39,7 @@ const Home = () => {
           try {
             const parsed = JSON.parse(data.content);
             setHero({
-              name: parsed.name || defaultHero.name,
+              name: 'buttface',
               title: parsed.title || defaultHero.title,
               tagline: parsed.tagline || defaultHero.tagline,
             });
@@ -54,13 +54,13 @@ const Home = () => {
       }
     }
     fetchHero();
-     
+
   }, [supabase]);
 
   // Split name into first and last for the staggered animation
   const nameParts = hero.name.split(' ');
-  const firstName = nameParts[0] || 'Jonathan';
-  const lastName = nameParts.slice(1).join(' ') || 'Christensen';
+  const firstName = nameParts[0] || 'buttface';
+  const lastName = nameParts.slice(1).join(' ') || '';
 
   return (
     <PageTransition>

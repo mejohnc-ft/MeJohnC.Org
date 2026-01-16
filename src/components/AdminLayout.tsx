@@ -11,6 +11,7 @@ import {
   Settings,
   FolderKanban,
   User,
+  Newspaper,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { UserButton } from '@clerk/clerk-react';
@@ -25,6 +26,7 @@ interface AdminLayoutProps {
 const sidebarItems = [
   { label: 'Dashboard', path: '/admin', icon: LayoutDashboard },
   { label: 'Profile', path: '/admin/profile', icon: User },
+  { label: 'News', path: '/admin/news', icon: Newspaper },
   { label: 'Apps', path: '/admin/apps', icon: AppWindow },
   { label: 'Projects', path: '/admin/projects', icon: FolderKanban },
   { label: 'Blog', path: '/admin/blog', icon: FileText },
@@ -115,6 +117,20 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {/* Skip navigation links for keyboard users */}
+      <a
+        href="#admin-main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded focus:font-mono focus:text-sm"
+      >
+        Skip to main content
+      </a>
+      <a
+        href="#admin-sidebar"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-40 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded focus:font-mono focus:text-sm"
+      >
+        Skip to navigation
+      </a>
+
       {/* Header - logo toggles sidebar */}
       <div className="fixed top-0 left-0 right-0 h-16 bg-card border-b border-border flex items-center justify-between px-4 z-40">
         <button
@@ -147,11 +163,13 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         <AnimatePresence>
           {sidebarOpen && (
             <motion.aside
+              id="admin-sidebar"
               initial={{ x: -256, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: -256, opacity: 0 }}
               transition={{ type: 'tween', duration: 0.2 }}
               className="fixed md:relative left-0 top-16 bottom-0 w-64 bg-card border-r border-border flex flex-col z-50"
+              aria-label="Admin navigation"
             >
               <SidebarContent />
             </motion.aside>
@@ -159,7 +177,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         </AnimatePresence>
 
         {/* Main content */}
-        <main className="flex-1 overflow-auto">
+        <main id="admin-main-content" className="flex-1 overflow-auto">
           <div className="p-8">
             {children}
           </div>

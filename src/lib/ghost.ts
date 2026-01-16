@@ -1,7 +1,6 @@
 import GhostContentAPI from '@tryghost/content-api';
 import { captureException } from './sentry';
-
-const STORAGE_KEY = 'ghost_settings';
+import { STORAGE_KEYS } from './constants';
 
 interface GhostSettings {
   url: string;
@@ -19,7 +18,7 @@ export function getGhostSettings(): GhostSettings | null {
   // Only allow localStorage override in development (security: prevents XSS credential injection)
   if (import.meta.env.DEV) {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(STORAGE_KEYS.GHOST_SETTINGS);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.url?.trim() && parsed.contentApiKey?.trim()) {
@@ -48,9 +47,9 @@ export function saveGhostSettings(settings: GhostSettings): void {
   const contentApiKey = settings.contentApiKey?.trim() || '';
 
   if (url && contentApiKey) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ url, contentApiKey }));
+    localStorage.setItem(STORAGE_KEYS.GHOST_SETTINGS, JSON.stringify({ url, contentApiKey }));
   } else {
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(STORAGE_KEYS.GHOST_SETTINGS);
   }
 }
 

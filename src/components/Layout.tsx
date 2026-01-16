@@ -1,5 +1,4 @@
 import { ReactNode, useRef, useState, useEffect, useCallback } from 'react';
-// Note: useRef still needed for portal timeout
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Settings } from 'lucide-react';
@@ -18,12 +17,16 @@ const navItems = [
   { label: 'Collab', path: '/about' },
 ];
 
-// Secret portal state (outside component to persist)
-let portalClicks = 0;
-let portalLastClick = 0;
-let portalListening = false;
-let portalBuffer = '';
+// Secret portal codes
 const PORTAL_CODES = [106, 119, 99]; // jwc
+
+// Portal state type
+interface PortalState {
+  clicks: number;
+  lastClick: number;
+  listening: boolean;
+  buffer: string;
+}
 
 const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
@@ -32,6 +35,14 @@ const Layout = ({ children }: LayoutProps) => {
   const [portalActive, setPortalActive] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const { focusLevel, setFocusLevel } = useKeyboardFocus();
+
+  // Portal state in a ref to persist across renders without causing re-renders
+  const portalStateRef = useRef<PortalState>({
+    clicks: 0,
+    lastClick: 0,
+    listening: false,
+    buffer: '',
+  });
 
   // Get current nav index based on location
   const getCurrentNavIndex = useCallback(() => {
@@ -94,37 +105,38 @@ const Layout = ({ children }: LayoutProps) => {
 
   const handleLogoClick = (e: React.MouseEvent) => {
     const now = Date.now();
+    const portal = portalStateRef.current;
 
-    if (now - portalLastClick > 2000) {
-      portalClicks = 0;
+    if (now - portal.lastClick > 2000) {
+      portal.clicks = 0;
     }
 
-    portalClicks++;
-    portalLastClick = now;
+    portal.clicks++;
+    portal.lastClick = now;
 
-    if (portalClicks > 1) {
+    if (portal.clicks > 1) {
       e.preventDefault();
     }
 
-    if (portalClicks >= 3 && !portalListening) {
-      portalListening = true;
-      portalBuffer = '';
+    if (portal.clicks >= 3 && !portal.listening) {
+      portal.listening = true;
+      portal.buffer = '';
       setPortalActive(true);
 
       const keyHandler = (ke: KeyboardEvent) => {
-        if (!portalListening) return;
+        if (!portal.listening) return;
         if (ke.key.length !== 1) return;
 
-        portalBuffer += ke.key.toLowerCase();
+        portal.buffer += ke.key.toLowerCase();
 
-        if (portalBuffer.length > 20) {
-          portalBuffer = portalBuffer.slice(-20);
+        if (portal.buffer.length > 20) {
+          portal.buffer = portal.buffer.slice(-20);
         }
 
         // Check phrase
         let match = true;
-        if (portalBuffer.length >= PORTAL_CODES.length) {
-          const check = portalBuffer.slice(-PORTAL_CODES.length);
+        if (portal.buffer.length >= PORTAL_CODES.length) {
+          const check = portal.buffer.slice(-PORTAL_CODES.length);
           for (let i = 0; i < PORTAL_CODES.length; i++) {
             if (check.charCodeAt(i) !== PORTAL_CODES[i]) {
               match = false;
@@ -132,8 +144,8 @@ const Layout = ({ children }: LayoutProps) => {
             }
           }
           if (match) {
-            portalListening = false;
-            portalClicks = 0;
+            portal.listening = false;
+            portal.clicks = 0;
             setPortalActive(false);
             window.removeEventListener('keydown', keyHandler);
             setShowSettings(true);
@@ -145,9 +157,9 @@ const Layout = ({ children }: LayoutProps) => {
 
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => {
-        portalListening = false;
-        portalClicks = 0;
-        portalBuffer = '';
+        portal.listening = false;
+        portal.clicks = 0;
+        portal.buffer = '';
         setPortalActive(false);
         window.removeEventListener('keydown', keyHandler);
       }, 5000);
