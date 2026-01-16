@@ -38,6 +38,8 @@ const AdminNewsSources = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showEditor, setShowEditor] = useState(false);
   const [editingSource, setEditingSource] = useState<NewsSource | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -75,7 +77,13 @@ const AdminNewsSources = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!supabase) return;
+    if (!supabase) {
+      setError('Not authenticated. Please sign in again.');
+      return;
+    }
+
+    setError(null);
+    setIsSaving(true);
 
     try {
       const sourceData = {
@@ -99,10 +107,14 @@ const AdminNewsSources = () => {
       }
 
       resetForm();
-    } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
+      captureException(err instanceof Error ? err : new Error(String(err)), {
         context: 'AdminNewsSources.handleSubmit',
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -136,6 +148,7 @@ const AdminNewsSources = () => {
   const resetForm = () => {
     setShowEditor(false);
     setEditingSource(null);
+    setError(null);
     setFormData({
       name: '',
       source_type: 'rss',
@@ -315,12 +328,25 @@ const AdminNewsSources = () => {
                     </label>
                   </div>
 
+                  {error && (
+                    <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
+                      {error}
+                    </div>
+                  )}
+
                   <div className="flex justify-end gap-2 pt-4">
-                    <Button type="button" variant="outline" onClick={resetForm}>
+                    <Button type="button" variant="outline" onClick={resetForm} disabled={isSaving}>
                       Cancel
                     </Button>
-                    <Button type="submit">
-                      {editingSource ? 'Update' : 'Create'}
+                    <Button type="submit" disabled={isSaving}>
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        editingSource ? 'Update' : 'Create'
+                      )}
                     </Button>
                   </div>
                 </form>

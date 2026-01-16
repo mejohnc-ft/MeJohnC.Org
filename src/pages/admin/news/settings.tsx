@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
   Plus,
-  Settings,
   Loader2,
   GripVertical,
   Trash2,
@@ -12,6 +11,8 @@ import {
   Eye,
   EyeOff,
   Lock,
+  Palette,
+  Tag,
 } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -26,11 +27,14 @@ import {
   updateNewsDashboardTab,
   deleteNewsDashboardTab,
   reorderNewsDashboardTabs,
+  createNewsCategory,
+  updateNewsCategory,
+  deleteNewsCategory,
   type NewsDashboardTab,
   type NewsCategory,
   type NewsSource,
+  generateSlug,
 } from '@/lib/supabase-queries';
-import { generateSlug } from '@/lib/supabase-queries';
 
 type TabType = 'filter' | 'category' | 'source' | 'saved_search' | 'custom';
 
@@ -53,6 +57,18 @@ const AdminNewsSettings = () => {
   const [showEditor, setShowEditor] = useState(false);
   const [editingTab, setEditingTab] = useState<NewsDashboardTab | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+  // Category management state
+  const [showCategoryEditor, setShowCategoryEditor] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<NewsCategory | null>(null);
+  const [categoryError, setCategoryError] = useState<string | null>(null);
+  const [isSavingCategory, setIsSavingCategory] = useState(false);
+  const [categoryFormData, setCategoryFormData] = useState({
+    name: '',
+    slug: '',
+    description: '',
+    color: 'blue',
+  });
 
   // Form state
   const [formData, setFormData] = useState({
@@ -198,6 +214,107 @@ const AdminNewsSettings = () => {
         context: 'AdminNewsSettings.handleDragEnd',
       });
     }
+  };
+
+  // Category handlers
+  const handleCategorySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!supabase) {
+      setCategoryError('Not authenticated. Please sign in again.');
+      return;
+    }
+
+    setCategoryError(null);
+    setIsSavingCategory(true);
+
+    try {
+      const slug = editingCategory?.slug || generateSlug(categoryFormData.name);
+      const categoryData = {
+        name: categoryFormData.name,
+        slug,
+        description: categoryFormData.description || null,
+        color: categoryFormData.color,
+        order_index: categories.length,
+      };
+
+      if (editingCategory) {
+        const updated = await updateNewsCategory(editingCategory.id, categoryData, supabase);
+        setCategories(prev => prev.map(c => c.id === editingCategory.id ? updated : c));
+      } else {
+        const created = await createNewsCategory(categoryData, supabase);
+        setCategories(prev => [...prev, created]);
+      }
+
+      resetCategoryForm();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setCategoryError(message);
+      captureException(err instanceof Error ? err : new Error(String(err)), {
+        context: 'AdminNewsSettings.handleCategorySubmit',
+      });
+    } finally {
+      setIsSavingCategory(false);
+    }
+  };
+
+  const handleCategoryDelete = async (category: NewsCategory) => {
+    if (!supabase) return;
+    if (!confirm(`Delete category "${category.name}"? Sources using this category will have their category cleared.`)) return;
+
+    try {
+      await deleteNewsCategory(category.id, supabase);
+      setCategories(prev => prev.filter(c => c.id !== category.id));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setCategoryError(message);
+      captureException(err instanceof Error ? err : new Error(String(err)), {
+        context: 'AdminNewsSettings.handleCategoryDelete',
+      });
+    }
+  };
+
+  const handleCategoryEdit = (category: NewsCategory) => {
+    setEditingCategory(category);
+    setCategoryFormData({
+      name: category.name,
+      slug: category.slug,
+      description: category.description || '',
+      color: category.color || 'blue',
+    });
+    setShowCategoryEditor(true);
+  };
+
+  const resetCategoryForm = () => {
+    setShowCategoryEditor(false);
+    setEditingCategory(null);
+    setCategoryError(null);
+    setCategoryFormData({
+      name: '',
+      slug: '',
+      description: '',
+      color: 'blue',
+    });
+  };
+
+  const categoryColors = [
+    { value: 'blue', label: 'Blue', class: 'bg-blue-500' },
+    { value: 'green', label: 'Green', class: 'bg-green-500' },
+    { value: 'purple', label: 'Purple', class: 'bg-purple-500' },
+    { value: 'orange', label: 'Orange', class: 'bg-orange-500' },
+    { value: 'red', label: 'Red', class: 'bg-red-500' },
+    { value: 'yellow', label: 'Yellow', class: 'bg-yellow-500' },
+  ];
+
+  const getCategoryColorClass = (color: string | null) => {
+    const colorMap: Record<string, string> = {
+      blue: 'bg-blue-500',
+      green: 'bg-green-500',
+      purple: 'bg-purple-500',
+      orange: 'bg-orange-500',
+      red: 'bg-red-500',
+      yellow: 'bg-yellow-500',
+    };
+    return colorMap[color || 'blue'] || 'bg-blue-500';
   };
 
   // Config form based on tab type
@@ -440,6 +557,158 @@ const AdminNewsSettings = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Category Editor Modal */}
+        <AnimatePresence>
+          {showCategoryEditor && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+              onClick={(e) => e.target === e.currentTarget && resetCategoryForm()}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-card border border-border rounded-lg p-6 w-full max-w-lg"
+              >
+                <h2 className="text-xl font-bold text-foreground mb-4">
+                  {editingCategory ? 'Edit Category' : 'Add Category'}
+                </h2>
+                <form onSubmit={handleCategorySubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">
+                      Name
+                    </label>
+                    <input
+                      type="text"
+                      value={categoryFormData.name}
+                      onChange={(e) => setCategoryFormData(prev => ({ ...prev, name: e.target.value }))}
+                      required
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg"
+                      placeholder="e.g., AI Research"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">
+                      Description (optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={categoryFormData.description}
+                      onChange={(e) => setCategoryFormData(prev => ({ ...prev, description: e.target.value }))}
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg"
+                      placeholder="Brief description of the category"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">
+                      Color
+                    </label>
+                    <div className="flex gap-2">
+                      {categoryColors.map((color) => (
+                        <button
+                          key={color.value}
+                          type="button"
+                          onClick={() => setCategoryFormData(prev => ({ ...prev, color: color.value }))}
+                          className={`w-8 h-8 rounded-full ${color.class} ${
+                            categoryFormData.color === color.value
+                              ? 'ring-2 ring-offset-2 ring-offset-background ring-primary'
+                              : ''
+                          }`}
+                          title={color.label}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {categoryError && (
+                    <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
+                      {categoryError}
+                    </div>
+                  )}
+
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button type="button" variant="outline" onClick={resetCategoryForm} disabled={isSavingCategory}>
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={isSavingCategory}>
+                      {isSavingCategory ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        editingCategory ? 'Update' : 'Create'
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Categories Section */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <Tag className="w-5 h-5" />
+                Categories
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Organize news sources into categories
+              </p>
+            </div>
+            <Button onClick={() => setShowCategoryEditor(true)} size="sm" className="gap-2">
+              <Plus className="w-4 h-4" />
+              Add Category
+            </Button>
+          </div>
+
+          {categories.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground border border-dashed border-border rounded-lg">
+              <Palette className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p>No categories yet</p>
+              <p className="text-sm">Categories help organize your news sources</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {categories.map((category) => (
+                <div
+                  key={category.id}
+                  className="flex items-center gap-3 p-3 bg-card border border-border rounded-lg"
+                >
+                  <div className={`w-3 h-3 rounded-full ${getCategoryColorClass(category.color)}`} />
+                  <div className="flex-1 min-w-0">
+                    <span className="font-medium text-foreground">{category.name}</span>
+                    {category.description && (
+                      <p className="text-xs text-muted-foreground truncate">{category.description}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => handleCategoryEdit(category)}>
+                      <Edit2 className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCategoryDelete(category)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Tabs List */}
         <div className="space-y-2">

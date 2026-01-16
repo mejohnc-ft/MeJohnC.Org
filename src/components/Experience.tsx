@@ -87,6 +87,12 @@ const Experience = ({ focused = false }: ExperienceProps) => {
 
   useEffect(() => {
     async function fetchData() {
+      if (!supabase) {
+        setError('Database not configured');
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const data = await getWorkHistory(supabase);
         if (data && data.length > 0) {
