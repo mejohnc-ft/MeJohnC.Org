@@ -1,6 +1,6 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect, useCallback } from 'react';
 import { Link, useLocation, Navigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
   LayoutDashboard,
   AppWindow,
@@ -13,12 +13,15 @@ import {
   User,
   Newspaper,
   Bot,
+  Menu,
+  X,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { UserButton } from '@clerk/clerk-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggleMinimal } from './ThemeToggle';
 import AdminSearch from './admin/AdminSearch';
+import { BREAKPOINTS, STORAGE_KEYS } from '@/lib/constants';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -35,13 +38,121 @@ const sidebarItems = [
   { label: 'Settings', path: '/admin/settings', icon: Settings },
 ];
 
+// Animation variants for smooth transitions
+const sidebarVariants = {
+  open: {
+    x: 0,
+    opacity: 1,
+    transition: {
+      type: 'spring',
+      stiffness: 300,
+      damping: 30,
+    },
+  },
+  closed: {
+    x: -256,
+    opacity: 0,
+    transition: {
+      type: 'spring',
+      stiffness: 300,
+      damping: 30,
+    },
+  },
+};
+
+const overlayVariants = {
+  open: {
+    opacity: 1,
+    transition: { duration: 0.2 },
+  },
+  closed: {
+    opacity: 0,
+    transition: { duration: 0.15 },
+  },
+};
+
+// Reduced motion variants (instant transitions)
+const reducedMotionVariants = {
+  open: { x: 0, opacity: 1 },
+  closed: { x: -256, opacity: 0 },
+};
+
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const location = useLocation();
   const { user, isSignedIn, isLoaded, signOut } = useAuth();
-  // Open by default on desktop (768px+), collapsed on mobile
-  const [sidebarOpen, setSidebarOpen] = useState(() =>
-    typeof window !== 'undefined' && window.innerWidth >= 768
+  const prefersReducedMotion = useReducedMotion();
+
+  // Initialize sidebar state from localStorage or responsive default
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    if (typeof window === 'undefined') return true;
+
+    // Check localStorage for user preference
+    const stored = localStorage.getItem(STORAGE_KEYS.SIDEBAR_COLLAPSED);
+    if (stored !== null) {
+      return stored !== 'true'; // stored is 'true' when collapsed
+    }
+
+    // Default: open on desktop, closed on mobile
+    return window.innerWidth >= BREAKPOINTS.md;
+  });
+
+  // Track if we're on mobile for behavior differences
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth < BREAKPOINTS.md
   );
+
+  // Persist sidebar state to localStorage
+  const toggleSidebar = useCallback(() => {
+    setSidebarOpen((prev) => {
+      const newState = !prev;
+      localStorage.setItem(STORAGE_KEYS.SIDEBAR_COLLAPSED, (!newState).toString());
+      return newState;
+    });
+  }, []);
+
+  // Handle window resize
+  useEffect(() => {
+    let resizeTimeout: ReturnType<typeof setTimeout>;
+
+    const handleResize = () => {
+      // Debounce resize events
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        const nowMobile = window.innerWidth < BREAKPOINTS.md;
+        const wasMobile = isMobile;
+
+        setIsMobile(nowMobile);
+
+        // Only auto-adjust if crossing the breakpoint AND no user preference stored
+        const hasStoredPreference = localStorage.getItem(STORAGE_KEYS.SIDEBAR_COLLAPSED) !== null;
+
+        if (wasMobile !== nowMobile && !hasStoredPreference) {
+          // Crossing breakpoint without stored preference: apply responsive default
+          setSidebarOpen(!nowMobile);
+        } else if (wasMobile && !nowMobile && !sidebarOpen) {
+          // Going from mobile to desktop with sidebar closed: open it
+          // (unless user explicitly collapsed it)
+          if (!hasStoredPreference) {
+            setSidebarOpen(true);
+          }
+        }
+      }, 100);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(resizeTimeout);
+    };
+  }, [isMobile, sidebarOpen]);
+
+  // Close sidebar on route change (mobile only)
+  useEffect(() => {
+    if (isMobile && sidebarOpen) {
+      setSidebarOpen(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   if (!isLoaded) {
     return (
@@ -55,70 +166,17 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     return <Navigate to="/admin/login" replace />;
   }
 
-  const SidebarContent = () => (
-    <>
-      {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1">
-        {sidebarItems.map((item) => {
-          const isActive = location.pathname === item.path ||
-            (item.path !== '/admin' && location.pathname.startsWith(item.path));
-          const Icon = item.icon;
+  const handleNavClick = () => {
+    // Only close on mobile
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  };
 
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              onClick={() => setSidebarOpen(false)}
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors ${
-                isActive
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-              }`}
-            >
-              <Icon className="w-5 h-5" />
-              <span className="font-medium">{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* Footer */}
-      <div className="p-4 border-t border-border space-y-2">
-        {/* User info with Clerk UserButton */}
-        <div className="flex items-center gap-3 px-4 py-2.5">
-          <UserButton
-            appearance={{
-              elements: {
-                avatarBox: 'w-8 h-8',
-              }
-            }}
-          />
-          <span className="text-sm text-muted-foreground truncate">
-            {user.primaryEmailAddress?.emailAddress}
-          </span>
-        </div>
-
-        <Link
-          to="/"
-          className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-        >
-          <Home className="w-5 h-5" />
-          <span className="font-medium">View Site</span>
-        </Link>
-        <Button
-          variant="ghost"
-          onClick={() => signOut()}
-          className="w-full justify-start gap-3 px-4 py-2.5 text-muted-foreground hover:text-foreground"
-        >
-          <LogOut className="w-5 h-5" />
-          <span className="font-medium">Sign Out</span>
-        </Button>
-      </div>
-    </>
-  );
+  const variants = prefersReducedMotion ? reducedMotionVariants : sidebarVariants;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background">
       {/* Skip navigation links for keyboard users */}
       <a
         href="#admin-main-content"
@@ -133,53 +191,147 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         Skip to navigation
       </a>
 
-      {/* Header - logo toggles sidebar */}
-      <div className="fixed top-0 left-0 right-0 h-16 bg-card border-b border-border flex items-center justify-between px-4 z-40">
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="font-mono text-lg text-foreground hover:text-primary transition-colors"
-        >
-          jc_ <span className="text-muted-foreground">admin</span>
-        </button>
-        <div className="flex items-center gap-3">
-          <AdminSearch />
-          <ThemeToggleMinimal />
+      {/* Header - fixed across entire top */}
+      <header className="fixed top-0 left-0 right-0 h-16 bg-card border-b border-border z-50">
+        <div className="h-full flex items-center justify-between px-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={toggleSidebar}
+              aria-expanded={sidebarOpen}
+              aria-controls="admin-sidebar"
+              aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+              className="flex items-center gap-2 font-mono text-lg text-foreground hover:text-primary transition-colors"
+            >
+              <span className="md:hidden">
+                {sidebarOpen ? (
+                  <X className="w-5 h-5" />
+                ) : (
+                  <Menu className="w-5 h-5" />
+                )}
+              </span>
+              <span className="hidden md:inline">jc_</span>
+              <span className="hidden md:inline text-muted-foreground">admin</span>
+            </button>
+          </div>
+          <div className="flex items-center gap-3">
+            <AdminSearch />
+            <ThemeToggleMinimal />
+          </div>
         </div>
-      </div>
+      </header>
 
-      <div className="flex flex-1 pt-16">
-        {/* Sidebar overlay (mobile only) */}
+      {/* Main layout container */}
+      <div className="pt-16 flex min-h-screen">
+        {/* Sidebar backdrop (mobile only) */}
         <AnimatePresence>
-          {sidebarOpen && (
+          {sidebarOpen && isMobile && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              initial="closed"
+              animate="open"
+              exit="closed"
+              variants={overlayVariants}
               onClick={() => setSidebarOpen(false)}
-              className="md:hidden fixed inset-0 bg-black/50 z-40"
+              className="fixed inset-0 top-16 bg-black/50 z-40 md:hidden"
+              aria-hidden="true"
             />
           )}
         </AnimatePresence>
 
         {/* Sidebar */}
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           {sidebarOpen && (
             <motion.aside
               id="admin-sidebar"
-              initial={{ x: -256, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -256, opacity: 0 }}
-              transition={{ type: 'tween', duration: 0.2 }}
-              className="fixed md:relative left-0 top-16 bottom-0 w-64 bg-card border-r border-border flex flex-col z-50"
+              initial="closed"
+              animate="open"
+              exit="closed"
+              variants={variants}
+              className={`
+                fixed md:sticky top-16 left-0 bottom-0 md:bottom-auto
+                w-64 h-[calc(100vh-4rem)] md:h-[calc(100vh-4rem)]
+                bg-card border-r border-border
+                flex flex-col z-40
+                will-change-transform
+              `}
               aria-label="Admin navigation"
             >
-              <SidebarContent />
+              {/* Navigation */}
+              <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+                {sidebarItems.map((item) => {
+                  const isActive = location.pathname === item.path ||
+                    (item.path !== '/admin' && location.pathname.startsWith(item.path));
+                  const Icon = item.icon;
+
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={handleNavClick}
+                      className={`
+                        flex items-center gap-3 px-4 py-2.5 rounded-lg
+                        transition-colors duration-150
+                        ${isActive
+                          ? 'bg-primary/10 text-primary'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                        }
+                      `}
+                    >
+                      <Icon className="w-5 h-5 flex-shrink-0" />
+                      <span className="font-medium">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              {/* Footer */}
+              <div className="p-4 border-t border-border space-y-2 flex-shrink-0">
+                {/* User info with Clerk UserButton */}
+                <div className="flex items-center gap-3 px-4 py-2.5">
+                  <UserButton
+                    appearance={{
+                      elements: {
+                        avatarBox: 'w-8 h-8',
+                      }
+                    }}
+                  />
+                  <span className="text-sm text-muted-foreground truncate">
+                    {user.primaryEmailAddress?.emailAddress}
+                  </span>
+                </div>
+
+                <Link
+                  to="/"
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors duration-150"
+                >
+                  <Home className="w-5 h-5" />
+                  <span className="font-medium">View Site</span>
+                </Link>
+                <Button
+                  variant="ghost"
+                  onClick={() => signOut()}
+                  className="w-full justify-start gap-3 px-4 py-2.5 text-muted-foreground hover:text-foreground"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span className="font-medium">Sign Out</span>
+                </Button>
+              </div>
             </motion.aside>
           )}
         </AnimatePresence>
 
+        {/* Spacer for desktop when sidebar is closed */}
+        {!sidebarOpen && !isMobile && (
+          <div className="w-0 flex-shrink-0" />
+        )}
+
         {/* Main content */}
-        <main id="admin-main-content" className="flex-1 overflow-auto">
+        <main
+          id="admin-main-content"
+          className={`
+            flex-1 min-w-0 overflow-auto
+            transition-[margin] duration-200 ease-out
+          `}
+        >
           <div className="p-8">
             {children}
           </div>
