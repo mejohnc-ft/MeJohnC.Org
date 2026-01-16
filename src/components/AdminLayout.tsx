@@ -38,25 +38,40 @@ const sidebarItems = [
   { label: 'Settings', path: '/admin/settings', icon: Settings },
 ];
 
-// Animation variants for smooth transitions
-const sidebarVariants = {
+const SIDEBAR_WIDTH = 256;
+
+// Spring config for smooth, snappy animations
+const springConfig = {
+  type: 'spring' as const,
+  stiffness: 400,
+  damping: 40,
+};
+
+// Desktop: animate width for smooth content reflow
+const desktopSidebarVariants = {
+  open: {
+    width: SIDEBAR_WIDTH,
+    opacity: 1,
+    transition: springConfig,
+  },
+  closed: {
+    width: 0,
+    opacity: 0,
+    transition: springConfig,
+  },
+};
+
+// Mobile: slide in from left (overlay style)
+const mobileSidebarVariants = {
   open: {
     x: 0,
     opacity: 1,
-    transition: {
-      type: 'spring',
-      stiffness: 300,
-      damping: 30,
-    },
+    transition: springConfig,
   },
   closed: {
-    x: -256,
+    x: -SIDEBAR_WIDTH,
     opacity: 0,
-    transition: {
-      type: 'spring',
-      stiffness: 300,
-      damping: 30,
-    },
+    transition: springConfig,
   },
 };
 
@@ -72,10 +87,88 @@ const overlayVariants = {
 };
 
 // Reduced motion variants (instant transitions)
-const reducedMotionVariants = {
-  open: { x: 0, opacity: 1 },
-  closed: { x: -256, opacity: 0 },
+const reducedDesktopVariants = {
+  open: { width: SIDEBAR_WIDTH, opacity: 1 },
+  closed: { width: 0, opacity: 0 },
 };
+
+const reducedMobileVariants = {
+  open: { x: 0, opacity: 1 },
+  closed: { x: -SIDEBAR_WIDTH, opacity: 0 },
+};
+
+// Extracted sidebar content for reuse in mobile and desktop
+interface SidebarContentProps {
+  location: ReturnType<typeof useLocation>;
+  handleNavClick: () => void;
+  user: ReturnType<typeof useAuth>['user'];
+  signOut: ReturnType<typeof useAuth>['signOut'];
+}
+
+const SidebarContent = ({ location, handleNavClick, user, signOut }: SidebarContentProps) => (
+  <>
+    {/* Navigation */}
+    <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+      {sidebarItems.map((item) => {
+        const isActive = location.pathname === item.path ||
+          (item.path !== '/admin' && location.pathname.startsWith(item.path));
+        const Icon = item.icon;
+
+        return (
+          <Link
+            key={item.path}
+            to={item.path}
+            onClick={handleNavClick}
+            className={`
+              flex items-center gap-3 px-4 py-2.5 rounded-lg
+              transition-colors duration-150 whitespace-nowrap
+              ${isActive
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              }
+            `}
+          >
+            <Icon className="w-5 h-5 flex-shrink-0" />
+            <span className="font-medium">{item.label}</span>
+          </Link>
+        );
+      })}
+    </nav>
+
+    {/* Footer */}
+    <div className="p-4 border-t border-border space-y-2 flex-shrink-0">
+      {/* User info with Clerk UserButton */}
+      <div className="flex items-center gap-3 px-4 py-2.5">
+        <UserButton
+          appearance={{
+            elements: {
+              avatarBox: 'w-8 h-8',
+            }
+          }}
+        />
+        <span className="text-sm text-muted-foreground truncate whitespace-nowrap">
+          {user?.primaryEmailAddress?.emailAddress}
+        </span>
+      </div>
+
+      <Link
+        to="/"
+        className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors duration-150 whitespace-nowrap"
+      >
+        <Home className="w-5 h-5 flex-shrink-0" />
+        <span className="font-medium">View Site</span>
+      </Link>
+      <Button
+        variant="ghost"
+        onClick={() => signOut()}
+        className="w-full justify-start gap-3 px-4 py-2.5 text-muted-foreground hover:text-foreground whitespace-nowrap"
+      >
+        <LogOut className="w-5 h-5 flex-shrink-0" />
+        <span className="font-medium">Sign Out</span>
+      </Button>
+    </div>
+  </>
+);
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const location = useLocation();
@@ -173,7 +266,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     }
   };
 
-  const variants = prefersReducedMotion ? reducedMotionVariants : sidebarVariants;
+  // Select appropriate variants based on device and motion preference
+  const desktopVariants = prefersReducedMotion ? reducedDesktopVariants : desktopSidebarVariants;
+  const mobileVariants = prefersReducedMotion ? reducedMobileVariants : mobileSidebarVariants;
 
   return (
     <div className="min-h-screen bg-background">
@@ -222,7 +317,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
       {/* Main layout container */}
       <div className="pt-16 flex min-h-screen">
-        {/* Sidebar backdrop (mobile only) */}
+        {/* Mobile: Sidebar backdrop overlay */}
         <AnimatePresence>
           {sidebarOpen && isMobile && (
             <motion.div
@@ -237,100 +332,52 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           )}
         </AnimatePresence>
 
-        {/* Sidebar */}
-        <AnimatePresence mode="wait">
-          {sidebarOpen && (
+        {/* Mobile: Sliding sidebar overlay */}
+        <AnimatePresence>
+          {sidebarOpen && isMobile && (
             <motion.aside
-              id="admin-sidebar"
+              id="admin-sidebar-mobile"
               initial="closed"
               animate="open"
               exit="closed"
-              variants={variants}
-              className={`
-                fixed md:sticky top-16 left-0 bottom-0 md:bottom-auto
-                w-64 h-[calc(100vh-4rem)] md:h-[calc(100vh-4rem)]
-                bg-card border-r border-border
-                flex flex-col z-40
-                will-change-transform
-              `}
+              variants={mobileVariants}
+              className="fixed top-16 left-0 bottom-0 w-64 bg-card border-r border-border flex flex-col z-40 will-change-transform md:hidden"
               aria-label="Admin navigation"
             >
-              {/* Navigation */}
-              <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-                {sidebarItems.map((item) => {
-                  const isActive = location.pathname === item.path ||
-                    (item.path !== '/admin' && location.pathname.startsWith(item.path));
-                  const Icon = item.icon;
-
-                  return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      onClick={handleNavClick}
-                      className={`
-                        flex items-center gap-3 px-4 py-2.5 rounded-lg
-                        transition-colors duration-150
-                        ${isActive
-                          ? 'bg-primary/10 text-primary'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                        }
-                      `}
-                    >
-                      <Icon className="w-5 h-5 flex-shrink-0" />
-                      <span className="font-medium">{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </nav>
-
-              {/* Footer */}
-              <div className="p-4 border-t border-border space-y-2 flex-shrink-0">
-                {/* User info with Clerk UserButton */}
-                <div className="flex items-center gap-3 px-4 py-2.5">
-                  <UserButton
-                    appearance={{
-                      elements: {
-                        avatarBox: 'w-8 h-8',
-                      }
-                    }}
-                  />
-                  <span className="text-sm text-muted-foreground truncate">
-                    {user.primaryEmailAddress?.emailAddress}
-                  </span>
-                </div>
-
-                <Link
-                  to="/"
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors duration-150"
-                >
-                  <Home className="w-5 h-5" />
-                  <span className="font-medium">View Site</span>
-                </Link>
-                <Button
-                  variant="ghost"
-                  onClick={() => signOut()}
-                  className="w-full justify-start gap-3 px-4 py-2.5 text-muted-foreground hover:text-foreground"
-                >
-                  <LogOut className="w-5 h-5" />
-                  <span className="font-medium">Sign Out</span>
-                </Button>
-              </div>
+              <SidebarContent
+                location={location}
+                handleNavClick={handleNavClick}
+                user={user}
+                signOut={signOut}
+              />
             </motion.aside>
           )}
         </AnimatePresence>
 
-        {/* Spacer for desktop when sidebar is closed */}
-        {!sidebarOpen && !isMobile && (
-          <div className="w-0 flex-shrink-0" />
-        )}
+        {/* Desktop: Width-animated sidebar (always in DOM for smooth reflow) */}
+        <motion.aside
+          id="admin-sidebar"
+          initial={false}
+          animate={sidebarOpen ? 'open' : 'closed'}
+          variants={desktopVariants}
+          className="hidden md:flex sticky top-16 h-[calc(100vh-4rem)] bg-card border-r border-border flex-col flex-shrink-0 overflow-hidden will-change-[width]"
+          aria-label="Admin navigation"
+          aria-hidden={!sidebarOpen}
+        >
+          <div className="w-64 h-full flex flex-col">
+            <SidebarContent
+              location={location}
+              handleNavClick={handleNavClick}
+              user={user}
+              signOut={signOut}
+            />
+          </div>
+        </motion.aside>
 
         {/* Main content */}
         <main
           id="admin-main-content"
-          className={`
-            flex-1 min-w-0 overflow-auto
-            transition-[margin] duration-200 ease-out
-          `}
+          className="flex-1 min-w-0 overflow-auto"
         >
           <div className="p-8">
             {children}
