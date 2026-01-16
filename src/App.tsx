@@ -34,14 +34,8 @@ const AdminProjectsList = lazy(() => import('./pages/admin/projects/index'));
 const ProjectEditor = lazy(() => import('./pages/admin/projects/editor'));
 const AdminProfile = lazy(() => import('./pages/admin/Profile'));
 
-// News admin pages
+// News admin page (unified)
 const AdminNewsDashboard = lazy(() => import('./pages/admin/news/index'));
-const AdminNewsSources = lazy(() => import('./pages/admin/news/sources'));
-const AdminNewsFilters = lazy(() => import('./pages/admin/news/filters'));
-const AdminNewsSettings = lazy(() => import('./pages/admin/news/settings'));
-
-// Public news page
-const AINews = lazy(() => import('./pages/AINews'));
 
 // Minimal loading fallback
 function PageLoader() {
@@ -215,16 +209,6 @@ function AnimatedRoutes() {
           }
         />
 
-        {/* Public AI News page */}
-        <Route
-          path="/ai-news"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <AINews />
-            </Suspense>
-          }
-        />
-
         {/* Redirects for old routes */}
         <Route path="/work" element={<Navigate to="/portfolio" replace />} />
         <Route path="/apps" element={<Navigate to="/portfolio" replace />} />
@@ -255,11 +239,8 @@ function AdminRoutes() {
           <Route path="/admin/projects" element={<AdminProjectsList />} />
           <Route path="/admin/projects/new" element={<ProjectEditor />} />
           <Route path="/admin/projects/:id/edit" element={<ProjectEditor />} />
-          {/* News routes */}
+          {/* News route */}
           <Route path="/admin/news" element={<AdminNewsDashboard />} />
-          <Route path="/admin/news/sources" element={<AdminNewsSources />} />
-          <Route path="/admin/news/filters" element={<AdminNewsFilters />} />
-          <Route path="/admin/news/settings" element={<AdminNewsSettings />} />
         </Routes>
       </Suspense>
     </ErrorBoundary>
