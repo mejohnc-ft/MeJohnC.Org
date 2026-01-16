@@ -15,6 +15,7 @@ import {
   Bot,
   Menu,
   X,
+  Bookmark,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { UserButton } from '@clerk/clerk-react';
@@ -32,6 +33,7 @@ const sidebarItems = [
   { label: 'AI Manager', path: '/admin/ai-manager', icon: Bot },
   { label: 'Profile', path: '/admin/profile', icon: User },
   { label: 'News', path: '/admin/news', icon: Newspaper },
+  { label: 'Bookmarks', path: '/admin/bookmarks', icon: Bookmark },
   { label: 'Apps', path: '/admin/apps', icon: AppWindow },
   { label: 'Projects', path: '/admin/projects', icon: FolderKanban },
   { label: 'Blog', path: '/admin/blog', icon: FileText },

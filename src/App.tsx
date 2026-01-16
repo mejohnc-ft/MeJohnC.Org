@@ -40,6 +40,12 @@ const AdminNewsDashboard = lazy(() => import('./pages/admin/news/index'));
 // AI Manager page
 const AdminAIManager = lazy(() => import('./pages/admin/ai-manager/index'));
 
+// Bookmarks admin page
+const AdminBookmarks = lazy(() => import('./pages/admin/bookmarks/index'));
+
+// Public bookmarks page
+const PublicBookmarks = lazy(() => import('./pages/Bookmarks'));
+
 // Minimal loading fallback
 function PageLoader() {
   return (
@@ -212,6 +218,16 @@ function AnimatedRoutes() {
           }
         />
 
+        {/* Public bookmarks page */}
+        <Route
+          path="/bookmarks"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <PublicBookmarks />
+            </Suspense>
+          }
+        />
+
         {/* Redirects for old routes */}
         <Route path="/work" element={<Navigate to="/portfolio" replace />} />
         <Route path="/apps" element={<Navigate to="/portfolio" replace />} />
@@ -246,6 +262,8 @@ function AdminRoutes() {
           <Route path="/admin/news" element={<AdminNewsDashboard />} />
           {/* AI Manager route */}
           <Route path="/admin/ai-manager" element={<AdminAIManager />} />
+          {/* Bookmarks route */}
+          <Route path="/admin/bookmarks" element={<AdminBookmarks />} />
         </Routes>
       </Suspense>
     </ErrorBoundary>
