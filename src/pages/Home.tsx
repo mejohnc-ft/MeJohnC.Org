@@ -16,9 +16,9 @@ interface HeroContent {
 }
 
 const defaultHero: HeroContent = {
-  name: 'John Chambers',
-  title: 'AI Automation Engineer',
-  tagline: 'Building agentic systems, automation pipelines, and AI-powered workflows. Obsessed with measuring cost, benchmarking performance, and shipping fast.',
+  name: '',
+  title: '',
+  tagline: '',
 };
 
 const Home = () => {

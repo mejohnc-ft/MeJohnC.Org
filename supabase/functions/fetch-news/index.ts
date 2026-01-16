@@ -60,8 +60,8 @@ function parseRssFeed(xml: string, sourceId: string): ParsedArticle[] {
         let description = item.querySelector('description')?.textContent?.trim() || null
         let content = item.querySelector('content\\:encoded')?.textContent?.trim() || null
         let pubDate = item.querySelector('pubDate')?.textContent?.trim() || null
-        let author = item.querySelector('author')?.textContent?.trim() ||
-                     item.querySelector('dc\\:creator')?.textContent?.trim() || null
+        const author = item.querySelector('author')?.textContent?.trim() ||
+                       item.querySelector('dc\\:creator')?.textContent?.trim() || null
         let guid = item.querySelector('guid')?.textContent?.trim() || link
 
         // Atom format fallbacks
