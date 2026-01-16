@@ -80,6 +80,14 @@ type ColumnView = 1 | 2 | 3;
 type FilterType = 'include_keyword' | 'exclude_keyword' | 'include_topic' | 'exclude_source';
 type TabType = 'filter' | 'category' | 'source' | 'saved_search' | 'custom';
 
+// Column configuration for multi-feed view
+interface ColumnFeedConfig {
+  id: string;
+  type: 'all' | 'category' | 'source' | 'unread' | 'bookmarked' | 'curated';
+  value: string; // category_slug or source_id
+  label: string;
+}
+
 interface NewsStats {
   total_articles: number;
   unread_count: number;
@@ -134,6 +142,16 @@ const AdminNewsDashboard = () => {
   const [selectedSource, setSelectedSource] = useState<string>('');
   const [columnView, setColumnView] = useState<ColumnView>(2);
   const [expandedArticleId, setExpandedArticleId] = useState<string | null>(null);
+
+  // Multi-column feed configuration
+  const [columnConfigs, setColumnConfigs] = useState<ColumnFeedConfig[]>([
+    { id: '1', type: 'all', value: '', label: 'All' },
+    { id: '2', type: 'all', value: '', label: 'All' },
+    { id: '3', type: 'all', value: '', label: 'All' },
+  ]);
+  const [columnArticles, setColumnArticles] = useState<Record<string, ArticleWithSource[]>>({});
+  const [columnLoading, setColumnLoading] = useState<Record<string, boolean>>({});
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
 
   // Source editor state
   const [showSourceEditor, setShowSourceEditor] = useState(false);
@@ -232,6 +250,7 @@ const AdminNewsDashboard = () => {
       }
 
       if (selectedSource) options.sourceId = selectedSource;
+      if (selectedCategory) options.categorySlug = selectedCategory;
 
       const articlesData = await getNewsArticles(options, supabase);
       setArticles(articlesData);
@@ -242,7 +261,76 @@ const AdminNewsDashboard = () => {
     } finally {
       setIsRefreshing(false);
     }
-  }, [supabase, activeFeedTab, feedTabs, searchQuery, selectedSource]);
+  }, [supabase, activeFeedTab, feedTabs, searchQuery, selectedSource, selectedCategory]);
+
+  // Fetch articles for a specific column configuration
+  const fetchColumnArticles = useCallback(async (config: ColumnFeedConfig) => {
+    if (!supabase) return [];
+
+    const options: NewsArticleQueryOptions = {
+      limit: 50,
+      search: searchQuery || undefined,
+    };
+
+    switch (config.type) {
+      case 'category':
+        options.categorySlug = config.value;
+        break;
+      case 'source':
+        options.sourceId = config.value;
+        break;
+      case 'unread':
+        options.isRead = false;
+        break;
+      case 'bookmarked':
+        options.isBookmarked = true;
+        break;
+      case 'curated':
+        options.isCurated = true;
+        break;
+      // 'all' uses default options
+    }
+
+    return getNewsArticles(options, supabase);
+  }, [supabase, searchQuery]);
+
+  // Fetch all column articles when in multi-column mode
+  const fetchAllColumnArticles = useCallback(async () => {
+    if (!supabase || columnView === 1) return;
+
+    const columnsToFetch = columnConfigs.slice(0, columnView);
+    const loadingState: Record<string, boolean> = {};
+    columnsToFetch.forEach(c => loadingState[c.id] = true);
+    setColumnLoading(loadingState);
+
+    try {
+      const results = await Promise.all(
+        columnsToFetch.map(async (config) => ({
+          id: config.id,
+          articles: await fetchColumnArticles(config),
+        }))
+      );
+
+      const newColumnArticles: Record<string, ArticleWithSource[]> = {};
+      results.forEach(r => newColumnArticles[r.id] = r.articles);
+      setColumnArticles(newColumnArticles);
+    } catch (error) {
+      captureException(error instanceof Error ? error : new Error(String(error)), {
+        context: 'AdminNewsDashboard.fetchAllColumnArticles',
+      });
+    } finally {
+      const doneState: Record<string, boolean> = {};
+      columnsToFetch.forEach(c => doneState[c.id] = false);
+      setColumnLoading(doneState);
+    }
+  }, [supabase, columnView, columnConfigs, fetchColumnArticles]);
+
+  // Update a specific column's configuration
+  const updateColumnConfig = useCallback((columnId: string, type: ColumnFeedConfig['type'], value: string, label: string) => {
+    setColumnConfigs(prev => prev.map(c =>
+      c.id === columnId ? { ...c, type, value, label } : c
+    ));
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -250,9 +338,20 @@ const AdminNewsDashboard = () => {
 
   useEffect(() => {
     if (feedTabs.length > 0 && mainTab === 'feed') {
-      fetchArticles();
+      if (columnView === 1) {
+        fetchArticles();
+      } else {
+        fetchAllColumnArticles();
+      }
     }
-  }, [fetchArticles, feedTabs.length, mainTab]);
+  }, [fetchArticles, fetchAllColumnArticles, feedTabs.length, mainTab, columnView]);
+
+  // Refetch column articles when column configs change
+  useEffect(() => {
+    if (mainTab === 'feed' && columnView > 1) {
+      fetchAllColumnArticles();
+    }
+  }, [columnConfigs, mainTab, columnView, fetchAllColumnArticles]);
 
   // Selection handlers
   const toggleSelection = (id: string) => {
@@ -815,197 +914,395 @@ const AdminNewsDashboard = () => {
               </div>
             </div>
 
-            {/* Quick Filters */}
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="relative flex-1 min-w-[200px] max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search articles..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-lg text-sm"
-                />
-              </div>
-              <select
-                value={selectedSource}
-                onChange={(e) => setSelectedSource(e.target.value)}
-                className="px-3 py-2 bg-background border border-border rounded-lg text-sm"
-              >
-                <option value="">All Sources</option>
-                {sources.map((source) => (
-                  <option key={source.id} value={source.id}>{source.name}</option>
-                ))}
-              </select>
-              <Button variant="outline" size="sm" onClick={fetchArticles} disabled={isRefreshing} className="gap-2">
-                <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-            </div>
-
-            {/* Bulk Actions */}
-            <AnimatePresence>
-              {selectedIds.size > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="flex items-center gap-3 p-3 bg-primary/10 border border-primary/20 rounded-lg"
+            {/* Quick Filters - only shown in single column mode */}
+            {columnView === 1 && (
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="relative flex-1 min-w-[200px] max-w-md">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Search articles..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-lg text-sm"
+                  />
+                </div>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="px-3 py-2 bg-background border border-border rounded-lg text-sm"
                 >
-                  <span className="text-sm font-medium">{selectedIds.size} selected</span>
-                  <div className="flex items-center gap-2 ml-auto">
-                    <Button variant="outline" size="sm" onClick={() => handleMarkRead(Array.from(selectedIds))} className="gap-2">
-                      <Check className="w-4 h-4" /> Mark Read
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleCurate(Array.from(selectedIds))} className="gap-2">
-                      <Star className="w-4 h-4" /> Curate
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleArchive(Array.from(selectedIds))} className="gap-2 text-destructive">
-                      <Archive className="w-4 h-4" /> Archive
-                    </Button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Select All */}
-            <div className="flex items-center gap-3 px-4 py-2 border-b border-border">
-              <input
-                type="checkbox"
-                checked={selectedIds.size === articles.length && articles.length > 0}
-                onChange={selectAll}
-                className="w-4 h-4 rounded border-border"
-              />
-              <span className="text-sm text-muted-foreground">{articles.length} articles</span>
-            </div>
-
-            {/* Article Grid */}
-            {articles.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <Newspaper className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>No articles found</p>
+                  <option value="">All Categories</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.slug}>{cat.name}</option>
+                  ))}
+                </select>
+                <select
+                  value={selectedSource}
+                  onChange={(e) => setSelectedSource(e.target.value)}
+                  className="px-3 py-2 bg-background border border-border rounded-lg text-sm"
+                >
+                  <option value="">All Sources</option>
+                  {sources.map((source) => (
+                    <option key={source.id} value={source.id}>{source.name}</option>
+                  ))}
+                </select>
+                <Button variant="outline" size="sm" onClick={fetchArticles} disabled={isRefreshing} className="gap-2">
+                  <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
               </div>
-            ) : (
+            )}
+
+            {/* Bulk Actions - single column mode only */}
+            {columnView === 1 && (
+              <AnimatePresence>
+                {selectedIds.size > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="flex items-center gap-3 p-3 bg-primary/10 border border-primary/20 rounded-lg"
+                  >
+                    <span className="text-sm font-medium">{selectedIds.size} selected</span>
+                    <div className="flex items-center gap-2 ml-auto">
+                      <Button variant="outline" size="sm" onClick={() => handleMarkRead(Array.from(selectedIds))} className="gap-2">
+                        <Check className="w-4 h-4" /> Mark Read
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleCurate(Array.from(selectedIds))} className="gap-2">
+                        <Star className="w-4 h-4" /> Curate
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleArchive(Array.from(selectedIds))} className="gap-2 text-destructive">
+                        <Archive className="w-4 h-4" /> Archive
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            )}
+
+            {/* Single Column View */}
+            {columnView === 1 && (
+              <>
+                {/* Select All */}
+                <div className="flex items-center gap-3 px-4 py-2 border-b border-border">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.size === articles.length && articles.length > 0}
+                    onChange={selectAll}
+                    className="w-4 h-4 rounded border-border"
+                  />
+                  <span className="text-sm text-muted-foreground">{articles.length} articles</span>
+                </div>
+
+                {/* Article Grid */}
+                {articles.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Newspaper className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No articles found</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {articles.map((article) => {
+                      const isExpanded = expandedArticleId === article.id;
+                      const hasContent = article.content || article.description;
+
+                      return (
+                        <motion.div
+                          key={article.id}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="group"
+                        >
+                          <div className={`h-full bg-card border rounded-lg overflow-hidden transition-colors ${
+                            !article.is_read ? 'border-l-4 border-l-primary border-border' : 'border-border'
+                          } ${isExpanded ? 'border-primary/50' : 'hover:border-primary/30'}`}>
+                            {/* Article Header */}
+                            <div className="p-4">
+                              <div className="flex items-start gap-3">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedIds.has(article.id)}
+                                  onChange={() => toggleSelection(article.id)}
+                                  className="w-4 h-4 mt-1 rounded border-border"
+                                />
+                                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => toggleArticle(article.id)}>
+                                  <div className="flex items-center gap-2 mb-1">
+                                    {article.source && (
+                                      <span className="text-xs px-2 py-0.5 bg-muted rounded-full">{article.source.name}</span>
+                                    )}
+                                    {article.is_curated && (
+                                      <span className="text-xs px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full">Curated</span>
+                                    )}
+                                  </div>
+                                  <div className="flex items-start justify-between gap-2">
+                                    <h3 className={`font-medium text-foreground group-hover:text-primary transition-colors ${isExpanded ? '' : 'line-clamp-2'}`}>
+                                      {article.title}
+                                    </h3>
+                                    {hasContent && (
+                                      <button className="flex-shrink-0 p-1 rounded hover:bg-muted">
+                                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                      </button>
+                                    )}
+                                  </div>
+                                  {!isExpanded && article.description && (
+                                    <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{stripHtml(article.description)}</p>
+                                  )}
+                                  <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                                    <span>{formatTimeAgo(article.published_at)}</span>
+                                    {article.author && <span>by {article.author}</span>}
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleToggleBookmark(article.id, article.is_bookmarked)}
+                                    className={article.is_bookmarked ? 'text-yellow-500' : 'text-muted-foreground'}
+                                  >
+                                    {article.is_bookmarked ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Expanded Content */}
+                            <AnimatePresence>
+                              {isExpanded && hasContent && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: 'auto', opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  className="overflow-hidden"
+                                >
+                                  <div className="px-4 pb-4 border-t border-border">
+                                    <div className="pt-4 prose prose-sm dark:prose-invert max-w-none">
+                                      {article.content ? (
+                                        <div dangerouslySetInnerHTML={{ __html: article.content }} className="text-muted-foreground" />
+                                      ) : article.description ? (
+                                        <div dangerouslySetInnerHTML={{ __html: article.description }} className="text-muted-foreground" />
+                                      ) : null}
+                                    </div>
+
+                                    <div className="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-border">
+                                      <a
+                                        href={article.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          if (!article.is_read) markArticleRead(article.id, supabase!);
+                                        }}
+                                      >
+                                        <ExternalLink className="w-4 h-4" />
+                                        {article.source_url ? 'View linked article' : 'Read full article'}
+                                      </a>
+                                      {article.source_url && (
+                                        <a
+                                          href={article.source_url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          <FileText className="w-4 h-4" />
+                                          View {article.source?.name || 'source'} post
+                                        </a>
+                                      )}
+                                      {article.author && (
+                                        <span className="flex items-center gap-1 text-xs text-muted-foreground ml-auto">
+                                          <User className="w-3 h-3" /> {article.author}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Multi-Column Feed View */}
+            {columnView > 1 && (
               <div className={`grid ${getGridClass()} gap-4`}>
-                {articles.map((article) => {
-                  const isExpanded = expandedArticleId === article.id;
-                  const hasContent = article.content || article.description;
+                {columnConfigs.slice(0, columnView).map((config) => {
+                  const colArticles = columnArticles[config.id] || [];
+                  const isLoading = columnLoading[config.id];
 
                   return (
-                    <motion.div
-                      key={article.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className={`group ${isExpanded && columnView > 1 ? 'col-span-full' : ''}`}
-                    >
-                      <div className={`h-full bg-card border rounded-lg overflow-hidden transition-colors ${
-                        !article.is_read ? 'border-l-4 border-l-primary border-border' : 'border-border'
-                      } ${isExpanded ? 'border-primary/50' : 'hover:border-primary/30'}`}>
-                        {/* Article Header */}
-                        <div className="p-4">
-                          <div className="flex items-start gap-3">
-                            <input
-                              type="checkbox"
-                              checked={selectedIds.has(article.id)}
-                              onChange={() => toggleSelection(article.id)}
-                              className="w-4 h-4 mt-1 rounded border-border"
-                            />
-                            <div className="flex-1 min-w-0 cursor-pointer" onClick={() => toggleArticle(article.id)}>
-                              <div className="flex items-center gap-2 mb-1">
-                                {article.source && (
-                                  <span className="text-xs px-2 py-0.5 bg-muted rounded-full">{article.source.name}</span>
-                                )}
-                                {article.is_curated && (
-                                  <span className="text-xs px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full">Curated</span>
-                                )}
-                              </div>
-                              <div className="flex items-start justify-between gap-2">
-                                <h3 className={`font-medium text-foreground group-hover:text-primary transition-colors ${isExpanded ? '' : 'line-clamp-2'}`}>
-                                  {article.title}
-                                </h3>
-                                {hasContent && (
-                                  <button className="flex-shrink-0 p-1 rounded hover:bg-muted">
-                                    {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                                  </button>
-                                )}
-                              </div>
-                              {!isExpanded && article.description && (
-                                <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{stripHtml(article.description)}</p>
-                              )}
-                              <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                                <span>{formatTimeAgo(article.published_at)}</span>
-                                {article.author && <span>by {article.author}</span>}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleToggleBookmark(article.id, article.is_bookmarked)}
-                                className={article.is_bookmarked ? 'text-yellow-500' : 'text-muted-foreground'}
-                              >
-                                {article.is_bookmarked ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Expanded Content */}
-                        <AnimatePresence>
-                          {isExpanded && hasContent && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: 'auto', opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              className="overflow-hidden"
-                            >
-                              <div className="px-4 pb-4 border-t border-border">
-                                <div className="pt-4 prose prose-sm dark:prose-invert max-w-none">
-                                  {article.content ? (
-                                    <div dangerouslySetInnerHTML={{ __html: article.content }} className="text-muted-foreground" />
-                                  ) : article.description ? (
-                                    <div dangerouslySetInnerHTML={{ __html: article.description }} className="text-muted-foreground" />
-                                  ) : null}
-                                </div>
-
-                                <div className="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-border">
-                                  <a
-                                    href={article.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      if (!article.is_read) markArticleRead(article.id, supabase!);
-                                    }}
-                                  >
-                                    <ExternalLink className="w-4 h-4" />
-                                    {article.source_url ? 'View linked article' : 'Read full article'}
-                                  </a>
-                                  {article.source_url && (
-                                    <a
-                                      href={article.source_url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary"
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      <FileText className="w-4 h-4" />
-                                      View {article.source?.name || 'source'} post
-                                    </a>
-                                  )}
-                                  {article.author && (
-                                    <span className="flex items-center gap-1 text-xs text-muted-foreground ml-auto">
-                                      <User className="w-3 h-3" /> {article.author}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </motion.div>
+                    <div key={config.id} className="flex flex-col bg-card border border-border rounded-lg overflow-hidden">
+                      {/* Column Header with Feed Selector */}
+                      <div className="p-3 border-b border-border bg-muted/30">
+                        <select
+                          value={`${config.type}:${config.value}`}
+                          onChange={(e) => {
+                            const [type, value] = e.target.value.split(':');
+                            let label = 'All';
+                            if (type === 'category') {
+                              const cat = categories.find(c => c.slug === value);
+                              label = cat?.name || value;
+                            } else if (type === 'source') {
+                              const src = sources.find(s => s.id === value);
+                              label = src?.name || value;
+                            } else if (type === 'unread') label = 'Unread';
+                            else if (type === 'bookmarked') label = 'Bookmarked';
+                            else if (type === 'curated') label = 'Curated';
+                            updateColumnConfig(config.id, type as ColumnFeedConfig['type'], value, label);
+                          }}
+                          className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm font-medium"
+                        >
+                          <optgroup label="Filters">
+                            <option value="all:">All Articles</option>
+                            <option value="unread:">Unread</option>
+                            <option value="bookmarked:">Bookmarked</option>
+                            <option value="curated:">Curated</option>
+                          </optgroup>
+                          {categories.length > 0 && (
+                            <optgroup label="Categories">
+                              {categories.map((cat) => (
+                                <option key={cat.id} value={`category:${cat.slug}`}>{cat.name}</option>
+                              ))}
+                            </optgroup>
                           )}
-                        </AnimatePresence>
+                          {sources.length > 0 && (
+                            <optgroup label="Sources">
+                              {sources.map((src) => (
+                                <option key={src.id} value={`source:${src.id}`}>{src.name}</option>
+                              ))}
+                            </optgroup>
+                          )}
+                        </select>
+                        <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+                          <span>{colArticles.length} articles</span>
+                          {isLoading && <Loader2 className="w-3 h-3 animate-spin" />}
+                        </div>
                       </div>
-                    </motion.div>
+
+                      {/* Column Articles */}
+                      <div className="flex-1 overflow-y-auto max-h-[calc(100vh-400px)] p-2 space-y-2">
+                        {colArticles.length === 0 && !isLoading ? (
+                          <div className="text-center py-8 text-muted-foreground">
+                            <Newspaper className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                            <p className="text-sm">No articles</p>
+                          </div>
+                        ) : (
+                          colArticles.map((article) => {
+                            const isExpanded = expandedArticleId === article.id;
+                            const hasContent = article.content || article.description;
+
+                            return (
+                              <motion.div
+                                key={article.id}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="group"
+                              >
+                                <div className={`bg-background border rounded-lg overflow-hidden transition-colors ${
+                                  !article.is_read ? 'border-l-2 border-l-primary border-border' : 'border-border'
+                                } ${isExpanded ? 'border-primary/50' : 'hover:border-primary/30'}`}>
+                                  <div className="p-3">
+                                    <div className="flex items-start gap-2">
+                                      <div className="flex-1 min-w-0 cursor-pointer" onClick={() => toggleArticle(article.id)}>
+                                        <div className="flex items-center gap-1 mb-1">
+                                          {article.source && (
+                                            <span className="text-[10px] px-1.5 py-0.5 bg-muted rounded-full truncate max-w-[100px]">{article.source.name}</span>
+                                          )}
+                                          {article.is_curated && (
+                                            <Star className="w-3 h-3 text-green-500 flex-shrink-0" />
+                                          )}
+                                        </div>
+                                        <h3 className={`text-sm font-medium text-foreground group-hover:text-primary transition-colors ${isExpanded ? '' : 'line-clamp-2'}`}>
+                                          {article.title}
+                                        </h3>
+                                        <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground">
+                                          <span>{formatTimeAgo(article.published_at)}</span>
+                                          {hasContent && (
+                                            isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                                          )}
+                                        </div>
+                                      </div>
+                                      <div className="flex flex-col gap-1">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className={`h-6 w-6 p-0 ${article.is_bookmarked ? 'text-yellow-500' : 'text-muted-foreground'}`}
+                                          onClick={() => handleToggleBookmark(article.id, article.is_bookmarked)}
+                                        >
+                                          {article.is_bookmarked ? <BookmarkCheck className="w-3 h-3" /> : <Bookmark className="w-3 h-3" />}
+                                        </Button>
+                                        <a
+                                          href={article.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="h-6 w-6 flex items-center justify-center text-muted-foreground hover:text-primary"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (!article.is_read) markArticleRead(article.id, supabase!);
+                                          }}
+                                        >
+                                          <ExternalLink className="w-3 h-3" />
+                                        </a>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Expanded Content */}
+                                  <AnimatePresence>
+                                    {isExpanded && hasContent && (
+                                      <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: 'auto', opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        className="overflow-hidden"
+                                      >
+                                        <div className="px-3 pb-3 border-t border-border">
+                                          <div className="pt-3 prose prose-sm dark:prose-invert max-w-none text-xs">
+                                            {article.content ? (
+                                              <div dangerouslySetInnerHTML={{ __html: article.content }} className="text-muted-foreground" />
+                                            ) : article.description ? (
+                                              <div dangerouslySetInnerHTML={{ __html: article.description }} className="text-muted-foreground" />
+                                            ) : null}
+                                          </div>
+                                          <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-border">
+                                            <a
+                                              href={article.url}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                                            >
+                                              <ExternalLink className="w-3 h-3" />
+                                              Read more
+                                            </a>
+                                            {article.source_url && (
+                                              <a
+                                                href={article.source_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"
+                                              >
+                                                <FileText className="w-3 h-3" />
+                                                Source
+                                              </a>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
+                                </div>
+                              </motion.div>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
                   );
                 })}
               </div>
