@@ -10,7 +10,6 @@ import {
   AlertCircle,
   Terminal,
   Clock,
-  RefreshCw,
 } from 'lucide-react';
 import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
@@ -66,33 +65,7 @@ const AIManager = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Subscribe to agent responses
-  useEffect(() => {
-    if (!supabase) return;
-
-    const channel = supabase
-      .channel(`agent-responses-${sessionId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'agent_responses',
-          filter: `session_id=eq.${sessionId}`,
-        },
-        (payload) => {
-          handleAgentResponse(payload.new);
-        }
-      )
-      .subscribe((status) => {
-        setIsConnected(status === 'SUBSCRIBED');
-      });
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [supabase, sessionId]);
-
+  // Handle agent responses from real-time subscription
   const handleAgentResponse = useCallback((response: Record<string, unknown>) => {
     const responseType = response.response_type as string;
 
@@ -177,6 +150,33 @@ const AIManager = () => {
         break;
     }
   }, []);
+
+  // Subscribe to agent responses
+  useEffect(() => {
+    if (!supabase) return;
+
+    const channel = supabase
+      .channel(`agent-responses-${sessionId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'agent_responses',
+          filter: `session_id=eq.${sessionId}`,
+        },
+        (payload) => {
+          handleAgentResponse(payload.new);
+        }
+      )
+      .subscribe((status) => {
+        setIsConnected(status === 'SUBSCRIBED');
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase, sessionId, handleAgentResponse]);
 
   const sendMessage = async () => {
     if (!input.trim() || !supabase || !user || isLoading) return;
