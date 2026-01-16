@@ -996,26 +996,39 @@ const AdminNewsDashboard = () => {
                     className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-lg text-sm"
                   />
                 </div>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="px-3 py-2 bg-background border border-border rounded-lg text-sm"
-                >
-                  <option value="">All Categories</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.slug}>{cat.name}</option>
-                  ))}
-                </select>
-                <select
-                  value={selectedSource}
-                  onChange={(e) => setSelectedSource(e.target.value)}
-                  className="px-3 py-2 bg-background border border-border rounded-lg text-sm"
-                >
-                  <option value="">All Sources</option>
-                  {sources.map((source) => (
-                    <option key={source.id} value={source.id}>{source.name}</option>
-                  ))}
-                </select>
+                {(() => {
+                  const activeSources = sources.filter(s => s.is_active);
+                  const categorySlugsWithSources = new Set(activeSources.map(s => s.category_slug).filter(Boolean));
+                  const categoriesWithSources = categories.filter(c => categorySlugsWithSources.has(c.slug));
+                  return (
+                    <>
+                      {categoriesWithSources.length > 0 && (
+                        <select
+                          value={selectedCategory}
+                          onChange={(e) => setSelectedCategory(e.target.value)}
+                          className="px-3 py-2 bg-background border border-border rounded-lg text-sm"
+                        >
+                          <option value="">All Categories</option>
+                          {categoriesWithSources.map((cat) => (
+                            <option key={cat.id} value={cat.slug}>{cat.name}</option>
+                          ))}
+                        </select>
+                      )}
+                      {activeSources.length > 0 && (
+                        <select
+                          value={selectedSource}
+                          onChange={(e) => setSelectedSource(e.target.value)}
+                          className="px-3 py-2 bg-background border border-border rounded-lg text-sm"
+                        >
+                          <option value="">All Sources</option>
+                          {activeSources.map((source) => (
+                            <option key={source.id} value={source.id}>{source.name}</option>
+                          ))}
+                        </select>
+                      )}
+                    </>
+                  );
+                })()}
                 <Button variant="outline" size="sm" onClick={fetchArticles} disabled={isRefreshing} className="gap-2">
                   <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                   Refresh
@@ -1318,41 +1331,51 @@ const AdminNewsDashboard = () => {
                         </div>
 
                         {/* Category/Source Dropdown */}
-                        {(categories.length > 0 || sources.length > 0) && (
-                          <select
-                            value={config.type === 'category' || config.type === 'source' ? `${config.type}:${config.value}` : ''}
-                            onChange={(e) => {
-                              if (!e.target.value) return;
-                              const [type, value] = e.target.value.split(':');
-                              let label = '';
-                              if (type === 'category') {
-                                const cat = categories.find(c => c.slug === value);
-                                label = cat?.name || value;
-                              } else if (type === 'source') {
-                                const src = sources.find(s => s.id === value);
-                                label = src?.name || value;
-                              }
-                              updateColumnConfig(config.id, type as ColumnFeedConfig['type'], value, label);
-                            }}
-                            className="mt-2 w-full px-2.5 py-1.5 bg-background/50 border border-border/50 rounded-lg text-xs cursor-pointer hover:border-primary/30 transition-colors focus:outline-none focus:ring-1 focus:ring-primary/20"
-                          >
-                            <option value="">Browse by category or source...</option>
-                            {categories.length > 0 && (
-                              <optgroup label="Categories">
-                                {categories.map((cat) => (
-                                  <option key={cat.id} value={`category:${cat.slug}`}>{cat.name}</option>
-                                ))}
-                              </optgroup>
-                            )}
-                            {sources.length > 0 && (
-                              <optgroup label="Sources">
-                                {sources.map((src) => (
-                                  <option key={src.id} value={`source:${src.id}`}>{src.name}</option>
-                                ))}
-                              </optgroup>
-                            )}
-                          </select>
-                        )}
+                        {(() => {
+                          // Filter to only show active sources
+                          const activeSources = sources.filter(s => s.is_active);
+                          // Filter to only show categories that have at least one active source
+                          const categorySlugsWithSources = new Set(activeSources.map(s => s.category_slug).filter(Boolean));
+                          const categoriesWithSources = categories.filter(c => categorySlugsWithSources.has(c.slug));
+
+                          if (categoriesWithSources.length === 0 && activeSources.length === 0) return null;
+
+                          return (
+                            <select
+                              value={config.type === 'category' || config.type === 'source' ? `${config.type}:${config.value}` : ''}
+                              onChange={(e) => {
+                                if (!e.target.value) return;
+                                const [type, value] = e.target.value.split(':');
+                                let label = '';
+                                if (type === 'category') {
+                                  const cat = categories.find(c => c.slug === value);
+                                  label = cat?.name || value;
+                                } else if (type === 'source') {
+                                  const src = sources.find(s => s.id === value);
+                                  label = src?.name || value;
+                                }
+                                updateColumnConfig(config.id, type as ColumnFeedConfig['type'], value, label);
+                              }}
+                              className="mt-2 w-full px-2.5 py-1.5 bg-background/50 border border-border/50 rounded-lg text-xs cursor-pointer hover:border-primary/30 transition-colors focus:outline-none focus:ring-1 focus:ring-primary/20"
+                            >
+                              <option value="">Browse by category or source...</option>
+                              {categoriesWithSources.length > 0 && (
+                                <optgroup label="Categories">
+                                  {categoriesWithSources.map((cat) => (
+                                    <option key={cat.id} value={`category:${cat.slug}`}>{cat.name}</option>
+                                  ))}
+                                </optgroup>
+                              )}
+                              {activeSources.length > 0 && (
+                                <optgroup label="Sources">
+                                  {activeSources.map((src) => (
+                                    <option key={src.id} value={`source:${src.id}`}>{src.name}</option>
+                                  ))}
+                                </optgroup>
+                              )}
+                            </select>
+                          );
+                        })()}
                       </div>
 
                       {/* Column Articles */}
