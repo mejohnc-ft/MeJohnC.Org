@@ -12,6 +12,7 @@ import {
   FolderKanban,
   User,
   Newspaper,
+  Bot,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { UserButton } from '@clerk/clerk-react';
@@ -25,6 +26,7 @@ interface AdminLayoutProps {
 
 const sidebarItems = [
   { label: 'Dashboard', path: '/admin', icon: LayoutDashboard },
+  { label: 'AI Manager', path: '/admin/ai-manager', icon: Bot },
   { label: 'Profile', path: '/admin/profile', icon: User },
   { label: 'News', path: '/admin/news', icon: Newspaper },
   { label: 'Apps', path: '/admin/apps', icon: AppWindow },

@@ -37,6 +37,9 @@ const AdminProfile = lazy(() => import('./pages/admin/Profile'));
 // News admin page (unified)
 const AdminNewsDashboard = lazy(() => import('./pages/admin/news/index'));
 
+// AI Manager page
+const AdminAIManager = lazy(() => import('./pages/admin/ai-manager/index'));
+
 // Minimal loading fallback
 function PageLoader() {
   return (
@@ -241,6 +244,8 @@ function AdminRoutes() {
           <Route path="/admin/projects/:id/edit" element={<ProjectEditor />} />
           {/* News route */}
           <Route path="/admin/news" element={<AdminNewsDashboard />} />
+          {/* AI Manager route */}
+          <Route path="/admin/ai-manager" element={<AdminAIManager />} />
         </Routes>
       </Suspense>
     </ErrorBoundary>
