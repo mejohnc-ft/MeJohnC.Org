@@ -142,6 +142,12 @@ const AdminNewsDashboard = () => {
   const [selectedSource, setSelectedSource] = useState<string>('');
   const [columnView, setColumnView] = useState<ColumnView>(2);
   const [expandedArticleId, setExpandedArticleId] = useState<string | null>(null);
+  // Per-column expanded article tracking for multi-column view
+  const [columnExpandedIds, setColumnExpandedIds] = useState<Record<string, string | null>>({
+    '1': null,
+    '2': null,
+    '3': null,
+  });
 
   // Multi-column feed configuration
   const [columnConfigs, setColumnConfigs] = useState<ColumnFeedConfig[]>([
@@ -438,6 +444,39 @@ const AdminNewsDashboard = () => {
 
   const toggleArticle = (articleId: string) => {
     setExpandedArticleId(prev => prev === articleId ? null : articleId);
+  };
+
+  // Toggle article expansion for a specific column (multi-column view)
+  const toggleColumnArticle = (columnId: string, articleId: string) => {
+    setColumnExpandedIds(prev => ({
+      ...prev,
+      [columnId]: prev[columnId] === articleId ? null : articleId,
+    }));
+  };
+
+  // Curate a single article
+  const handleCurateSingle = async (id: string, isCurated: boolean) => {
+    if (!supabase) return;
+    try {
+      await curateArticle(id, !isCurated, undefined, supabase);
+      // Update in main articles list
+      setArticles(prev => prev.map(a => a.id === id ? { ...a, is_curated: !isCurated } : a));
+      // Update in column articles
+      setColumnArticles(prev => {
+        const updated: Record<string, ArticleWithSource[]> = {};
+        Object.keys(prev).forEach(key => {
+          updated[key] = prev[key].map(a => a.id === id ? { ...a, is_curated: !isCurated } : a);
+        });
+        return updated;
+      });
+      // Refresh stats
+      const statsData = await getNewsStats(supabase);
+      setStats(statsData);
+    } catch (error) {
+      captureException(error instanceof Error ? error : new Error(String(error)), {
+        context: 'AdminNewsDashboard.handleCurateSingle',
+      });
+    }
   };
 
   // Source handlers
@@ -1056,21 +1095,36 @@ const AdminNewsDashboard = () => {
                                   onChange={() => toggleSelection(article.id)}
                                   className="w-4 h-4 mt-1 rounded border-border"
                                 />
-                                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => toggleArticle(article.id)}>
+                                <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2 mb-1">
                                     {article.source && (
                                       <span className="text-xs px-2 py-0.5 bg-muted rounded-full">{article.source.name}</span>
                                     )}
                                     {article.is_curated && (
-                                      <span className="text-xs px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full">Curated</span>
+                                      <span className="text-xs px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full flex items-center gap-1">
+                                        <Star className="w-3 h-3" fill="currentColor" />
+                                        Curated
+                                      </span>
                                     )}
                                   </div>
                                   <div className="flex items-start justify-between gap-2">
-                                    <h3 className={`font-medium text-foreground group-hover:text-primary transition-colors ${isExpanded ? '' : 'line-clamp-2'}`}>
+                                    {/* Clickable headline */}
+                                    <a
+                                      href={article.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className={`font-medium text-foreground hover:text-primary transition-colors ${isExpanded ? '' : 'line-clamp-2'}`}
+                                      onClick={() => {
+                                        if (!article.is_read && supabase) markArticleRead(article.id, supabase);
+                                      }}
+                                    >
                                       {article.title}
-                                    </h3>
+                                    </a>
                                     {hasContent && (
-                                      <button className="flex-shrink-0 p-1 rounded hover:bg-muted">
+                                      <button
+                                        className="flex-shrink-0 p-1 rounded hover:bg-muted"
+                                        onClick={() => toggleArticle(article.id)}
+                                      >
                                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                                       </button>
                                     )}
@@ -1081,14 +1135,32 @@ const AdminNewsDashboard = () => {
                                   <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
                                     <span>{formatTimeAgo(article.published_at)}</span>
                                     {article.author && <span>by {article.author}</span>}
+                                    {hasContent && (
+                                      <button
+                                        onClick={() => toggleArticle(article.id)}
+                                        className="text-primary hover:underline"
+                                      >
+                                        {isExpanded ? 'Hide preview' : 'Show preview'}
+                                      </button>
+                                    )}
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-1">
                                   <Button
                                     variant="ghost"
                                     size="sm"
+                                    onClick={() => handleCurateSingle(article.id, article.is_curated)}
+                                    className={article.is_curated ? 'text-green-500 hover:text-green-600' : 'text-muted-foreground hover:text-green-500'}
+                                    title={article.is_curated ? 'Remove from curated' : 'Add to curated'}
+                                  >
+                                    <Star className="w-4 h-4" fill={article.is_curated ? 'currentColor' : 'none'} />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
                                     onClick={() => handleToggleBookmark(article.id, article.is_bookmarked)}
-                                    className={article.is_bookmarked ? 'text-yellow-500' : 'text-muted-foreground'}
+                                    className={article.is_bookmarked ? 'text-yellow-500' : 'text-muted-foreground hover:text-yellow-500'}
+                                    title={article.is_bookmarked ? 'Remove bookmark' : 'Bookmark'}
                                   >
                                     {article.is_bookmarked ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
                                   </Button>
@@ -1122,7 +1194,7 @@ const AdminNewsDashboard = () => {
                                         className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          if (!article.is_read) markArticleRead(article.id, supabase!);
+                                          if (!article.is_read && supabase) markArticleRead(article.id, supabase);
                                         }}
                                       >
                                         <ExternalLink className="w-4 h-4" />
@@ -1140,11 +1212,24 @@ const AdminNewsDashboard = () => {
                                           View {article.source?.name || 'source'} post
                                         </a>
                                       )}
-                                      {article.author && (
-                                        <span className="flex items-center gap-1 text-xs text-muted-foreground ml-auto">
-                                          <User className="w-3 h-3" /> {article.author}
-                                        </span>
-                                      )}
+                                      <div className="flex items-center gap-2 ml-auto">
+                                        {article.author && (
+                                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                                            <User className="w-3 h-3" /> {article.author}
+                                          </span>
+                                        )}
+                                        <button
+                                          onClick={() => handleCurateSingle(article.id, article.is_curated)}
+                                          className={`inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg transition-colors ${
+                                            article.is_curated
+                                              ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20'
+                                              : 'bg-muted text-muted-foreground hover:bg-green-500/10 hover:text-green-500'
+                                          }`}
+                                        >
+                                          <Star className="w-4 h-4" fill={article.is_curated ? 'currentColor' : 'none'} />
+                                          {article.is_curated ? 'Curated' : 'Add to Curated'}
+                                        </button>
+                                      </div>
                                     </div>
                                   </div>
                                 </motion.div>
@@ -1162,9 +1247,10 @@ const AdminNewsDashboard = () => {
             {/* Multi-Column Feed View */}
             {columnView > 1 && (
               <div className={`grid ${getGridClass()} gap-4`}>
-                {columnConfigs.slice(0, columnView).map((config, idx) => {
+                {columnConfigs.slice(0, columnView).map((config) => {
                   const colArticles = columnArticles[config.id] || [];
                   const isLoading = columnLoading[config.id];
+                  const columnExpandedId = columnExpandedIds[config.id];
 
                   // Get color for category
                   const getCategoryColor = () => {
@@ -1176,67 +1262,97 @@ const AdminNewsDashboard = () => {
                   };
                   const categoryColor = getCategoryColor();
 
+                  // Filter options for quick selection
+                  const filterOptions = [
+                    { type: 'all', value: '', label: 'All', icon: Newspaper },
+                    { type: 'unread', value: '', label: 'Unread', icon: Eye },
+                    { type: 'bookmarked', value: '', label: 'Saved', icon: Bookmark },
+                    { type: 'curated', value: '', label: 'Curated', icon: Star },
+                  ] as const;
+
                   return (
                     <div key={config.id} className="flex flex-col bg-card border border-border rounded-xl overflow-hidden shadow-sm">
-                      {/* Column Header with Feed Selector */}
-                      <div className="p-3 border-b border-border bg-gradient-to-r from-muted/50 to-muted/30">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className={`w-2 h-2 rounded-full ${
-                            categoryColor ? getCategoryColorClass(categoryColor) :
-                            config.type === 'unread' ? 'bg-blue-500' :
-                            config.type === 'bookmarked' ? 'bg-yellow-500' :
-                            config.type === 'curated' ? 'bg-green-500' :
-                            'bg-primary'
-                          }`} />
-                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                            Feed {idx + 1}
-                          </span>
-                          {isLoading && <Loader2 className="w-3 h-3 animate-spin text-primary ml-auto" />}
+                      {/* Column Header with Modern Filter Buttons */}
+                      <div className="p-3 border-b border-border bg-gradient-to-b from-muted/30 to-transparent">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2.5 h-2.5 rounded-full ${
+                              categoryColor ? getCategoryColorClass(categoryColor) :
+                              config.type === 'unread' ? 'bg-blue-500' :
+                              config.type === 'bookmarked' ? 'bg-yellow-500' :
+                              config.type === 'curated' ? 'bg-green-500' :
+                              'bg-primary'
+                            }`} />
+                            <span className="text-xs font-semibold text-foreground">
+                              {config.label || 'All Articles'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            {isLoading && <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />}
+                            <span className="text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded">
+                              {colArticles.length}
+                            </span>
+                          </div>
                         </div>
-                        <select
-                          value={`${config.type}:${config.value}`}
-                          onChange={(e) => {
-                            const [type, value] = e.target.value.split(':');
-                            let label = 'All';
-                            if (type === 'category') {
-                              const cat = categories.find(c => c.slug === value);
-                              label = cat?.name || value;
-                            } else if (type === 'source') {
-                              const src = sources.find(s => s.id === value);
-                              label = src?.name || value;
-                            } else if (type === 'unread') label = 'Unread';
-                            else if (type === 'bookmarked') label = 'Bookmarked';
-                            else if (type === 'curated') label = 'Curated';
-                            updateColumnConfig(config.id, type as ColumnFeedConfig['type'], value, label);
-                          }}
-                          className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm font-semibold cursor-pointer hover:border-primary/50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                        >
-                          <optgroup label="Filters">
-                            <option value="all:">All Articles</option>
-                            <option value="unread:">Unread</option>
-                            <option value="bookmarked:">Bookmarked</option>
-                            <option value="curated:">Curated</option>
-                          </optgroup>
-                          {categories.length > 0 && (
-                            <optgroup label="Categories">
-                              {categories.map((cat) => (
-                                <option key={cat.id} value={`category:${cat.slug}`}>{cat.name}</option>
-                              ))}
-                            </optgroup>
-                          )}
-                          {sources.length > 0 && (
-                            <optgroup label="Sources">
-                              {sources.map((src) => (
-                                <option key={src.id} value={`source:${src.id}`}>{src.name}</option>
-                              ))}
-                            </optgroup>
-                          )}
-                        </select>
-                        <div className="flex items-center justify-between mt-2">
-                          <span className="text-xs text-muted-foreground">
-                            {colArticles.length} {colArticles.length === 1 ? 'article' : 'articles'}
-                          </span>
+
+                        {/* Modern Filter Button Group */}
+                        <div className="flex gap-1 p-1 bg-muted/40 rounded-lg">
+                          {filterOptions.map((opt) => {
+                            const isActive = config.type === opt.type;
+                            const Icon = opt.icon;
+                            return (
+                              <button
+                                key={opt.type}
+                                onClick={() => updateColumnConfig(config.id, opt.type as ColumnFeedConfig['type'], opt.value, opt.label)}
+                                className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-md text-[10px] font-medium transition-all ${
+                                  isActive
+                                    ? 'bg-background text-foreground shadow-sm'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                                }`}
+                              >
+                                <Icon className="w-3 h-3" />
+                                <span className="hidden lg:inline">{opt.label}</span>
+                              </button>
+                            );
+                          })}
                         </div>
+
+                        {/* Category/Source Dropdown */}
+                        {(categories.length > 0 || sources.length > 0) && (
+                          <select
+                            value={config.type === 'category' || config.type === 'source' ? `${config.type}:${config.value}` : ''}
+                            onChange={(e) => {
+                              if (!e.target.value) return;
+                              const [type, value] = e.target.value.split(':');
+                              let label = '';
+                              if (type === 'category') {
+                                const cat = categories.find(c => c.slug === value);
+                                label = cat?.name || value;
+                              } else if (type === 'source') {
+                                const src = sources.find(s => s.id === value);
+                                label = src?.name || value;
+                              }
+                              updateColumnConfig(config.id, type as ColumnFeedConfig['type'], value, label);
+                            }}
+                            className="mt-2 w-full px-2.5 py-1.5 bg-background/50 border border-border/50 rounded-lg text-xs cursor-pointer hover:border-primary/30 transition-colors focus:outline-none focus:ring-1 focus:ring-primary/20"
+                          >
+                            <option value="">Browse by category or source...</option>
+                            {categories.length > 0 && (
+                              <optgroup label="Categories">
+                                {categories.map((cat) => (
+                                  <option key={cat.id} value={`category:${cat.slug}`}>{cat.name}</option>
+                                ))}
+                              </optgroup>
+                            )}
+                            {sources.length > 0 && (
+                              <optgroup label="Sources">
+                                {sources.map((src) => (
+                                  <option key={src.id} value={`source:${src.id}`}>{src.name}</option>
+                                ))}
+                              </optgroup>
+                            )}
+                          </select>
+                        )}
                       </div>
 
                       {/* Column Articles */}
@@ -1248,7 +1364,7 @@ const AdminNewsDashboard = () => {
                           </div>
                         ) : (
                           colArticles.map((article) => {
-                            const isExpanded = expandedArticleId === article.id;
+                            const isExpanded = columnExpandedId === article.id;
                             const hasContent = article.content || article.description;
 
                             return (
@@ -1258,50 +1374,82 @@ const AdminNewsDashboard = () => {
                                 animate={{ opacity: 1 }}
                                 className="group"
                               >
-                                <div className={`bg-background border rounded-lg overflow-hidden transition-colors ${
+                                <div className={`bg-background border rounded-lg overflow-hidden transition-all ${
                                   !article.is_read ? 'border-l-2 border-l-primary border-border' : 'border-border'
-                                } ${isExpanded ? 'border-primary/50' : 'hover:border-primary/30'}`}>
+                                } ${isExpanded ? 'border-primary/50 shadow-md' : 'hover:border-primary/30'}`}>
                                   <div className="p-3">
                                     <div className="flex items-start gap-2">
-                                      <div className="flex-1 min-w-0 cursor-pointer" onClick={() => toggleArticle(article.id)}>
+                                      <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-1 mb-1">
                                           {article.source && (
                                             <span className="text-[10px] px-1.5 py-0.5 bg-muted rounded-full truncate max-w-[100px]">{article.source.name}</span>
                                           )}
                                           {article.is_curated && (
-                                            <Star className="w-3 h-3 text-green-500 flex-shrink-0" />
+                                            <span className="text-[10px] px-1.5 py-0.5 bg-green-500/10 text-green-500 rounded-full flex items-center gap-0.5">
+                                              <Star className="w-2.5 h-2.5" fill="currentColor" />
+                                              Curated
+                                            </span>
                                           )}
                                         </div>
-                                        <h3 className={`text-sm font-medium text-foreground group-hover:text-primary transition-colors ${isExpanded ? '' : 'line-clamp-2'}`}>
+                                        {/* Clickable headline that opens article */}
+                                        <a
+                                          href={article.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className={`block text-sm font-medium text-foreground hover:text-primary transition-colors ${isExpanded ? '' : 'line-clamp-2'}`}
+                                          onClick={() => {
+                                            if (!article.is_read && supabase) markArticleRead(article.id, supabase);
+                                          }}
+                                        >
                                           {article.title}
-                                        </h3>
-                                        <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground">
-                                          <span>{formatTimeAgo(article.published_at)}</span>
+                                        </a>
+                                        <div className="flex items-center gap-2 mt-1.5">
+                                          <span className="text-[10px] text-muted-foreground">{formatTimeAgo(article.published_at)}</span>
                                           {hasContent && (
-                                            isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                                            <button
+                                              onClick={() => toggleColumnArticle(config.id, article.id)}
+                                              className="text-[10px] text-primary hover:underline flex items-center gap-0.5"
+                                            >
+                                              {isExpanded ? (
+                                                <>Hide <ChevronUp className="w-3 h-3" /></>
+                                              ) : (
+                                                <>Preview <ChevronDown className="w-3 h-3" /></>
+                                              )}
+                                            </button>
                                           )}
                                         </div>
                                       </div>
-                                      <div className="flex flex-col gap-1">
+                                      {/* Action buttons */}
+                                      <div className="flex flex-col gap-0.5">
                                         <Button
                                           variant="ghost"
                                           size="sm"
-                                          className={`h-6 w-6 p-0 ${article.is_bookmarked ? 'text-yellow-500' : 'text-muted-foreground'}`}
-                                          onClick={() => handleToggleBookmark(article.id, article.is_bookmarked)}
+                                          className={`h-6 w-6 p-0 ${article.is_curated ? 'text-green-500 hover:text-green-600' : 'text-muted-foreground hover:text-green-500'}`}
+                                          onClick={() => handleCurateSingle(article.id, article.is_curated)}
+                                          title={article.is_curated ? 'Remove from curated' : 'Add to curated'}
                                         >
-                                          {article.is_bookmarked ? <BookmarkCheck className="w-3 h-3" /> : <Bookmark className="w-3 h-3" />}
+                                          <Star className="w-3.5 h-3.5" fill={article.is_curated ? 'currentColor' : 'none'} />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className={`h-6 w-6 p-0 ${article.is_bookmarked ? 'text-yellow-500' : 'text-muted-foreground hover:text-yellow-500'}`}
+                                          onClick={() => handleToggleBookmark(article.id, article.is_bookmarked)}
+                                          title={article.is_bookmarked ? 'Remove bookmark' : 'Bookmark'}
+                                        >
+                                          {article.is_bookmarked ? <BookmarkCheck className="w-3.5 h-3.5" /> : <Bookmark className="w-3.5 h-3.5" />}
                                         </Button>
                                         <a
                                           href={article.url}
                                           target="_blank"
                                           rel="noopener noreferrer"
                                           className="h-6 w-6 flex items-center justify-center text-muted-foreground hover:text-primary"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (!article.is_read) markArticleRead(article.id, supabase!);
+                                          title="Open article"
+                                          onClick={() => {
+                                            if (!article.is_read && supabase) markArticleRead(article.id, supabase);
                                           }}
                                         >
-                                          <ExternalLink className="w-3 h-3" />
+                                          <ExternalLink className="w-3.5 h-3.5" />
                                         </a>
                                       </div>
                                     </div>
@@ -1324,15 +1472,18 @@ const AdminNewsDashboard = () => {
                                               <div dangerouslySetInnerHTML={{ __html: article.description }} className="text-muted-foreground" />
                                             ) : null}
                                           </div>
-                                          <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-border">
+                                          <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t border-border">
                                             <a
                                               href={article.url}
                                               target="_blank"
                                               rel="noopener noreferrer"
-                                              className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                                              className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                                              onClick={() => {
+                                                if (!article.is_read && supabase) markArticleRead(article.id, supabase);
+                                              }}
                                             >
-                                              <ExternalLink className="w-3 h-3" />
-                                              Read more
+                                              <ExternalLink className="w-3.5 h-3.5" />
+                                              Read full article
                                             </a>
                                             {article.source_url && (
                                               <a
@@ -1345,6 +1496,15 @@ const AdminNewsDashboard = () => {
                                                 Source
                                               </a>
                                             )}
+                                            <button
+                                              onClick={() => handleCurateSingle(article.id, article.is_curated)}
+                                              className={`inline-flex items-center gap-1 text-xs ml-auto ${
+                                                article.is_curated ? 'text-green-500' : 'text-muted-foreground hover:text-green-500'
+                                              }`}
+                                            >
+                                              <Star className="w-3 h-3" fill={article.is_curated ? 'currentColor' : 'none'} />
+                                              {article.is_curated ? 'Curated' : 'Add to curated'}
+                                            </button>
                                           </div>
                                         </div>
                                       </motion.div>
