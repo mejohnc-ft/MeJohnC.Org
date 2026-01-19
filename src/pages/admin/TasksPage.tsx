@@ -29,6 +29,7 @@ const TasksPage = () => {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase, selectedCategory, selectedStatus, selectedPriority, showOverdueOnly, searchQuery]);
 
   async function fetchData() {

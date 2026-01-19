@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, Send, Calendar, Mail } from 'lucide-react';
+import { Plus, Calendar, Mail } from 'lucide-react';
 import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import AdminLayout from '@/components/AdminLayout';

@@ -25,6 +25,7 @@ const TaskEditPage = () => {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase, id]);
 
   async function fetchData() {

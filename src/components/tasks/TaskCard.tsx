@@ -9,7 +9,7 @@ import {
   Trash2,
   Edit
 } from 'lucide-react';
-import { Task, TaskWithCategory } from '@/lib/schemas';
+import { TaskWithCategory } from '@/lib/schemas';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { format, isPast, isToday, isTomorrow } from 'date-fns';

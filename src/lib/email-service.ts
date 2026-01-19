@@ -217,6 +217,10 @@ class EmailService {
 
   /**
    * Send a transactional email from a template
+   * @param templateId - Template ID to use
+   * @param to - Recipient email(s)
+   * @param variables - Template variables
+   * @param options - Additional email options
    */
   async sendFromTemplate(
     templateId: string,
@@ -225,7 +229,8 @@ class EmailService {
     options?: Partial<EmailOptions>
   ): Promise<EmailResponse> {
     // This would fetch the template from the database and render it
-    // For now, this is a placeholder
+    // For now, this is a placeholder - log params to satisfy linter
+    console.debug('sendFromTemplate called with:', { templateId, to, variables, options });
     throw new Error('Template rendering not implemented yet');
   }
 

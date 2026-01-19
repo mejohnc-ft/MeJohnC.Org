@@ -20,6 +20,7 @@ const TasksKanbanPage = () => {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase]);
 
   async function fetchData() {

@@ -47,7 +47,7 @@ export function PreviewModal({ isOpen, onClose, components, pageTitle }: Preview
                     );
                   }
 
-                  return <Component key={component.id} {...(component.props as any)} />;
+                  return <Component key={component.id} {...(component.props as Record<string, unknown>)} />;
                 })}
               </div>
             )}

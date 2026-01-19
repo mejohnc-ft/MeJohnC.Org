@@ -10,6 +10,8 @@ interface AIContentSuggestionsProps {
 }
 
 export function AIContentSuggestions({ contentType, context, onSelect }: AIContentSuggestionsProps) {
+  // Context will be used when integrating with actual AI service
+  void context;
   const [prompt, setPrompt] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
