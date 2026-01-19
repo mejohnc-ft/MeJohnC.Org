@@ -22,8 +22,10 @@ export type {
   MetricsStats,
 };
 
-// Supabase instance
-const supabase = getSupabase();
+// Lazy getter for default Supabase client - avoids throwing at module load time
+function getDefaultClient(): SupabaseClient {
+  return getSupabase();
+}
 
 // Helper for handling query results
 function handleQueryResult<T>(
@@ -56,8 +58,9 @@ export interface SourceQueryOptions {
 
 export async function getMetricsSources(
   options: SourceQueryOptions = {},
-  client: SupabaseClient = supabase
+  client?: SupabaseClient
 ): Promise<MetricsSource[]> {
+  const supabase = client ?? getDefaultClient();
   const {
     sourceType,
     isActive,
@@ -67,7 +70,7 @@ export async function getMetricsSources(
     orderDirection = 'desc',
   } = options;
 
-  let query = client
+  let query = supabase
     .from('metrics_sources')
     .select('*')
     .order(orderBy, { ascending: orderDirection === 'asc' })
@@ -91,9 +94,10 @@ export async function getMetricsSources(
 
 export async function getMetricsSourceBySlug(
   slug: string,
-  client: SupabaseClient = supabase
+  client?: SupabaseClient
 ): Promise<MetricsSource | null> {
-  const { data, error } = await client
+  const supabase = client ?? getDefaultClient();
+  const { data, error } = await supabase
     .from('metrics_sources')
     .select('*')
     .eq('slug', slug)
@@ -107,9 +111,10 @@ export async function getMetricsSourceBySlug(
 
 export async function createMetricsSource(
   source: Omit<MetricsSource, 'id' | 'created_at' | 'updated_at' | 'last_refresh_at' | 'next_refresh_at' | 'last_error' | 'error_count'>,
-  client: SupabaseClient = supabase
+  client?: SupabaseClient
 ): Promise<MetricsSource> {
-  const { data, error } = await client
+  const supabase = client ?? getDefaultClient();
+  const { data, error } = await supabase
     .from('metrics_sources')
     .insert(source)
     .select()
@@ -121,9 +126,10 @@ export async function createMetricsSource(
 export async function updateMetricsSource(
   id: string,
   updates: Partial<Omit<MetricsSource, 'id' | 'created_at'>>,
-  client: SupabaseClient = supabase
+  client?: SupabaseClient
 ): Promise<MetricsSource> {
-  const { data, error } = await client
+  const supabase = client ?? getDefaultClient();
+  const { data, error } = await supabase
     .from('metrics_sources')
     .update(updates)
     .eq('id', id)
@@ -135,9 +141,10 @@ export async function updateMetricsSource(
 
 export async function deleteMetricsSource(
   id: string,
-  client: SupabaseClient = supabase
+  client?: SupabaseClient
 ): Promise<void> {
-  const { error } = await client.from('metrics_sources').delete().eq('id', id);
+  const supabase = client ?? getDefaultClient();
+  const { error } = await supabase.from('metrics_sources').delete().eq('id', id);
   if (error) throw error;
 }
 
@@ -156,8 +163,9 @@ export interface MetricsDataQueryOptions {
 
 export async function getMetricsData(
   options: MetricsDataQueryOptions = {},
-  client: SupabaseClient = supabase
+  client?: SupabaseClient
 ): Promise<MetricsData[]> {
+  const supabase = client ?? getDefaultClient();
   const {
     sourceId,
     metricName,
@@ -167,7 +175,7 @@ export async function getMetricsData(
     offset = 0,
   } = options;
 
-  let query = client
+  let query = supabase
     .from('metrics_data')
     .select('*')
     .order('recorded_at', { ascending: false })
@@ -199,9 +207,10 @@ export async function getMetricsData(
 
 export async function insertMetricsData(
   dataPoints: Array<Omit<MetricsData, 'id' | 'created_at'>>,
-  client: SupabaseClient = supabase
+  client?: SupabaseClient
 ): Promise<MetricsData[]> {
-  const { data, error } = await client
+  const supabase = client ?? getDefaultClient();
+  const { data, error } = await supabase
     .from('metrics_data')
     .insert(dataPoints)
     .select();
@@ -219,9 +228,10 @@ export async function getAggregatedMetrics(
   startTime: string,
   endTime: string,
   interval: string = '1 hour',
-  client: SupabaseClient = supabase
+  client?: SupabaseClient
 ): Promise<AggregatedMetric[]> {
-  const { data, error } = await client.rpc('get_metrics_aggregated', {
+  const supabase = client ?? getDefaultClient();
+  const { data, error } = await supabase.rpc('get_metrics_aggregated', {
     p_source_id: sourceId,
     p_metric_name: metricName,
     p_start_time: startTime,
@@ -238,9 +248,10 @@ export async function getAggregatedMetrics(
 
 export async function getDistinctMetricNames(
   sourceId?: string,
-  client: SupabaseClient = supabase
+  client?: SupabaseClient
 ): Promise<string[]> {
-  let query = client
+  const supabase = client ?? getDefaultClient();
+  let query = supabase
     .from('metrics_data')
     .select('metric_name')
     .order('metric_name');
@@ -266,9 +277,10 @@ export async function getDistinctMetricNames(
 // ============================================
 
 export async function getMetricsDashboards(
-  client: SupabaseClient = supabase
+  client?: SupabaseClient
 ): Promise<MetricsDashboard[]> {
-  const { data, error } = await client
+  const supabase = client ?? getDefaultClient();
+  const { data, error } = await supabase
     .from('metrics_dashboards')
     .select('*')
     .order('is_default', { ascending: false })
@@ -283,9 +295,10 @@ export async function getMetricsDashboards(
 
 export async function getMetricsDashboardBySlug(
   slug: string,
-  client: SupabaseClient = supabase
+  client?: SupabaseClient
 ): Promise<MetricsDashboard | null> {
-  const { data, error } = await client
+  const supabase = client ?? getDefaultClient();
+  const { data, error } = await supabase
     .from('metrics_dashboards')
     .select('*')
     .eq('slug', slug)
@@ -298,9 +311,10 @@ export async function getMetricsDashboardBySlug(
 }
 
 export async function getDefaultDashboard(
-  client: SupabaseClient = supabase
+  client?: SupabaseClient
 ): Promise<MetricsDashboard | null> {
-  const { data, error } = await client
+  const supabase = client ?? getDefaultClient();
+  const { data, error } = await supabase
     .from('metrics_dashboards')
     .select('*')
     .eq('is_default', true)
@@ -314,9 +328,10 @@ export async function getDefaultDashboard(
 
 export async function createMetricsDashboard(
   dashboard: Omit<MetricsDashboard, 'id' | 'created_at' | 'updated_at'>,
-  client: SupabaseClient = supabase
+  client?: SupabaseClient
 ): Promise<MetricsDashboard> {
-  const { data, error } = await client
+  const supabase = client ?? getDefaultClient();
+  const { data, error } = await supabase
     .from('metrics_dashboards')
     .insert(dashboard)
     .select()
@@ -328,9 +343,10 @@ export async function createMetricsDashboard(
 export async function updateMetricsDashboard(
   id: string,
   updates: Partial<Omit<MetricsDashboard, 'id' | 'created_at'>>,
-  client: SupabaseClient = supabase
+  client?: SupabaseClient
 ): Promise<MetricsDashboard> {
-  const { data, error } = await client
+  const supabase = client ?? getDefaultClient();
+  const { data, error } = await supabase
     .from('metrics_dashboards')
     .update(updates)
     .eq('id', id)
@@ -342,9 +358,10 @@ export async function updateMetricsDashboard(
 
 export async function deleteMetricsDashboard(
   id: string,
-  client: SupabaseClient = supabase
+  client?: SupabaseClient
 ): Promise<void> {
-  const { error } = await client.from('metrics_dashboards').delete().eq('id', id);
+  const supabase = client ?? getDefaultClient();
+  const { error } = await supabase.from('metrics_dashboards').delete().eq('id', id);
   if (error) throw error;
 }
 
@@ -353,13 +370,14 @@ export async function deleteMetricsDashboard(
 // ============================================
 
 export async function getMetricsStats(
-  client: SupabaseClient = supabase
+  client?: SupabaseClient
 ): Promise<MetricsStats> {
+  const supabase = client ?? getDefaultClient();
   const [sourcesResult, dataResult, dashboardsResult, lastRefreshResult] = await Promise.all([
-    client.from('metrics_sources').select('id, is_active', { count: 'exact' }),
-    client.from('metrics_data').select('id', { count: 'exact', head: true }),
-    client.from('metrics_dashboards').select('id', { count: 'exact', head: true }),
-    client
+    supabase.from('metrics_sources').select('id, is_active', { count: 'exact' }),
+    supabase.from('metrics_data').select('id', { count: 'exact', head: true }),
+    supabase.from('metrics_dashboards').select('id', { count: 'exact', head: true }),
+    supabase
       .from('metrics_sources')
       .select('last_refresh_at')
       .not('last_refresh_at', 'is', null)
@@ -449,9 +467,10 @@ export interface SyncResult {
 
 export async function triggerMetricsSync(
   sourceSlug?: string,
-  client: SupabaseClient = supabase
+  client?: SupabaseClient
 ): Promise<SyncResult> {
-  const { data, error } = await client.functions.invoke('metrics-sync', {
+  const supabase = client ?? getDefaultClient();
+  const { data, error } = await supabase.functions.invoke('metrics-sync', {
     body: sourceSlug ? { source_slug: sourceSlug } : {},
   });
 
@@ -475,8 +494,9 @@ export interface SupabaseTableStats {
 }
 
 export async function getSupabaseTableStats(
-  client: SupabaseClient = supabase
+  client?: SupabaseClient
 ): Promise<SupabaseTableStats[]> {
+  const supabase = client ?? getDefaultClient();
   const tables = [
     'apps',
     'projects',
@@ -490,7 +510,7 @@ export async function getSupabaseTableStats(
 
   for (const table of tables) {
     try {
-      const { count, error } = await client
+      const { count, error } = await supabase
         .from(table)
         .select('*', { count: 'exact', head: true });
 
