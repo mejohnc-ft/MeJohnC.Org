@@ -5,7 +5,6 @@ import {
   Database,
   RefreshCw,
   Plus,
-  Settings,
   Github,
   Activity,
   TrendingUp,
@@ -18,8 +17,6 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
-  MetricsLineChart,
-  MetricsBarChart,
   MetricsAreaChart,
   MetricsStatCard,
 } from '@/components/admin/charts';
@@ -30,7 +27,6 @@ import {
   getMetricsData,
   getDistinctMetricNames,
   getTimeRangeDates,
-  getIntervalForRange,
   type MetricsSource,
   type MetricsStats,
   type MetricsData,

@@ -91,9 +91,10 @@ export function isAnalyticsConfigured(): boolean {
  */
 export async function getAnalyticsOverview(
   _propertyId: string,
-  _days: number = 7,
+  _days = 7,
   _credentials?: GACredentials
 ): Promise<AnalyticsOverview | null> {
+  void _propertyId; void _days; void _credentials;
   // TODO: Implement using Google Analytics Data API
   // Example request body:
   // {
@@ -123,10 +124,11 @@ export async function getAnalyticsOverview(
  */
 export async function getTopPages(
   _propertyId: string,
-  _days: number = 7,
-  _limit: number = 10,
+  _days = 7,
+  _limit = 10,
   _credentials?: GACredentials
 ): Promise<PageViewsData[]> {
+  void _propertyId; void _days; void _limit; void _credentials;
   // TODO: Implement using Google Analytics Data API
   // Example request body:
   // {
@@ -150,9 +152,10 @@ export async function getTopPages(
  */
 export async function getTrafficSources(
   _propertyId: string,
-  _days: number = 7,
+  _days = 7,
   _credentials?: GACredentials
 ): Promise<TrafficSourceData[]> {
+  void _propertyId; void _days; void _credentials;
   // TODO: Implement using Google Analytics Data API
   // Example request body:
   // {
@@ -175,9 +178,10 @@ export async function getTrafficSources(
  */
 export async function getDeviceBreakdown(
   _propertyId: string,
-  _days: number = 7,
+  _days = 7,
   _credentials?: GACredentials
 ): Promise<DeviceData[]> {
+  void _propertyId; void _days; void _credentials;
   // TODO: Implement using Google Analytics Data API
   // Example request body:
   // {

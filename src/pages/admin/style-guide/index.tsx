@@ -7,10 +7,8 @@ import {
   Layers,
   Copy,
   Check,
-  RefreshCw,
   Download,
   Settings,
-  ExternalLink,
 } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
 import { Card } from '@/components/ui/card';

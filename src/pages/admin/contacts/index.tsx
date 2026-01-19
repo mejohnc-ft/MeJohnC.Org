@@ -4,7 +4,6 @@ import {
   Users,
   UserPlus,
   Search,
-  Filter,
   Mail,
   Phone,
   Building2,
@@ -13,11 +12,8 @@ import {
   AlertCircle,
   CheckCircle2,
   Star,
-  MoreHorizontal,
   Edit,
   Trash2,
-  MessageSquare,
-  ExternalLink,
   Loader2,
   ChevronDown,
   ChevronRight,
@@ -42,7 +38,6 @@ import {
   updateContact,
   deleteContact,
   getFollowUps,
-  createFollowUp,
   completeFollowUp,
   type Contact,
   type ContactList,
@@ -123,7 +118,6 @@ const AdminContacts = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>('active');
 
   // UI state
-  const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [showContactForm, setShowContactForm] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [formData, setFormData] = useState<ContactFormData>(emptyFormData);
