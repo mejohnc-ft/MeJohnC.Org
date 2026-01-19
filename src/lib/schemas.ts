@@ -578,3 +578,183 @@ export const BookmarkCategorySchema = z.object({
   created_at: z.string(),
 });
 export type BookmarkCategory = z.infer<typeof BookmarkCategorySchema>;
+
+// ============================================
+// CRM SCHEMAS
+// ============================================
+
+// Contact Types
+export const ContactTypeSchema = z.enum(['lead', 'prospect', 'client', 'partner', 'vendor', 'personal', 'other']);
+export const ContactStatusSchema = z.enum(['active', 'inactive', 'archived']);
+
+// Contacts
+export const ContactSchema = z.object({
+  id: z.string().uuid(),
+  first_name: z.string().nullable(),
+  last_name: z.string().nullable(),
+  email: z.string().nullable(),
+  phone: z.string().nullable(),
+  company: z.string().nullable(),
+  job_title: z.string().nullable(),
+  website: z.string().nullable(),
+  linkedin_url: z.string().nullable(),
+  twitter_handle: z.string().nullable(),
+  github_username: z.string().nullable(),
+  contact_type: ContactTypeSchema,
+  status: ContactStatusSchema,
+  lead_score: z.number(),
+  source: z.string().nullable(),
+  source_detail: z.string().nullable(),
+  referrer_id: z.string().uuid().nullable(),
+  city: z.string().nullable(),
+  state: z.string().nullable(),
+  country: z.string().nullable(),
+  timezone: z.string().nullable(),
+  avatar_url: z.string().nullable(),
+  bio: z.string().nullable(),
+  notes: z.string().nullable(),
+  tags: z.array(z.string()),
+  custom_fields: z.record(z.unknown()).nullable(),
+  last_contacted_at: z.string().nullable(),
+  next_follow_up_at: z.string().nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type Contact = z.infer<typeof ContactSchema>;
+
+// Interaction Types
+export const InteractionTypeSchema = z.enum([
+  'email_sent', 'email_received',
+  'call_outbound', 'call_inbound',
+  'meeting', 'video_call',
+  'message', 'linkedin_message',
+  'note', 'task_completed',
+  'website_visit', 'form_submission',
+  'other'
+]);
+export const SentimentSchema = z.enum(['positive', 'neutral', 'negative']);
+
+// Interactions
+export const InteractionSchema = z.object({
+  id: z.string().uuid(),
+  contact_id: z.string().uuid(),
+  interaction_type: InteractionTypeSchema,
+  subject: z.string().nullable(),
+  content: z.string().nullable(),
+  duration_minutes: z.number().nullable(),
+  outcome: z.string().nullable(),
+  sentiment: SentimentSchema.nullable(),
+  related_url: z.string().nullable(),
+  attachments: z.array(z.object({
+    name: z.string(),
+    url: z.string(),
+    type: z.string().optional(),
+  })),
+  occurred_at: z.string(),
+  created_at: z.string(),
+  created_by: z.string().nullable(),
+});
+export type Interaction = z.infer<typeof InteractionSchema>;
+
+// Follow-up Types
+export const FollowUpTypeSchema = z.enum(['reminder', 'call', 'email', 'meeting', 'task', 'review']);
+export const FollowUpStatusSchema = z.enum(['pending', 'completed', 'skipped', 'snoozed']);
+export const FollowUpPrioritySchema = z.enum(['low', 'normal', 'high', 'urgent']);
+
+// Follow-ups
+export const FollowUpSchema = z.object({
+  id: z.string().uuid(),
+  contact_id: z.string().uuid(),
+  title: z.string(),
+  description: z.string().nullable(),
+  follow_up_type: FollowUpTypeSchema,
+  due_at: z.string(),
+  remind_at: z.string().nullable(),
+  status: FollowUpStatusSchema,
+  priority: FollowUpPrioritySchema,
+  completed_at: z.string().nullable(),
+  completed_by: z.string().nullable(),
+  completion_notes: z.string().nullable(),
+  is_recurring: z.boolean(),
+  recurrence_rule: z.string().nullable(),
+  parent_follow_up_id: z.string().uuid().nullable(),
+  created_at: z.string(),
+  created_by: z.string().nullable(),
+});
+export type FollowUp = z.infer<typeof FollowUpSchema>;
+
+// Contact Lists
+export const ContactListSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.string().nullable(),
+  list_type: z.enum(['static', 'smart']),
+  smart_filter: z.record(z.unknown()).nullable(),
+  color: z.string(),
+  icon: z.string().nullable(),
+  contact_count: z.number(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type ContactList = z.infer<typeof ContactListSchema>;
+
+// Pipelines
+export const PipelineSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.string().nullable(),
+  is_default: z.boolean(),
+  created_at: z.string(),
+});
+export type Pipeline = z.infer<typeof PipelineSchema>;
+
+// Pipeline Stages
+export const PipelineStageSchema = z.object({
+  id: z.string().uuid(),
+  pipeline_id: z.string().uuid(),
+  name: z.string(),
+  slug: z.string(),
+  color: z.string(),
+  sort_order: z.number(),
+  is_won: z.boolean(),
+  is_lost: z.boolean(),
+  probability: z.number(),
+});
+export type PipelineStage = z.infer<typeof PipelineStageSchema>;
+
+// Deals
+export const DealStatusSchema = z.enum(['open', 'won', 'lost']);
+export const DealSchema = z.object({
+  id: z.string().uuid(),
+  contact_id: z.string().uuid().nullable(),
+  name: z.string(),
+  value: z.number().nullable(),
+  currency: z.string(),
+  pipeline_id: z.string().uuid(),
+  stage_id: z.string().uuid(),
+  status: DealStatusSchema,
+  close_date: z.string().nullable(),
+  lost_reason: z.string().nullable(),
+  probability: z.number().nullable(),
+  expected_revenue: z.number().nullable(),
+  notes: z.string().nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
+  closed_at: z.string().nullable(),
+});
+export type Deal = z.infer<typeof DealSchema>;
+
+// CRM Stats
+export const CRMStatsSchema = z.object({
+  total_contacts: z.number(),
+  active_contacts: z.number(),
+  leads: z.number(),
+  clients: z.number(),
+  open_deals: z.number(),
+  total_deal_value: z.number(),
+  pending_follow_ups: z.number(),
+  overdue_follow_ups: z.number(),
+});
+export type CRMStats = z.infer<typeof CRMStatsSchema>;

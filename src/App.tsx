@@ -43,6 +43,9 @@ const AdminAIManager = lazy(() => import('./pages/admin/ai-manager/index'));
 // Bookmarks admin page
 const AdminBookmarks = lazy(() => import('./pages/admin/bookmarks/index'));
 
+// CRM admin page
+const AdminContacts = lazy(() => import('./pages/admin/contacts/index'));
+
 // Public bookmarks page
 const PublicBookmarks = lazy(() => import('./pages/Bookmarks'));
 
@@ -264,6 +267,8 @@ function AdminRoutes() {
           <Route path="/admin/ai-manager" element={<AdminAIManager />} />
           {/* Bookmarks route */}
           <Route path="/admin/bookmarks" element={<AdminBookmarks />} />
+          {/* CRM route */}
+          <Route path="/admin/contacts" element={<AdminContacts />} />
         </Routes>
       </Suspense>
     </ErrorBoundary>
