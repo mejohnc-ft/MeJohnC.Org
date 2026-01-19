@@ -52,8 +52,20 @@ const AdminMetrics = lazy(() => import('./pages/admin/metrics/index'));
 // Style Guide admin page
 const AdminStyleGuide = lazy(() => import('./pages/admin/style-guide/index'));
 
+// Tasks admin pages
+const TasksPage = lazy(() => import('./pages/admin/TasksPage'));
+const TasksKanbanPage = lazy(() => import('./pages/admin/TasksKanbanPage'));
+const TaskEditPage = lazy(() => import('./pages/admin/TaskEditPage'));
+
+// Site Builder admin pages
+const SiteBuilderIndex = lazy(() => import('./pages/admin/site-builder/index'));
+const SiteBuilderEditor = lazy(() => import('./pages/admin/site-builder/editor'));
+
 // Public bookmarks page
 const PublicBookmarks = lazy(() => import('./pages/Bookmarks'));
+
+// Public custom pages (site builder)
+const PublicPage = lazy(() => import('./pages/PublicPage'));
 
 // Minimal loading fallback
 function PageLoader() {
@@ -179,6 +191,22 @@ function RouteTracker() {
 function AnimatedRoutes() {
   const location = useLocation();
 
+  // Don't wrap PublicPage in AnimatePresence as it has its own Layout
+  if (location.pathname.startsWith('/p/')) {
+    return (
+      <Routes location={location}>
+        <Route
+          path="/p/:slug"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <PublicPage />
+            </Suspense>
+          }
+        />
+      </Routes>
+    );
+  }
+
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
@@ -279,6 +307,14 @@ function AdminRoutes() {
           <Route path="/admin/metrics" element={<AdminMetrics />} />
           {/* Style Guide route */}
           <Route path="/admin/style-guide" element={<AdminStyleGuide />} />
+          {/* Tasks routes */}
+          <Route path="/admin/tasks" element={<TasksPage />} />
+          <Route path="/admin/tasks/kanban" element={<TasksKanbanPage />} />
+          <Route path="/admin/tasks/new" element={<TaskEditPage />} />
+          <Route path="/admin/tasks/:id/edit" element={<TaskEditPage />} />
+          {/* Site Builder routes */}
+          <Route path="/admin/site-builder" element={<SiteBuilderIndex />} />
+          <Route path="/admin/site-builder/:pageId" element={<SiteBuilderEditor />} />
         </Routes>
       </Suspense>
     </ErrorBoundary>
@@ -288,10 +324,21 @@ function AdminRoutes() {
 function AppContent() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isCustomPage = location.pathname.startsWith('/p/');
 
   // Don't track admin routes in analytics
   if (isAdminRoute) {
     return <AdminRoutes />;
+  }
+
+  // Custom pages (site builder) don't need the default Layout
+  if (isCustomPage) {
+    return (
+      <ErrorBoundary fallback={<PublicErrorFallback />}>
+        <RouteTracker />
+        <AnimatedRoutes />
+      </ErrorBoundary>
+    );
   }
 
   return (

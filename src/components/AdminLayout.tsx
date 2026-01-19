@@ -19,6 +19,7 @@ import {
   BarChart3,
   Users,
   Palette,
+  CheckSquare,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { UserButton } from '@clerk/clerk-react';
@@ -35,6 +36,7 @@ const sidebarItems = [
   { label: 'Dashboard', path: '/admin', icon: LayoutDashboard },
   { label: 'AI Manager', path: '/admin/ai-manager', icon: Bot },
   { label: 'Profile', path: '/admin/profile', icon: User },
+  { label: 'Tasks', path: '/admin/tasks', icon: CheckSquare },
   { label: 'News', path: '/admin/news', icon: Newspaper },
   { label: 'Bookmarks', path: '/admin/bookmarks', icon: Bookmark },
   { label: 'Contacts', path: '/admin/contacts', icon: Users },

@@ -862,3 +862,385 @@ export const MetricsStatsSchema = z.object({
   last_refresh: z.string().nullable(),
 });
 export type MetricsStats = z.infer<typeof MetricsStatsSchema>;
+
+// ============================================
+// SITE BUILDER SCHEMAS
+// ============================================
+
+// Component Types
+export const SiteBuilderComponentTypeSchema = z.enum([
+  'hero', 'features', 'testimonials', 'cta', 'text', 'image',
+  'video', 'spacer', 'divider', 'grid', 'columns', 'accordion',
+  'tabs', 'gallery', 'stats', 'team', 'pricing', 'faq', 'contact'
+]);
+
+// Page Status
+export const SiteBuilderPageStatusSchema = z.enum(['draft', 'published']);
+
+// Site Builder Page
+export const SiteBuilderPageSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string(),
+  slug: z.string(),
+  description: z.string().nullable(),
+  status: SiteBuilderPageStatusSchema,
+  meta_title: z.string().nullable(),
+  meta_description: z.string().nullable(),
+  og_image: z.string().nullable(),
+  published_at: z.string().nullable(),
+  created_by: z.string(),
+  updated_by: z.string().nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type SiteBuilderPage = z.infer<typeof SiteBuilderPageSchema>;
+
+// Page Version
+export const SiteBuilderPageVersionSchema = z.object({
+  id: z.string().uuid(),
+  page_id: z.string().uuid(),
+  version_number: z.number(),
+  title: z.string(),
+  slug: z.string(),
+  description: z.string().nullable(),
+  components: z.array(z.record(z.unknown())),
+  created_by: z.string(),
+  created_at: z.string(),
+});
+export type SiteBuilderPageVersion = z.infer<typeof SiteBuilderPageVersionSchema>;
+
+// Page Component
+export const SiteBuilderPageComponentSchema = z.object({
+  id: z.string().uuid(),
+  page_id: z.string().uuid(),
+  component_type: SiteBuilderComponentTypeSchema,
+  props: z.record(z.unknown()),
+  order_index: z.number(),
+  parent_id: z.string().uuid().nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type SiteBuilderPageComponent = z.infer<typeof SiteBuilderPageComponentSchema>;
+
+// Component Template
+export const SiteBuilderComponentTemplateSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  description: z.string().nullable(),
+  component_type: SiteBuilderComponentTypeSchema,
+  preview_image: z.string().nullable(),
+  props: z.record(z.unknown()),
+  category: z.string().nullable(),
+  is_active: z.boolean(),
+  created_by: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type SiteBuilderComponentTemplate = z.infer<typeof SiteBuilderComponentTemplateSchema>;
+
+// Page with Components (for editor)
+export const SiteBuilderPageWithComponentsSchema = SiteBuilderPageSchema.extend({
+  components: z.array(SiteBuilderPageComponentSchema),
+});
+export type SiteBuilderPageWithComponents = z.infer<typeof SiteBuilderPageWithComponentsSchema>;
+
+// ============================================
+// TASK SYSTEM SCHEMAS
+// ============================================
+
+// Task Categories
+export const TaskCategorySchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.string().nullable(),
+  color: z.string(),
+  icon: z.string().nullable(),
+  sort_order: z.number(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type TaskCategory = z.infer<typeof TaskCategorySchema>;
+
+// Tasks
+export const TaskStatusSchema = z.enum(['todo', 'in_progress', 'review', 'done', 'cancelled']);
+export const TaskPrioritySchema = z.enum(['low', 'medium', 'high', 'urgent']);
+
+export const TaskSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string(),
+  description: z.string().nullable(),
+  category_id: z.string().uuid().nullable(),
+  status: TaskStatusSchema,
+  priority: TaskPrioritySchema,
+  assigned_to: z.string().nullable(),
+  assigned_to_email: z.string().nullable(),
+  due_date: z.string().nullable(),
+  is_overdue: z.boolean().nullable(),
+  completed_at: z.string().nullable(),
+  tags: z.array(z.string()),
+  attachments: z.array(z.unknown()),
+  metadata: z.record(z.unknown()).nullable(),
+  sort_order: z.number(),
+  parent_task_id: z.string().uuid().nullable(),
+  created_by: z.string(),
+  created_by_email: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type Task = z.infer<typeof TaskSchema>;
+
+// Task with Category (for joins)
+export const TaskWithCategorySchema = TaskSchema.extend({
+  category: TaskCategorySchema.nullable(),
+});
+export type TaskWithCategory = z.infer<typeof TaskWithCategorySchema>;
+
+// Task Comments
+export const TaskCommentSchema = z.object({
+  id: z.string().uuid(),
+  task_id: z.string().uuid(),
+  comment: z.string(),
+  author: z.string(),
+  author_email: z.string(),
+  is_internal: z.boolean(),
+  attachments: z.array(z.unknown()),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type TaskComment = z.infer<typeof TaskCommentSchema>;
+
+// Task Reminders
+export const TaskReminderTypeSchema = z.enum(['email', 'notification', 'both']);
+export const TaskReminderSchema = z.object({
+  id: z.string().uuid(),
+  task_id: z.string().uuid(),
+  reminder_at: z.string(),
+  reminder_type: TaskReminderTypeSchema,
+  is_sent: z.boolean(),
+  sent_at: z.string().nullable(),
+  created_at: z.string(),
+});
+export type TaskReminder = z.infer<typeof TaskReminderSchema>;
+
+// Task Stats
+export const TaskStatsSchema = z.object({
+  total_tasks: z.number(),
+  todo_count: z.number(),
+  in_progress_count: z.number(),
+  review_count: z.number(),
+  done_count: z.number(),
+  overdue_count: z.number(),
+  high_priority_count: z.number(),
+  urgent_priority_count: z.number(),
+});
+export type TaskStats = z.infer<typeof TaskStatsSchema>;
+
+// ============================================
+// MARKETING SCHEMAS
+// ============================================
+
+// Email Subscriber Status
+export const EmailSubscriberStatusSchema = z.enum(['active', 'unsubscribed', 'bounced', 'complained']);
+
+// Email Subscribers
+export const EmailSubscriberSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email(),
+  first_name: z.string().nullable(),
+  last_name: z.string().nullable(),
+  status: EmailSubscriberStatusSchema,
+  lists: z.array(z.string()),
+  tags: z.array(z.string()),
+  custom_fields: z.record(z.unknown()).nullable(),
+  subscribed_at: z.string(),
+  unsubscribed_at: z.string().nullable(),
+  last_email_sent_at: z.string().nullable(),
+  last_email_opened_at: z.string().nullable(),
+  last_email_clicked_at: z.string().nullable(),
+  total_emails_sent: z.number(),
+  total_emails_opened: z.number(),
+  total_emails_clicked: z.number(),
+  source: z.string().nullable(),
+  source_detail: z.string().nullable(),
+  ip_address: z.string().nullable(),
+  user_agent: z.string().nullable(),
+  referrer: z.string().nullable(),
+  metadata: z.record(z.unknown()).nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type EmailSubscriber = z.infer<typeof EmailSubscriberSchema>;
+
+// Email Lists
+export const EmailListSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.string().nullable(),
+  is_public: z.boolean(),
+  double_opt_in: z.boolean(),
+  subscriber_count: z.number(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type EmailList = z.infer<typeof EmailListSchema>;
+
+// Email Campaign Status
+export const EmailCampaignStatusSchema = z.enum(['draft', 'scheduled', 'sending', 'sent', 'paused', 'cancelled']);
+
+// Email Campaigns
+export const EmailCampaignSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  subject: z.string(),
+  preview_text: z.string().nullable(),
+  template_id: z.string().uuid().nullable(),
+  html_content: z.string().nullable(),
+  text_content: z.string().nullable(),
+  list_ids: z.array(z.string().uuid()).nullable(),
+  segment_rules: z.record(z.unknown()).nullable(),
+  exclude_tags: z.array(z.string()).nullable(),
+  status: EmailCampaignStatusSchema,
+  scheduled_for: z.string().nullable(),
+  sent_at: z.string().nullable(),
+  recipients_count: z.number(),
+  sent_count: z.number(),
+  delivered_count: z.number(),
+  opened_count: z.number(),
+  clicked_count: z.number(),
+  bounced_count: z.number(),
+  complained_count: z.number(),
+  unsubscribed_count: z.number(),
+  is_ab_test: z.boolean(),
+  ab_test_config: z.record(z.unknown()).nullable(),
+  created_by: z.string().nullable(),
+  metadata: z.record(z.unknown()).nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type EmailCampaign = z.infer<typeof EmailCampaignSchema>;
+
+// Email Template Types
+export const EmailTemplateTypeSchema = z.enum(['newsletter', 'transactional', 'promotional', 'custom']);
+
+// Email Templates
+export const EmailTemplateSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.string().nullable(),
+  template_type: EmailTemplateTypeSchema,
+  subject_template: z.string().nullable(),
+  preview_text_template: z.string().nullable(),
+  html_content: z.string(),
+  text_content: z.string().nullable(),
+  variables: z.record(z.unknown()).nullable(),
+  thumbnail_url: z.string().nullable(),
+  is_active: z.boolean(),
+  usage_count: z.number(),
+  last_used_at: z.string().nullable(),
+  created_by: z.string().nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type EmailTemplate = z.infer<typeof EmailTemplateSchema>;
+
+// Email Event Types
+export const EmailEventTypeSchema = z.enum(['sent', 'delivered', 'opened', 'clicked', 'bounced', 'complained', 'unsubscribed']);
+
+// Email Events
+export const EmailEventSchema = z.object({
+  id: z.string().uuid(),
+  event_type: EmailEventTypeSchema,
+  subscriber_id: z.string().uuid().nullable(),
+  campaign_id: z.string().uuid().nullable(),
+  link_url: z.string().nullable(),
+  bounce_type: z.string().nullable(),
+  bounce_reason: z.string().nullable(),
+  ip_address: z.string().nullable(),
+  user_agent: z.string().nullable(),
+  provider_message_id: z.string().nullable(),
+  provider_event_id: z.string().nullable(),
+  provider_metadata: z.record(z.unknown()).nullable(),
+  occurred_at: z.string(),
+  created_at: z.string(),
+});
+export type EmailEvent = z.infer<typeof EmailEventSchema>;
+
+// NPS Survey Status
+export const NPSSurveyStatusSchema = z.enum(['draft', 'active', 'paused', 'closed']);
+
+// NPS Surveys
+export const NPSSurveySchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  question: z.string(),
+  target_segment: z.string().nullable(),
+  segment_rules: z.record(z.unknown()).nullable(),
+  status: NPSSurveyStatusSchema,
+  starts_at: z.string().nullable(),
+  ends_at: z.string().nullable(),
+  responses_count: z.number(),
+  promoters_count: z.number(),
+  passives_count: z.number(),
+  detractors_count: z.number(),
+  nps_score: z.number().nullable(),
+  created_by: z.string().nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type NPSSurvey = z.infer<typeof NPSSurveySchema>;
+
+// NPS Response Category
+export const NPSCategorySchema = z.enum(['promoter', 'passive', 'detractor']);
+
+// NPS Responses
+export const NPSResponseSchema = z.object({
+  id: z.string().uuid(),
+  survey_id: z.string().uuid(),
+  email: z.string().nullable(),
+  subscriber_id: z.string().uuid().nullable(),
+  score: z.number(),
+  feedback: z.string().nullable(),
+  category: NPSCategorySchema,
+  ip_address: z.string().nullable(),
+  user_agent: z.string().nullable(),
+  referrer: z.string().nullable(),
+  responded_at: z.string(),
+  created_at: z.string(),
+});
+export type NPSResponse = z.infer<typeof NPSResponseSchema>;
+
+// Content Suggestion Types
+export const ContentSuggestionTypeSchema = z.enum(['email_subject', 'email_body', 'social_post', 'blog_title', 'landing_page_copy']);
+export const ContentSuggestionStatusSchema = z.enum(['pending', 'approved', 'rejected', 'used']);
+
+// Content Suggestions
+export const ContentSuggestionSchema = z.object({
+  id: z.string().uuid(),
+  content_type: ContentSuggestionTypeSchema,
+  prompt: z.string(),
+  context: z.record(z.unknown()).nullable(),
+  suggestions: z.array(z.unknown()),
+  model: z.string().nullable(),
+  status: ContentSuggestionStatusSchema,
+  selected_suggestion: z.number().nullable(),
+  used_in_campaign_id: z.string().uuid().nullable(),
+  created_by: z.string().nullable(),
+  created_at: z.string(),
+});
+export type ContentSuggestion = z.infer<typeof ContentSuggestionSchema>;
+
+// Marketing Stats
+export const MarketingStatsSchema = z.object({
+  total_subscribers: z.number(),
+  active_subscribers: z.number(),
+  total_campaigns: z.number(),
+  sent_campaigns: z.number(),
+  avg_open_rate: z.number(),
+  avg_click_rate: z.number(),
+  nps_score: z.number().nullable(),
+  recent_nps_responses: z.number(),
+});
+export type MarketingStats = z.infer<typeof MarketingStatsSchema>;

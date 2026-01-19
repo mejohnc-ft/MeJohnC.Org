@@ -23,6 +23,14 @@ import {
   BookmarkCollectionItemSchema,
   BookmarkImportJobSchema,
   BookmarkCategorySchema,
+  EmailSubscriberSchema,
+  EmailListSchema,
+  EmailCampaignSchema,
+  EmailTemplateSchema,
+  EmailEventSchema,
+  NPSSurveySchema,
+  NPSResponseSchema,
+  ContentSuggestionSchema,
   parseResponse,
   parseArrayResponse,
   type AppSuite,
@@ -54,6 +62,15 @@ import {
   type BookmarkCollectionItem,
   type BookmarkImportJob,
   type BookmarkCategory,
+  type EmailSubscriber,
+  type EmailList,
+  type EmailCampaign,
+  type EmailTemplate,
+  type EmailEvent,
+  type NPSSurvey,
+  type NPSResponse,
+  type ContentSuggestion,
+  type MarketingStats,
 } from './schemas';
 
 // Re-export types for consumers
@@ -87,6 +104,15 @@ export type {
   BookmarkCollectionItem,
   BookmarkImportJob,
   BookmarkCategory,
+  EmailSubscriber,
+  EmailList,
+  EmailCampaign,
+  EmailTemplate,
+  EmailEvent,
+  NPSSurvey,
+  NPSResponse,
+  ContentSuggestion,
+  MarketingStats,
 };
 
 // Re-export enums
