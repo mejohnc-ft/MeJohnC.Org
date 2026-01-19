@@ -758,3 +758,107 @@ export const CRMStatsSchema = z.object({
   overdue_follow_ups: z.number(),
 });
 export type CRMStats = z.infer<typeof CRMStatsSchema>;
+
+// ============================================
+// METRICS
+// ============================================
+
+// Metrics Source Types
+export const MetricsSourceTypeSchema = z.enum(['github', 'analytics', 'supabase', 'webhook', 'custom']);
+export const MetricsAuthTypeSchema = z.enum(['none', 'api_key', 'oauth', 'bearer']);
+
+export const MetricsSourceSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  slug: z.string(),
+  source_type: MetricsSourceTypeSchema,
+  description: z.string().nullable(),
+  icon: z.string().nullable(),
+  color: z.string(),
+  endpoint_url: z.string().nullable(),
+  auth_type: MetricsAuthTypeSchema.nullable(),
+  auth_config: z.record(z.unknown()).optional(),
+  headers: z.record(z.unknown()).optional(),
+  refresh_interval_minutes: z.number(),
+  last_refresh_at: z.string().nullable(),
+  next_refresh_at: z.string().nullable(),
+  last_error: z.string().nullable(),
+  error_count: z.number(),
+  is_active: z.boolean(),
+  metadata: z.record(z.unknown()).optional(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type MetricsSource = z.infer<typeof MetricsSourceSchema>;
+
+// Metrics Data Types
+export const MetricsDataTypeSchema = z.enum(['counter', 'gauge', 'histogram', 'summary']);
+
+export const MetricsDataSchema = z.object({
+  id: z.string().uuid(),
+  source_id: z.string().uuid(),
+  metric_name: z.string(),
+  metric_type: MetricsDataTypeSchema,
+  value: z.number(),
+  unit: z.string().nullable(),
+  dimensions: z.record(z.unknown()).optional(),
+  recorded_at: z.string(),
+  created_at: z.string(),
+});
+export type MetricsData = z.infer<typeof MetricsDataSchema>;
+
+// Dashboard Widget Types
+export const DashboardWidgetSchema = z.object({
+  id: z.string(),
+  type: z.enum(['line', 'bar', 'area', 'stat', 'table']),
+  title: z.string(),
+  source_id: z.string().uuid().nullable(),
+  metric_name: z.string().nullable(),
+  chart_type: z.string().nullable(),
+  options: z.record(z.unknown()).optional(),
+  position: z.object({
+    x: z.number(),
+    y: z.number(),
+    w: z.number(),
+    h: z.number(),
+  }),
+});
+export type DashboardWidget = z.infer<typeof DashboardWidgetSchema>;
+
+export const MetricsDashboardSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.string().nullable(),
+  layout: z.array(DashboardWidgetSchema),
+  default_time_range: z.string(),
+  refresh_interval_seconds: z.number(),
+  is_default: z.boolean(),
+  is_public: z.boolean(),
+  created_by: z.string().nullable(),
+  metadata: z.record(z.unknown()).optional(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type MetricsDashboard = z.infer<typeof MetricsDashboardSchema>;
+
+// Aggregated Metrics (for time series)
+export const AggregatedMetricSchema = z.object({
+  time_bucket: z.string(),
+  avg_value: z.number(),
+  min_value: z.number(),
+  max_value: z.number(),
+  sum_value: z.number(),
+  count: z.number(),
+});
+export type AggregatedMetric = z.infer<typeof AggregatedMetricSchema>;
+
+// Metrics Stats
+export const MetricsStatsSchema = z.object({
+  total_sources: z.number(),
+  active_sources: z.number(),
+  total_data_points: z.number(),
+  dashboards_count: z.number(),
+  last_refresh: z.string().nullable(),
+});
+export type MetricsStats = z.infer<typeof MetricsStatsSchema>;

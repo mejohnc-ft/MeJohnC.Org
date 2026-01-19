@@ -46,6 +46,12 @@ const AdminBookmarks = lazy(() => import('./pages/admin/bookmarks/index'));
 // CRM admin page
 const AdminContacts = lazy(() => import('./pages/admin/contacts/index'));
 
+// Metrics admin page
+const AdminMetrics = lazy(() => import('./pages/admin/metrics/index'));
+
+// Style Guide admin page
+const AdminStyleGuide = lazy(() => import('./pages/admin/style-guide/index'));
+
 // Public bookmarks page
 const PublicBookmarks = lazy(() => import('./pages/Bookmarks'));
 
@@ -269,6 +275,10 @@ function AdminRoutes() {
           <Route path="/admin/bookmarks" element={<AdminBookmarks />} />
           {/* CRM route */}
           <Route path="/admin/contacts" element={<AdminContacts />} />
+          {/* Metrics route */}
+          <Route path="/admin/metrics" element={<AdminMetrics />} />
+          {/* Style Guide route */}
+          <Route path="/admin/style-guide" element={<AdminStyleGuide />} />
         </Routes>
       </Suspense>
     </ErrorBoundary>

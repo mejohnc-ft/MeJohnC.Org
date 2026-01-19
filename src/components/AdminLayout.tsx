@@ -16,6 +16,9 @@ import {
   Menu,
   X,
   Bookmark,
+  BarChart3,
+  Users,
+  Palette,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { UserButton } from '@clerk/clerk-react';
@@ -34,6 +37,9 @@ const sidebarItems = [
   { label: 'Profile', path: '/admin/profile', icon: User },
   { label: 'News', path: '/admin/news', icon: Newspaper },
   { label: 'Bookmarks', path: '/admin/bookmarks', icon: Bookmark },
+  { label: 'Contacts', path: '/admin/contacts', icon: Users },
+  { label: 'Metrics', path: '/admin/metrics', icon: BarChart3 },
+  { label: 'Style Guide', path: '/admin/style-guide', icon: Palette },
   { label: 'Apps', path: '/admin/apps', icon: AppWindow },
   { label: 'Projects', path: '/admin/projects', icon: FolderKanban },
   { label: 'Blog', path: '/admin/blog', icon: FileText },
