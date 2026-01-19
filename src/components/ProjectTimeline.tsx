@@ -45,6 +45,42 @@ const themes = {
     gridLine: 'hsl(177, 15%, 80%)',
     progressInactive: 'hsl(177, 10%, 75%)',
   },
+  'solarized-dark': {
+    primary: 'hsl(175, 59%, 40%)',
+    segments: [
+      'hsl(192, 60%, 18%)',
+      'hsl(205, 69%, 49%)',
+      'hsl(175, 59%, 40%)',
+      'hsl(68, 100%, 30%)',
+    ],
+    segmentText: [
+      'hsl(186, 8%, 55%)',
+      'hsl(44, 87%, 94%)',
+      'hsl(192, 100%, 11%)',
+      'hsl(44, 87%, 94%)',
+    ],
+    glow: 'hsla(175, 59%, 40%, 0.15)',
+    gridLine: 'hsl(192, 40%, 20%)',
+    progressInactive: 'hsl(192, 60%, 18%)',
+  },
+  'solarized-light': {
+    primary: 'hsl(175, 59%, 40%)',
+    segments: [
+      'hsl(44, 30%, 80%)',
+      'hsl(205, 69%, 49%)',
+      'hsl(175, 59%, 40%)',
+      'hsl(68, 100%, 30%)',
+    ],
+    segmentText: [
+      'hsl(195, 13%, 45%)',
+      'hsl(44, 87%, 94%)',
+      'hsl(44, 87%, 94%)',
+      'hsl(44, 87%, 94%)',
+    ],
+    glow: 'hsla(175, 59%, 40%, 0.15)',
+    gridLine: 'hsl(44, 20%, 75%)',
+    progressInactive: 'hsl(44, 25%, 80%)',
+  },
 };
 
 // Fallback timeline data

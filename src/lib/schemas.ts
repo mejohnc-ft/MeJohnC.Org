@@ -362,3 +362,219 @@ export const NewsStatsSchema = z.object({
   last_fetch: z.string().nullable(),
 });
 export type NewsStats = z.infer<typeof NewsStatsSchema>;
+
+// ============================================
+// AGENT SCHEMAS
+// ============================================
+
+// Agent Commands (input queue)
+export const AgentCommandTypeSchema = z.enum(['chat', 'task', 'cancel']);
+export const AgentCommandStatusSchema = z.enum(['pending', 'received', 'processing', 'completed', 'failed', 'cancelled']);
+export const AgentCommandSchema = z.object({
+  id: z.string().uuid(),
+  session_id: z.string().uuid(),
+  command_type: AgentCommandTypeSchema,
+  content: z.string(),
+  status: AgentCommandStatusSchema,
+  user_id: z.string(),
+  user_email: z.string(),
+  metadata: z.record(z.unknown()).nullable(),
+  created_at: z.string(),
+  received_at: z.string().nullable(),
+  completed_at: z.string().nullable(),
+});
+export type AgentCommand = z.infer<typeof AgentCommandSchema>;
+
+// Agent Responses (output stream)
+export const AgentResponseTypeSchema = z.enum(['message', 'tool_use', 'tool_result', 'progress', 'error', 'complete', 'confirmation_request']);
+export const AgentResponseSchema = z.object({
+  id: z.string().uuid(),
+  command_id: z.string().uuid().nullable(),
+  session_id: z.string().uuid(),
+  response_type: AgentResponseTypeSchema,
+  content: z.string().nullable(),
+  tool_name: z.string().nullable(),
+  tool_input: z.record(z.unknown()).nullable(),
+  tool_result: z.record(z.unknown()).nullable(),
+  is_streaming: z.boolean(),
+  metadata: z.record(z.unknown()).nullable(),
+  created_at: z.string(),
+});
+export type AgentResponse = z.infer<typeof AgentResponseSchema>;
+
+// Agent Tasks
+export const AgentTaskTypeSchema = z.enum(['scheduled', 'triggered', 'manual']);
+export const AgentTaskStatusSchema = z.enum(['active', 'paused', 'completed', 'failed', 'disabled']);
+export const AgentTaskSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  description: z.string().nullable(),
+  task_type: AgentTaskTypeSchema,
+  schedule: z.string().nullable(),
+  config: z.record(z.unknown()).nullable(),
+  status: AgentTaskStatusSchema,
+  last_run_at: z.string().nullable(),
+  next_run_at: z.string().nullable(),
+  last_error: z.string().nullable(),
+  run_count: z.number(),
+  max_retries: z.number(),
+  created_by: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type AgentTask = z.infer<typeof AgentTaskSchema>;
+
+// Agent Task Runs
+export const AgentTaskRunStatusSchema = z.enum(['running', 'completed', 'failed', 'cancelled']);
+export const AgentTaskRunSchema = z.object({
+  id: z.string().uuid(),
+  task_id: z.string().uuid().nullable(),
+  status: AgentTaskRunStatusSchema,
+  started_at: z.string(),
+  completed_at: z.string().nullable(),
+  output: z.string().nullable(),
+  error: z.string().nullable(),
+  metrics: z.record(z.unknown()).nullable(),
+  triggered_by: z.string().nullable(),
+});
+export type AgentTaskRun = z.infer<typeof AgentTaskRunSchema>;
+
+// Agent Sessions
+export const AgentSessionSchema = z.object({
+  id: z.string().uuid(),
+  user_id: z.string(),
+  user_email: z.string(),
+  title: z.string().nullable(),
+  is_active: z.boolean(),
+  message_count: z.number(),
+  last_message_at: z.string().nullable(),
+  metadata: z.record(z.unknown()).nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type AgentSession = z.infer<typeof AgentSessionSchema>;
+
+// Agent Config
+export const AgentConfigSchema = z.object({
+  id: z.string().uuid(),
+  key: z.string(),
+  value: z.unknown(),
+  description: z.string().nullable(),
+  is_secret: z.boolean(),
+  updated_at: z.string(),
+  updated_by: z.string().nullable(),
+});
+export type AgentConfig = z.infer<typeof AgentConfigSchema>;
+
+// Agent Confirmations
+export const AgentConfirmationStatusSchema = z.enum(['pending', 'approved', 'rejected', 'expired']);
+export const AgentConfirmationSchema = z.object({
+  id: z.string().uuid(),
+  session_id: z.string().uuid(),
+  command_id: z.string().uuid().nullable(),
+  tool_name: z.string(),
+  tool_input: z.record(z.unknown()),
+  description: z.string(),
+  status: AgentConfirmationStatusSchema,
+  expires_at: z.string(),
+  responded_at: z.string().nullable(),
+  created_at: z.string(),
+});
+export type AgentConfirmation = z.infer<typeof AgentConfirmationSchema>;
+
+// ============================================
+// BOOKMARK SCHEMAS
+// ============================================
+
+// Bookmarks
+export const BookmarkSourceSchema = z.enum(['twitter', 'pocket', 'raindrop', 'manual', 'other']);
+export const BookmarkSchema = z.object({
+  id: z.string().uuid(),
+  source: BookmarkSourceSchema,
+  source_id: z.string().nullable(),
+  source_url: z.string().nullable(),
+  url: z.string(),
+  title: z.string().nullable(),
+  description: z.string().nullable(),
+  content: z.string().nullable(),
+  author: z.string().nullable(),
+  author_handle: z.string().nullable(),
+  author_avatar_url: z.string().nullable(),
+  tags: z.array(z.string()),
+  category: z.string().nullable(),
+  ai_summary: z.string().nullable(),
+  ai_tags: z.array(z.string()),
+  ai_category: z.string().nullable(),
+  ai_processed_at: z.string().nullable(),
+  is_read: z.boolean(),
+  is_archived: z.boolean(),
+  is_favorite: z.boolean(),
+  is_public: z.boolean(),
+  image_url: z.string().nullable(),
+  favicon_url: z.string().nullable(),
+  metadata: z.record(z.unknown()).nullable(),
+  published_at: z.string().nullable(),
+  imported_at: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type Bookmark = z.infer<typeof BookmarkSchema>;
+
+// Bookmark Collections
+export const BookmarkCollectionSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.string().nullable(),
+  cover_image: z.string().nullable(),
+  color: z.string(),
+  is_public: z.boolean(),
+  is_smart: z.boolean(),
+  smart_rules: z.record(z.unknown()).nullable(),
+  sort_order: z.number(),
+  item_count: z.number(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type BookmarkCollection = z.infer<typeof BookmarkCollectionSchema>;
+
+// Bookmark Collection Items
+export const BookmarkCollectionItemSchema = z.object({
+  bookmark_id: z.string().uuid(),
+  collection_id: z.string().uuid(),
+  sort_order: z.number(),
+  notes: z.string().nullable(),
+  added_at: z.string(),
+});
+export type BookmarkCollectionItem = z.infer<typeof BookmarkCollectionItemSchema>;
+
+// Bookmark Import Jobs
+export const BookmarkImportJobStatusSchema = z.enum(['pending', 'processing', 'completed', 'failed', 'partial']);
+export const BookmarkImportJobSchema = z.object({
+  id: z.string().uuid(),
+  source: z.string(),
+  status: BookmarkImportJobStatusSchema,
+  file_path: z.string().nullable(),
+  total_items: z.number(),
+  processed_items: z.number(),
+  imported_items: z.number(),
+  skipped_items: z.number(),
+  error_log: z.string().nullable(),
+  started_at: z.string().nullable(),
+  completed_at: z.string().nullable(),
+  created_at: z.string(),
+});
+export type BookmarkImportJob = z.infer<typeof BookmarkImportJobSchema>;
+
+// Bookmark Categories
+export const BookmarkCategorySchema = z.object({
+  id: z.string().uuid(),
+  slug: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  color: z.string(),
+  icon: z.string().nullable(),
+  sort_order: z.number(),
+  created_at: z.string(),
+});
+export type BookmarkCategory = z.infer<typeof BookmarkCategorySchema>;
