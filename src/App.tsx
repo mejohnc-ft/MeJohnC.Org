@@ -61,6 +61,17 @@ const TaskEditPage = lazy(() => import('./pages/admin/TaskEditPage'));
 const SiteBuilderIndex = lazy(() => import('./pages/admin/site-builder/index'));
 const SiteBuilderEditor = lazy(() => import('./pages/admin/site-builder/editor'));
 
+// Marketing admin pages
+const AdminMarketing = lazy(() => import('./pages/admin/Marketing'));
+const AdminMarketingSubscribers = lazy(() => import('./pages/admin/MarketingSubscribers'));
+const AdminMarketingCampaigns = lazy(() => import('./pages/admin/MarketingCampaigns'));
+const AdminMarketingTemplates = lazy(() => import('./pages/admin/MarketingTemplates'));
+const AdminMarketingNPS = lazy(() => import('./pages/admin/MarketingNPS'));
+const SubscriberDetail = lazy(() => import('./pages/admin/SubscriberDetail'));
+const CampaignEditor = lazy(() => import('./pages/admin/CampaignEditor'));
+const TemplateEditor = lazy(() => import('./pages/admin/TemplateEditor'));
+const NPSSurveyDetail = lazy(() => import('./pages/admin/NPSSurveyDetail'));
+
 // Public bookmarks page
 const PublicBookmarks = lazy(() => import('./pages/Bookmarks'));
 
@@ -307,6 +318,17 @@ function AdminRoutes() {
           <Route path="/admin/metrics" element={<AdminMetrics />} />
           {/* Style Guide route */}
           <Route path="/admin/style-guide" element={<AdminStyleGuide />} />
+          {/* Marketing routes */}
+          <Route path="/admin/marketing" element={<AdminMarketing />} />
+          <Route path="/admin/marketing/subscribers" element={<AdminMarketingSubscribers />} />
+          <Route path="/admin/marketing/subscribers/:id" element={<SubscriberDetail />} />
+          <Route path="/admin/marketing/campaigns" element={<AdminMarketingCampaigns />} />
+          <Route path="/admin/marketing/campaigns/:id" element={<CampaignEditor />} />
+          <Route path="/admin/marketing/templates" element={<AdminMarketingTemplates />} />
+          <Route path="/admin/marketing/templates/:id" element={<TemplateEditor />} />
+          <Route path="/admin/marketing/templates/:id/preview" element={<TemplateEditor />} />
+          <Route path="/admin/marketing/nps" element={<AdminMarketingNPS />} />
+          <Route path="/admin/marketing/nps/:id" element={<NPSSurveyDetail />} />
           {/* Tasks routes */}
           <Route path="/admin/tasks" element={<TasksPage />} />
           <Route path="/admin/tasks/kanban" element={<TasksKanbanPage />} />

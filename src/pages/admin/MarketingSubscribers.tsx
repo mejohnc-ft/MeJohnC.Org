@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Plus, Search, Mail, UserCheck, UserX, Download, Upload } from 'lucide-react';
@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import AdminLayout from '@/components/AdminLayout';
 import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
-import { getEmailSubscribers, type SubscriberQueryOptions } from '@/lib/marketing-queries';
+import { getEmailSubscribers, bulkImportSubscribers, type SubscriberQueryOptions } from '@/lib/marketing-queries';
 import type { EmailSubscriber } from '@/lib/schemas';
 
 const MarketingSubscribers = () => {
@@ -18,6 +18,8 @@ const MarketingSubscribers = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<EmailSubscriber['status'] | 'all'>('all');
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function fetchSubscribers() {
@@ -74,6 +76,118 @@ const MarketingSubscribers = () => {
     return ((subscriber.total_emails_opened / subscriber.total_emails_sent) * 100).toFixed(1);
   };
 
+  const handleExport = () => {
+    // Generate CSV content
+    const headers = ['email', 'first_name', 'last_name', 'status', 'lists', 'tags', 'subscribed_at'];
+    const csvRows = [headers.join(',')];
+
+    subscribers.forEach((sub) => {
+      const row = [
+        `"${sub.email}"`,
+        `"${sub.first_name || ''}"`,
+        `"${sub.last_name || ''}"`,
+        sub.status,
+        `"${sub.lists.join(';')}"`,
+        `"${sub.tags.join(';')}"`,
+        sub.subscribed_at,
+      ];
+      csvRows.push(row.join(','));
+    });
+
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `subscribers-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !supabase) return;
+
+    setIsImporting(true);
+    try {
+      const text = await file.text();
+      const lines = text.split('\n').filter((line) => line.trim());
+      const headers = lines[0].split(',').map((h) => h.trim().replace(/"/g, ''));
+
+      const emailIndex = headers.findIndex((h) => h.toLowerCase() === 'email');
+      const firstNameIndex = headers.findIndex((h) => h.toLowerCase().includes('first'));
+      const lastNameIndex = headers.findIndex((h) => h.toLowerCase().includes('last'));
+
+      if (emailIndex === -1) {
+        alert('CSV must have an "email" column');
+        return;
+      }
+
+      const subscribersToImport = lines.slice(1).map((line) => {
+        // Parse CSV line (handling quoted values)
+        const values: string[] = [];
+        let current = '';
+        let inQuotes = false;
+        for (const char of line) {
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            values.push(current.trim());
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        values.push(current.trim());
+
+        return {
+          email: values[emailIndex]?.replace(/"/g, '') || '',
+          first_name: firstNameIndex >= 0 ? values[firstNameIndex]?.replace(/"/g, '') || null : null,
+          last_name: lastNameIndex >= 0 ? values[lastNameIndex]?.replace(/"/g, '') || null : null,
+          status: 'active' as const,
+          lists: [] as string[],
+          tags: [] as string[],
+          source: 'import',
+          source_detail: file.name,
+          ip_address: null,
+          user_agent: null,
+          referrer: null,
+          custom_fields: null,
+          metadata: null,
+          subscribed_at: new Date().toISOString(),
+          unsubscribed_at: null,
+          last_email_sent_at: null,
+          last_email_opened_at: null,
+          last_email_clicked_at: null,
+        };
+      }).filter((sub) => sub.email && sub.email.includes('@'));
+
+      if (subscribersToImport.length === 0) {
+        alert('No valid email addresses found in CSV');
+        return;
+      }
+
+      await bulkImportSubscribers(subscribersToImport, supabase);
+      alert(`Successfully imported ${subscribersToImport.length} subscribers`);
+
+      // Refresh the list
+      const data = await getEmailSubscribers({}, supabase);
+      setSubscribers(data);
+    } catch (error) {
+      captureException(error instanceof Error ? error : new Error(String(error)), {
+        context: 'MarketingSubscribers.handleImport',
+      });
+      alert('Failed to import subscribers. Please check the CSV format.');
+    } finally {
+      setIsImporting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -86,11 +200,23 @@ const MarketingSubscribers = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm">
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept=".csv"
+              onChange={handleImport}
+              className="hidden"
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isImporting}
+            >
               <Upload className="w-4 h-4 mr-2" />
-              Import
+              {isImporting ? 'Importing...' : 'Import'}
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleExport} disabled={subscribers.length === 0}>
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>

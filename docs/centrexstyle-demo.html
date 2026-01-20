@@ -1,0 +1,4071 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CentrexStyle - Presentation Design System</title>
+    <meta name="description" content="Reusable presentation components and full-screen immersive demo system">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* ═══════════════════════════════════════════════════════════════════
+           CENTREXSTYLE DESIGN SYSTEM
+           A reusable presentation framework for full-screen immersive demos
+           ═══════════════════════════════════════════════════════════════════ */
+
+        /* ═══════════════════════════════════════════════════════════════════
+           CENTREX DESIGN SYSTEM - Official Brand Tokens
+           Source: https://centrexit.com/styleguide/
+           ═══════════════════════════════════════════════════════════════════ */
+        :root {
+            /* Brand Colors - Primary Palette (Official Styleguide) */
+            --centrex-primary: #3dae2b;
+            /* PMS 361 C */
+            --centrex-secondary: #0071ce;
+            /* PMS 285 C */
+            --centrex-tertiary: #ff8300;
+            /* PMS 151 C */
+            --centrex-accent: #e1251b;
+            /* PMS 1795 C */
+
+            /* RGB Values for Alpha Compositing */
+            --centrex-primary-rgb: 61, 174, 43;
+            --centrex-secondary-rgb: 0, 113, 206;
+            --centrex-tertiary-rgb: 255, 131, 0;
+            --centrex-accent-rgb: 225, 37, 27;
+
+            /* Legacy aliases for backwards compatibility */
+            --brand-green: var(--centrex-primary);
+            --brand-blue: var(--centrex-secondary);
+            --brand-orange: var(--centrex-tertiary);
+            --brand-red: var(--centrex-accent);
+
+            /* Typography - Official Fonts */
+            --font-heading: 'GilmerBold', 'Segoe UI', system-ui, sans-serif;
+            --font-body: 'Hind', 'Segoe UI', system-ui, sans-serif;
+
+            /* Font Sizes */
+            --size-normal: 16px;
+            --size-medium: 20px;
+            --size-large: 36px;
+            --size-xlarge: 42px;
+
+            /* Shadows - Official Design Tokens */
+            --shadow-natural: 6px 6px 9px rgba(0, 0, 0, 0.2);
+            --shadow-deep: 12px 12px 50px rgba(0, 0, 0, 0.4);
+            --shadow-crisp: 6px 6px 0px rgba(0, 0, 0, 1);
+
+            /* Spacing Scale */
+            --space-40: 1rem;
+            --space-50: 1.5rem;
+            --space-60: 2.25rem;
+
+            /* UI Backgrounds */
+            --bg-body: #050505;
+            --bg-nav: rgba(5, 5, 5, 0.85);
+            --bg-card: #121212;
+            --bg-panel: #1a1a1a;
+            --bg-input: #262626;
+            --text-primary: #e5e5e5;
+            --text-secondary: #a3a3a3;
+            --text-muted: #525252;
+            --border: #262626;
+
+            /* Computed Theme Values */
+            --primary: var(--centrex-primary);
+            --primary-glow: rgba(var(--centrex-primary-rgb), 0.3);
+            --primary-dim: rgba(var(--centrex-primary-rgb), 0.1);
+
+            --gradient-1: linear-gradient(135deg, var(--centrex-primary) 0%, #3cae49 100%);
+            --card-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.9);
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f8fafc;
+            --bg-nav: rgba(255, 255, 255, 0.9);
+            --bg-card: #ffffff;
+            --bg-panel: #f1f5f9;
+            --bg-input: #e2e8f0;
+            --text-primary: #171717;
+            --text-secondary: #525252;
+            --border: #e5e5e5;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg-body);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+        }
+
+        /* NAVIGATION */
+        nav {
+            height: 60px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 2rem;
+            background: var(--bg-nav);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            justify-content: space-between;
+        }
+
+        .brand {
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            font-size: 1.1rem;
+        }
+
+        .brand-logo {
+            height: 32px;
+            width: auto;
+        }
+
+        .brand span {
+            color: var(--text-secondary);
+            font-weight: 400;
+            font-size: 0.9em;
+        }
+
+        .nav-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .theme-toggle,
+        .pres-toggle {
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .theme-toggle:hover,
+        .pres-toggle:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .pres-toggle.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* TAB NAVIGATION (Centered) */
+        .nav-tabs {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+        }
+
+
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.5rem 1.5rem;
+            cursor: pointer;
+            border-radius: 50px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background: var(--bg-panel);
+        }
+
+        .tab-btn.active {
+            color: white;
+            background: var(--primary);
+            box-shadow: 0 4px 12px rgba(61, 174, 43, 0.3);
+        }
+
+        /* PAGE CONTAINERS */
+        .page-view {
+            display: none;
+            opacity: 0;
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        .page-view.active {
+            display: block;
+        }
+
+        /* Presentation mode ignores tabs and shows slides directly */
+        body.pres-mode .nav-tabs {
+            display: none !important;
+        }
+
+        body.pres-mode .page-view {
+            display: block !important;
+            /* All page-views visible in pres mode so slides can be shown */
+        }
+
+        /* Prevent command grid from wrapping in presentation mode - keep all items on one row centered */
+        body.pres-mode .hero .command-grid {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            justify-content: center !important;
+            gap: 1rem;
+            max-width: 100%;
+        }
+
+        body.pres-mode .hero .command-grid .cmd-card {
+            flex: 0 0 auto;
+            min-width: 160px;
+            max-width: 200px;
+        }
+
+        .hero {
+            padding: 8rem 2rem 4rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 20%, rgba(61, 174, 43, 0.15) 0%, transparent 50%);
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #fff, #aaa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto 3rem;
+            line-height: 1.6;
+            font-size: 1.1rem;
+        }
+
+        /* COMMAND GRID */
+        .command-grid {
+            display: flex;
+            flex-wrap: nowrap;
+            justify-content: center;
+            gap: 1rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .command-grid .cmd-card {
+            flex: 0 1 200px;
+            min-width: 160px;
+        }
+
+        .cmd-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: transform 0.2s, border-color 0.2s;
+            cursor: pointer;
+        }
+
+        .cmd-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+        }
+
+        .cmd-code {
+            font-family: 'Consolas', monospace;
+            color: var(--primary);
+            background: var(--primary-dim);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+        }
+
+        .cmd-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* SECTIONS */
+        section {
+            padding: 4rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sec-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .sec-title h2 {
+            font-size: 1.8rem;
+        }
+
+        .sec-tag {
+            background: var(--bg-input);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .sec-desc {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        /* SHOWCASE STAGE */
+        .showcase-stage {
+            background: #0a0a0a;
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            min-height: 300px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        /* SNIPPET BOX */
+        .snippet-box {
+            margin-top: 1.5rem;
+            background: #111;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+
+        .snippet-header {
+            padding: 10px 16px;
+            background: #1a1a1a;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .snippet-code {
+            padding: 16px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+            color: #d4d4d4;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .copy-btn:hover {
+            text-decoration: underline;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           COMPONENT: COLOR PALETTE
+           ═══════════════════════════════════════════════════════════════════ */
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        .color-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+
+        .color-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+        }
+
+        .color-swatch {
+            height: 120px;
+            width: 100%;
+            position: relative;
+        }
+
+        .color-info {
+            padding: 1.25rem;
+        }
+
+        .color-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .color-values {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-family: 'Consolas', monospace;
+            margin-bottom: 0.75rem;
+        }
+
+        .color-value {
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: background 0.2s;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .color-value:hover {
+            background: var(--bg-input);
+            color: var(--primary);
+        }
+
+        .color-usage {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border);
+            padding-top: 0.75rem;
+            line-height: 1.4;
+        }
+
+        /* PRESENTATION MODE SLIDE VISIBILITY */
+        /* (page-view display is set above to 'block' for pres-mode) */
+
+        body.pres-mode [data-slide] {
+            display: none !important;
+            /* Hide all slides by default in pres mode */
+        }
+
+        body.pres-mode [data-slide].active-slide {
+            display: flex !important;
+            /* Show only active slide */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            min-height: 100vh;
+            padding: 80px 2rem 2rem 2rem;
+            /* Header clearance + horizontal padding */
+            margin: 0 auto;
+            animation: fadeIn 0.4s ease forwards;
+            box-sizing: border-box;
+            overflow: auto;
+            text-align: center;
+        }
+
+        /* Center content inside slides in presentation mode */
+        body.pres-mode [data-slide].active-slide>* {
+            max-width: 1000px;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Card content should be left-aligned in presentation mode */
+        body.pres-mode .cmd-card,
+        body.pres-mode .palette-group {
+            text-align: left;
+        }
+
+        /* Hide non-slide content in presentation mode */
+        body.pres-mode .page-view>div:not([data-slide]),
+        body.pres-mode .page-view>section:not([data-slide]) {
+            display: none !important;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           COMPONENT: COMMAND PALETTE
+           ═══════════════════════════════════════════════════════════════════ */
+        .command-palette-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            width: 100%;
+            max-width: 900px;
+            box-sizing: border-box;
+        }
+
+        .palette-group {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .palette-group-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .palette-group-title i {
+            color: var(--primary);
+        }
+
+        .palette-commands {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .palette-cmd {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .palette-cmd:hover {
+            border-color: var(--primary);
+            background: var(--bg-input);
+            transform: translateX(4px);
+        }
+
+        .palette-cmd code {
+            color: var(--primary);
+            font-family: 'Consolas', monospace;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .palette-cmd span {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           COMPONENT: STAT CARDS
+           ═══════════════════════════════════════════════════════════════════ */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        .hero-stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+
+        .hero-stat-card.green::before {
+            background: linear-gradient(90deg, var(--brand-green), #4ade80);
+        }
+
+        .hero-stat-card.blue::before {
+            background: linear-gradient(90deg, var(--brand-blue), #3b82f6);
+        }
+
+        .hero-stat-card.orange::before {
+            background: linear-gradient(90deg, var(--brand-orange), #fb923c);
+        }
+
+        .hero-stat-card.red::before {
+            background: linear-gradient(90deg, var(--brand-red), #f87171);
+        }
+
+        .hero-stat-value {
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-stat-value.green {
+            background: linear-gradient(135deg, var(--brand-green), #4ade80);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-stat-value.blue {
+            background: linear-gradient(135deg, var(--brand-blue), #3b82f6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-stat-value.orange {
+            background: linear-gradient(135deg, var(--brand-orange), #fb923c);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-stat-value.red {
+            background: linear-gradient(135deg, var(--brand-red), #f87171);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           COMPONENT: PHYSICS ORBS → INLINE CARDS
+           ═══════════════════════════════════════════════════════════════════ */
+        #orb-stage {
+            width: 100%;
+            height: 400px;
+            background: #000;
+            border-radius: 12px;
+            position: relative;
+            overflow: visible;
+            border: 1px solid var(--border);
+        }
+
+        .orb {
+            cursor: pointer;
+            transition: transform 0.2s;
+            filter: drop-shadow(0 0 8px rgba(61, 174, 43, 0.4));
+        }
+
+        .orb:hover {
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 12px rgba(61, 174, 43, 0.6));
+        }
+
+        /* Inline Expanded Card - replaces the orb in place */
+        .inline-card {
+            position: absolute;
+            width: 280px;
+            background: var(--bg-card);
+            border: 2px solid var(--primary);
+            border-radius: 16px;
+            padding: 1.25rem;
+            box-shadow: 0 0 40px rgba(61, 174, 43, 0.3), 0 20px 50px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            transform-origin: center center;
+            opacity: 0;
+            transform: scale(0);
+            pointer-events: none;
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
+        }
+
+        .inline-card.expanded {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: all;
+        }
+
+        .inline-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .inline-card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .inline-card-close {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--bg-panel);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .inline-card-close:hover {
+            background: var(--brand-red);
+            border-color: var(--brand-red);
+            color: white;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: var(--text-secondary);
+        }
+
+        .detail-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .detail-value.highlight {
+            color: var(--primary);
+        }
+
+        /* Expanded Card Overlay - keeping for reference but hidden */
+        .expanded-card-overlay {
+            display: none !important;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           COMPONENT: 3D CAROUSEL
+           ═══════════════════════════════════════════════════════════════════ */
+        .carousel-container {
+            width: 100%;
+            height: 400px;
+            position: relative;
+            perspective: 1500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card-stage {
+            position: relative;
+            width: 320px;
+            height: 400px;
+            transform-style: preserve-3d;
+        }
+
+        .flywheel-card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            color: var(--text-primary);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .card-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: var(--primary-dim);
+            color: var(--primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        .card-body p {
+            line-height: 1.6;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: var(--bg-panel);
+            padding: 14px;
+            border-radius: 10px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .stat-box .stat-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-box .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .card-footer {
+            margin-top: auto;
+            border-top: 1px solid var(--border);
+            padding-top: 14px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .carousel-controls {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-top: 20px;
+            background: var(--bg-panel);
+            padding: 10px 24px;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+        }
+
+        .ctrl-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .ctrl-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+            transform: scale(1.1);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           COMPONENT: D3 VISUALIZATION
+           ═══════════════════════════════════════════════════════════════════ */
+        #d3-viz {
+            width: 100%;
+            height: 500px;
+            background: var(--bg-panel);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           PRESENTATION MODE - GLOBAL STYLES
+           ═══════════════════════════════════════════════════════════════════ */
+        body.pres-mode {
+            overflow: hidden;
+        }
+
+        body.pres-mode nav {
+            display: none !important;
+        }
+
+        body.pres-mode .hero,
+        body.pres-mode section {
+            height: 100vh;
+            width: 100%;
+            max-width: none;
+            margin: 0;
+            padding: 0;
+            display: none;
+            /* Hide all slides by default */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: var(--bg-body);
+            z-index: 10;
+            border-bottom: none;
+        }
+
+        body.pres-mode .active-slide {
+            display: flex !important;
+            /* Only show active slide */
+            opacity: 1;
+            pointer-events: all;
+            z-index: 100;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes fadeInOut {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+
+            15% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+
+            85% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-10px);
+            }
+        }
+
+        /* Hide description and snippet in pres mode but SHOW title */
+        body.pres-mode .sec-desc,
+        body.pres-mode .snippet-box {
+            display: none !important;
+        }
+
+        /* Style slide title prominently in pres mode */
+        body.pres-mode .sec-title {
+            display: flex !important;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        body.pres-mode .sec-title h2 {
+            font-size: min(3rem, 6vh);
+            background: linear-gradient(135deg, var(--text-primary), var(--primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        body.pres-mode .sec-tag {
+            font-size: 0.9rem;
+            background: var(--primary-dim);
+            border: 1px solid var(--primary);
+        }
+
+        /* Content spreads out in presentation mode */
+        body.pres-mode .showcase-stage {
+            background: transparent;
+            border: none;
+            width: 95vw;
+            max-width: none;
+            height: auto;
+            min-height: 60vh;
+            padding: 0 4rem;
+        }
+
+        body.pres-mode .stat-grid {
+            gap: min(3rem, 5vw);
+            width: 100%;
+            max-width: 1600px;
+        }
+
+        body.pres-mode .hero-stat-card {
+            padding: min(3rem, 5vh);
+        }
+
+        body.pres-mode .hero-stat-value {
+            font-size: min(5rem, 10vh);
+        }
+
+        body.pres-mode .hero-stat-label {
+            font-size: min(1.2rem, 2.5vh);
+        }
+
+        /* Orb stage and D3 viz expand in pres mode */
+        body.pres-mode #orb-stage,
+        body.pres-mode #d3-viz {
+            width: 90vw;
+            height: 70vh;
+            max-width: none;
+            border-radius: 0;
+            background: transparent;
+        }
+
+        /* Carousel spreads out */
+        body.pres-mode .carousel-container {
+            width: 100%;
+            height: 70vh;
+        }
+
+        body.pres-mode .carousel-controls {
+            position: absolute;
+            bottom: 2rem;
+        }
+
+        /* PRESENTATION CONTROLS */
+        .pres-controls {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 2000;
+            display: none;
+            gap: 10px;
+            background: var(--bg-nav);
+            padding: 10px 16px;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        body.pres-mode .pres-controls {
+            display: flex;
+        }
+
+        .pres-controls .ctrl-btn {
+            width: 40px;
+            height: 40px;
+        }
+
+        .slide-indicator {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 0 12px;
+            font-size: 0.9rem;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 900px) {
+            .stat-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .color-palette {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            body.pres-mode .hero-stat-value {
+                font-size: 2.5rem;
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           STYLE GUIDE SECTIONS - Component Styles
+           ═══════════════════════════════════════════════════════════════════ */
+
+        /* COLOR PALETTE */
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        .color-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .color-swatch {
+            height: 80px;
+            width: 100%;
+        }
+
+        .color-info {
+            padding: 0.75rem;
+        }
+
+        .color-name {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.4rem;
+        }
+
+        .color-values {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .color-value {
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .color-value:hover {
+            background: var(--bg-panel);
+        }
+
+        .color-usage {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        /* TYPOGRAPHY SHOWCASE */
+        .typography-showcase {
+            width: 100%;
+        }
+
+        .type-section {
+            margin-bottom: 2rem;
+        }
+
+        .type-label {
+            color: var(--primary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .type-specimen {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .type-specimen.heading-font {
+            font-family: var(--font-heading);
+            font-weight: 700;
+        }
+
+        .type-specimen.body-font {
+            font-family: var(--font-body);
+        }
+
+        .type-stack {
+            background: var(--bg-panel);
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* LOGO GRID */
+        .logo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        .logo-card {
+            padding: 2rem;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 180px;
+            border: 1px solid var(--border);
+        }
+
+        .logo-card.dark-bg {
+            background: #1a1a1a;
+        }
+
+        .logo-card.light-bg {
+            background: #f5f5f5;
+        }
+
+        .logo-card img {
+            max-width: 160px;
+            max-height: 60px;
+            margin-bottom: 1rem;
+        }
+
+        .logo-label {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .logo-card.light-bg .logo-label {
+            color: #666;
+        }
+
+        /* ICON GRID */
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        .icon-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .icon-preview {
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-preview img {
+            width: 60px;
+            height: 60px;
+            filter: brightness(0) invert(1);
+        }
+
+        .icon-label {
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .icon-label strong {
+            font-size: 1rem;
+        }
+
+        .icon-label span {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .icon-label code {
+            font-size: 0.75rem;
+            background: var(--bg-panel);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--primary);
+            margin-top: 0.25rem;
+        }
+
+        /* DESIGN TOKENS */
+        .tokens-showcase {
+            width: 100%;
+        }
+
+        .token-group {
+            margin-bottom: 2rem;
+        }
+
+        .token-label {
+            color: var(--primary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .shadow-examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .shadow-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .shadow-card strong {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .shadow-card code {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .spacing-examples {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .spacing-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .spacing-bar {
+            height: 24px;
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        .spacing-item span {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .radius-examples {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .radius-card {
+            width: 80px;
+            height: 80px;
+            background: var(--bg-card);
+            border: 2px solid var(--primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        .radius-card small {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        /* AI INSTRUCTIONS BOX */
+        .ai-instructions {
+            margin-top: 1.5rem;
+            background: linear-gradient(135deg, rgba(61, 174, 43, 0.1) 0%, rgba(0, 113, 206, 0.1) 100%);
+            border: 1px solid var(--primary);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .ai-instructions-header {
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .ai-instructions-body {
+            padding: 1rem;
+        }
+
+        .ai-instructions-body p {
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .ai-instructions-body pre {
+            background: var(--bg-panel);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-top: 0.75rem;
+        }
+
+        .ai-instructions-body code {
+            font-family: 'Consolas', monospace;
+            font-size: 0.8rem;
+            color: var(--primary);
+        }
+
+        /* DATA VISUALIZATION & ANALYTICS */
+        .chart-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            background: var(--bg-panel);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .chart-group-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            width: 100%;
+            letter-spacing: 1px;
+        }
+
+        .chart-btn-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-grid {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .chart-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chart-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-dim);
+        }
+
+        .chart-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .chart-container-wrapper {
+            width: 100%;
+            height: 500px;
+            position: relative;
+            background: var(--bg-panel);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        body.pres-mode .chart-container-wrapper {
+            height: 65vh;
+            background: transparent;
+            border: none;
+        }
+
+        .chart-tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 100;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* D3 Chart Specifics */
+        .axis path,
+        .axis line {
+            stroke: var(--text-muted);
+            opacity: 0.3;
+        }
+
+        .axis text {
+            fill: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .grid-line {
+            stroke: var(--text-muted);
+            stroke-opacity: 0.1;
+        }
+
+        /* COMMAND PALETTE */
+        .command-palette-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        .palette-group {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+        }
+
+        .palette-group-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .palette-commands {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .palette-cmd {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.6rem 0.8rem;
+            background: var(--bg-panel);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .palette-cmd:hover {
+            background: var(--primary-dim);
+            border-color: var(--primary);
+            transform: translateX(4px);
+        }
+
+        .palette-cmd code {
+            font-family: 'Consolas', monospace;
+            font-size: 0.9rem;
+            color: var(--primary);
+            background: rgba(61, 174, 43, 0.15);
+            padding: 2px 8px;
+            border-radius: 4px;
+            min-width: 110px;
+        }
+
+        .palette-cmd span {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Responsive presentation mode for command palette */
+        body.pres-mode .command-palette-grid {
+            max-width: 1400px;
+        }
+
+        body.pres-mode .palette-cmd {
+            padding: 0.8rem 1rem;
+        }
+
+        body.pres-mode .palette-cmd code {
+            font-size: 1rem;
+        }
+    </style>
+
+</head>
+
+<body>
+    <!-- NAVIGATION -->
+    <nav>
+        <div class="brand">
+            <svg class="brand-logo" viewBox="0 0 685.21 128.16" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <style>
+                        .cls-1,
+                        .cls-7 {
+                            fill: #fff;
+                        }
+
+                        .cls-1,
+                        .cls-2,
+                        .cls-4,
+                        .cls-5,
+                        .cls-6 {
+                            fill-rule: evenodd;
+                        }
+
+                        .cls-2,
+                        .cls-3 {
+                            fill: #3cae49;
+                        }
+
+                        .cls-4 {
+                            fill: #0071b9;
+                        }
+
+                        .cls-5 {
+                            fill: #f58220;
+                        }
+
+                        .cls-6 {
+                            fill: #e02826;
+                        }
+                    </style>
+                </defs>
+                <path class="cls-1"
+                    d="M210.13,112.22c-3.49,1.68-10.08,3-17.57,3-20.42,0-33.47-12.52-33.47-32.4,0-18.46,12.66-33.56,36.18-33.56a45.6,45.6,0,0,1,15,2.45l-3.1,14.59a26.79,26.79,0,0,0-11-1.94c-10.35,0-17.06,7.36-16.93,17.68,0,11.62,7.75,17.82,17.31,17.82a27.74,27.74,0,0,0,11.24-2.07l2.33,14.46"
+                    transform="translate(-30.89 -12.51)" />
+                <path class="cls-1"
+                    d="M279,68.65,238.72,94.47a15.31,15.31,0,0,0,10.72,4.22,25,25,0,0,0,10.48-2.49,32.26,32.26,0,0,0,7.35-4.6l9.79,14.21a46.24,46.24,0,0,1-12.8,7,43.77,43.77,0,0,1-15.33,2.77,32.6,32.6,0,0,1-23.71-9.67,31.5,31.5,0,0,1-9.83-23.28,32.35,32.35,0,0,1,9.53-23.22q9.54-9.86,22.57-9.86a35.36,35.36,0,0,1,20.27,6.12,30.35,30.35,0,0,1,11.22,13Zm-22.57-.73c-1.12-1.73-3.85-2.59-8.17-2.59a13.37,13.37,0,0,0-10.45,4.94,17.44,17.44,0,0,0-4.33,11.93l0,1,22.93-15.24Z"
+                    transform="translate(-30.89 -12.51)" />
+                <path class="cls-1"
+                    d="M288.86,70.78c0-7.87-.26-14.45-.51-20.13h17l.91,8.78h.39a22.68,22.68,0,0,1,19.5-10.2c12.93,0,22.62,8.65,22.62,27.23v37.31H329.18v-35c0-8.13-2.84-13.68-9.95-13.68-5.43,0-8.66,3.74-10.08,7.35a14.13,14.13,0,0,0-.64,4.91v36.4H288.86v-43"
+                    transform="translate(-30.89 -12.51)" />
+                <path class="cls-1"
+                    d="M385.78,28.41V50.65h14.08V65.11H385.78v23c0,7.61,1.93,11.09,7.75,11.09a23.89,23.89,0,0,0,5.81-.52l.14,14.85a41.25,41.25,0,0,1-12.68,1.68c-6.32,0-11.62-2.19-14.85-5.43-3.62-3.74-5.43-9.8-5.43-18.71V65.11h-8.39V50.65h8.39V38.77l19.26-10.36"
+                    transform="translate(-30.89 -12.51)" />
+                <path class="cls-1"
+                    d="M411.36,71.43c0-9.29-.13-15.36-.52-20.78h16.8l.78,11.75h.52c3.22-9.3,10.85-13.17,17.05-13.17a20.28,20.28,0,0,1,4.14.38V68.07a33.25,33.25,0,0,0-5.43-.52c-7.24,0-12.15,3.76-13.44,10a22,22,0,0,0-.39,4.39v31.88H411.23l.13-42.34"
+                    transform="translate(-30.89 -12.51)" />
+                <path class="cls-1"
+                    d="M518.33,68.65,478.07,94.47a15.35,15.35,0,0,0,10.73,4.22,25,25,0,0,0,10.47-2.49,31.83,31.83,0,0,0,7.35-4.6l9.79,14.21a46.24,46.24,0,0,1-12.8,7,43.77,43.77,0,0,1-15.33,2.77,32.59,32.59,0,0,1-23.71-9.67,31.52,31.52,0,0,1-9.82-23.28,32.34,32.34,0,0,1,9.52-23.22q9.53-9.86,22.56-9.86a35.39,35.39,0,0,1,20.28,6.12,30.35,30.35,0,0,1,11.22,13Zm-22.57-.73c-1.12-1.73-3.85-2.59-8.17-2.59a13.41,13.41,0,0,0-10.46,4.94,17.48,17.48,0,0,0-4.32,11.93l0,1,22.93-15.24Z"
+                    transform="translate(-30.89 -12.51)" />
+                <path class="cls-1"
+                    d="M543.2,50.65l6.21,10.58c1.8,3.23,3.48,6.32,5.16,9.43h.26c1.68-3.49,3.23-6.59,4.92-9.82l5.55-10.19h21.31l-20.8,30.08,21.07,33H564.65l-6.33-11.36a93.78,93.78,0,0,1-4.91-9.56H553c-1.55,3.37-3.22,6.46-4.78,9.56l-5.94,11.36H520.72l21.45-32.14-20.93-31h22"
+                    transform="translate(-30.89 -12.51)" />
+                <path class="cls-2" d="M597.13,27.57H616.6v86.19H597.13V27.57Z" transform="translate(-30.89 -12.51)" />
+                <polyline class="cls-2"
+                    points="335.35 0 345.06 5.6 354.76 11.21 345.04 16.8 335.33 22.39 335.35 11.19 335.35 0" />
+                <polygon class="cls-3"
+                    points="662.87 14.6 595.66 14.6 595.66 31.61 618.97 31.61 618.97 101.25 637.77 101.25 637.77 31.61 662.87 31.61 662.87 14.6" />
+                <polyline class="cls-2" points="61.43 62.75 43.55 45.42 61.43 28.09 79.31 45.42 61.43 62.75" />
+                <polyline class="cls-4" points="61.43 109.23 43.55 91.9 61.55 74.69 79.31 91.9 61.43 109.23" />
+                <polyline class="cls-5" points="85.27 86 67.39 68.67 85.39 51.46 103.14 68.67 85.27 86" />
+                <polyline class="cls-6" points="37.4 86.06 19.52 68.73 37.4 51.4 55.28 68.73 37.4 86.06" />
+                <path class="cls-1"
+                    d="M92.23,140.67a12.65,12.65,0,0,1-8.85-3.55L34.56,89.8a12,12,0,0,1,0-17.25L83.38,25.22a12.81,12.81,0,0,1,17.7,0l21.19,20.52-8.06,7.81L92.35,32.13l-50.58,49,50.46,48.92,50.45-48.92-22-21.28,8-7.81,21.13,20.47a12,12,0,0,1,0,17.25l-48.81,47.32A12.67,12.67,0,0,1,92.23,140.67Z"
+                    transform="translate(-30.89 -12.51)" />
+            </svg>
+            CentrexStyle <span>Design System</span>
+        </div>
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('page-home')" id="tab-home">Home</button>
+            <button class="tab-btn" onclick="switchTab('page-styleguide')" id="tab-styleguide">Style Guide</button>
+            <button class="tab-btn" onclick="switchTab('page-dataviz')" id="tab-dataviz">Data Visualization</button>
+        </div>
+        <div class="nav-controls">
+            <button class="pres-toggle" id="headerPresBtn" onclick="togglePresMode()" title="Presentation Mode">
+                <i class="fas fa-play"></i>
+            </button>
+            <button class="theme-toggle" id="themeToggle" title="Toggle Theme">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- PRESENTATION CONTROLS (visible in pres mode) -->
+    <div class="pres-controls">
+        <button class="ctrl-btn" onclick="changeSlide(-1)" title="Previous"><i class="fas fa-chevron-left"></i></button>
+        <span class="slide-indicator" id="slideIndicator">1 / 5</span>
+        <button class="ctrl-btn" onclick="changeSlide(1)" title="Next"><i class="fas fa-chevron-right"></i></button>
+        <button class="ctrl-btn" onclick="togglePresMode()" title="Exit"
+            style="border-color: var(--brand-red); color: var(--brand-red);"><i class="fas fa-times"></i></button>
+    </div>
+
+
+
+    <!-- PAGE: HOME -->
+    <div id="page-home" class="page-view active">
+        <!-- HERO SECTION -->
+        <div class="hero" data-slide="0">
+            <h1>CentrexStyle Design System</h1>
+            <p class="subtitle">
+                Complete brand standards reference and presentation implementation layer.<br>
+                <strong>For AI Agents:</strong> Use this as your authoritative source for creating on-brand
+                presentations.
+            </p>
+
+            <h3 style="color: var(--text-secondary); margin-bottom: 1rem; font-weight: 400;">Brand Standards</h3>
+            <div class="command-grid" style="margin-bottom: 2rem;">
+                <div class="cmd-card"
+                    onclick="switchTab('page-styleguide'); setTimeout(() => scrollToSection('colors'), 100)">
+                    <div class="cmd-code">/colors</div>
+                    <div class="cmd-desc">Brand color palette with hex, RGB, CMYK, PMS</div>
+                </div>
+                <div class="cmd-card"
+                    onclick="switchTab('page-styleguide'); setTimeout(() => scrollToSection('typography'), 100)">
+                    <div class="cmd-code">/typography</div>
+                    <div class="cmd-desc">Font families, sizes, and usage guidelines</div>
+                </div>
+                <div class="cmd-card"
+                    onclick="switchTab('page-styleguide'); setTimeout(() => scrollToSection('logos'), 100)">
+                    <div class="cmd-code">/logos</div>
+                    <div class="cmd-desc">Logo variants and usage guidelines</div>
+                </div>
+                <div class="cmd-card"
+                    onclick="switchTab('page-styleguide'); setTimeout(() => scrollToSection('icons'), 100)">
+                    <div class="cmd-code">/icons</div>
+                    <div class="cmd-desc">Service icons: buildIT, cloudIT, guardIT, manageIT</div>
+                </div>
+                <div class="cmd-card"
+                    onclick="switchTab('page-styleguide'); setTimeout(() => scrollToSection('tokens'), 100)">
+                    <div class="cmd-code">/tokens</div>
+                    <div class="cmd-desc">Shadows, spacing, and design tokens</div>
+                </div>
+            </div>
+
+            <h3 style="color: var(--text-secondary); margin-bottom: 1rem; font-weight: 400;">Presentation Components
+            </h3>
+            <div class="command-grid">
+                <div class="cmd-card"
+                    onclick="switchTab('page-dataviz'); setTimeout(() => scrollToSection('stats'), 100)">
+                    <div class="cmd-code">/stats</div>
+                    <div class="cmd-desc">Hero stat cards with 4-color accent system</div>
+                </div>
+                <div class="cmd-card"
+                    onclick="switchTab('page-dataviz'); setTimeout(() => scrollToSection('cards'), 100)">
+                    <div class="cmd-code">/cards</div>
+                    <div class="cmd-desc">Physics orbs that expand to detail cards</div>
+                </div>
+                <div class="cmd-card"
+                    onclick="switchTab('page-dataviz'); setTimeout(() => scrollToSection('carousel'), 100)">
+                    <div class="cmd-code">/carousel</div>
+                    <div class="cmd-desc">3D GSAP-animated flywheel cards</div>
+                </div>
+                <div class="cmd-card"
+                    onclick="switchTab('page-dataviz'); setTimeout(() => scrollToSection('d3viz'), 100)">
+                    <div class="cmd-code">/d3viz</div>
+                    <div class="cmd-desc">Force-directed D3 visualizations</div>
+                </div>
+            </div>
+        </div><!-- END HERO -->
+
+        <!-- Full Command Palette -->
+        <section id="commands" data-slide="1" style="padding: 4rem 2rem; max-width: 1200px; margin: 0 auto;">
+            <div class="sec-title">
+                <span class="sec-tag">/commands</span>
+                <h2>Full Command Palette</h2>
+            </div>
+            <p class="sec-desc">
+                Complete reference of all CentrexStyle commands.
+            </p>
+
+            <div class="showcase-stage" style="background: transparent; border: none;">
+                <div class="command-palette-grid">
+                    <!-- Navigation Commands -->
+                    <div class="palette-group">
+                        <h4 class="palette-group-title"><i class="fas fa-compass"></i> Navigation Commands</h4>
+                        <div class="palette-commands">
+                            <div class="palette-cmd" onclick="scrollToSection('colors')">
+                                <code>/colors</code>
+                                <span>Brand color palette</span>
+                            </div>
+                            <div class="palette-cmd" onclick="scrollToSection('typography')">
+                                <code>/typography</code>
+                                <span>Font families & sizes</span>
+                            </div>
+                            <div class="palette-cmd" onclick="scrollToSection('logos')">
+                                <code>/logos</code>
+                                <span>Logo variants</span>
+                            </div>
+                            <div class="palette-cmd" onclick="scrollToSection('icons')">
+                                <code>/icons</code>
+                                <span>Service icons</span>
+                            </div>
+                            <div class="palette-cmd" onclick="scrollToSection('tokens')">
+                                <code>/tokens</code>
+                                <span>Design tokens</span>
+                            </div>
+                            <div class="palette-cmd" onclick="scrollToSection('stats')">
+                                <code>/stats</code>
+                                <span>Stat cards</span>
+                            </div>
+                            <div class="palette-cmd" onclick="scrollToSection('cards')">
+                                <code>/cards</code>
+                                <span>Physics orbs</span>
+                            </div>
+                            <div class="palette-cmd" onclick="scrollToSection('carousel')">
+                                <code>/carousel</code>
+                                <span>3D flywheel</span>
+                            </div>
+                            <div class="palette-cmd" onclick="scrollToSection('d3viz')">
+                                <code>/d3viz</code>
+                                <span>Force graph</span>
+                            </div>
+                            <div class="palette-cmd" onclick="scrollToSection('dataviz')">
+                                <code>/charts</code>
+                                <span>Charts & Analytics</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Commands -->
+                    <div class="palette-group">
+                        <h4 class="palette-group-title"><i class="fas fa-bolt"></i> Actions & Controls</h4>
+                        <div class="palette-commands">
+                            <div class="palette-cmd" onclick="CentrexStyle.executeCommand('/present')">
+                                <code>/present</code>
+                                <span>Enter Presentation Mode</span>
+                            </div>
+                            <div class="palette-cmd" onclick="CentrexStyle.executeCommand('/exit')">
+                                <code>/exit</code>
+                                <span>Exit Presentation Mode</span>
+                            </div>
+                            <div class="palette-cmd" onclick="CentrexStyle.executeCommand('/refresh')">
+                                <code>/refresh</code>
+                                <span>Refresh All Visualizations</span>
+                            </div>
+                            <div class="palette-cmd" onclick="CentrexStyle.executeCommand('/export')">
+                                <code>/export</code>
+                                <span>Export Config JSON</span>
+                            </div>
+                            <div class="palette-cmd" onclick="CentrexStyle.applyPreset('vibrant')">
+                                <code>/preset vibrant</code>
+                                <span>Apply Vibrant Theme</span>
+                            </div>
+                            <div class="palette-cmd" onclick="CentrexStyle.applyPreset('compact')">
+                                <code>/preset compact</code>
+                                <span>Apply Compact Theme</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div style="max-width: 900px; margin: 3rem auto; text-align: left;">
+            <div class="ai-instructions">
+                <div class="ai-instructions-header">
+                    <i class="fas fa-robot"></i> AI Agent Instructions
+                </div>
+                <div class="ai-instructions-body">
+                    <p><strong>Full API Access:</strong> All CentrexStyle methods are globally available via
+                        <code>window.CentrexStyle</code>
+                    </p>
+                    <p><strong>Command Execution:</strong> Use
+                        <code>CentrexStyle.executeCommand('/command', args)</code> to
+                        run any slash command
+                    </p>
+                    <p><strong>Chaining:</strong> Most methods return <code>this</code> for chaining:
+                        <code>CentrexStyle.setOrbCount(10).setOrbRadius(50).refresh()</code>
+                    </p>
+                    <p><strong>State Queries:</strong> Use <code>isPresenting()</code>,
+                        <code>getCurrentSlide()</code>,
+                        <code>getTotalSlides()</code> to check state
+                    </p>
+                    <pre><code>// Example: Agent presentation workflow
+CentrexStyle
+    .setOrbCount(8)
+    .setOrbColors(['#3dae2b', '#0071ce', '#ff8300'])
+    .applyPreset('presentation')
+    .enterPresentation()
+    .goToSlide(0);</code></pre>
+                </div>
+            </div>
+
+            <div class="snippet-box">
+                <div class="snippet-header">
+                    <span>JavaScript API Reference</span>
+                    <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copy</button>
+                </div>
+                <div class="snippet-code">// ═══ PRESENTATION CONTROL ═══
+                    CentrexStyle.enterPresentation(); // Enter presentation mode
+                    CentrexStyle.exitPresentation(); // Exit presentation mode
+                    CentrexStyle.togglePresentation(); // Toggle mode
+                    CentrexStyle.goToSlide(3); // Navigate to slide 3
+                    CentrexStyle.getCurrentSlide(); // Returns current slide index
+                    CentrexStyle.getTotalSlides(); // Returns total slide count
+                    CentrexStyle.isPresenting(); // Returns true if in pres mode
+
+                    // ═══ CONFIGURATION ═══
+                    CentrexStyle.setOrbCount(10); // Set number of physics orbs
+                    CentrexStyle.setOrbRadius(50); // Set orb size in pixels
+                    CentrexStyle.setOrbColors(['#3dae2b', '#0071ce']);
+                    CentrexStyle.setChargeStrength(-50); // Physics repulsion force
+                    CentrexStyle.setD3Params({ linkDistance: 80 });
+                    CentrexStyle.setCarouselParams({ cardSpacing: 400 });
+                    CentrexStyle.refresh(); // Refresh all visualizations
+
+                    // ═══ PRESETS ═══
+                    CentrexStyle.applyPreset('vibrant'); // Larger orbs, more glow
+                    CentrexStyle.applyPreset('compact'); // Smaller, tighter layout
+                    CentrexStyle.applyPreset('presentation'); // Optimized for presenting
+
+                    // ═══ COLORS ═══
+                    CentrexStyle.colors.primary // '#3dae2b'
+                    CentrexStyle.colors.secondary // '#0071ce'
+                    CentrexStyle.getColor('primary', 0.5) // 'rgba(61, 174, 43, 0.5)'
+
+                    // ═══ COMMANDS ═══
+                    CentrexStyle.executeCommand('/colors'); // Navigate to colors
+                    CentrexStyle.executeCommand('/slide', 5); // Go to slide 5
+                    CentrexStyle.listCommands(); // List all commands</div>
+            </div>
+        </div>
+    </div>
+    </div><!-- END PAGE: HOME -->
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         BRAND STANDARDS SECTIONS
+         ═══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- PAGE: STYLE GUIDE -->
+    <div id="page-styleguide" class="page-view">
+
+        <!-- SECTION: BRAND COLORS -->
+        <section id="colors" data-slide="2">
+            <div class="sec-title">
+                <span class="sec-tag">/colors</span>
+                <h2>Brand Color Palette</h2>
+            </div>
+            <p class="sec-desc">
+                Official CentrexIT brand colors. Use these consistently across all presentations and materials.
+            </p>
+
+            <div class="showcase-stage" style="background: transparent; border: none;">
+                <div class="color-palette">
+                    <!-- Primary Green -->
+                    <div class="color-card">
+                        <div class="color-swatch" style="background: #3dae2b;"></div>
+                        <div class="color-info">
+                            <div class="color-name">Primary Green</div>
+                            <div class="color-values">
+                                <span class="color-value" onclick="copyValue('#3dae2b')"><strong>Hex:</strong>
+                                    #3dae2b</span>
+                                <span class="color-value" onclick="copyValue('rgb(61, 174, 43)')"><strong>RGB:</strong>
+                                    61,
+                                    174, 43</span>
+                                <span class="color-value"><strong>CMYK:</strong> 75/4/100/0</span>
+                                <span class="color-value"><strong>PMS:</strong> 361 C</span>
+                            </div>
+                            <div class="color-usage">Use for: CTAs, success states, primary actions, brand identity
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Secondary Blue -->
+                    <div class="color-card">
+                        <div class="color-swatch" style="background: #0071ce;"></div>
+                        <div class="color-info">
+                            <div class="color-name">Secondary Blue</div>
+                            <div class="color-values">
+                                <span class="color-value" onclick="copyValue('#0071ce')"><strong>Hex:</strong>
+                                    #0071ce</span>
+                                <span class="color-value" onclick="copyValue('rgb(0, 113, 206)')"><strong>RGB:</strong>
+                                    0,
+                                    113, 206</span>
+                                <span class="color-value"><strong>CMYK:</strong> 84/54/0/0</span>
+                                <span class="color-value"><strong>PMS:</strong> 285 C</span>
+                            </div>
+                            <div class="color-usage">Use for: Links, information, technology themes, data visualization
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Tertiary Orange -->
+                    <div class="color-card">
+                        <div class="color-swatch" style="background: #ff8300;"></div>
+                        <div class="color-info">
+                            <div class="color-name">Tertiary Orange</div>
+                            <div class="color-values">
+                                <span class="color-value" onclick="copyValue('#ff8300')"><strong>Hex:</strong>
+                                    #ff8300</span>
+                                <span class="color-value" onclick="copyValue('rgb(255, 131, 0)')"><strong>RGB:</strong>
+                                    255,
+                                    131, 0</span>
+                                <span class="color-value"><strong>CMYK:</strong> 0/60/100/0</span>
+                                <span class="color-value"><strong>PMS:</strong> 151 C</span>
+                            </div>
+                            <div class="color-usage">Use for: Warnings, highlights, attention-grabbing elements</div>
+                        </div>
+                    </div>
+                    <!-- Accent Red -->
+                    <div class="color-card">
+                        <div class="color-swatch" style="background: #e1251b;"></div>
+                        <div class="color-info">
+                            <div class="color-name">Accent Red</div>
+                            <div class="color-values">
+                                <span class="color-value" onclick="copyValue('#e1251b')"><strong>Hex:</strong>
+                                    #e1251b</span>
+                                <span class="color-value" onclick="copyValue('rgb(225, 37, 27)')"><strong>RGB:</strong>
+                                    225,
+                                    37, 27</span>
+                                <span class="color-value"><strong>CMYK:</strong> 6/98/100/0</span>
+                                <span class="color-value"><strong>PMS:</strong> 1795 C</span>
+                            </div>
+                            <div class="color-usage">Use for: Errors, critical alerts, urgent actions, emphasis</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Agent Instructions -->
+            <div class="ai-instructions">
+                <div class="ai-instructions-header">
+                    <i class="fas fa-robot"></i> AI Agent Instructions
+                </div>
+                <div class="ai-instructions-body">
+                    <p><strong>When to use:</strong> Always use these exact color values. Never approximate.</p>
+                    <p><strong>Primary (Green):</strong> Main CTA buttons, success messages, primary branding elements
+                    </p>
+                    <p><strong>Secondary (Blue):</strong> Links, informational content, technology-related visuals</p>
+                    <p><strong>Tertiary (Orange):</strong> Warnings, highlights, metrics that need attention</p>
+                    <p><strong>Accent (Red):</strong> Errors, critical information, urgent calls to action</p>
+                    <pre><code>// JavaScript API
+CentrexStyle.colors.primary   // '#3dae2b'
+CentrexStyle.colors.secondary // '#0071ce'
+CentrexStyle.colors.tertiary  // '#ff8300'
+CentrexStyle.colors.accent    // '#e1251b'
+CentrexStyle.getColor('primary', 0.5) // With alpha</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: TYPOGRAPHY -->
+        <section id="typography" data-slide="3">
+            <div class="sec-title">
+                <span class="sec-tag">/typography</span>
+                <h2>Typography System</h2>
+            </div>
+            <p class="sec-desc">
+                Official font families and size scales. GilmerBold for headings, Hind for body text.
+            </p>
+
+            <div class="showcase-stage" style="background: transparent; border: none;">
+                <div class="typography-showcase">
+                    <div class="type-section">
+                        <h4 class="type-label">Heading Font: GilmerBold</h4>
+                        <div class="type-specimen heading-font">
+                            <div style="font-size: 42px;">Headline XL (42px)</div>
+                            <div style="font-size: 36px;">Headline Large (36px)</div>
+                            <div style="font-size: 28px;">Headline Medium (28px)</div>
+                            <div style="font-size: 20px;">Headline Small (20px)</div>
+                        </div>
+                    </div>
+                    <div class="type-section">
+                        <h4 class="type-label">Body Font: Hind</h4>
+                        <div class="type-specimen body-font">
+                            <div style="font-size: 20px;">Body Large (20px) - The quick brown fox jumps over the lazy
+                                dog.
+                            </div>
+                            <div style="font-size: 16px;">Body Normal (16px) - The quick brown fox jumps over the lazy
+                                dog.
+                            </div>
+                            <div style="font-size: 14px;">Body Small (14px) - The quick brown fox jumps over the lazy
+                                dog.
+                            </div>
+                            <div style="font-size: 12px;">Caption (12px) - The quick brown fox jumps over the lazy dog.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="type-section">
+                        <h4 class="type-label">Font Stack (Fallbacks)</h4>
+                        <div class="type-stack">
+                            <code>--font-heading: 'GilmerBold', 'Segoe UI', system-ui, sans-serif;</code><br>
+                            <code>--font-body: 'Hind', 'Segoe UI', system-ui, sans-serif;</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ai-instructions">
+                <div class="ai-instructions-header">
+                    <i class="fas fa-robot"></i> AI Agent Instructions
+                </div>
+                <div class="ai-instructions-body">
+                    <p><strong>Heading Usage:</strong> Use GilmerBold for all headings (h1-h6), titles, and display
+                        text.
+                    </p>
+                    <p><strong>Body Usage:</strong> Use Hind for paragraphs, descriptions, and UI text.</p>
+                    <p><strong>Size Scale:</strong> 42px (XL), 36px (L), 20px (M), 16px (normal), 12px (caption)</p>
+                    <pre><code>// JavaScript API
+CentrexStyle.typography.heading  // 'GilmerBold'
+CentrexStyle.typography.body     // 'Hind'
+CentrexStyle.typography.sizes.xlarge  // 42
+CentrexStyle.typography.sizes.large   // 36
+CentrexStyle.typography.sizes.medium  // 20
+CentrexStyle.typography.sizes.normal  // 16</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: LOGOS -->
+        <section id="logos" data-slide="4">
+            <div class="sec-title">
+                <span class="sec-tag">/logos</span>
+                <h2>Logo Variants</h2>
+            </div>
+            <p class="sec-desc">
+                Official CentrexIT logos. Choose variant based on background color and context.
+            </p>
+
+            <div class="showcase-stage" style="background: transparent; border: none;">
+                <div class="logo-grid">
+                    <div class="logo-card dark-bg">
+                        <img src="centrexIT-logo-white/centrexIT-logo-white.svg" alt="Logo White"
+                            onerror="this.src='centrexIT-logo-color-white/centrexIT-logo-color-white.svg'">
+                        <div class="logo-label">Logo White<br><small>Use on dark backgrounds</small></div>
+                    </div>
+                    <div class="logo-card light-bg">
+                        <img src="centrexIT-logo-color/centrexIT-logo-color.svg" alt="Logo Color"
+                            onerror="this.parentElement.innerHTML='<div style=\'padding:2rem;color:#666;\'>Logo Color<br>centrexIT-logo-color/</div>'">
+                        <div class="logo-label">Logo Color<br><small>Use on light backgrounds</small></div>
+                    </div>
+                    <div class="logo-card dark-bg">
+                        <img src="centrexIT-emblem-color-white/centrexIT-emblem-color-white.svg"
+                            alt="Emblem Color White"
+                            onerror="this.parentElement.innerHTML='<div style=\'padding:2rem;\'>Emblem Color/White</div>'">
+                        <div class="logo-label">Emblem Color+White<br><small>Icon only, dark backgrounds</small></div>
+                    </div>
+                    <div class="logo-card light-bg">
+                        <img src="centrexIT-emblem-color/centrexIT-emblem-color.svg" alt="Emblem Color"
+                            onerror="this.parentElement.innerHTML='<div style=\'padding:2rem;color:#666;\'>Emblem Color</div>'">
+                        <div class="logo-label">Emblem Color<br><small>Icon only, light backgrounds</small></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ai-instructions">
+                <div class="ai-instructions-header">
+                    <i class="fas fa-robot"></i> AI Agent Instructions
+                </div>
+                <div class="ai-instructions-body">
+                    <p><strong>Dark backgrounds (#050505 to #333):</strong> Use white or color-white variants</p>
+                    <p><strong>Light backgrounds (#fff to #f0f0f0):</strong> Use color or black variants</p>
+                    <p><strong>Minimum clear space:</strong> Height of the 'c' in centrexIT on all sides</p>
+                    <p><strong>Available paths:</strong></p>
+                    <pre><code>centrexIT-logo-white/centrexIT-logo-white.svg
+centrexIT-logo-color/centrexIT-logo-color.svg
+centrexIT-logo-color-white/centrexIT-logo-color-white.svg
+centrexIT-emblem-color/centrexIT-emblem-color.svg
+centrexIT-emblem-white/centrexIT-emblem-white.svg</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: SERVICE ICONS -->
+        <section id="icons" data-slide="5">
+            <div class="sec-title">
+                <span class="sec-tag">/icons</span>
+                <h2>Service Icons</h2>
+            </div>
+            <p class="sec-desc">
+                CentrexIT service line icons: manageIT, cloudIT, buildIT, guardIT.
+            </p>
+
+            <div class="showcase-stage" style="background: transparent; border: none;">
+                <div class="icon-grid">
+                    <div class="icon-card">
+                        <div class="icon-preview" style="background: var(--centrex-primary);">
+                            <img src="icons/manageit.svg" alt="manageIT">
+                        </div>
+                        <div class="icon-label">
+                            <strong>manageIT</strong>
+                            <span>Managed IT Services</span>
+                            <code>icons/manageit.svg</code>
+                        </div>
+                    </div>
+                    <div class="icon-card">
+                        <div class="icon-preview" style="background: var(--centrex-secondary);">
+                            <img src="icons/cloudit.svg" alt="cloudIT">
+                        </div>
+                        <div class="icon-label">
+                            <strong>cloudIT</strong>
+                            <span>Cloud Solutions</span>
+                            <code>icons/cloudit.svg</code>
+                        </div>
+                    </div>
+                    <div class="icon-card">
+                        <div class="icon-preview" style="background: var(--centrex-tertiary);">
+                            <img src="icons/buildit.svg" alt="buildIT">
+                        </div>
+                        <div class="icon-label">
+                            <strong>buildIT</strong>
+                            <span>Custom Development</span>
+                            <code>icons/buildit.svg</code>
+                        </div>
+                    </div>
+                    <div class="icon-card">
+                        <div class="icon-preview" style="background: var(--centrex-accent);">
+                            <img src="icons/guardit.svg" alt="guardIT">
+                        </div>
+                        <div class="icon-label">
+                            <strong>guardIT</strong>
+                            <span>Security Solutions</span>
+                            <code>icons/guardit.svg</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ai-instructions">
+                <div class="ai-instructions-header">
+                    <i class="fas fa-robot"></i> AI Agent Instructions
+                </div>
+                <div class="ai-instructions-body">
+                    <p><strong>manageIT (Green):</strong> Use when referencing managed services, ongoing support, IT
+                        operations</p>
+                    <p><strong>cloudIT (Blue):</strong> Use for cloud migration, Azure, Microsoft 365, infrastructure
+                    </p>
+                    <p><strong>buildIT (Orange):</strong> Use for custom development, integrations, automation projects
+                    </p>
+                    <p><strong>guardIT (Red):</strong> Use for security, compliance, threat protection content</p>
+                    <pre><code>// JavaScript API
+CentrexStyle.icons.manageIT  // 'icons/manageit.svg'
+CentrexStyle.icons.cloudIT   // 'icons/cloudit.svg'
+CentrexStyle.icons.buildIT   // 'icons/buildit.svg'
+CentrexStyle.icons.guardIT   // 'icons/guardit.svg'</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: DESIGN TOKENS -->
+        <section id="tokens" data-slide="6">
+            <div class="sec-title">
+                <span class="sec-tag">/tokens</span>
+                <h2>Design Tokens</h2>
+            </div>
+            <p class="sec-desc">
+                Shadows, spacing, and other design tokens for consistent visual language.
+            </p>
+
+            <div class="showcase-stage" style="background: transparent; border: none;">
+                <div class="tokens-showcase">
+                    <!-- Shadows -->
+                    <div class="token-group">
+                        <h4 class="token-label">Shadows</h4>
+                        <div class="shadow-examples">
+                            <div class="shadow-card" style="box-shadow: 6px 6px 9px rgba(0, 0, 0, 0.2);">
+                                <strong>Natural</strong>
+                                <code>6px 6px 9px rgba(0,0,0,0.2)</code>
+                            </div>
+                            <div class="shadow-card" style="box-shadow: 12px 12px 50px rgba(0, 0, 0, 0.4);">
+                                <strong>Deep</strong>
+                                <code>12px 12px 50px rgba(0,0,0,0.4)</code>
+                            </div>
+                            <div class="shadow-card" style="box-shadow: 6px 6px 0px rgba(0, 0, 0, 1);">
+                                <strong>Crisp</strong>
+                                <code>6px 6px 0px rgba(0,0,0,1)</code>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Spacing -->
+                    <div class="token-group">
+                        <h4 class="token-label">Spacing Scale</h4>
+                        <div class="spacing-examples">
+                            <div class="spacing-item">
+                                <div class="spacing-bar" style="width: 16px;"></div>
+                                <span>--space-40: 1rem (16px)</span>
+                            </div>
+                            <div class="spacing-item">
+                                <div class="spacing-bar" style="width: 24px;"></div>
+                                <span>--space-50: 1.5rem (24px)</span>
+                            </div>
+                            <div class="spacing-item">
+                                <div class="spacing-bar" style="width: 36px;"></div>
+                                <span>--space-60: 2.25rem (36px)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Border Radius -->
+                    <div class="token-group">
+                        <h4 class="token-label">Border Radius</h4>
+                        <div class="radius-examples">
+                            <div class="radius-card" style="border-radius: 4px;">4px<br><small>Inputs</small></div>
+                            <div class="radius-card" style="border-radius: 8px;">8px<br><small>Buttons</small></div>
+                            <div class="radius-card" style="border-radius: 12px;">12px<br><small>Cards</small></div>
+                            <div class="radius-card" style="border-radius: 16px;">16px<br><small>Panels</small></div>
+                            <div class="radius-card" style="border-radius: 50%;">50%<br><small>Circles</small></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ai-instructions">
+                <div class="ai-instructions-header">
+                    <i class="fas fa-robot"></i> AI Agent Instructions
+                </div>
+                <div class="ai-instructions-body">
+                    <p><strong>Shadows:</strong> Use 'natural' for cards, 'deep' for modals/overlays, 'crisp' for
+                        retro/bold
+                        effects</p>
+                    <p><strong>Spacing:</strong> Use spacing scale for consistent padding/margins. Prefer multiples of
+                        8px.
+                    </p>
+                    <pre><code>// JavaScript API
+CentrexStyle.shadows.natural  // '6px 6px 9px rgba(0, 0, 0, 0.2)'
+CentrexStyle.shadows.deep     // '12px 12px 50px rgba(0, 0, 0, 0.4)'
+CentrexStyle.shadows.crisp    // '6px 6px 0px rgba(0, 0, 0, 1)'
+CentrexStyle.spacing[40]      // '1rem'
+CentrexStyle.spacing[50]      // '1.5rem'
+CentrexStyle.spacing[60]      // '2.25rem'</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════════════════════
+         PRESENTATION COMPONENTS (Existing - renumbered slides)
+         ═══════════════════════════════════════════════════════════════════════ -->
+
+    </div><!-- END PAGE: STYLE GUIDE -->
+
+    <!-- PAGE: DATA VISUALIZATION -->
+    <div id="page-dataviz" class="page-view">
+        <!-- STAT CARDS -->
+        <section id="stats" data-slide="7">
+            <div class="sec-title">
+                <span class="sec-tag">/stats</span>
+                <h2>Hero Statistics Cards</h2>
+            </div>
+            <p class="sec-desc">
+                4-column grid with colored accent bars. Each color maps to a brand color: green, blue, orange, red.
+                Values use gradient text for visual impact.
+            </p>
+
+            <div class="showcase-stage">
+                <div class="stat-grid">
+                    <div class="hero-stat-card green">
+                        <div class="hero-stat-value green">55</div>
+                        <div class="hero-stat-label">Team Members</div>
+                    </div>
+                    <div class="hero-stat-card blue">
+                        <div class="hero-stat-value blue">20</div>
+                        <div class="hero-stat-label">AI Agents</div>
+                    </div>
+                    <div class="hero-stat-card orange">
+                        <div class="hero-stat-value orange">12,900</div>
+                        <div class="hero-stat-label">Hours Saved/Year</div>
+                    </div>
+                    <div class="hero-stat-card red">
+                        <div class="hero-stat-value red">$580K</div>
+                        <div class="hero-stat-label">Cost Avoidance</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="snippet-box">
+                <div class="snippet-header">
+                    <span>HTML Structure</span>
+                    <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copy</button>
+                </div>
+                <div class="snippet-code">&lt;div class="stat-grid"&gt;
+                    &lt;div class="hero-stat-card green"&gt;
+                    &lt;div class="hero-stat-value green"&gt;55&lt;/div&gt;
+                    &lt;div class="hero-stat-label"&gt;Team Members&lt;/div&gt;
+                    &lt;/div&gt;
+                    &lt;!-- Repeat with blue, orange, red --&gt;
+                    &lt;/div&gt;</div>
+            </div>
+
+            <div class="ai-instructions">
+                <div class="ai-instructions-header">
+                    <i class="fas fa-robot"></i> AI Agent Instructions
+                </div>
+                <div class="ai-instructions-body">
+                    <p><strong>When to use:</strong> Hero stat cards for KPIs, metrics, and high-impact numbers at the
+                        top
+                        of presentations.</p>
+                    <p><strong>Color mapping:</strong> Green (growth/positive), Blue (informational), Orange
+                        (attention/warning), Red (critical/cost)</p>
+                    <p><strong>Best practices:</strong> Use 4 cards max per row. Values should be concise (e.g., "$580K"
+                        not
+                        "$580,000").</p>
+                    <pre><code>// JavaScript API
+const colors = ['green', 'blue', 'orange', 'red'];
+CentrexStyle.colors.primary   // '#3dae2b' (green)
+CentrexStyle.colors.secondary // '#0071ce' (blue)
+CentrexStyle.colors.tertiary  // '#ff8300' (orange)
+CentrexStyle.colors.accent    // '#e1251b' (red)</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: PHYSICS CARDS -->
+        <section id="cards" data-slide="8">
+            <div class="sec-title">
+                <span class="sec-tag">/cards</span>
+                <h2>Interactive Physics Cards</h2>
+            </div>
+            <p class="sec-desc">
+                D3 force simulation creates draggable orbs. Click an orb to expand into a detail card overlay.
+                Great for agent catalogs or entity explorers.
+            </p>
+
+            <div class="showcase-stage" style="padding: 0;">
+                <div id="orb-stage"></div>
+            </div>
+
+            <!-- Expanded Card Overlay -->
+            <div class="expanded-card-overlay" id="cardOverlay" onclick="closeCard()">
+                <div class="expanded-card" onclick="event.stopPropagation()">
+                    <h3 id="cardTitle">Agent Name</h3>
+                    <div class="detail-row"><span class="detail-label">Type</span><span class="detail-value"
+                            id="cardType">Headless</span></div>
+                    <div class="detail-row"><span class="detail-label">Department</span><span class="detail-value"
+                            id="cardDept">Technology</span></div>
+                    <div class="detail-row"><span class="detail-label">Hours Saved</span><span
+                            class="detail-value highlight" id="cardHours">400/yr</span></div>
+                    <div class="detail-row"><span class="detail-label">Dev Time</span><span class="detail-value"
+                            id="cardDev">6-8 weeks</span></div>
+                </div>
+            </div>
+
+            <div class="snippet-box">
+                <div class="snippet-header">
+                    <span>D3 Force Simulation</span>
+                    <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copy</button>
+                </div>
+                <div class="snippet-code">const sim = d3.forceSimulation(nodes)
+                    .force('charge', d3.forceManyBody().strength(-50))
+                    .force('center', d3.forceCenter(width/2, height/2))
+                    .force('collide', d3.forceCollide(40));
+
+                    node.on('click', (e, d) => expandCard(d));</div>
+            </div>
+
+            <div class="ai-instructions">
+                <div class="ai-instructions-header">
+                    <i class="fas fa-robot"></i> AI Agent Instructions
+                </div>
+                <div class="ai-instructions-body">
+                    <p><strong>When to use:</strong> Interactive entity explorers, agent catalogs, or any dataset
+                        where
+                        users should explore items visually.</p>
+                    <p><strong>Interaction:</strong> Click orb to expand into detail card. Drag orbs to reposition.
+                        Physics
+                        simulation keeps orbs separated.</p>
+                    <p><strong>Customization:</strong> Use CentrexStyle API to adjust orb count, size, colors, and
+                        physics
+                        parameters.</p>
+                    <pre><code>// JavaScript API
+CentrexStyle.setOrbCount(8);           // Number of orbs
+CentrexStyle.setOrbRadius(50);         // Orb size in pixels
+CentrexStyle.setOrbColors(['#3dae2b', '#0071ce', '#ff8300']);
+CentrexStyle.setChargeStrength(-50);   // Physics repulsion
+CentrexStyle.orbs.glowIntensity = 12;  // Glow effect</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: 3D CAROUSEL -->
+        <section id="carousel" data-slide="9">
+            <div class="sec-title">
+                <span class="sec-tag">/carousel</span>
+                <h2>3D Flywheel Carousel</h2>
+            </div>
+            <p class="sec-desc">
+                GSAP-powered 3D card carousel with perspective transforms. Perfect for step-by-step processes or
+                feature
+                highlights.
+            </p>
+
+            <div class="showcase-stage">
+                <div class="carousel-container">
+                    <div class="card-stage" id="cardStage"></div>
+                </div>
+                <div class="carousel-controls">
+                    <button class="ctrl-btn" onclick="rotateCarousel(-1)"><i class="fas fa-arrow-left"></i></button>
+                    <span id="carouselIndicator" style="color: var(--text-secondary); font-weight: 600;">Step 1 of
+                        5</span>
+                    <button class="ctrl-btn" onclick="rotateCarousel(1)"><i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <div class="snippet-box">
+                <div class="snippet-header">
+                    <span>GSAP Animation</span>
+                    <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copy</button>
+                </div>
+                <div class="snippet-code">gsap.to(card, {
+                    duration: 0.6,
+                    ease: "power3.out",
+                    opacity: isActive ? 1 : 0.4,
+                    scale: isActive ? 1.05 : 0.85,
+                    x: distance * 380,
+                    rotateY: distance * -8
+                    });</div>
+            </div>
+
+            <div class="ai-instructions">
+                <div class="ai-instructions-header">
+                    <i class="fas fa-robot"></i> AI Agent Instructions
+                </div>
+                <div class="ai-instructions-body">
+                    <p><strong>When to use:</strong> Step-by-step processes, feature highlights, methodology
+                        walkthroughs,
+                        or any sequential content.</p>
+                    <p><strong>Navigation:</strong> Arrow buttons or swipe to navigate. Active card is enlarged with
+                        full
+                        opacity.</p>
+                    <p><strong>Customization:</strong> Adjust spacing, rotation angle, and transition speed via
+                        CentrexStyle
+                        API.</p>
+                    <pre><code>// JavaScript API
+CentrexStyle.carousel.cardSpacing = 380;        // Pixels between cards
+CentrexStyle.carousel.rotationAngle = 8;        // 3D rotation degrees
+CentrexStyle.carousel.transitionDuration = 0.6; // Seconds
+CentrexStyle.carousel.activeScale = 1.05;       // Active card scale
+CentrexStyle.carousel.inactiveOpacity = 0.4;    // Inactive card opacity
+CentrexStyle.setCarouselParams({ cardSpacing: 400 });</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: D3 VISUALIZATION -->
+        <section id="d3viz" data-slide="10">
+            <div class="sec-title">
+                <span class="sec-tag">/d3viz</span>
+                <h2>Force-Directed Visualization</h2>
+            </div>
+            <p class="sec-desc">
+                D3 force simulation for org charts, network diagrams, or relationship mapping.
+                Nodes are draggable and automatically arrange via physics.
+            </p>
+
+            <div class="showcase-stage" style="padding: 0;">
+                <div id="d3-viz" style="width: 100%; height: 500px; min-height: 500px;"></div>
+            </div>
+
+            <div class="snippet-box">
+                <div class="snippet-header">
+                    <span>D3 Force Graph</span>
+                    <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copy</button>
+                </div>
+                <div class="snippet-code">const sim = d3.forceSimulation(nodes)
+                    .force('link', d3.forceLink(links).id(d => d.id))
+                    .force('charge', d3.forceManyBody().strength(-80))
+                    .force('center', d3.forceCenter(width/2, height/2));
+
+                    sim.on('tick', () => {
+                    link.attr('x1', d => d.source.x)...
+                    node.attr('transform', d => `translate(${d.x},${d.y})`);
+                    });</div>
+            </div>
+
+            <div class="ai-instructions">
+                <div class="ai-instructions-header">
+                    <i class="fas fa-robot"></i> AI Agent Instructions
+                </div>
+                <div class="ai-instructions-body">
+                    <p><strong>When to use:</strong> Org charts, network diagrams, relationship mapping, or any
+                        hierarchical/connected data.</p>
+                    <p><strong>Interaction:</strong> Drag nodes to reposition. Physics simulation maintains link
+                        connections
+                        and prevents overlap.</p>
+                    <p><strong>Customization:</strong> Use CentrexStyle API to adjust link distances, charge
+                        strength,
+                        and
+                        collision radii.</p>
+                    <pre><code>// JavaScript API
+CentrexStyle.d3Viz.linkDistance = 60;        // Link length
+CentrexStyle.d3Viz.linkStrength = 0.8;       // Link stiffness
+CentrexStyle.d3Viz.chargeStrength = -80;     // Node repulsion
+CentrexStyle.d3Viz.collideStrength = 0.6;    // Collision force
+CentrexStyle.d3Viz.nodeRadius = { dept: 45, agent: 24 };
+CentrexStyle.setD3Params({ linkDistance: 80 });</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: DATA VISUALIZATION & ANALYTICS -->
+        <section id="dataviz" data-slide="11">
+            <div class="sec-title">
+                <span class="sec-tag">/charts</span>
+                <h2>Data Visualization & Analytics</h2>
+            </div>
+            <p class="sec-desc">
+                Comprehensive suite of D3-powered chart components. All charts are data-driven, interactive, and
+                fully
+                customizable via API.
+            </p>
+
+            <div class="chart-controls">
+                <div class="chart-group-label"><i class="fas fa-chart-bar"></i> Basic Charts</div>
+                <div class="chart-btn-group" style="margin-bottom: 1rem;">
+                    <button class="chart-btn active" onclick="CentrexStyle.renderChart('bar')">Bar Chart</button>
+                    <button class="chart-btn" onclick="CentrexStyle.renderChart('line')">Line Chart</button>
+                    <button class="chart-btn" onclick="CentrexStyle.renderChart('pie')">Pie Chart</button>
+                    <button class="chart-btn" onclick="CentrexStyle.renderChart('scatter')">Scatter Plot</button>
+                </div>
+
+                <div class="chart-group-label"><i class="fas fa-project-diagram"></i> Advanced Analytics</div>
+                <div class="chart-btn-group" style="margin-bottom: 1rem;">
+                    <button class="chart-btn" onclick="CentrexStyle.renderChart('treemap')">Treemap</button>
+                    <button class="chart-btn" onclick="CentrexStyle.renderChart('sunburst')">Sunburst</button>
+                    <button class="chart-btn" onclick="CentrexStyle.renderChart('waterfall')">Waterfall</button>
+                    <button class="chart-btn" onclick="CentrexStyle.renderChart('funnel')">Funnel</button>
+                    <button class="chart-btn" onclick="CentrexStyle.renderChart('histogram')">Histogram</button>
+                    <button class="chart-btn" onclick="CentrexStyle.renderChart('boxplot')">Box & Whisker</button>
+                </div>
+
+                <div class="chart-group-label"><i class="fas fa-sitemap"></i> Custom Visuals</div>
+                <div class="chart-btn-group">
+                    <button class="chart-btn" onclick="CentrexStyle.renderChart('organogram')">Organogram</button>
+                    <button class="chart-btn" onclick="CentrexStyle.renderChart('process')">Process Cycle</button>
+                </div>
+            </div>
+
+            <div class="showcase-stage" style="padding: 0;">
+                <div id="chart-stage" class="chart-container-wrapper"></div>
+            </div>
+
+            <div class="snippet-box">
+                <div class="snippet-header">
+                    <span id="chart-snippet-title">D3 Chart Rendering</span>
+                    <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copy</button>
+                </div>
+                <div class="snippet-code" id="chart-snippet-code">CentrexStyle.charts.render('bar', 'chart-stage',
+                    data,
+                    options);</div>
+            </div>
+
+            <div class="ai-instructions">
+                <div class="ai-instructions-header">
+                    <i class="fas fa-robot"></i> AI Agent Instructions
+                </div>
+                <div class="ai-instructions-body">
+                    <p><strong>Universal Chart API:</strong> Use
+                        <code>CentrexStyle.charts.render(type, containerId, data, options)</code> to render any
+                        chart.
+                    </p>
+                    <p><strong>Supported Types:</strong> 'bar', 'line', 'pie', 'scatter', 'treemap', 'sunburst',
+                        'waterfall', 'funnel', 'histogram', 'boxplot', 'organogram', 'process'.</p>
+                    <p><strong>Data Format:</strong> Standard array of objects
+                        <code>[{ label: 'A', value: 10 }, ...]</code>
+                        or hierarchical JSON for trees.
+                    </p>
+                    <pre><code>// Example: Render a Bar Chart
+CentrexStyle.charts.render('bar', 'elementId', [
+    { label: 'Q1', value: 100 },
+    { label: 'Q2', value: 150 }
+], { color: 'primary', title: 'Quarterly Revenue' });</code></pre>
+                </div>
+            </div>
+        </section>
+    </div><!-- END PAGE: DATA VISUALIZATION -->
+
+    </div>
+
+
+
+    <script>
+
+        // ═══════════════════════════════════════════════════════════════════
+        // CENTREXSTYLE - JAVASCRIPT ENGINE
+        // Source: https://centrexit.com/styleguide/
+        // ═══════════════════════════════════════════════════════════════════
+
+        // ═══════════════════════════════════════════════════════════════════
+        // CENTREXSTYLE CONFIGURATION API
+        // All design tokens and visualization parameters as callable variables
+        // ═══════════════════════════════════════════════════════════════════
+        const CentrexStyle = {
+            // Brand Colors - Official Styleguide
+            colors: {
+                primary: '#3dae2b',      // PMS 361 C
+                secondary: '#0071ce',    // PMS 285 C
+                tertiary: '#ff8300',     // PMS 151 C
+                accent: '#e1251b',       // PMS 1795 C
+                // RGB arrays for alpha compositing
+                primaryRgb: [61, 174, 43],
+                secondaryRgb: [0, 113, 206],
+                tertiaryRgb: [255, 131, 0],
+                accentRgb: [225, 37, 27],
+                // Pantone references
+                pms: {
+                    primary: '361 C',
+                    secondary: '285 C',
+                    tertiary: '151 C',
+                    accent: '1795 C'
+                },
+                // CMYK values
+                cmyk: {
+                    primary: '75/4/100/0',
+                    secondary: '84/54/0/0',
+                    tertiary: '0/60/100/0',
+                    accent: '6/98/100/0'
+                }
+            },
+
+            // Typography - Official Fonts
+            typography: {
+                heading: 'GilmerBold',
+                body: 'Hind',
+                fallback: ['Segoe UI', 'system-ui', 'sans-serif'],
+                sizes: {
+                    normal: 16,
+                    medium: 20,
+                    large: 36,
+                    xlarge: 42
+                }
+            },
+
+            // Shadows - Official Design Tokens
+            shadows: {
+                natural: '6px 6px 9px rgba(0, 0, 0, 0.2)',
+                deep: '12px 12px 50px rgba(0, 0, 0, 0.4)',
+                crisp: '6px 6px 0px rgba(0, 0, 0, 1)'
+            },
+
+            // Spacing Scale
+            spacing: {
+                40: '1rem',
+                50: '1.5rem',
+                60: '2.25rem'
+            },
+
+            // Icon Paths (local copies)
+            icons: {
+                buildIT: 'icons/buildit.svg',
+                cloudIT: 'icons/cloudit.svg',
+                guardIT: 'icons/guardit.svg',
+                manageIT: 'icons/manageit.svg'
+            },
+
+            // Orb Configuration (Physics Cards)
+            orbs: {
+                count: 6,
+                baseRadius: 40,
+                chargeStrength: -30,
+                centerStrength: 0.05,
+                positionStrength: 0.1,
+                collisionPadding: 8,
+                collisionStrength: 0.8,
+                glowColor: 'rgba(61, 174, 43, 0.5)',
+                glowIntensity: 8,
+                colors: ['#3dae2b', '#0071ce', '#ff8300', '#e1251b', '#10b981', '#8b5cf6'],
+                gradientStart: '#3dae2b',
+                gradientEnd: '#4ade80'
+            },
+
+            // Extended Palette (for visualizations)
+            extendedColors: {
+                teal: '#10b981',
+                purple: '#8b5cf6',
+                cyan: '#06b6d4',
+                amber: '#f59e0b',
+                indigo: '#3b82f6'
+            },
+
+            // D3 Force Visualization
+            d3Viz: {
+                linkDistance: 60,
+                linkStrength: 0.8,
+                chargeStrength: -80,
+                collideStrength: 0.6,
+                collideRadius: { dept: 50, agent: 28 },
+                nodeRadius: { dept: 45, agent: 24 },
+                preSettleIterations: 150
+            },
+
+            // Carousel Configuration
+            carousel: {
+                cardSpacing: 340,
+                rotationAngle: 8,
+                transitionDuration: 0.6,
+                activeScale: 1.05,
+                inactiveScale: 0.85,
+                inactiveOpacity: 0.4
+            },
+
+            // Presentation Mode
+            presentation: {
+                transitionDuration: 0.4,
+                slideAnimation: 'fadeIn',
+                keyboardNavEnabled: true
+            },
+
+            // ═══════════════════════════════════════════════════════════════════
+            // CONFIGURATION METHODS
+            // ═══════════════════════════════════════════════════════════════════
+
+            // Set the number of orbs to display
+            setOrbCount(count) {
+                this.orbs.count = Math.max(1, Math.min(20, count));
+                if (typeof initOrbStage === 'function') initOrbStage();
+                return this;
+            },
+
+            // Set orb color palette
+            setOrbColors(colorsArray) {
+                if (Array.isArray(colorsArray) && colorsArray.length > 0) {
+                    this.orbs.colors = colorsArray;
+                }
+                return this;
+            },
+
+            // Set orb base radius
+            setOrbRadius(radius) {
+                this.orbs.baseRadius = Math.max(20, Math.min(80, radius));
+                if (typeof initOrbStage === 'function') initOrbStage();
+                return this;
+            },
+
+            // Set orb physics charge strength
+            setChargeStrength(strength) {
+                this.orbs.chargeStrength = Math.max(-100, Math.min(0, strength));
+                if (typeof initOrbStage === 'function') initOrbStage();
+                return this;
+            },
+
+            // Set D3 visualization parameters
+            setD3Params(params) {
+                Object.assign(this.d3Viz, params);
+                if (typeof initD3Viz === 'function') initD3Viz();
+                return this;
+            },
+
+            // Set carousel parameters
+            setCarouselParams(params) {
+                Object.assign(this.carousel, params);
+                if (typeof updateCarousel === 'function') updateCarousel();
+                return this;
+            },
+
+            // Generate a JSON config from current settings
+            generateConfig() {
+                return JSON.stringify({
+                    version: '1.0',
+                    timestamp: new Date().toISOString(),
+                    colors: this.colors,
+                    typography: this.typography,
+                    shadows: this.shadows,
+                    spacing: this.spacing,
+                    orbs: this.orbs,
+                    d3Viz: this.d3Viz,
+                    carousel: this.carousel,
+                    presentation: this.presentation
+                }, null, 2);
+            },
+
+            // Apply a saved configuration
+            applyConfig(configJson) {
+                try {
+                    const config = typeof configJson === 'string' ? JSON.parse(configJson) : configJson;
+
+                    if (config.colors) Object.assign(this.colors, config.colors);
+                    if (config.typography) Object.assign(this.typography, config.typography);
+                    if (config.shadows) Object.assign(this.shadows, config.shadows);
+                    if (config.spacing) Object.assign(this.spacing, config.spacing);
+                    if (config.orbs) Object.assign(this.orbs, config.orbs);
+                    if (config.d3Viz) Object.assign(this.d3Viz, config.d3Viz);
+                    if (config.carousel) Object.assign(this.carousel, config.carousel);
+                    if (config.presentation) Object.assign(this.presentation, config.presentation);
+
+                    // Refresh visualizations
+                    if (typeof reinitAfterResize === 'function') reinitAfterResize();
+
+                    console.log('CentrexStyle: Configuration applied successfully');
+                    return true;
+                } catch (e) {
+                    console.error('CentrexStyle: Failed to apply configuration', e);
+                    return false;
+                }
+            },
+
+            // Get a color with optional alpha
+            getColor(name, alpha = 1) {
+                const rgbMap = {
+                    primary: this.colors.primaryRgb,
+                    secondary: this.colors.secondaryRgb,
+                    tertiary: this.colors.tertiaryRgb,
+                    accent: this.colors.accentRgb
+                };
+                const rgb = rgbMap[name];
+                if (!rgb) return this.colors[name] || '#ffffff';
+                if (alpha === 1) return this.colors[name];
+                return `rgba(${rgb.join(', ')}, ${alpha})`;
+            },
+
+            // Quick presets
+            presets: {
+                vibrant: {
+                    orbs: { chargeStrength: -50, baseRadius: 50, glowIntensity: 12 }
+                },
+                compact: {
+                    orbs: { chargeStrength: -20, baseRadius: 30, collisionPadding: 4 }
+                },
+                presentation: {
+                    orbs: { baseRadius: 60, glowIntensity: 15 },
+                    carousel: { cardSpacing: 400, transitionDuration: 0.8 }
+                }
+            },
+
+            // Apply a preset
+            applyPreset(presetName) {
+                const preset = this.presets[presetName];
+                if (!preset) {
+                    console.warn(`CentrexStyle: Unknown preset "${presetName}"`);
+                    return false;
+                }
+                return this.applyConfig(preset);
+            },
+
+            // Log current configuration to console
+            logConfig() {
+                console.log('CentrexStyle Configuration:');
+                console.table(this.colors);
+                console.log('Orbs:', this.orbs);
+                console.log('D3 Viz:', this.d3Viz);
+                console.log('Carousel:', this.carousel);
+                return this;
+            },
+
+            // ═══════════════════════════════════════════════════════════════════
+            // PRESENTATION CONTROL API
+            // ═══════════════════════════════════════════════════════════════════
+
+            // Navigate to a specific slide
+            goToSlide(index) {
+                if (typeof currentSlide === 'undefined') return this;
+                const slides = document.querySelectorAll('[data-slide]');
+                currentSlide = Math.max(0, Math.min(slides.length - 1, index));
+                if (typeof renderSlide === 'function') renderSlide();
+                return this;
+            },
+
+            // Get current slide index
+            getCurrentSlide() {
+                return typeof currentSlide !== 'undefined' ? currentSlide : 0;
+            },
+
+            // Get total slide count
+            getTotalSlides() {
+                return document.querySelectorAll('[data-slide]').length;
+            },
+
+            // Toggle presentation mode on/off
+            togglePresentation() {
+                if (typeof togglePresMode === 'function') togglePresMode();
+                return this;
+            },
+
+            // Enter presentation mode
+            enterPresentation() {
+                if (!presMode && typeof togglePresMode === 'function') togglePresMode();
+                return this;
+            },
+
+            // Exit presentation mode
+            exitPresentation() {
+                if (presMode && typeof togglePresMode === 'function') togglePresMode();
+                return this;
+            },
+
+            // Check if in presentation mode
+            isPresenting() {
+                return typeof presMode !== 'undefined' ? presMode : false;
+            },
+
+            // Refresh all visualizations (call after direct property changes)
+            refresh() {
+                if (typeof reinitAfterResize === 'function') reinitAfterResize();
+                if (typeof updateCarousel === 'function') updateCarousel();
+                return this;
+            },
+
+            // ═══════════════════════════════════════════════════════════════════
+            // COMMAND PALETTE - All Available Commands
+            // ═══════════════════════════════════════════════════════════════════
+            commands: {
+                // Brand Standards
+                '/colors': { section: 'colors', description: 'Brand color palette with hex, RGB, CMYK, PMS' },
+                '/typography': { section: 'typography', description: 'Font families, sizes, and usage guidelines' },
+                '/logos': { section: 'logos', description: 'Logo variants and usage guidelines' },
+                '/icons': { section: 'icons', description: 'Service icons: buildIT, cloudIT, guardIT, manageIT' },
+                '/tokens': { section: 'tokens', description: 'Shadows, spacing, and design tokens' },
+                // Presentation Components
+                '/stats': { section: 'stats', description: 'Hero stat cards with 4-color accent system' },
+                '/cards': { section: 'cards', description: 'Physics orbs that expand to detail cards' },
+                '/carousel': { section: 'carousel', description: '3D GSAP-animated flywheel cards' },
+                '/d3viz': { section: 'd3viz', description: 'Force-directed D3 visualizations' },
+                '/commands': { section: 'commands', description: 'This command palette reference' },
+                // Presentation Control
+                '/present': { action: 'enterPresentation', description: 'Enter presentation mode' },
+                '/exit': { action: 'exitPresentation', description: 'Exit presentation mode' },
+                '/next': { action: 'nextSlide', description: 'Go to next slide' },
+                '/prev': { action: 'prevSlide', description: 'Go to previous slide' },
+                '/slide': { action: 'goToSlide', description: 'Go to specific slide (e.g., /slide 3)' },
+                // Configuration
+                '/refresh': { action: 'refresh', description: 'Refresh all visualizations' },
+                '/preset': { action: 'applyPreset', description: 'Apply preset (vibrant, compact, presentation)' },
+                '/export': { action: 'generateConfig', description: 'Export current configuration as JSON' }
+            },
+
+            // Execute a command
+            executeCommand(cmd, ...args) {
+                const command = this.commands[cmd];
+                if (!command) {
+                    console.warn(`CentrexStyle: Unknown command "${cmd}"`);
+                    return null;
+                }
+
+                if (command.section) {
+                    // Navigate to section
+                    if (typeof scrollToSection === 'function') scrollToSection(command.section);
+                    return command.section;
+                }
+
+                if (command.action) {
+                    // Execute action
+                    switch (command.action) {
+                        case 'enterPresentation': return this.enterPresentation();
+                        case 'exitPresentation': return this.exitPresentation();
+                        case 'nextSlide': return this.goToSlide(this.getCurrentSlide() + 1);
+                        case 'prevSlide': return this.goToSlide(this.getCurrentSlide() - 1);
+                        case 'goToSlide': return this.goToSlide(parseInt(args[0]) || 0);
+                        case 'refresh': return this.refresh();
+                        case 'applyPreset': return this.applyPreset(args[0]);
+                        case 'generateConfig': return this.generateConfig();
+                    }
+                }
+                return null;
+            },
+
+            // List all available commands
+            listCommands() {
+                console.log('CentrexStyle Commands:');
+                Object.entries(this.commands).forEach(([cmd, info]) => {
+                    console.log(`  ${cmd.padEnd(15)} - ${info.description}`);
+                });
+                return Object.keys(this.commands);
+            }
+        };
+
+        // Make globally accessible
+        window.CentrexStyle = CentrexStyle;
+
+        // ═══════════════════════════════════════════════════════════════════
+        // SAMPLE DATA
+        // ═══════════════════════════════════════════════════════════════════
+        const demoAgents = [
+            { id: 'triage', name: 'AutoTriage', type: 'Headless', dept: 'Service Desk', hours: '500-800', dev: '4-6 weeks' },
+            { id: 'kb', name: 'KB Creator', type: 'Hybrid', dept: 'Service Desk', hours: '300-500', dev: '8-10 weeks' },
+            { id: 'invoice', name: 'Invoice Bot', type: 'Headless', dept: 'Finance', hours: '250-400', dev: '6-8 weeks' },
+            { id: 'onboard', name: 'Onboarding', type: 'Conversational', dept: 'HR', hours: '200-400', dev: '8-10 weeks' },
+            { id: 'dispatch', name: 'Smart Dispatch', type: 'Headless', dept: 'Projects', hours: '400-700', dev: '8-10 weeks' },
+            { id: 'posture', name: 'Posture Review', type: 'Scheduled', dept: 'Technology', hours: '300-500', dev: '10-12 weeks' }
+        ];
+
+        const carouselData = [
+            { step: 1, title: "Strategic Alignment", icon: "fa-handshake", desc: "Align technology initiatives with business objectives.", stat: "40%", statLabel: "Higher Conversion" },
+            { step: 2, title: "Platform Implementation", icon: "fa-layer-group", desc: "Deploy foundational infrastructure for AI agents.", stat: "15%", statLabel: "Cost Recovery" },
+            { step: 3, title: "Agent Deployment", icon: "fa-robot", desc: "Activate targeted agents for specific roles.", stat: "30%", statLabel: "Ticket Reduction" },
+            { step: 4, title: "Operational Delivery", icon: "fa-tasks", desc: "Agents handle routine workload autonomously.", stat: "25%", statLabel: "Margin Increase" },
+            { step: 5, title: "Value Realization", icon: "fa-chart-line", desc: "Measure impact and reinvest gains.", stat: "3x", statLabel: "Lifetime Value" }
+        ];
+
+        const departments = [
+            { name: 'Technology', color: '#10b981', count: 12 },
+            { name: 'Service Desk', color: '#06b6d4', count: 18 },
+            { name: 'Finance', color: '#f59e0b', count: 5 },
+            { name: 'HR', color: '#8b5cf6', count: 2 },
+            { name: 'Projects', color: '#3b82f6', count: 3 }
+        ];
+
+        // ═══════════════════════════════════════════════════════════════════
+        // THEME TOGGLE
+        // ═══════════════════════════════════════════════════════════════════
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            const html = document.documentElement;
+            const icon = document.querySelector('#themeToggle i');
+            if (html.getAttribute('data-theme') === 'dark') {
+                html.setAttribute('data-theme', 'light');
+                icon.className = 'fa-solid fa-sun';
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                icon.className = 'fa-solid fa-moon';
+            }
+        });
+
+        // ═══════════════════════════════════════════════════════════════════
+        // PRESENTATION MODE
+        // ═══════════════════════════════════════════════════════════════════
+        let presMode = false;
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('[data-slide]');
+        const totalSlides = slides.length;
+
+        function togglePresMode() {
+            presMode = !presMode;
+            const btn = document.getElementById('headerPresBtn');
+
+            if (presMode) {
+                document.body.classList.add('pres-mode');
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="fas fa-stop"></i>';
+                currentSlide = 0;
+                renderSlide();
+
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().catch(() => { });
+                }
+
+                // Reinit visualizations for new size
+                reinitAfterResize();
+            } else {
+                document.body.classList.remove('pres-mode');
+                btn.classList.remove('active');
+                btn.innerHTML = '<i class="fas fa-play"></i>';
+                slides.forEach(s => s.classList.remove('active-slide'));
+
+                if (document.fullscreenElement) {
+                    document.exitFullscreen().catch(() => { });
+                }
+
+                // Reinit visualizations for normal size
+                reinitAfterResize();
+            }
+        }
+
+        function renderSlide() {
+            slides.forEach((s, i) => {
+                s.classList.toggle('active-slide', i === currentSlide);
+            });
+            document.getElementById('slideIndicator').textContent = `${currentSlide + 1} / ${totalSlides}`;
+        }
+
+        function changeSlide(dir) {
+            currentSlide = Math.max(0, Math.min(totalSlides - 1, currentSlide + dir));
+            renderSlide();
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (presMode) {
+                if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') changeSlide(1);
+                if (e.key === 'ArrowLeft') changeSlide(-1);
+                if (e.key === 'Escape') togglePresMode();
+            }
+        });
+
+        // ═══════════════════════════════════════════════════════════════════
+        // TAB NAVIGATION
+        // ═══════════════════════════════════════════════════════════════════
+        function switchTab(pageId) {
+            // Update Tab Buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            // Find button that targets this page
+            const activeBtn = document.querySelector(`.tab-btn[onclick*="${pageId}"]`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            // Update Page Visibility
+            document.querySelectorAll('.page-view').forEach(page => {
+                page.classList.remove('active');
+                if (page.id === pageId) page.classList.add('active');
+            });
+
+            // Re-render visualizations (charts/orbs)
+            setTimeout(() => typeof reinitAfterResize === 'function' && reinitAfterResize(), 100);
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // SCROLL TO SECTION
+        // ═══════════════════════════════════════════════════════════════════
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                // Auto-switch tab if target is in a hidden page
+                const page = el.closest('.page-view');
+                if (page && !page.classList.contains('active')) {
+                    switchTab(page.id);
+                    setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 100);
+                } else {
+                    el.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // COPY CODE SNIPPET
+        // ═══════════════════════════════════════════════════════════════════
+        function copyCode(btn) {
+            const code = btn.closest('.snippet-box').querySelector('.snippet-code').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const orig = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => btn.innerHTML = orig, 1500);
+            });
+        }
+
+        // Copy a value to clipboard (for color swatches)
+        function copyValue(value) {
+            navigator.clipboard.writeText(value).then(() => {
+                // Brief visual feedback
+                const notification = document.createElement('div');
+                notification.textContent = `Copied: ${value}`;
+                notification.style.cssText = `
+                    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+                    background: var(--primary); color: white; padding: 10px 20px;
+                    border-radius: 8px; font-size: 14px; z-index: 9999;
+                    animation: fadeInOut 1.5s ease forwards;
+                `;
+                document.body.appendChild(notification);
+                setTimeout(() => notification.remove(), 1500);
+            });
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // PHYSICS ORBS (D3) - INLINE CARD EXPANSION
+        // ═══════════════════════════════════════════════════════════════════
+        // Store simulation refs for resize
+        let orbSim = null;
+        let d3VizSim = null;
+        let activeInlineCard = null;  // Track currently expanded card
+
+        function initOrbStage() {
+            const container = document.getElementById('orb-stage');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const width = container.clientWidth || 800;
+            const height = container.clientHeight || 400;
+
+            // Get configuration from CentrexStyle
+            const config = CentrexStyle.orbs;
+            const baseRadius = config.baseRadius;
+            const chargeStrength = config.chargeStrength;
+            const centerStrength = config.centerStrength;
+            const positionStrength = config.positionStrength;
+            const collisionPadding = config.collisionPadding;
+            const collisionStrength = config.collisionStrength;
+            const glowIntensity = config.glowIntensity;
+            const glowColor = config.glowColor;
+
+            const svg = d3.select('#orb-stage').append('svg')
+                .attr('width', '100%').attr('height', '100%')
+                .attr('viewBox', `0 0 ${width} ${height}`);
+
+            // Track container position for card placement
+            const containerRect = container.getBoundingClientRect();
+
+            // Gradient using CentrexStyle colors
+            const defs = svg.append('defs');
+            const grad = defs.append('linearGradient').attr('id', 'orbGrad')
+                .attr('x1', '0%').attr('y1', '0%').attr('x2', '100%').attr('y2', '100%');
+            grad.append('stop').attr('offset', '0%').attr('stop-color', config.gradientStart);
+            grad.append('stop').attr('offset', '100%').attr('stop-color', config.gradientEnd);
+
+            // CSS glow using CentrexStyle glow settings
+            const styles = svg.append('style').text(`
+                .orb-circle { filter: drop-shadow(0 0 ${glowIntensity}px ${glowColor}); transition: transform 0.15s, opacity 0.3s; }
+                .orb-group:hover .orb-circle { transform: scale(1.1); filter: drop-shadow(0 0 ${glowIntensity * 1.5}px ${glowColor.replace('0.5', '0.7')}); }
+                .orb-group.hidden .orb-circle { opacity: 0.2; transform: scale(0.8); }
+            `);
+
+            // Nodes arranged in predictable positions (no random spread)
+            // Use CentrexStyle orb count or fall back to demoAgents length
+            const agentsToShow = demoAgents.slice(0, config.count);
+            const cols = Math.ceil(Math.sqrt(agentsToShow.length));
+            const spacing = width / (cols + 1);
+            const nodes = agentsToShow.map((a, i) => ({
+                ...a, r: baseRadius,
+                x: spacing * ((i % cols) + 1),
+                y: height * 0.3 + (Math.floor(i / cols)) * 100
+            }));
+
+            // Forces using CentrexStyle configuration
+            orbSim = d3.forceSimulation(nodes)
+                .force('charge', d3.forceManyBody().strength(chargeStrength))
+                .force('center', d3.forceCenter(width / 2, height / 2).strength(centerStrength))
+                .force('x', d3.forceX(d => d.x).strength(positionStrength))
+                .force('y', d3.forceY(d => d.y).strength(positionStrength))
+                .force('collide', d3.forceCollide(d => d.r + collisionPadding).strength(collisionStrength));
+
+            const node = svg.selectAll('.orb-group')
+                .data(nodes).enter().append('g')
+                .attr('class', 'orb-group')
+                .attr('data-id', d => d.id)
+                .style('cursor', 'pointer')
+                .call(d3.drag()
+                    .on('start', (e, d) => { if (!e.active) orbSim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+                    .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; updateInlineCardPosition(d); })
+                    .on('end', (e, d) => { if (!e.active) orbSim.alphaTarget(0); d.fx = null; d.fy = null; })
+                )
+                .on('click', (e, d) => expandInlineCard(d, e, container));
+
+            node.append('circle')
+                .attr('class', 'orb-circle')
+                .attr('r', d => d.r)
+                .attr('fill', 'url(#orbGrad)');
+
+            node.append('text')
+                .attr('y', 5)
+                .attr('text-anchor', 'middle')
+                .attr('fill', '#fff')
+                .attr('font-size', '12px')
+                .attr('font-weight', '600')
+                .attr('pointer-events', 'none')
+                .text(d => d.name.substring(0, 10));
+
+            orbSim.on('tick', () => {
+                node.attr('transform', d => `translate(${d.x},${d.y})`);
+                // Update card position if one is active
+                if (activeInlineCard) {
+                    updateInlineCardPosition(activeInlineCard.data);
+                }
+            });
+
+            // Settle quickly
+            for (let i = 0; i < 100; i++) orbSim.tick();
+            orbSim.alphaTarget(0);
+        }
+
+        function expandInlineCard(d, event, container) {
+            event.stopPropagation();
+
+            // Close any existing card first
+            closeInlineCard();
+
+            // Get container's bounding rect for positioning
+            const containerRect = container.getBoundingClientRect();
+            const svg = container.querySelector('svg');
+            const svgRect = svg.getBoundingClientRect();
+
+            // Calculate scale between viewBox and actual SVG size
+            const viewBox = svg.getAttribute('viewBox').split(' ').map(Number);
+            const scaleX = svgRect.width / viewBox[2];
+            const scaleY = svgRect.height / viewBox[3];
+
+            // Calculate position in screen coordinates
+            const screenX = d.x * scaleX;
+            const screenY = d.y * scaleY;
+
+            // Create inline card element
+            const card = document.createElement('div');
+            card.className = 'inline-card';
+            card.id = 'active-inline-card';
+            card.innerHTML = `
+                <div class="inline-card-header">
+                    <span class="inline-card-title">${d.name}</span>
+                    <button class="inline-card-close" onclick="closeInlineCard()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Type</span>
+                    <span class="detail-value">${d.type}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Department</span>
+                    <span class="detail-value">${d.dept}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Hours Saved</span>
+                    <span class="detail-value highlight">${d.hours}/yr</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Dev Time</span>
+                    <span class="detail-value">${d.dev}</span>
+                </div>
+            `;
+
+            // Position the card - offset to appear beside/above the orb
+            const cardWidth = 280;
+            const cardHeight = 200; // approximate
+
+            // Determine best position (avoid going off edges)
+            let left = screenX - cardWidth / 2;
+            let top = screenY - cardHeight - 50; // Above the orb
+
+            // Adjust if card would go off left edge
+            if (left < 10) left = 10;
+            // Adjust if card would go off right edge
+            if (left + cardWidth > svgRect.width - 10) left = svgRect.width - cardWidth - 10;
+            // If card would go off top, show it below the orb
+            if (top < 10) top = screenY + 60;
+
+            card.style.left = left + 'px';
+            card.style.top = top + 'px';
+            card.onclick = (e) => e.stopPropagation();
+
+            container.appendChild(card);
+
+            // Store reference
+            activeInlineCard = { element: card, data: d };
+
+            // Dim the clicked orb
+            const orbGroup = container.querySelector(`.orb-group[data-id="${d.id}"]`);
+            if (orbGroup) orbGroup.classList.add('hidden');
+
+            // Trigger animation after DOM insertion
+            requestAnimationFrame(() => {
+                card.classList.add('expanded');
+            });
+        }
+
+        function updateInlineCardPosition(d) {
+            if (!activeInlineCard || activeInlineCard.data.id !== d.id) return;
+
+            const container = document.getElementById('orb-stage');
+            const svg = container.querySelector('svg');
+            const svgRect = svg.getBoundingClientRect();
+            const viewBox = svg.getAttribute('viewBox').split(' ').map(Number);
+            const scaleX = svgRect.width / viewBox[2];
+            const scaleY = svgRect.height / viewBox[3];
+
+            const screenX = d.x * scaleX;
+            const screenY = d.y * scaleY;
+            const cardWidth = 280;
+            const cardHeight = 200;
+
+            let left = screenX - cardWidth / 2;
+            let top = screenY - cardHeight - 50;
+
+            if (left < 10) left = 10;
+            if (left + cardWidth > svgRect.width - 10) left = svgRect.width - cardWidth - 10;
+            if (top < 10) top = screenY + 60;
+
+            activeInlineCard.element.style.left = left + 'px';
+            activeInlineCard.element.style.top = top + 'px';
+        }
+
+        function closeInlineCard() {
+            const card = document.getElementById('active-inline-card');
+            if (card) {
+                card.classList.remove('expanded');
+                // Remove after animation
+                setTimeout(() => card.remove(), 300);
+            }
+
+            // Restore orb visibility
+            if (activeInlineCard) {
+                const container = document.getElementById('orb-stage');
+                const orbGroup = container.querySelector(`.orb-group[data-id="${activeInlineCard.data.id}"]`);
+                if (orbGroup) orbGroup.classList.remove('hidden');
+            }
+
+            activeInlineCard = null;
+        }
+
+        // Close card when clicking outside
+        document.addEventListener('click', (e) => {
+            if (activeInlineCard && !e.target.closest('.inline-card') && !e.target.closest('.orb-group')) {
+                closeInlineCard();
+            }
+        });
+
+        // Legacy function (kept for compatibility with old overlay)
+        function expandCard(d) {
+            // This now does nothing - using inline cards instead
+        }
+
+        function closeCard() {
+            // This now does nothing - using inline cards instead
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // 3D CAROUSEL (GSAP)
+        // ═══════════════════════════════════════════════════════════════════
+        let carouselIndex = 0;
+
+        function initCarousel() {
+            const stage = document.getElementById('cardStage');
+            stage.innerHTML = '';
+
+            carouselData.forEach((data, i) => {
+                const card = document.createElement('div');
+                card.className = 'flywheel-card';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fas ${data.icon}"></i></div>
+                        <h2 class="card-title">${data.title}</h2>
+                    </div>
+                    <div class="card-body">
+                        <p>${data.desc}</p>
+                        <div class="stat-box">
+                            <span class="stat-value">${data.stat}</span>
+                            <span class="stat-label">${data.statLabel}</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">Step ${data.step}</div>
+                `;
+                stage.appendChild(card);
+            });
+
+            updateCarousel();
+        }
+
+        function updateCarousel() {
+            const cards = document.querySelectorAll('.flywheel-card');
+            document.getElementById('carouselIndicator').textContent = `Step ${carouselIndex + 1} of ${cards.length}`;
+
+            // Get configuration from CentrexStyle
+            const config = CentrexStyle.carousel;
+
+            cards.forEach((card, i) => {
+                const dist = i - carouselIndex;
+                gsap.to(card, {
+                    duration: config.transitionDuration,
+                    ease: 'power3.out',
+                    opacity: i === carouselIndex ? 1 : (Math.abs(dist) === 1 ? config.inactiveOpacity : 0),
+                    scale: i === carouselIndex ? config.activeScale : config.inactiveScale,
+                    x: dist * config.cardSpacing,
+                    z: i === carouselIndex ? 100 : 0,
+                    rotateY: dist * -config.rotationAngle,
+                    zIndex: 100 - Math.abs(dist),
+                    filter: i === carouselIndex ? 'blur(0px)' : 'blur(3px)'
+                });
+            });
+        }
+
+        function rotateCarousel(dir) {
+            carouselIndex = Math.max(0, Math.min(carouselData.length - 1, carouselIndex + dir));
+            updateCarousel();
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // D3 FORCE GRAPH
+        // ═══════════════════════════════════════════════════════════════════
+        function initD3Viz() {
+            const container = document.getElementById('d3-viz');
+            if (!container) return;
+            container.innerHTML = '';
+
+            // Use fixed dimensions or fallback
+            const width = container.clientWidth || 800;
+            const height = container.clientHeight || 400;
+
+            if (width < 50 || height < 50) {
+                // Container not ready, retry later
+                setTimeout(initD3Viz, 200);
+                return;
+            }
+
+            // Get configuration from CentrexStyle
+            const config = CentrexStyle.d3Viz;
+
+            const svg = d3.select('#d3-viz').append('svg')
+                .attr('width', '100%').attr('height', '100%')
+                .attr('viewBox', `0 0 ${width} ${height}`);
+
+            // Gradient for agents using CentrexStyle colors
+            const defs = svg.append('defs');
+            const grad = defs.append('linearGradient').attr('id', 'd3Grad')
+                .attr('x1', '0%').attr('y1', '0%').attr('x2', '100%').attr('y2', '100%');
+            grad.append('stop').attr('offset', '0%').attr('stop-color', CentrexStyle.colors.primary);
+            grad.append('stop').attr('offset', '100%').attr('stop-color', '#10b981');
+
+            const nodes = [
+                ...departments.map(d => ({ id: d.name, type: 'dept', color: d.color, count: d.count })),
+                ...demoAgents.map(a => ({ id: a.id, type: 'agent', name: a.name, dept: a.dept }))
+            ];
+
+            const links = demoAgents.map(a => ({ source: a.id, target: a.dept }));
+
+            // Forces using CentrexStyle configuration
+            d3VizSim = d3.forceSimulation(nodes)
+                .force('link', d3.forceLink(links).id(d => d.id).distance(config.linkDistance).strength(config.linkStrength))
+                .force('charge', d3.forceManyBody().strength(config.chargeStrength))
+                .force('center', d3.forceCenter(width / 2, height / 2))
+                .force('collide', d3.forceCollide(d => d.type === 'dept' ? config.collideRadius.dept : config.collideRadius.agent).strength(config.collideStrength));
+
+            const link = svg.append('g')
+                .selectAll('line').data(links).enter().append('line')
+                .attr('stroke', 'rgba(61,174,43,0.5)')  // Slightly more visible links
+                .attr('stroke-width', 2.5);
+
+            const node = svg.append('g')
+                .selectAll('g').data(nodes).enter().append('g')
+                .style('cursor', 'grab')
+                .call(d3.drag()
+                    .on('start', (e, d) => { if (!e.active) d3VizSim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+                    .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
+                    .on('end', (e, d) => { if (!e.active) d3VizSim.alphaTarget(0); d.fx = null; d.fy = null; })
+                );
+
+            node.each(function (d) {
+                const el = d3.select(this);
+                if (d.type === 'dept') {
+                    // Department nodes - bigger, colored circles
+                    el.append('circle').attr('r', 45).attr('fill', d.color)
+                        .attr('stroke', 'rgba(255,255,255,0.4)').attr('stroke-width', 2);
+                    el.append('text').attr('y', 6).attr('text-anchor', 'middle')
+                        .attr('fill', '#fff').attr('font-size', '12px').attr('font-weight', '700')
+                        .text(d.id.substring(0, 8));
+                } else {
+                    // Agent nodes - bigger, green orbs
+                    el.append('circle').attr('r', 24).attr('fill', 'url(#d3Grad)')
+                        .attr('stroke', '#fff').attr('stroke-width', 1.5);
+                    el.append('text').attr('y', 5).attr('text-anchor', 'middle')
+                        .attr('fill', '#fff').attr('font-size', '9px').attr('font-weight', '600')
+                        .text(d.name ? d.name.substring(0, 6) : '');
+                }
+            });
+
+            d3VizSim.on('tick', () => {
+                link.attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+                node.attr('transform', d => `translate(${d.x},${d.y})`);
+            });
+
+            // Pre-settle
+            for (let i = 0; i < 150; i++) d3VizSim.tick();
+            d3VizSim.alphaTarget(0);
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // DATA VISUALIZATION ENGINE (D3)
+        // ═══════════════════════════════════════════════════════════════════
+        CentrexStyle.charts = {
+            // Colors helper
+            getColor(i) {
+                const palette = [
+                    CentrexStyle.colors.primary,
+                    CentrexStyle.colors.secondary,
+                    CentrexStyle.colors.tertiary,
+                    CentrexStyle.colors.accent,
+                    '#10b981', '#8b5cf6', '#06b6d4', '#f59e0b'
+                ];
+                return palette[i % palette.length];
+            },
+
+            // Main Render Function
+            render(type, containerId, data, options = {}) {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                container.innerHTML = '';
+
+                // Dimensions
+                const margin = options.margin || { top: 40, right: 30, bottom: 50, left: 60 };
+                const width = container.clientWidth - margin.left - margin.right;
+                const height = container.clientHeight - margin.top - margin.bottom;
+
+                // SVG Container
+                const svg = d3.select(container)
+                    .append('svg')
+                    .attr('width', container.clientWidth)
+                    .attr('height', container.clientHeight)
+                    .append('g')
+                    .attr('transform', `translate(${margin.left},${margin.top})`);
+
+                // Title
+                if (options.title) {
+                    d3.select(container).select('svg').append('text')
+                        .attr('x', container.clientWidth / 2)
+                        .attr('y', 25)
+                        .attr('text-anchor', 'middle')
+                        .style('font-size', '16px')
+                        .style('font-weight', 'bold')
+                        .style('fill', options.dark ? '#fff' : 'var(--text-primary)')
+                        .text(options.title);
+                }
+
+                // Dispatch
+                switch (type) {
+                    case 'bar': this.renderBar(svg, data, width, height, options); break;
+                    case 'line': this.renderLine(svg, data, width, height, options); break;
+                    case 'pie': this.renderPie(svg, data, width, height, options); break;
+                    case 'scatter': this.renderScatter(svg, data, width, height, options); break;
+                    case 'treemap': this.renderTreemap(svg, data, width, height, options); break;
+                    case 'sunburst': this.renderSunburst(svg, data, width, height, options); break;
+                    case 'waterfall': this.renderWaterfall(svg, data, width, height, options); break;
+                    case 'funnel': this.renderFunnel(svg, data, width, height, options); break;
+                    case 'histogram': this.renderHistogram(svg, data, width, height, options); break;
+                    case 'boxplot': this.renderBoxPlot(svg, data, width, height, options); break;
+                    case 'organogram': this.renderOrganogram(svg, data, width, height, options); break;
+                    case 'process': this.renderProcess(svg, data, width, height, options); break;
+                }
+            },
+
+            // --- Basic Charts ---
+            renderBar(svg, data, width, height, options) {
+                const x = d3.scaleBand().range([0, width]).domain(data.map(d => d.label)).padding(0.2);
+                const y = d3.scaleLinear().range([height, 0]).domain([0, d3.max(data, d => d.value)]);
+
+                svg.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x)).attr("class", "axis");
+                svg.append("g").call(d3.axisLeft(y)).attr("class", "axis");
+
+                svg.selectAll("rect")
+                    .data(data).enter().append("rect")
+                    .attr("x", d => x(d.label))
+                    .attr("y", d => y(d.value))
+                    .attr("width", x.bandwidth())
+                    .attr("height", d => height - y(d.value))
+                    .attr("fill", (d, i) => this.getColor(i));
+            },
+
+            renderLine(svg, data, width, height, options) {
+                const x = d3.scalePoint().range([0, width]).domain(data.map(d => d.label));
+                const y = d3.scaleLinear().range([height, 0]).domain([0, d3.max(data, d => d.value)]);
+
+                svg.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x));
+                svg.append("g").call(d3.axisLeft(y));
+
+                const line = d3.line().x(d => x(d.label)).y(d => y(d.value)).curve(d3.curveMonotoneX);
+
+                svg.append("path")
+                    .datum(data)
+                    .attr("fill", "none")
+                    .attr("stroke", CentrexStyle.colors.primary)
+                    .attr("stroke-width", 3)
+                    .attr("d", line);
+
+                svg.selectAll(".dot")
+                    .data(data).enter().append("circle")
+                    .attr("cx", d => x(d.label))
+                    .attr("cy", d => y(d.value))
+                    .attr("r", 5)
+                    .attr("fill", CentrexStyle.colors.primary);
+            },
+
+            renderPie(svg, data, width, height, options) {
+                const radius = Math.min(width, height) / 2;
+                const g = svg.append("g").attr("transform", `translate(${width / 2},${height / 2})`);
+                const pie = d3.pie().value(d => d.value);
+                const arc = d3.arc().innerRadius(0).outerRadius(radius);
+
+                g.selectAll("path")
+                    .data(pie(data)).enter().append("path")
+                    .attr("d", arc)
+                    .attr("fill", (d, i) => this.getColor(i))
+                    .attr("stroke", "var(--bg-panel)")
+                    .style("stroke-width", "2px");
+            },
+
+            renderScatter(svg, data, width, height, options) {
+                const x = d3.scaleLinear().range([0, width]).domain([0, d3.max(data, d => d.x)]);
+                const y = d3.scaleLinear().range([height, 0]).domain([0, d3.max(data, d => d.y)]);
+
+                svg.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x));
+                svg.append("g").call(d3.axisLeft(y));
+
+                svg.selectAll("circle")
+                    .data(data).enter().append("circle")
+                    .attr("cx", d => x(d.x))
+                    .attr("cy", d => y(d.y))
+                    .attr("r", d => d.r || 6)
+                    .attr("fill", (d, i) => this.getColor(i))
+                    .attr("opacity", 0.7);
+            },
+
+            // --- Advanced Charts ---
+            renderTreemap(svg, data, width, height, options) {
+                const root = d3.hierarchy(data).sum(d => d.value).sort((a, b) => b.value - a.value);
+                d3.treemap().size([width, height]).padding(1)(root);
+
+                svg.selectAll("rect")
+                    .data(root.leaves()).enter().append("rect")
+                    .attr("x", d => d.x0).attr("y", d => d.y0)
+                    .attr("width", d => d.x1 - d.x0).attr("height", d => d.y1 - d.y0)
+                    .attr("fill", (d, i) => this.getColor(i))
+                    .attr("stroke", "var(--bg-panel)");
+
+                svg.selectAll("text")
+                    .data(root.leaves()).enter().append("text")
+                    .attr("x", d => d.x0 + 5).attr("y", d => d.y0 + 20)
+                    .text(d => d.data.name).attr("font-size", "10px").attr("fill", "white");
+            },
+
+            renderSunburst(svg, data, width, height, options) {
+                const radius = Math.min(width, height) / 2;
+                const g = svg.append("g").attr("transform", `translate(${width / 2},${height / 2})`);
+                const root = d3.hierarchy(data).sum(d => d.value);
+                d3.partition().size([2 * Math.PI, radius])(root);
+                const arc = d3.arc().startAngle(d => d.x0).endAngle(d => d.x1).innerRadius(d => d.y0).outerRadius(d => d.y1);
+
+                g.selectAll("path")
+                    .data(root.descendants()).enter().append("path")
+                    .attr("d", arc)
+                    .style("fill", (d, i) => this.getColor(d.depth))
+                    .style("stroke", "var(--bg-panel)");
+            },
+
+            renderWaterfall(svg, data, width, height, options) {
+                const x = d3.scaleBand().range([0, width]).domain(data.map(d => d.label)).padding(0.3);
+                const y = d3.scaleLinear().range([height, 0]).domain([0, d3.max(data, d => d.end)]);
+
+                svg.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x));
+                svg.append("g").call(d3.axisLeft(y));
+
+                svg.selectAll("rect")
+                    .data(data).enter().append("rect")
+                    .attr("x", d => x(d.label))
+                    .attr("y", d => y(Math.max(d.start, d.end)))
+                    .attr("width", x.bandwidth())
+                    .attr("height", d => Math.abs(y(d.start) - y(d.end)))
+                    .attr("fill", d => d.class === 'pos' ? CentrexStyle.colors.primary : (d.class === 'neg' ? CentrexStyle.colors.accent : '#888'));
+            },
+
+            renderFunnel(svg, data, width, height, options) {
+                // Simplified funnel using centered rects
+                const y = d3.scaleBand().range([0, height]).domain(data.map(d => d.label)).padding(0.1);
+                const x = d3.scaleLinear().range([0, width / 2]).domain([0, d3.max(data, d => d.value)]);
+
+                svg.selectAll("rect")
+                    .data(data).enter().append("rect")
+                    .attr("x", d => (width / 2) - x(d.value))
+                    .attr("y", d => y(d.label))
+                    .attr("width", d => x(d.value) * 2)
+                    .attr("height", y.bandwidth())
+                    .attr("fill", (d, i) => this.getColor(i))
+                    .attr("rx", 4);
+
+                svg.selectAll("text")
+                    .data(data).enter().append("text")
+                    .attr("x", width / 2).attr("y", d => y(d.label) + y.bandwidth() / 2 + 4)
+                    .attr("text-anchor", "middle")
+                    .attr("fill", "white")
+                    .text(d => `${d.label}: ${d.value}`);
+            },
+
+            renderHistogram(svg, data, width, height, options) {
+                const x = d3.scaleLinear().domain([0, d3.max(data)]).range([0, width]);
+                const histogram = d3.bin().domain(x.domain()).thresholds(x.ticks(20))(data);
+                const y = d3.scaleLinear().range([height, 0]).domain([0, d3.max(histogram, d => d.length)]);
+
+                svg.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x));
+                svg.append("g").call(d3.axisLeft(y));
+
+                svg.selectAll("rect")
+                    .data(histogram).enter().append("rect")
+                    .attr("x", 1).attr("transform", d => `translate(${x(d.x0)},${y(d.length)})`)
+                    .attr("width", d => Math.max(0, x(d.x1) - x(d.x0) - 1))
+                    .attr("height", d => height - y(d.length))
+                    .style("fill", CentrexStyle.colors.secondary);
+            },
+
+            renderBoxPlot(svg, data, width, height, options) {
+                // Expects {min, q1, median, q3, max}
+                const x = d3.scaleBand().range([0, width]).domain(data.map(d => d.label)).padding(0.4);
+                const y = d3.scaleLinear().domain([0, d3.max(data, d => d.max * 1.1)]).range([height, 0]);
+
+                svg.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x));
+                svg.append("g").call(d3.axisLeft(y));
+
+                const g = svg.selectAll(".box").data(data).enter().append("g");
+
+                // Vertical line
+                g.append("line")
+                    .attr("x1", d => x(d.label) + x.bandwidth() / 2).attr("x2", d => x(d.label) + x.bandwidth() / 2)
+                    .attr("y1", d => y(d.min)).attr("y2", d => y(d.max))
+                    .attr("stroke", "var(--text-primary)");
+
+                // Box
+                g.append("rect")
+                    .attr("x", d => x(d.label))
+                    .attr("y", d => y(d.q3))
+                    .attr("height", d => y(d.q1) - y(d.q3))
+                    .attr("width", x.bandwidth())
+                    .attr("stroke", "var(--text-primary)")
+                    .style("fill", (d, i) => this.getColor(i))
+                    .style("opacity", 0.6);
+
+                // Median
+                g.append("line")
+                    .attr("x1", d => x(d.label)).attr("x2", d => x(d.label) + x.bandwidth())
+                    .attr("y1", d => y(d.median)).attr("y2", d => y(d.median))
+                    .attr("stroke", "white").style("width", 80);
+            },
+
+            // --- Custom Visuals ---
+            renderOrganogram(svg, data, width, height, options) {
+                const root = d3.hierarchy(data);
+                const tree = d3.tree().size([width, height - 40]);
+                tree(root);
+
+                const link = svg.selectAll(".link")
+                    .data(root.descendants().slice(1)).enter().append("path")
+                    .attr("class", "link")
+                    .attr("d", d => `M${d.x},${d.y}C${d.x},${(d.y + d.parent.y) / 2} ${d.parent.x},${(d.y + d.parent.y) / 2} ${d.parent.x},${d.parent.y}`)
+                    .attr("fill", "none").attr("stroke", "#555");
+
+                const node = svg.selectAll(".node")
+                    .data(root.descendants()).enter().append("g")
+                    .attr("class", d => "node" + (d.children ? " node--internal" : " node--leaf"))
+                    .attr("transform", d => `translate(${d.x},${d.y})`);
+
+                node.append("circle").attr("r", 10).attr("fill", (d, i) => this.getColor(d.depth));
+                node.append("text").attr("dy", ".35em").attr("y", d => d.children ? -20 : 20)
+                    .style("text-anchor", "middle").text(d => d.data.name).attr("fill", "var(--text-primary)");
+            },
+
+            renderProcess(svg, data, width, height, options) {
+                // Cycle visual (pie-like but with arrows/flow)
+                // Simplified as donut with arrows
+                const radius = Math.min(width, height) / 2 - 20;
+                const pie = d3.pie().sort(null).value(d => 1);
+                const arc = d3.arc().innerRadius(radius * 0.6).outerRadius(radius * 0.9);
+
+                const g = svg.append("g").attr("transform", `translate(${width / 2},${height / 2})`);
+
+                g.selectAll("path")
+                    .data(pie(data)).enter().append("path")
+                    .attr("d", arc)
+                    .attr("fill", (d, i) => this.getColor(i))
+                    .attr("stroke", "var(--bg-panel)").attr("stroke-width", 4);
+
+                g.selectAll("text")
+                    .data(pie(data)).enter().append("text")
+                    .attr("transform", d => `translate(${arc.centroid(d)})`)
+                    .attr("dy", ".35em")
+                    .attr("text-anchor", "middle")
+                    .text((d, i) => i + 1).attr("fill", "white").attr("font-weight", "bold");
+            }
+        };
+
+        // UI Handler for Buttons
+        CentrexStyle.renderChart = function (type) {
+            // Track active state
+            CentrexStyle.activeChartType = type;
+
+            // Handle Buttons
+            document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
+            const btn = Array.from(document.querySelectorAll('.chart-btn')).find(b => b.onclick && b.onclick.toString().includes(type));
+            if (btn) btn.classList.add('active');
+
+            // Sample Data Generation
+            let data = [];
+            let options = { title: type.toUpperCase() + ' Demo' };
+
+            if (type === 'bar') data = [{ label: 'A', value: 10 }, { label: 'B', value: 20 }, { label: 'C', value: 15 }, { label: 'D', value: 25 }, { label: 'E', value: 30 }];
+            else if (type === 'line') data = [{ label: 'Jan', value: 10 }, { label: 'Feb', value: 20 }, { label: 'Mar', value: 15 }, { label: 'Apr', value: 25 }, { label: 'May', value: 30 }];
+            else if (type === 'pie') data = [{ label: 'A', value: 30 }, { label: 'B', value: 20 }, { label: 'C', value: 50 }];
+            else if (type === 'scatter') data = Array.from({ length: 20 }, () => ({ x: Math.random() * 100, y: Math.random() * 100, r: Math.random() * 10 + 2 }));
+            else if (type === 'treemap' || type === 'sunburst' || type === 'organogram') {
+                data = {
+                    name: "Root", children: [
+                        { name: "Tech", children: [{ name: "Dev", value: 10 }, { name: "Ops", value: 5 }] },
+                        { name: "Sales", children: [{ name: "Inbound", value: 8 }, { name: "Outbound", value: 12 }] },
+                        { name: "HR", value: 5 }
+                    ]
+                };
+            }
+            else if (type === 'waterfall') {
+                data = [
+                    { label: 'Start', start: 0, end: 100, class: 'pos' },
+                    { label: 'Add', start: 100, end: 150, class: 'pos' },
+                    { label: 'Sub', start: 150, end: 120, class: 'neg' },
+                    { label: 'End', start: 0, end: 120, class: 'total' }
+                ];
+            }
+            else if (type === 'funnel') data = [{ label: 'Leads', value: 100 }, { label: 'Qual', value: 60 }, { label: 'Prop', value: 30 }, { label: 'Close', value: 15 }];
+            else if (type === 'histogram') data = d3.range(100).map(d3.randomNormal(100, 20));
+            else if (type === 'boxplot') data = [
+                { label: 'Q1', min: 10, q1: 30, median: 50, q3: 70, max: 90 },
+                { label: 'Q2', min: 5, q1: 25, median: 45, q3: 65, max: 85 }
+            ];
+            else if (type === 'process') data = ['Plan', 'Design', 'Build', 'Test', 'Deploy'];
+
+            // Render
+            CentrexStyle.charts.render(type, 'chart-stage', data, options);
+
+            // Update Snippet
+            const snippet = `CentrexStyle.charts.render('${type}', 'chart-stage', ${JSON.stringify(data, null, 2).substring(0, 100)}..., {});`;
+            document.getElementById('chart-snippet-code').textContent = snippet;
+            document.getElementById('chart-snippet-title').textContent = `D3 ${type.charAt(0).toUpperCase() + type.slice(1)} Render`;
+        };
+
+        // Init default chart
+        document.addEventListener('DOMContentLoaded', () => { setTimeout(() => CentrexStyle.renderChart('bar'), 500); });
+
+        // ═══════════════════════════════════════════════════════════════════
+        // INIT
+        // ═══════════════════════════════════════════════════════════════════
+        document.addEventListener('DOMContentLoaded', () => {
+            initOrbStage();
+            initCarousel();
+            // Delay D3 viz init to ensure container is sized
+            setTimeout(initD3Viz, 100);
+        });
+
+        // Reinit visualizations when entering/exiting pres mode for proper sizing
+        function reinitAfterResize() {
+            if (orbSim) orbSim.stop();
+            if (d3VizSim) d3VizSim.stop();
+            setTimeout(() => {
+                initOrbStage();
+                initD3Viz();
+                // Re-render active chart if exists
+                if (CentrexStyle.activeChartType) {
+                    CentrexStyle.renderChart(CentrexStyle.activeChartType);
+                }
+            }, 300);
+        }
+
+        // Window Resize Listener
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(reinitAfterResize, 250);
+        });
+    </script>
+</body>
+
+</html>

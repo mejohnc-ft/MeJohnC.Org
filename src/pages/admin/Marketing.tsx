@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Users, Send, TrendingUp, Star, FileText, Sparkles } from 'lucide-react';
+import { Mail, Users, Send, TrendingUp, Star, FileText, Sparkles, CheckCircle, AlertCircle, TestTube } from 'lucide-react';
 import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import AdminLayout from '@/components/AdminLayout';
 import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
 import { getMarketingStats } from '@/lib/marketing-queries';
+import { emailService, sendTestEmail } from '@/lib/email-service';
 import type { MarketingStats } from '@/lib/schemas';
 
 const Marketing = () => {
@@ -15,6 +17,11 @@ const Marketing = () => {
   const { supabase } = useAuthenticatedSupabase();
   const [stats, setStats] = useState<MarketingStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [testEmail, setTestEmail] = useState('');
+  const [isSendingTest, setIsSendingTest] = useState(false);
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  const emailProviderInfo = emailService.getProviderInfo();
 
   useEffect(() => {
     async function fetchStats() {
@@ -36,6 +43,32 @@ const Marketing = () => {
 
     fetchStats();
   }, [supabase]);
+
+  const handleSendTestEmail = async () => {
+    if (!testEmail || !testEmail.includes('@')) {
+      setTestResult({ success: false, message: 'Please enter a valid email address' });
+      return;
+    }
+
+    setIsSendingTest(true);
+    setTestResult(null);
+
+    try {
+      const result = await sendTestEmail(testEmail);
+      if (result.success) {
+        setTestResult({ success: true, message: `Test email sent successfully via ${result.provider}!` });
+      } else {
+        setTestResult({ success: false, message: result.error || 'Failed to send test email' });
+      }
+    } catch (error) {
+      captureException(error instanceof Error ? error : new Error(String(error)), {
+        context: 'Marketing.handleSendTestEmail',
+      });
+      setTestResult({ success: false, message: 'Error sending test email' });
+    } finally {
+      setIsSendingTest(false);
+    }
+  };
 
   const statCards = [
     {
@@ -183,6 +216,56 @@ const Marketing = () => {
                 </motion.div>
               );
             })}
+          </div>
+        </div>
+
+        {/* Email Configuration Status */}
+        <div className="bg-card border border-border rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-foreground mb-4">Email Service Configuration</h2>
+          <div className="flex items-center gap-3 mb-4">
+            {emailProviderInfo.configured ? (
+              <CheckCircle className="w-5 h-5 text-green-500" />
+            ) : (
+              <AlertCircle className="w-5 h-5 text-yellow-500" />
+            )}
+            <div>
+              <p className="font-medium">
+                Provider: <span className="text-primary capitalize">{emailProviderInfo.provider}</span>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {emailProviderInfo.provider === 'console'
+                  ? 'Emails will be logged to console (development mode)'
+                  : `Sending from: ${emailProviderInfo.fromEmail}`}
+              </p>
+            </div>
+          </div>
+
+          {/* Test Email */}
+          <div className="border-t border-border pt-4 mt-4">
+            <p className="text-sm font-medium mb-2">Send Test Email</p>
+            <div className="flex gap-2">
+              <Input
+                type="email"
+                placeholder="your@email.com"
+                value={testEmail}
+                onChange={(e) => setTestEmail(e.target.value)}
+                className="max-w-xs"
+              />
+              <Button
+                onClick={handleSendTestEmail}
+                disabled={isSendingTest}
+                variant="outline"
+                size="default"
+              >
+                <TestTube className="w-4 h-4 mr-2" />
+                {isSendingTest ? 'Sending...' : 'Send Test'}
+              </Button>
+            </div>
+            {testResult && (
+              <p className={`text-sm mt-2 ${testResult.success ? 'text-green-500' : 'text-red-500'}`}>
+                {testResult.message}
+              </p>
+            )}
           </div>
         </div>
 

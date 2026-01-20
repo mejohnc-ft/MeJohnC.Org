@@ -685,6 +685,166 @@ export async function updateContentSuggestion(
 }
 
 // ============================================
+// CAMPAIGN SENDING
+// ============================================
+
+export interface SendCampaignResult {
+  success: boolean;
+  sent_count: number;
+  failed_count: number;
+  errors: string[];
+}
+
+export async function sendCampaign(
+  campaignId: string,
+  client: SupabaseClient = supabase
+): Promise<SendCampaignResult> {
+  // Import email service dynamically to avoid circular deps
+  const { emailService } = await import('./email-service');
+
+  const result: SendCampaignResult = {
+    success: false,
+    sent_count: 0,
+    failed_count: 0,
+    errors: [],
+  };
+
+  try {
+    // Get the campaign
+    const campaign = await getEmailCampaignById(campaignId, client);
+
+    if (!campaign) {
+      result.errors.push('Campaign not found');
+      return result;
+    }
+
+    if (campaign.status !== 'draft' && campaign.status !== 'scheduled') {
+      result.errors.push(`Campaign cannot be sent - status is ${campaign.status}`);
+      return result;
+    }
+
+    if (!campaign.html_content) {
+      result.errors.push('Campaign has no HTML content');
+      return result;
+    }
+
+    // Update campaign status to sending
+    await updateEmailCampaign(campaignId, { status: 'sending' }, client);
+
+    // Get subscribers from the target lists
+    let subscribers: EmailSubscriber[] = [];
+
+    if (campaign.list_ids && campaign.list_ids.length > 0) {
+      // Get subscribers from specific lists
+      for (const listId of campaign.list_ids) {
+        const listSubscribers = await getEmailSubscribers({ list: listId, status: 'active' }, client);
+        subscribers = [...subscribers, ...listSubscribers];
+      }
+      // Remove duplicates
+      subscribers = subscribers.filter(
+        (sub, index, self) => index === self.findIndex((s) => s.id === sub.id)
+      );
+    } else {
+      // No lists specified - get all active subscribers
+      subscribers = await getEmailSubscribers({ status: 'active' }, client);
+    }
+
+    // Filter out excluded tags if any
+    if (campaign.exclude_tags && campaign.exclude_tags.length > 0) {
+      subscribers = subscribers.filter(
+        (sub) => !sub.tags.some((tag) => campaign.exclude_tags?.includes(tag))
+      );
+    }
+
+    // Update recipients count
+    await updateEmailCampaign(campaignId, { recipients_count: subscribers.length }, client);
+
+    // Send to each subscriber
+    for (const subscriber of subscribers) {
+      try {
+        // Replace template variables
+        let html = campaign.html_content;
+        let text = campaign.text_content || '';
+        let subject = campaign.subject;
+
+        const replacements: Record<string, string> = {
+          '{{email}}': subscriber.email,
+          '{{first_name}}': subscriber.first_name || '',
+          '{{last_name}}': subscriber.last_name || '',
+          '{{unsubscribe_url}}': `${import.meta.env.VITE_SITE_URL || ''}/unsubscribe?email=${encodeURIComponent(subscriber.email)}`,
+        };
+
+        for (const [key, value] of Object.entries(replacements)) {
+          html = html.replace(new RegExp(key, 'g'), value);
+          text = text.replace(new RegExp(key, 'g'), value);
+          subject = subject.replace(new RegExp(key, 'g'), value);
+        }
+
+        const response = await emailService.send({
+          to: subscriber.email,
+          subject,
+          html,
+          text: text || undefined,
+        });
+
+        if (response.success) {
+          result.sent_count++;
+          // Log the send event
+          await createEmailEvent(
+            {
+              event_type: 'sent',
+              subscriber_id: subscriber.id,
+              campaign_id: campaignId,
+              occurred_at: new Date().toISOString(),
+              provider_message_id: response.id,
+              link_url: null,
+              bounce_type: null,
+              bounce_reason: null,
+              ip_address: null,
+              user_agent: null,
+              provider_event_id: null,
+              provider_metadata: null,
+            },
+            client
+          );
+        } else {
+          result.failed_count++;
+          result.errors.push(`Failed to send to ${subscriber.email}: ${response.error}`);
+        }
+      } catch (error) {
+        result.failed_count++;
+        result.errors.push(`Error sending to ${subscriber.email}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+
+    // Update campaign status and stats
+    await updateEmailCampaign(
+      campaignId,
+      {
+        status: 'sent',
+        sent_at: new Date().toISOString(),
+        sent_count: result.sent_count,
+      },
+      client
+    );
+
+    result.success = result.sent_count > 0;
+    return result;
+  } catch (error) {
+    result.errors.push(`Campaign send failed: ${error instanceof Error ? error.message : String(error)}`);
+
+    // Revert status on error
+    try {
+      await updateEmailCampaign(campaignId, { status: 'draft' }, client);
+    } catch {
+      // Ignore revert errors
+    }
+
+    return result;
+  }
+}
+
+// ============================================
 // MARKETING STATS
 // ============================================
 
