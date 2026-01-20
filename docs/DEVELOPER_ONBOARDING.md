@@ -197,8 +197,12 @@ Types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `style`, `perf`
 2. Make changes with meaningful commits
 3. Run tests: `npm run test && npm run lint`
 4. Push and create PR
-5. Request review
-6. Merge after approval
+5. Wait for CI checks to pass (Code Quality, Tests, Build)
+6. Request review (at least 1 approval required)
+7. Ensure branch is up to date with `main`
+8. Merge using squash or rebase (no merge commits - linear history required)
+
+> **Note**: The `main` branch is protected. See [Branch Protection](./devops/branch-protection.md) for full details on the protection rules and requirements.
 
 ---
 
@@ -471,6 +475,7 @@ After setup, explore these resources:
 1. **API Documentation**: `docs/api/openapi.yaml`
 2. **Architecture Decisions**: `docs/ADR/` (when created)
 3. **Security Guide**: `docs/SECRETS_MANAGEMENT.md`
-4. **Phase 3 Features**: `docs/PHASE3_REVIEW.md`
+4. **Branch Protection**: `docs/devops/branch-protection.md`
+5. **Phase 3 Features**: `docs/PHASE3_REVIEW.md`
 
 Welcome to the team! 🎉
