@@ -1,9 +1,45 @@
 import { z } from 'zod';
 import { captureException } from './sentry';
 
+// ============================================
+// TENANT SCHEMAS (Multi-tenant support)
+// ============================================
+
+// Default tenant ID for standalone mode
+export const DEFAULT_TENANT_ID = '00000000-0000-0000-0000-000000000001';
+
+// Tenant Types
+export const TenantTypeSchema = z.enum(['platform', 'organization', 'account', 'user']);
+export type TenantType = z.infer<typeof TenantTypeSchema>;
+
+// Tenant Schema
+export const TenantSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  slug: z.string(),
+  type: TenantTypeSchema,
+  hierarchy_path: z.string().nullable(),
+  parent_id: z.string().uuid().nullable(),
+  settings: z.record(z.unknown()).nullable(),
+  is_active: z.boolean(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type Tenant = z.infer<typeof TenantSchema>;
+
+// Base schema with tenant_id (used for extending other schemas)
+const withTenantId = {
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
+};
+
+// ============================================
+// APP SCHEMAS
+// ============================================
+
 // App Suites
 export const AppSuiteSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   name: z.string(),
   description: z.string().nullable(),
   slug: z.string(),
@@ -17,6 +53,7 @@ export type AppSuite = z.infer<typeof AppSuiteSchema>;
 export const AppStatusSchema = z.enum(['planned', 'in_development', 'available', 'archived']);
 export const AppSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   suite_id: z.string().uuid().nullable(),
   name: z.string(),
   slug: z.string(),
@@ -45,6 +82,7 @@ export type AppWithSuite = z.infer<typeof AppWithSuiteSchema>;
 export const BlogPostStatusSchema = z.enum(['draft', 'published', 'scheduled']);
 export const BlogPostSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   title: z.string(),
   slug: z.string(),
   excerpt: z.string().nullable(),
@@ -66,6 +104,7 @@ export type BlogPost = z.infer<typeof BlogPostSchema>;
 // Site Content
 export const SiteContentSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   key: z.string(),
   title: z.string(),
   content: z.string(),
@@ -77,6 +116,7 @@ export type SiteContent = z.infer<typeof SiteContentSchema>;
 export const ProjectStatusSchema = z.enum(['draft', 'published', 'scheduled']);
 export const ProjectSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   name: z.string(),
   slug: z.string(),
   tagline: z.string().nullable(),
@@ -99,6 +139,7 @@ export type Project = z.infer<typeof ProjectSchema>;
 export const ContactIconSchema = z.enum(['email', 'linkedin', 'github', 'twitter', 'calendar']);
 export const ContactLinkSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   label: z.string(),
   href: z.string(),
   value: z.string().nullable(),
@@ -113,6 +154,7 @@ export type ContactLink = z.infer<typeof ContactLinkSchema>;
 // Work History
 export const WorkHistoryEntrySchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   title: z.string(),
   company: z.string(),
   period: z.string(),
@@ -127,6 +169,7 @@ export type WorkHistoryEntry = z.infer<typeof WorkHistoryEntrySchema>;
 // Case Studies
 export const CaseStudySchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   metric: z.string(),
   title: z.string(),
   before_content: z.string(),
@@ -141,6 +184,7 @@ export type CaseStudy = z.infer<typeof CaseStudySchema>;
 export const TimelineChartTypeSchema = z.enum(['growth', 'linear', 'decline']);
 export const TimelineSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   name: z.string(),
   slug: z.string(),
   description: z.string().nullable(),
@@ -154,6 +198,7 @@ export type Timeline = z.infer<typeof TimelineSchema>;
 
 export const TimelineEntrySchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   timeline_id: z.string().uuid(),
   label: z.string(),
   phase: z.string(),
@@ -214,6 +259,7 @@ export function parseArrayResponse<T>(
 export const NewsCategoryColorSchema = z.enum(['blue', 'green', 'purple', 'orange', 'red', 'yellow']);
 export const NewsCategorySchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   slug: z.string(),
   name: z.string(),
   description: z.string().nullable(),
@@ -228,6 +274,7 @@ export type NewsCategory = z.infer<typeof NewsCategorySchema>;
 export const NewsSourceTypeSchema = z.enum(['rss', 'api']);
 export const NewsSourceSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   name: z.string(),
   source_type: NewsSourceTypeSchema,
   url: z.string(),
@@ -253,6 +300,7 @@ export type NewsSourceWithCategory = z.infer<typeof NewsSourceWithCategorySchema
 // News Articles
 export const NewsArticleSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   source_id: z.string().uuid(),
   external_id: z.string().nullable(),
   title: z.string(),
@@ -287,6 +335,7 @@ export type NewsArticleWithSource = z.infer<typeof NewsArticleWithSourceSchema>;
 export const NewsFilterTypeSchema = z.enum(['include_keyword', 'exclude_keyword', 'include_topic', 'exclude_source']);
 export const NewsFilterSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   filter_type: NewsFilterTypeSchema,
   value: z.string(),
   is_active: z.boolean(),
@@ -338,6 +387,7 @@ export type TabConfig = z.infer<typeof TabConfigSchema>;
 
 export const NewsDashboardTabSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   slug: z.string(),
   label: z.string(),
   tab_type: NewsDashboardTabTypeSchema,
@@ -372,6 +422,7 @@ export const AgentCommandTypeSchema = z.enum(['chat', 'task', 'cancel']);
 export const AgentCommandStatusSchema = z.enum(['pending', 'received', 'processing', 'completed', 'failed', 'cancelled']);
 export const AgentCommandSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   session_id: z.string().uuid(),
   command_type: AgentCommandTypeSchema,
   content: z.string(),
@@ -389,6 +440,7 @@ export type AgentCommand = z.infer<typeof AgentCommandSchema>;
 export const AgentResponseTypeSchema = z.enum(['message', 'tool_use', 'tool_result', 'progress', 'error', 'complete', 'confirmation_request']);
 export const AgentResponseSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   command_id: z.string().uuid().nullable(),
   session_id: z.string().uuid(),
   response_type: AgentResponseTypeSchema,
@@ -407,6 +459,7 @@ export const AgentTaskTypeSchema = z.enum(['scheduled', 'triggered', 'manual']);
 export const AgentTaskStatusSchema = z.enum(['active', 'paused', 'completed', 'failed', 'disabled']);
 export const AgentTaskSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   name: z.string(),
   description: z.string().nullable(),
   task_type: AgentTaskTypeSchema,
@@ -428,6 +481,7 @@ export type AgentTask = z.infer<typeof AgentTaskSchema>;
 export const AgentTaskRunStatusSchema = z.enum(['running', 'completed', 'failed', 'cancelled']);
 export const AgentTaskRunSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   task_id: z.string().uuid().nullable(),
   status: AgentTaskRunStatusSchema,
   started_at: z.string(),
@@ -442,6 +496,7 @@ export type AgentTaskRun = z.infer<typeof AgentTaskRunSchema>;
 // Agent Sessions
 export const AgentSessionSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   user_id: z.string(),
   user_email: z.string(),
   title: z.string().nullable(),
@@ -470,6 +525,7 @@ export type AgentConfig = z.infer<typeof AgentConfigSchema>;
 export const AgentConfirmationStatusSchema = z.enum(['pending', 'approved', 'rejected', 'expired']);
 export const AgentConfirmationSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   session_id: z.string().uuid(),
   command_id: z.string().uuid().nullable(),
   tool_name: z.string(),
@@ -490,6 +546,7 @@ export type AgentConfirmation = z.infer<typeof AgentConfirmationSchema>;
 export const BookmarkSourceSchema = z.enum(['twitter', 'pocket', 'raindrop', 'manual', 'other']);
 export const BookmarkSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   source: BookmarkSourceSchema,
   source_id: z.string().nullable(),
   source_url: z.string().nullable(),
@@ -523,6 +580,7 @@ export type Bookmark = z.infer<typeof BookmarkSchema>;
 // Bookmark Collections
 export const BookmarkCollectionSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   name: z.string(),
   slug: z.string(),
   description: z.string().nullable(),
@@ -552,6 +610,7 @@ export type BookmarkCollectionItem = z.infer<typeof BookmarkCollectionItemSchema
 export const BookmarkImportJobStatusSchema = z.enum(['pending', 'processing', 'completed', 'failed', 'partial']);
 export const BookmarkImportJobSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   source: z.string(),
   status: BookmarkImportJobStatusSchema,
   file_path: z.string().nullable(),
@@ -569,6 +628,7 @@ export type BookmarkImportJob = z.infer<typeof BookmarkImportJobSchema>;
 // Bookmark Categories
 export const BookmarkCategorySchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   slug: z.string(),
   name: z.string(),
   description: z.string().nullable(),
@@ -590,6 +650,7 @@ export const ContactStatusSchema = z.enum(['active', 'inactive', 'archived']);
 // Contacts
 export const ContactSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   first_name: z.string().nullable(),
   last_name: z.string().nullable(),
   email: z.string().nullable(),
@@ -637,6 +698,7 @@ export const SentimentSchema = z.enum(['positive', 'neutral', 'negative']);
 // Interactions
 export const InteractionSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   contact_id: z.string().uuid(),
   interaction_type: InteractionTypeSchema,
   subject: z.string().nullable(),
@@ -664,6 +726,7 @@ export const FollowUpPrioritySchema = z.enum(['low', 'normal', 'high', 'urgent']
 // Follow-ups
 export const FollowUpSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   contact_id: z.string().uuid(),
   title: z.string(),
   description: z.string().nullable(),
@@ -686,6 +749,7 @@ export type FollowUp = z.infer<typeof FollowUpSchema>;
 // Contact Lists
 export const ContactListSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   name: z.string(),
   slug: z.string(),
   description: z.string().nullable(),
@@ -702,6 +766,7 @@ export type ContactList = z.infer<typeof ContactListSchema>;
 // Pipelines
 export const PipelineSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   name: z.string(),
   slug: z.string(),
   description: z.string().nullable(),
@@ -713,6 +778,7 @@ export type Pipeline = z.infer<typeof PipelineSchema>;
 // Pipeline Stages
 export const PipelineStageSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   pipeline_id: z.string().uuid(),
   name: z.string(),
   slug: z.string(),
@@ -728,6 +794,7 @@ export type PipelineStage = z.infer<typeof PipelineStageSchema>;
 export const DealStatusSchema = z.enum(['open', 'won', 'lost']);
 export const DealSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   contact_id: z.string().uuid().nullable(),
   name: z.string(),
   value: z.number().nullable(),
@@ -769,6 +836,7 @@ export const MetricsAuthTypeSchema = z.enum(['none', 'api_key', 'oauth', 'bearer
 
 export const MetricsSourceSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   name: z.string(),
   slug: z.string(),
   source_type: MetricsSourceTypeSchema,
@@ -796,6 +864,7 @@ export const MetricsDataTypeSchema = z.enum(['counter', 'gauge', 'histogram', 's
 
 export const MetricsDataSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   source_id: z.string().uuid(),
   metric_name: z.string(),
   metric_type: MetricsDataTypeSchema,
@@ -827,6 +896,7 @@ export type DashboardWidget = z.infer<typeof DashboardWidgetSchema>;
 
 export const MetricsDashboardSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   name: z.string(),
   slug: z.string(),
   description: z.string().nullable(),
@@ -880,6 +950,7 @@ export const SiteBuilderPageStatusSchema = z.enum(['draft', 'published']);
 // Site Builder Page
 export const SiteBuilderPageSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   title: z.string(),
   slug: z.string(),
   description: z.string().nullable(),
@@ -898,6 +969,7 @@ export type SiteBuilderPage = z.infer<typeof SiteBuilderPageSchema>;
 // Page Version
 export const SiteBuilderPageVersionSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   page_id: z.string().uuid(),
   version_number: z.number(),
   title: z.string(),
@@ -912,6 +984,7 @@ export type SiteBuilderPageVersion = z.infer<typeof SiteBuilderPageVersionSchema
 // Page Component
 export const SiteBuilderPageComponentSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   page_id: z.string().uuid(),
   component_type: SiteBuilderComponentTypeSchema,
   props: z.record(z.unknown()),
@@ -925,6 +998,7 @@ export type SiteBuilderPageComponent = z.infer<typeof SiteBuilderPageComponentSc
 // Component Template
 export const SiteBuilderComponentTemplateSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   name: z.string(),
   description: z.string().nullable(),
   component_type: SiteBuilderComponentTypeSchema,
@@ -951,6 +1025,7 @@ export type SiteBuilderPageWithComponents = z.infer<typeof SiteBuilderPageWithCo
 // Task Categories
 export const TaskCategorySchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   name: z.string(),
   slug: z.string(),
   description: z.string().nullable(),
@@ -968,6 +1043,7 @@ export const TaskPrioritySchema = z.enum(['low', 'medium', 'high', 'urgent']);
 
 export const TaskSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   title: z.string(),
   description: z.string().nullable(),
   category_id: z.string().uuid().nullable(),
@@ -999,6 +1075,7 @@ export type TaskWithCategory = z.infer<typeof TaskWithCategorySchema>;
 // Task Comments
 export const TaskCommentSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   task_id: z.string().uuid(),
   comment: z.string(),
   author: z.string(),
@@ -1014,6 +1091,7 @@ export type TaskComment = z.infer<typeof TaskCommentSchema>;
 export const TaskReminderTypeSchema = z.enum(['email', 'notification', 'both']);
 export const TaskReminderSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   task_id: z.string().uuid(),
   reminder_at: z.string(),
   reminder_type: TaskReminderTypeSchema,
@@ -1046,6 +1124,7 @@ export const EmailSubscriberStatusSchema = z.enum(['active', 'unsubscribed', 'bo
 // Email Subscribers
 export const EmailSubscriberSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   email: z.string().email(),
   first_name: z.string().nullable(),
   last_name: z.string().nullable(),
@@ -1075,6 +1154,7 @@ export type EmailSubscriber = z.infer<typeof EmailSubscriberSchema>;
 // Email Lists
 export const EmailListSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   name: z.string(),
   slug: z.string(),
   description: z.string().nullable(),
@@ -1092,6 +1172,7 @@ export const EmailCampaignStatusSchema = z.enum(['draft', 'scheduled', 'sending'
 // Email Campaigns
 export const EmailCampaignSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   name: z.string(),
   subject: z.string(),
   preview_text: z.string().nullable(),
@@ -1127,6 +1208,7 @@ export const EmailTemplateTypeSchema = z.enum(['newsletter', 'transactional', 'p
 // Email Templates
 export const EmailTemplateSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   name: z.string(),
   slug: z.string(),
   description: z.string().nullable(),
@@ -1152,6 +1234,7 @@ export const EmailEventTypeSchema = z.enum(['sent', 'delivered', 'opened', 'clic
 // Email Events
 export const EmailEventSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   event_type: EmailEventTypeSchema,
   subscriber_id: z.string().uuid().nullable(),
   campaign_id: z.string().uuid().nullable(),
@@ -1174,6 +1257,7 @@ export const NPSSurveyStatusSchema = z.enum(['draft', 'active', 'paused', 'close
 // NPS Surveys
 export const NPSSurveySchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   name: z.string(),
   question: z.string(),
   target_segment: z.string().nullable(),
@@ -1198,6 +1282,7 @@ export const NPSCategorySchema = z.enum(['promoter', 'passive', 'detractor']);
 // NPS Responses
 export const NPSResponseSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   survey_id: z.string().uuid(),
   email: z.string().nullable(),
   subscriber_id: z.string().uuid().nullable(),
@@ -1219,6 +1304,7 @@ export const ContentSuggestionStatusSchema = z.enum(['pending', 'approved', 'rej
 // Content Suggestions
 export const ContentSuggestionSchema = z.object({
   id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
   content_type: ContentSuggestionTypeSchema,
   prompt: z.string(),
   context: z.record(z.unknown()).nullable(),
