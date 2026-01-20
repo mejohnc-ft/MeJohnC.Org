@@ -1,0 +1,126 @@
+# Docker Compose configuration for MeJohnC.Org services
+#
+# Usage:
+#   docker-compose up -d              # Start all services
+#   docker-compose up -d agent        # Start specific service
+#   docker-compose logs -f            # View logs
+#   docker-compose down               # Stop all services
+#   docker-compose pull && docker-compose up -d  # Update and restart
+
+version: '3.8'
+
+services:
+  # Site Manager Agent
+  agent:
+    build:
+      context: ../../site-manager-agent
+      dockerfile: Dockerfile
+    container_name: site-manager-agent
+    restart: unless-stopped
+
+    environment:
+      - NODE_ENV=production
+      - TZ=America/Denver
+
+    env_file:
+      - ../../site-manager-agent/.env
+
+    volumes:
+      - agent-logs:/app/logs
+      - agent-data:/app/data
+
+    networks:
+      - mejohnc-network
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+  # Smaug Twitter/X Bookmark Sync
+  smaug:
+    build:
+      context: ../../smaug
+      dockerfile: Dockerfile
+    container_name: smaug-sync
+    restart: unless-stopped
+
+    environment:
+      - NODE_ENV=production
+      - TZ=America/Denver
+
+    env_file:
+      - ../../smaug/.env
+
+    volumes:
+      - smaug-logs:/app/logs
+      - smaug-data:/app/data
+
+    networks:
+      - mejohnc-network
+
+    # Run as a scheduled job instead of always-on
+    # Use with: docker-compose run --rm smaug
+    profiles:
+      - tools
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Redis cache (optional, for rate limiting)
+  redis:
+    image: redis:7-alpine
+    container_name: mejohnc-redis
+    restart: unless-stopped
+
+    command: redis-server --appendonly yes --maxmemory 100mb --maxmemory-policy allkeys-lru
+
+    volumes:
+      - redis-data:/data
+
+    networks:
+      - mejohnc-network
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
+networks:
+  mejohnc-network:
+    driver: bridge
+
+volumes:
+  agent-logs:
+  agent-data:
+  smaug-logs:
+  smaug-data:
+  redis-data:
