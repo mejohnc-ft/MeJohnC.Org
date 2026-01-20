@@ -1,6 +1,8 @@
 /**
- * CRM Service - Barrel Export
+ * CRM Service - Exports
+ *
+ * Barrel export for CRM service implementations.
  */
 
-export type { ICrmService } from './crm-service.interface';
+export { ICrmService } from './crm-service.interface';
 export { CrmServiceSupabase, crmServiceSupabase } from './crm-service.supabase';
