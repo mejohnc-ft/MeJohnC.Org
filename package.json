@@ -1,8 +1,15 @@
 {
-  "name": "resume-site",
+  "name": "mejohnc-org",
   "private": true,
-  "version": "0.0.0",
+  "version": "3.0.0",
+  "description": "Personal portfolio and admin platform for Jonathan Christensen",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MeJohnC/MeJohnC.Org.git"
+  },
+  "author": "Jonathan Christensen <contact@mejohnc.org>",
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "node scripts/generate-sitemap.js && vite build",
@@ -18,7 +25,12 @@
     "test:e2e:ui": "playwright test --ui",
     "typecheck": "tsc --noEmit",
     "lighthouse": "lhci autorun",
-    "prepare": "husky || true"
+    "prepare": "husky || true",
+    "version": "node scripts/update-changelog.js && git add CHANGELOG.md",
+    "release": "npm version",
+    "release:patch": "npm version patch -m 'chore(release): %s'",
+    "release:minor": "npm version minor -m 'chore(release): %s'",
+    "release:major": "npm version major -m 'chore(release): %s'"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.59.3",

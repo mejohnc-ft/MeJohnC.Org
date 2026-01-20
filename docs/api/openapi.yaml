@@ -1,0 +1,652 @@
+openapi: 3.1.0
+info:
+  title: MeJohnC.Org API
+  description: |
+    API documentation for MeJohnC.Org - Personal portfolio and admin platform.
+
+    ## Authentication
+    All authenticated endpoints require a valid Clerk session token passed via cookies
+    or the `Authorization` header with a Bearer token.
+
+    ## Rate Limiting
+    - Standard endpoints: 60 requests/minute
+    - Webhook endpoints: 100 requests/minute
+    - Auth endpoints: 10 requests/minute
+
+    Rate limit headers are included in all responses:
+    - `X-RateLimit-Limit`: Maximum requests allowed
+    - `X-RateLimit-Remaining`: Requests remaining in window
+    - `X-RateLimit-Reset`: Unix timestamp when limit resets
+
+    ## Error Handling
+    All errors follow a consistent format with correlation IDs for tracing.
+  version: 1.0.0
+  contact:
+    name: Jonathan Christensen
+    url: https://mejohnc.org
+    email: contact@mejohnc.org
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://mejohnc.org
+    description: Production
+  - url: http://localhost:5173
+    description: Development
+
+tags:
+  - name: Health
+    description: Health check endpoints
+  - name: Apps
+    description: Application portfolio management
+  - name: Projects
+    description: Project portfolio management
+  - name: Blog
+    description: Blog posts (Ghost CMS integration)
+  - name: Contacts
+    description: CRM contact management
+  - name: Tasks
+    description: Task management system
+  - name: Marketing
+    description: Marketing and email campaigns
+  - name: Metrics
+    description: Metrics and analytics
+  - name: Site Builder
+    description: Page builder functionality
+
+paths:
+  /functions/v1/health-check:
+    get:
+      tags: [Health]
+      summary: Health check endpoint
+      description: Returns the health status of all system components
+      operationId: healthCheck
+      responses:
+        '200':
+          description: System is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckResponse'
+        '503':
+          description: System is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckResponse'
+
+  /functions/v1/metrics-webhook:
+    post:
+      tags: [Metrics]
+      summary: Ingest metrics data
+      description: Webhook endpoint for ingesting metrics from external sources
+      operationId: ingestMetrics
+      security:
+        - webhookSecret: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetricsWebhookPayload'
+      responses:
+        '200':
+          description: Metrics ingested successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    clerkAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Clerk authentication token
+    webhookSecret:
+      type: apiKey
+      in: header
+      name: x-webhook-secret
+      description: Webhook authentication secret
+
+  schemas:
+    HealthCheckResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+          description: Overall system health status
+        timestamp:
+          type: string
+          format: date-time
+          description: Time of health check
+        version:
+          type: string
+          description: Deployment version identifier
+        uptime:
+          type: integer
+          description: Uptime in seconds
+        checks:
+          type: object
+          properties:
+            database:
+              $ref: '#/components/schemas/CheckResult'
+            auth:
+              $ref: '#/components/schemas/CheckResult'
+            storage:
+              $ref: '#/components/schemas/CheckResult'
+        responseTime:
+          type: integer
+          description: Response time in milliseconds
+
+    CheckResult:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [pass, fail, warn]
+        latency:
+          type: integer
+          description: Check latency in milliseconds
+        message:
+          type: string
+          description: Optional status message
+
+    MetricsWebhookPayload:
+      type: object
+      required:
+        - source_slug
+        - data
+      properties:
+        source_slug:
+          type: string
+          description: Identifier for the metrics source
+          example: github-actions
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/MetricDataPoint'
+            - type: array
+              items:
+                $ref: '#/components/schemas/MetricDataPoint'
+
+    MetricDataPoint:
+      type: object
+      required:
+        - metric_name
+        - metric_type
+        - value
+      properties:
+        metric_name:
+          type: string
+          description: Name of the metric
+          example: build_duration
+        metric_type:
+          type: string
+          enum: [counter, gauge, histogram, summary]
+        value:
+          type: number
+          description: Metric value
+        unit:
+          type: string
+          description: Unit of measurement
+          example: seconds
+        dimensions:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: number
+          description: Additional dimensions/labels
+        recorded_at:
+          type: string
+          format: date-time
+          description: Timestamp of measurement (defaults to now)
+
+    WebhookResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        inserted:
+          type: integer
+          description: Number of data points inserted
+        errors:
+          type: array
+          items:
+            type: string
+          description: Validation errors for specific data points
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error type
+        message:
+          type: string
+          description: Human-readable error message
+        correlationId:
+          type: string
+          description: Request correlation ID for tracing
+        retryAfter:
+          type: integer
+          description: Seconds until retry is allowed (for rate limiting)
+
+    # Supabase Table Schemas
+    App:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 255
+        slug:
+          type: string
+          maxLength: 100
+        tagline:
+          type: string
+          maxLength: 500
+        description:
+          type: string
+        icon_url:
+          type: string
+          format: uri
+        status:
+          type: string
+          enum: [active, coming_soon, deprecated, archived]
+          default: active
+        category:
+          type: string
+        technologies:
+          type: array
+          items:
+            type: string
+        features:
+          type: array
+          items:
+            type: string
+        app_url:
+          type: string
+          format: uri
+        github_url:
+          type: string
+          format: uri
+        is_featured:
+          type: boolean
+          default: false
+        display_order:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Project:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 255
+        slug:
+          type: string
+          maxLength: 100
+        summary:
+          type: string
+          maxLength: 500
+        description:
+          type: string
+        image_url:
+          type: string
+          format: uri
+        status:
+          type: string
+          enum: [completed, in_progress, planned, archived]
+          default: in_progress
+        category:
+          type: string
+        technologies:
+          type: array
+          items:
+            type: string
+        github_url:
+          type: string
+          format: uri
+        demo_url:
+          type: string
+          format: uri
+        is_featured:
+          type: boolean
+          default: false
+        display_order:
+          type: integer
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Contact:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 255
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        company:
+          type: string
+        title:
+          type: string
+        linkedin_url:
+          type: string
+          format: uri
+        twitter_handle:
+          type: string
+        notes:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [active, inactive, lead, customer]
+          default: active
+        last_contact_date:
+          type: string
+          format: date
+        next_follow_up:
+          type: string
+          format: date
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Task:
+      type: object
+      required:
+        - id
+        - title
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        status:
+          type: string
+          enum: [todo, in_progress, review, done]
+          default: todo
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+          default: medium
+        category_id:
+          type: string
+          format: uuid
+        due_date:
+          type: string
+          format: date-time
+        assigned_to:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    EmailSubscriber:
+      type: object
+      required:
+        - id
+        - email
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        status:
+          type: string
+          enum: [active, unsubscribed, bounced, complained]
+          default: active
+        source:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+        subscribed_at:
+          type: string
+          format: date-time
+        unsubscribed_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+
+    EmailCampaign:
+      type: object
+      required:
+        - id
+        - name
+        - subject
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 255
+        subject:
+          type: string
+          maxLength: 255
+        preview_text:
+          type: string
+          maxLength: 255
+        content:
+          type: string
+        template_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [draft, scheduled, sending, sent, cancelled]
+          default: draft
+        scheduled_at:
+          type: string
+          format: date-time
+        sent_at:
+          type: string
+          format: date-time
+        stats:
+          type: object
+          properties:
+            sent:
+              type: integer
+            delivered:
+              type: integer
+            opened:
+              type: integer
+            clicked:
+              type: integer
+            bounced:
+              type: integer
+            unsubscribed:
+              type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    SiteBuilderPage:
+      type: object
+      required:
+        - id
+        - title
+        - slug
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          maxLength: 255
+        slug:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+        status:
+          type: string
+          enum: [draft, published, archived]
+          default: draft
+        is_homepage:
+          type: boolean
+          default: false
+        seo_title:
+          type: string
+        seo_description:
+          type: string
+        published_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+  responses:
+    UnauthorizedError:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Unauthorized
+            message: Valid authentication is required
+
+    ForbiddenError:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Forbidden
+            message: You do not have permission to access this resource
+
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Not Found
+            message: The requested resource was not found
+
+    RateLimitError:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Too Many Requests
+            message: Rate limit exceeded. Please try again later.
+            retryAfter: 60
+
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Validation Error
+            message: Request body too large. Maximum 1MB allowed.
+
+security:
+  - clerkAuth: []
