@@ -34,6 +34,13 @@ A full-featured personal portfolio and resume website for Jonathan Christensen, 
 - **Content Management** - Create, edit, schedule, and publish blog posts, apps, projects
 - **News Aggregation** - Multi-source RSS/API feeds with curation, filtering, and bookmarking
 - **AI Manager** - Chat interface with Claude AI agent for autonomous tasks
+- **Task System** - Kanban board and list views for task management
+- **Marketing** - Email campaigns, subscribers, templates, and NPS surveys
+- **Site Builder** - Visual drag-and-drop page builder with reusable blocks
+- **Metrics Dashboard** - GitHub and analytics metrics visualization
+- **CRM Contacts** - Contact relationship management
+- **Style Guide** - Design system and Figma integration
+- **Bookmarks** - Twitter/X bookmark import and management
 - **Profile & Settings** - Site configuration and profile management
 
 ## Quick Start
@@ -100,22 +107,33 @@ Open [http://localhost:5173](http://localhost:5173)
 ```
 src/
 ├── components/
-│   ├── ui/              # Shadcn UI components
+│   ├── ui/              # shadcn/ui components
 │   ├── admin/           # Admin-specific components
-│   └── portfolio/       # Portfolio tab components
+│   │   ├── charts/      # Dashboard chart components
+│   │   └── metrics/     # Metrics display components
+│   ├── marketing/       # Marketing module components
+│   ├── portfolio/       # Portfolio tab components
+│   ├── site-builder/    # Site builder components
+│   │   └── blocks/      # Page block components
+│   └── tasks/           # Task system components
 ├── pages/
 │   ├── admin/           # Admin dashboard pages
-│   └── ...              # Public pages
+│   └── *.tsx            # Public pages
 ├── lib/
 │   ├── supabase.ts      # Database client
 │   ├── auth.tsx         # Clerk authentication
 │   ├── ghost.ts         # Ghost CMS client
-│   └── ...              # Utilities
+│   ├── rbac.ts          # Role-based access control
+│   ├── logger.ts        # Structured logging
+│   ├── csrf.ts          # CSRF protection
+│   └── *-queries.ts     # Database query functions
 ├── hooks/               # Custom React hooks
 └── types/               # TypeScript definitions
 
 supabase/
-├── functions/           # Edge functions
+├── functions/           # Edge functions (Deno)
+│   └── _shared/         # Shared utilities
+├── migrations/          # Database migrations
 ├── schema.sql           # Core database schema
 ├── news-schema.sql      # News aggregation
 ├── agent-schema.sql     # AI agent system
@@ -132,6 +150,11 @@ The project uses Supabase with the following main table groups:
 - **Site Content** - `site_content`, `contact_links`
 - **News System** - `news_sources`, `news_articles`, `news_categories`, `news_filters`, `bookmarks`
 - **AI Agent** - `agent_commands`, `agent_responses`, `agent_tasks`, `agent_sessions`
+- **Marketing** - `email_subscribers`, `email_lists`, `email_campaigns`, `email_templates`, `email_events`, `nps_surveys`, `nps_responses`
+- **Site Builder** - `sb_pages`, `sb_page_versions`, `sb_page_components`, `sb_component_templates`
+- **Task System** - `task_categories`, `tasks`, `task_comments`, `task_reminders`
+- **CRM** - Contact management tables
+- **Metrics** - Analytics and metrics tables
 - **Audit** - `audit_logs`
 
 ## Testing
@@ -169,5 +192,5 @@ The site auto-deploys to Netlify on push to `main`. The CI pipeline:
 
 ## License
 
-Private - All rights reserved
+MIT
 

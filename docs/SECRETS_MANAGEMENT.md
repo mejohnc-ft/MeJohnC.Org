@@ -29,7 +29,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJxxx
 
 # Blog (Ghost CMS)
 VITE_GHOST_URL=https://xxx.ghost.io
-VITE_GHOST_CONTENT_KEY=xxx
+VITE_GHOST_CONTENT_API_KEY=xxx
 
 # Monitoring (Sentry)
 VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx

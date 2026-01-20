@@ -58,7 +58,7 @@ Welcome to MeJohnC.Org! This guide will help you set up your development environ
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/MeJohnC/MeJohnC.Org.git
+git clone https://github.com/mejohnc-ft/MeJohnC.Org.git
 cd MeJohnC.Org
 ```
 
@@ -89,7 +89,7 @@ VITE_SUPABASE_ANON_KEY=eyJxxx
 
 # Ghost CMS (optional, for blog)
 VITE_GHOST_URL=https://xxx.ghost.io
-VITE_GHOST_CONTENT_KEY=xxx
+VITE_GHOST_CONTENT_API_KEY=xxx
 
 # Sentry (optional, for error tracking)
 VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx
@@ -117,8 +117,11 @@ Visit `http://localhost:5173` in your browser.
 ```
 MeJohnC.Org/
 ├── docs/                    # Documentation
+│   ├── adr/                 # Architecture Decision Records
 │   ├── api/                 # API documentation (OpenAPI)
-│   └── *.md                 # Guides and references
+│   ├── devops/              # DevOps documentation
+│   ├── observability/       # SLOs/SLIs documentation
+│   └── runbooks/            # Operational runbooks
 ├── e2e/                     # End-to-end tests (Playwright)
 ├── netlify/                 # Netlify configuration
 │   └── edge-functions/      # Edge functions (rate limiting)
@@ -126,12 +129,15 @@ MeJohnC.Org/
 │   ├── _headers             # Security headers
 │   └── _redirects           # URL redirects
 ├── scripts/                 # Build and utility scripts
-│   └── service-installers/  # Deployment scripts
 ├── src/
 │   ├── components/          # React components
 │   │   ├── admin/           # Admin-specific components
+│   │   │   ├── charts/      # Dashboard chart components
+│   │   │   └── metrics/     # Metrics display components
 │   │   ├── marketing/       # Marketing module components
+│   │   ├── portfolio/       # Portfolio tab components
 │   │   ├── site-builder/    # Site builder components
+│   │   │   └── blocks/      # Page block components
 │   │   ├── tasks/           # Task system components
 │   │   └── ui/              # Shared UI components (shadcn/ui)
 │   ├── hooks/               # Custom React hooks
@@ -139,10 +145,22 @@ MeJohnC.Org/
 │   │   ├── supabase.ts      # Supabase client
 │   │   ├── rbac.ts          # Role-based access control
 │   │   ├── logger.ts        # Structured logging
+│   │   ├── csrf.ts          # CSRF protection
+│   │   ├── feature-flags.ts # Feature flag system
 │   │   └── *-queries.ts     # Database query functions
 │   ├── pages/               # Page components
-│   │   ├── admin/           # Admin pages
-│   │   └── *.tsx            # Public pages
+│   │   └── admin/           # Admin pages
+│   │       ├── ai-manager/  # AI Manager
+│   │       ├── apps/        # Apps management
+│   │       ├── blog/        # Blog management
+│   │       ├── bookmarks/   # Bookmarks management
+│   │       ├── contacts/    # CRM contacts
+│   │       ├── metrics/     # Metrics dashboard
+│   │       ├── news/        # News aggregation
+│   │       ├── projects/    # Projects management
+│   │       ├── site-builder/# Site builder
+│   │       └── style-guide/ # Style guide
+│   ├── types/               # TypeScript definitions
 │   ├── App.tsx              # Main router
 │   └── main.tsx             # Entry point
 ├── supabase/
@@ -160,7 +178,9 @@ MeJohnC.Org/
 | `src/components/ui/` | shadcn/ui components (don't modify directly) |
 | `src/lib/*-queries.ts` | Database operations grouped by feature |
 | `src/pages/admin/` | Admin dashboard pages |
+| `src/hooks/` | Custom React hooks (useDataFetching, usePermissions, etc.) |
 | `supabase/functions/` | Server-side logic (Deno runtime) |
+| `docs/adr/` | Architecture Decision Records |
 
 ---
 
@@ -319,11 +339,11 @@ function AdminFeature() {
 ### Unit Tests (Vitest)
 
 ```bash
-# Run tests
+# Run tests (watch mode by default)
 npm run test
 
-# Watch mode
-npm run test -- --watch
+# Single run (no watch)
+npm run test:run
 
 # Coverage
 npm run test:coverage
@@ -473,9 +493,9 @@ npm run dev
 After setup, explore these resources:
 
 1. **API Documentation**: `docs/api/openapi.yaml`
-2. **Architecture Decisions**: `docs/ADR/` (when created)
+2. **Architecture Decisions**: `docs/adr/` (see `docs/adr/README.md` for index)
 3. **Security Guide**: `docs/SECRETS_MANAGEMENT.md`
 4. **Branch Protection**: `docs/devops/branch-protection.md`
 5. **Phase 3 Features**: `docs/PHASE3_REVIEW.md`
 
-Welcome to the team! 🎉
+Welcome to the team!
