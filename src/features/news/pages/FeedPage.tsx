@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Newspaper, Loader2 } from 'lucide-react';
+import AdminLayout from '@/components/AdminLayout';
 import { NewsFeed } from '../components/NewsFeed';
 import { CategoryFilter } from '../components/CategoryFilter';
 import { NewsServiceSupabase } from '@/services/news';
@@ -104,40 +105,44 @@ export default function FeedPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
+      <AdminLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-          <Newspaper className="w-8 h-8" />
-          News Feed
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Stay updated with the latest news from your sources
-        </p>
+    <AdminLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+            <Newspaper className="w-8 h-8" />
+            News Feed
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Stay updated with the latest news from your sources
+          </p>
+        </div>
+
+        {/* Category Filter */}
+        <CategoryFilter
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+        />
+
+        {/* News Feed */}
+        <NewsFeed
+          articles={articles}
+          onRefresh={fetchArticles}
+          onArticleRead={handleArticleRead}
+          onArticleBookmark={handleArticleBookmark}
+          onArticleCurate={handleArticleCurate}
+        />
       </div>
-
-      {/* Category Filter */}
-      <CategoryFilter
-        categories={categories}
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
-      />
-
-      {/* News Feed */}
-      <NewsFeed
-        articles={articles}
-        onRefresh={fetchArticles}
-        onArticleRead={handleArticleRead}
-        onArticleBookmark={handleArticleBookmark}
-        onArticleCurate={handleArticleCurate}
-      />
-    </div>
+    </AdminLayout>
   );
 }

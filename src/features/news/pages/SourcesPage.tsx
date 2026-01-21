@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Rss, Loader2 } from 'lucide-react';
+import AdminLayout from '@/components/AdminLayout';
 import { SourceManager } from '../components/SourceManager';
 import { NewsServiceSupabase } from '@/services/news';
 import { useAuthenticatedSupabase } from '@/lib/supabase';
@@ -97,33 +98,37 @@ export default function SourcesPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
+      <AdminLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-          <Rss className="w-8 h-8" />
-          News Sources
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Manage your news sources and RSS feeds
-        </p>
-      </div>
+    <AdminLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+            <Rss className="w-8 h-8" />
+            News Sources
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Manage your news sources and RSS feeds
+          </p>
+        </div>
 
-      {/* Source Manager */}
-      <SourceManager
-        sources={sources}
-        categories={categories}
-        onSourceCreate={handleSourceCreate}
-        onSourceUpdate={handleSourceUpdate}
-        onSourceDelete={handleSourceDelete}
-      />
-    </div>
+        {/* Source Manager */}
+        <SourceManager
+          sources={sources}
+          categories={categories}
+          onSourceCreate={handleSourceCreate}
+          onSourceUpdate={handleSourceUpdate}
+          onSourceDelete={handleSourceDelete}
+        />
+      </div>
+    </AdminLayout>
   );
 }
