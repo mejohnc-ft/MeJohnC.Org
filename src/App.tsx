@@ -10,6 +10,8 @@ import { trackPageView } from './lib/analytics';
 import { SEOProvider } from './lib/seo';
 import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
+import { renderFeatureRoutes } from './components/FeatureRoutes';
+import { initializeModules } from './features';
 
 // Eager load critical pages for fast initial render
 import Home from './pages/Home';
@@ -34,37 +36,24 @@ const AdminProjectsList = lazy(() => import('./pages/admin/projects/index'));
 const ProjectEditor = lazy(() => import('./pages/admin/projects/editor'));
 const AdminProfile = lazy(() => import('./pages/admin/Profile'));
 
-// News admin page (unified)
-const AdminNewsDashboard = lazy(() => import('./pages/admin/news/index'));
-
 // AI Manager page
 const AdminAIManager = lazy(() => import('./pages/admin/ai-manager/index'));
 
 // Bookmarks admin page
 const AdminBookmarks = lazy(() => import('./pages/admin/bookmarks/index'));
 
-// CRM admin page
-const AdminContacts = lazy(() => import('./pages/admin/contacts/index'));
-
-// Metrics admin page
-const AdminMetrics = lazy(() => import('./pages/admin/metrics/index'));
-
-// Style Guide admin page
-const AdminStyleGuide = lazy(() => import('./pages/admin/style-guide/index'));
-
-// Tasks admin pages
-const TasksPage = lazy(() => import('./pages/admin/TasksPage'));
-const TasksKanbanPage = lazy(() => import('./pages/admin/TasksKanbanPage'));
-const TaskEditPage = lazy(() => import('./pages/admin/TaskEditPage'));
-
-// Site Builder admin pages
+// Site Builder admin pages (will be migrated to feature module)
 const SiteBuilderIndex = lazy(() => import('./pages/admin/site-builder/index'));
 const SiteBuilderEditor = lazy(() => import('./pages/admin/site-builder/editor'));
 
-// Generative UI admin pages
-const GenerativePage = lazy(() => import('./features/generative-ui/pages/GenerativePage'));
-const ComponentLibraryPage = lazy(() => import('./features/generative-ui/pages/ComponentLibraryPage'));
-const SavedPanelsPage = lazy(() => import('./features/generative-ui/pages/SavedPanelsPage'));
+// Note: These routes are now dynamically loaded from feature modules:
+// - Tasks (/admin/tasks/*) - from tasks module
+// - CRM (/admin/crm/*) - from crm module
+// - Metrics (/admin/metrics/*) - from metrics module
+// - Style Guide (/admin/style/*) - from style-guide module
+// - Generative UI (/admin/generative/*) - from generative-ui module
+// - News (/admin/news/*) - from news module
+// - NPS (/admin/nps/*) - from nps module
 
 // Marketing admin pages
 const AdminMarketing = lazy(() => import('./pages/admin/Marketing'));
@@ -311,10 +300,16 @@ function AnimatedRoutes() {
 }
 
 function AdminRoutes() {
+  // Initialize feature modules on mount
+  useEffect(() => {
+    initializeModules();
+  }, []);
+
   return (
     <ErrorBoundary fallback={<AdminErrorFallback />}>
       <Suspense fallback={<PageLoader />}>
         <Routes>
+          {/* Core admin routes (not from feature modules) */}
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/profile" element={<AdminProfile />} />
@@ -330,19 +325,11 @@ function AdminRoutes() {
           <Route path="/admin/projects" element={<AdminProjectsList />} />
           <Route path="/admin/projects/new" element={<ProjectEditor />} />
           <Route path="/admin/projects/:id/edit" element={<ProjectEditor />} />
-          {/* News route */}
-          <Route path="/admin/news" element={<AdminNewsDashboard />} />
           {/* AI Manager route */}
           <Route path="/admin/ai-manager" element={<AdminAIManager />} />
           {/* Bookmarks route */}
           <Route path="/admin/bookmarks" element={<AdminBookmarks />} />
-          {/* CRM route */}
-          <Route path="/admin/contacts" element={<AdminContacts />} />
-          {/* Metrics route */}
-          <Route path="/admin/metrics" element={<AdminMetrics />} />
-          {/* Style Guide route */}
-          <Route path="/admin/style-guide" element={<AdminStyleGuide />} />
-          {/* Marketing routes */}
+          {/* Marketing routes (legacy - will be migrated to feature module) */}
           <Route path="/admin/marketing" element={<AdminMarketing />} />
           <Route path="/admin/marketing/subscribers" element={<AdminMarketingSubscribers />} />
           <Route path="/admin/marketing/subscribers/:id" element={<SubscriberDetail />} />
@@ -353,18 +340,12 @@ function AdminRoutes() {
           <Route path="/admin/marketing/templates/:id/preview" element={<TemplateEditor />} />
           <Route path="/admin/marketing/nps" element={<AdminMarketingNPS />} />
           <Route path="/admin/marketing/nps/:id" element={<NPSSurveyDetail />} />
-          {/* Tasks routes */}
-          <Route path="/admin/tasks" element={<TasksPage />} />
-          <Route path="/admin/tasks/kanban" element={<TasksKanbanPage />} />
-          <Route path="/admin/tasks/new" element={<TaskEditPage />} />
-          <Route path="/admin/tasks/:id/edit" element={<TaskEditPage />} />
-          {/* Site Builder routes */}
+          {/* Site Builder routes (legacy - will be migrated to feature module) */}
           <Route path="/admin/site-builder" element={<SiteBuilderIndex />} />
           <Route path="/admin/site-builder/:pageId" element={<SiteBuilderEditor />} />
-          {/* Generative UI routes */}
-          <Route path="/admin/generative" element={<GenerativePage />} />
-          <Route path="/admin/generative/library" element={<ComponentLibraryPage />} />
-          <Route path="/admin/generative/saved" element={<SavedPanelsPage />} />
+
+          {/* Dynamic feature module routes */}
+          {renderFeatureRoutes()}
         </Routes>
       </Suspense>
     </ErrorBoundary>

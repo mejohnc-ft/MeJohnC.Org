@@ -14,14 +14,14 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useSEO } from '@/lib/seo';
-import { useSupabase } from '@/lib/supabase-client';
+import { useSupabaseClient } from '@/lib/supabase';
 import { StyleServiceSupabase } from '@/services/style';
 import type { Brand } from '../schemas';
 
 export default function BrandPage() {
   useSEO({ title: 'Brand Management', noIndex: true });
 
-  const supabase = useSupabase();
+  const supabase = useSupabaseClient();
   const [brands, setBrands] = useState<Brand[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

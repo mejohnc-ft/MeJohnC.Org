@@ -13,14 +13,14 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ComponentShowcase } from '../components';
 import { useSEO } from '@/lib/seo';
-import { useSupabase } from '@/lib/supabase-client';
+import { useSupabaseClient } from '@/lib/supabase';
 import { StyleServiceSupabase } from '@/services/style';
 import type { Guideline } from '../schemas';
 
 export default function ComponentsPage() {
   useSEO({ title: 'Components', noIndex: true });
 
-  const supabase = useSupabase();
+  const supabase = useSupabaseClient();
   const [guidelines, setGuidelines] = useState<Guideline[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
