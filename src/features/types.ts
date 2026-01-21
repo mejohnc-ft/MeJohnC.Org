@@ -8,7 +8,7 @@
  * @see https://github.com/mejohnc-ft/MeJohnC.Org/issues/105
  */
 
-import type { ComponentType, LazyExoticComponent } from 'react';
+import type { ComponentType } from 'react';
 
 /**
  * Route definition for a feature module

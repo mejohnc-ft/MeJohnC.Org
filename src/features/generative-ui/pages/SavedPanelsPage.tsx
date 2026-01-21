@@ -6,55 +6,45 @@
 
 'use client';
 
-import { useState } from 'react';
-import { Sparkles, BookOpen, Bookmark, Trash2, ExternalLink, Copy, MoreVertical } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Sparkles, BookOpen, Bookmark, Trash2, ExternalLink, Copy, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { genuiQueries } from '../services/genui-queries';
 import type { GenerativePanel } from '../schemas';
 
-// Mock saved panels for demo
-const MOCK_PANELS: GenerativePanel[] = [
-  {
-    id: '1',
-    tenant_id: 'default',
-    name: 'Sales Dashboard',
-    slug: 'sales-dashboard',
-    prompt: 'Create a dashboard with 4 KPI stats showing revenue, users, orders, and growth rate',
-    generated_ui: {
-      title: 'Sales Dashboard',
-      layout: 'stack',
-      theme: 'dark',
-      nodes: [],
-    },
-    is_published: true,
-    created_by: null,
-    created_at: '2024-01-15T10:30:00Z',
-    updated_at: '2024-01-15T10:30:00Z',
-  },
-  {
-    id: '2',
-    tenant_id: 'default',
-    name: 'Command Center',
-    slug: 'command-center',
-    prompt: 'Build a command palette with deployment, database, and monitoring commands',
-    generated_ui: {
-      title: 'Command Center',
-      layout: 'stack',
-      theme: 'dark',
-      nodes: [],
-    },
-    is_published: false,
-    created_by: null,
-    created_at: '2024-01-14T15:45:00Z',
-    updated_at: '2024-01-14T15:45:00Z',
-  },
-];
-
 export default function SavedPanelsPage() {
-  const [panels, setPanels] = useState<GenerativePanel[]>(MOCK_PANELS);
+  const [panels, setPanels] = useState<GenerativePanel[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const handleDelete = (id: string) => {
-    setPanels((prev) => prev.filter((p) => p.id !== id));
+  // Load panels from database on mount
+  useEffect(() => {
+    genuiQueries.getPanels()
+      .then((data) => setPanels(data))
+      .catch((err) => console.error('Failed to load panels:', err))
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    setDeletingId(id);
+    try {
+      await genuiQueries.deletePanel(id);
+      setPanels((prev) => prev.filter((p) => p.id !== id));
+    } catch (err) {
+      console.error('Failed to delete panel:', err);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleDuplicate = async (id: string) => {
+    try {
+      const newPanel = await genuiQueries.duplicatePanel(id);
+      setPanels((prev) => [newPanel, ...prev]);
+    } catch (err) {
+      console.error('Failed to duplicate panel:', err);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -110,7 +100,11 @@ export default function SavedPanelsPage() {
 
       {/* Panels Grid */}
       <main className="max-w-7xl mx-auto px-6 py-8">
-        {panels.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 animate-spin text-[#3dae2b]" />
+          </div>
+        ) : panels.length === 0 ? (
           <div className="text-center py-20">
             <Bookmark className="w-16 h-16 mx-auto mb-4 text-[#262626]" />
             <h2 className="text-xl font-semibold text-[#e5e5e5] mb-2">No saved panels yet</h2>
@@ -176,6 +170,7 @@ export default function SavedPanelsPage() {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => handleDuplicate(panel.id)}
                       className="border-[#262626] text-[#a3a3a3] hover:text-[#e5e5e5]"
                     >
                       <Copy className="w-3 h-3" />
@@ -184,9 +179,14 @@ export default function SavedPanelsPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleDelete(panel.id)}
-                      className="border-[#262626] text-[#a3a3a3] hover:text-red-400 hover:border-red-400"
+                      disabled={deletingId === panel.id}
+                      className="border-[#262626] text-[#a3a3a3] hover:text-red-400 hover:border-red-400 disabled:opacity-50"
                     >
-                      <Trash2 className="w-3 h-3" />
+                      {deletingId === panel.id ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-3 h-3" />
+                      )}
                     </Button>
                   </div>
                 </div>

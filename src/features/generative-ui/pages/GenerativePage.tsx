@@ -7,18 +7,41 @@
 
 'use client';
 
-import { useState } from 'react';
-import { Sparkles, BookOpen, Bookmark, Settings } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Sparkles, BookOpen, Bookmark } from 'lucide-react';
 import { GenerativePanel } from '../components/GenerativePanel';
+import { genuiQueries } from '../services/genui-queries';
 import type { GeneratedUI } from '../schemas';
 
 export default function GenerativePage() {
-  const [savedPanels, setSavedPanels] = useState<GeneratedUI[]>([]);
+  const [savedCount, setSavedCount] = useState(0);
 
-  const handleSave = (ui: GeneratedUI) => {
-    setSavedPanels((prev) => [...prev, { ...ui, createdAt: new Date().toISOString() }]);
-    // TODO: Persist to database via genui_panels table
-    console.log('Saving panel:', ui);
+  // Load saved panels count on mount
+  useEffect(() => {
+    genuiQueries.getPanels().then((panels) => {
+      setSavedCount(panels.length);
+    }).catch((err) => {
+      console.error('Failed to load panels count:', err);
+    });
+  }, []);
+
+  const handleSave = async (ui: GeneratedUI) => {
+    // Generate a slug from the title
+    const title = ui.title || 'Untitled Panel';
+    const slug = title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '') + '-' + Date.now();
+
+    await genuiQueries.createPanel({
+      name: title,
+      slug,
+      description: ui.description,
+      prompt: ui.description || title,
+      generated_ui: ui,
+    });
+
+    setSavedCount((prev) => prev + 1);
   };
 
   return (
@@ -57,7 +80,7 @@ export default function GenerativePage() {
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-[#a3a3a3] hover:bg-[#1a1a1a] text-sm font-medium transition-colors"
               >
                 <Bookmark className="w-4 h-4" />
-                Saved ({savedPanels.length})
+                Saved ({savedCount})
               </a>
             </nav>
           </div>

@@ -10,6 +10,8 @@
  * @see https://github.com/mejohnc-ft/MeJohnC.Org/issues/104
  */
 
+/* eslint-disable react-refresh/only-export-components */
+
 // Re-export everything from the new auth module
 export {
   AuthProvider,

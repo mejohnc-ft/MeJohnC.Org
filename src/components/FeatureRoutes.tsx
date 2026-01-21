@@ -7,6 +7,8 @@
  * @see https://github.com/mejohnc-ft/MeJohnC.Org/issues/106
  */
 
+/* eslint-disable react-refresh/only-export-components */
+
 import { Suspense, lazy, ComponentType, useMemo } from 'react';
 import { Route } from 'react-router-dom';
 import { getEnabledModules } from '@/features';

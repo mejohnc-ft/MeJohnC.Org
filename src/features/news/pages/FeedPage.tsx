@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Newspaper, Loader2 } from 'lucide-react';
 import { NewsFeed } from '../components/NewsFeed';
 import { CategoryFilter } from '../components/CategoryFilter';
@@ -27,17 +27,7 @@ export default function FeedPage() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    if (!isLoading) {
-      fetchArticles();
-    }
-  }, [selectedCategory]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [articlesData, categoriesData] = await Promise.all([
         newsService.getArticles({ client: supabase }),
@@ -53,9 +43,9 @@ export default function FeedPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [supabase]);
 
-  const fetchArticles = async () => {
+  const fetchArticles = useCallback(async () => {
     try {
       const options = selectedCategory ? { categorySlug: selectedCategory } : {};
       const articlesData = await newsService.getArticles({ client: supabase }, options);
@@ -65,7 +55,17 @@ export default function FeedPage() {
         context: 'FeedPage.fetchArticles',
       });
     }
-  };
+  }, [supabase, selectedCategory]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      fetchArticles();
+    }
+  }, [fetchArticles, isLoading]);
 
   const handleArticleRead = async (id: string) => {
     try {

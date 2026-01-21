@@ -390,6 +390,7 @@ export class NpsServiceSupabase implements INpsService {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async analyzeSentiment(ctx: ServiceContext, responseId: string): Promise<NPSAnalysis> {
     // TODO: Implement AI sentiment analysis
     // This will integrate with an AI service (OpenAI, Anthropic, etc.)
@@ -397,12 +398,14 @@ export class NpsServiceSupabase implements INpsService {
     throw new Error('AI sentiment analysis not yet implemented');
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async predictDetractorRisk(ctx: ServiceContext, contactId: string): Promise<number> {
     // TODO: Implement AI detractor prediction
     // This will analyze contact history and predict likelihood of becoming a detractor
     throw new Error('AI detractor prediction not yet implemented');
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async suggestFollowup(ctx: ServiceContext, responseId: string): Promise<string[]> {
     // TODO: Implement AI follow-up suggestions
     // This will analyze response and suggest appropriate actions
@@ -454,6 +457,7 @@ export class NpsServiceSupabase implements INpsService {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getTrends(ctx: ServiceContext, surveyId?: string, period: 'day' | 'week' | 'month' = 'week'): Promise<NPSTrend[]> {
     // TODO: Implement trend calculation
     // This will aggregate responses by time period and calculate scores

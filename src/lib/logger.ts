@@ -56,8 +56,7 @@ export function getCorrelationId(headers?: Headers): string {
   return generateCorrelationId();
 }
 
-// Session storage key for correlation ID
-const CORRELATION_ID_KEY = 'mejohnc_correlation_id';
+// Session storage key for session ID
 const SESSION_ID_KEY = 'mejohnc_session_id';
 
 // Get or create session-scoped IDs (client-side)

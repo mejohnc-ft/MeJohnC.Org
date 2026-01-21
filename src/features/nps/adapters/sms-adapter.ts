@@ -64,6 +64,7 @@ export interface INPSSMSAdapter {
 /**
  * Example implementation stub for Twilio
  */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 export class TwilioNPSAdapter implements INPSSMSAdapter {
   private accountSid: string;
   private authToken: string;
@@ -107,3 +108,4 @@ export class TwilioNPSAdapter implements INPSSMSAdapter {
     return { valid: false, error: 'Not implemented' };
   }
 }
+/* eslint-enable @typescript-eslint/no-unused-vars */

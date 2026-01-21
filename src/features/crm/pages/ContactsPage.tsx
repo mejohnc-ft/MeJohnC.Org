@@ -66,7 +66,22 @@ const ContactsPage = () => {
     setShowContactForm(true);
   };
 
-  const handleSaveContact = async (formData: any) => {
+  const handleSaveContact = async (formData: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+    company: string;
+    job_title: string;
+    contact_type: Contact['contact_type'];
+    source: string;
+    notes: string;
+    tags: string[];
+    website: string;
+    linkedin_url: string;
+    twitter_handle: string;
+    github_username: string;
+  }) => {
     if (!supabase) return;
 
     try {

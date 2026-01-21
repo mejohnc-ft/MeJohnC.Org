@@ -67,7 +67,6 @@ function createPath(data: { x: number; y: number }[], width: number, height: num
     return points
       .map((p, i) => {
         const x = padding + (i / data.length) * chartWidth + (chartWidth / data.length) * 0.1;
-        const barHeight = padding + chartHeight - p.y;
         return `M${x},${padding + chartHeight} L${x},${p.y} L${x + barWidth},${p.y} L${x + barWidth},${padding + chartHeight}`;
       })
       .join(' ');

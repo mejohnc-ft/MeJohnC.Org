@@ -8,6 +8,8 @@
  * @see https://github.com/mejohnc-ft/MeJohnC.Org/issues/104
  */
 
+/* eslint-disable react-refresh/only-export-components */
+
 import { createContext, useContext, type ReactNode } from 'react';
 import {
   ClerkProvider,

@@ -6,7 +6,7 @@
  * @see https://github.com/mejohnc-ft/MeJohnC.Org/issues/111
  */
 
-import { AlertTriangle, Mail, MessageSquare } from 'lucide-react';
+import { AlertTriangle, Mail } from 'lucide-react';
 import type { NPSResponse } from '../schemas';
 
 interface DetractorAlertProps {

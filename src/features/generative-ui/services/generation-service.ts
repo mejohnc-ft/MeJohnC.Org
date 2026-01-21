@@ -5,7 +5,7 @@
  * Supports both mock generation (for development) and real AI generation.
  */
 
-import type { GeneratedUI, GenerateUIRequest, ComponentType } from '../schemas';
+import type { GeneratedUI } from '../schemas';
 
 // ============================================
 // TYPES
@@ -83,8 +83,6 @@ RULES:
  * Generate UI using mock data (for development/demo)
  */
 export async function generateMockUI(prompt: string): Promise<GeneratedUI> {
-  const startTime = Date.now();
-
   // Simulate network delay
   await new Promise((resolve) => setTimeout(resolve, 800 + Math.random() * 700));
 

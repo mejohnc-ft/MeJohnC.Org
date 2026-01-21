@@ -63,7 +63,6 @@ import {
   InteractionSchema,
   FollowUpSchema,
   DealSchema,
-  ContactSchema as BaseContactSchema,
   PipelineSchema,
   PipelineStageSchema,
 } from '@/lib/schemas';

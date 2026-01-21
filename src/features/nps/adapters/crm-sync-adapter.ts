@@ -77,6 +77,7 @@ export interface INPSCRMSyncAdapter {
  * This will be implemented once the CRM module (issue #108) is complete.
  * It will use the CRM service to update contact records.
  */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 export class CRMNPSSyncAdapter implements INPSCRMSyncAdapter {
   async syncResponseToContact(response: NPSResponse): Promise<CRMSyncResult> {
     // TODO: Implement after CRM module is available
@@ -113,6 +114,7 @@ export class CRMNPSSyncAdapter implements INPSCRMSyncAdapter {
     // TODO: Implement after CRM module is available
     throw new Error('CRM history retrieval not yet implemented - waiting for CRM module (#108)');
   }
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
   async verifyConfiguration(): Promise<{ valid: boolean; error?: string }> {
     return { valid: false, error: 'CRM module not yet available' };

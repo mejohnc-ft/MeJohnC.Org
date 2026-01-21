@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   Github,
@@ -40,7 +40,7 @@ export default function GitHubMetricsCard({
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const fetchMetrics = async () => {
+  const fetchMetrics = useCallback(async () => {
     try {
       setError(null);
       const data = await getAllGitHubMetrics(owner, repo, token);
@@ -55,11 +55,11 @@ export default function GitHubMetricsCard({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [owner, repo, token]);
 
   useEffect(() => {
     fetchMetrics();
-  }, [owner, repo, token]);
+  }, [fetchMetrics]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);

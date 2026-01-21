@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Sparkles, ExternalLink, RefreshCw } from 'lucide-react';
 import { UIRenderer } from '@/features/generative-ui/components/UIRenderer';
 import { generationService } from '@/features/generative-ui/services/generation-service';
@@ -32,20 +32,7 @@ export function GenerativeBlock({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // If we have a cached UI, use it
-    if (cachedUI) {
-      setUI(cachedUI);
-      return;
-    }
-
-    // If we have a prompt and autoGenerate is true, generate on mount
-    if (prompt && autoGenerate && !ui) {
-      handleGenerate();
-    }
-  }, [cachedUI, prompt, autoGenerate]);
-
-  const handleGenerate = async () => {
+  const handleGenerate = useCallback(async () => {
     if (!prompt) return;
 
     setLoading(true);
@@ -63,7 +50,20 @@ export function GenerativeBlock({
     } finally {
       setLoading(false);
     }
-  };
+  }, [prompt]);
+
+  useEffect(() => {
+    // If we have a cached UI, use it
+    if (cachedUI) {
+      setUI(cachedUI);
+      return;
+    }
+
+    // If we have a prompt and autoGenerate is true, generate on mount
+    if (prompt && autoGenerate && !ui) {
+      handleGenerate();
+    }
+  }, [cachedUI, prompt, autoGenerate, ui, handleGenerate]);
 
   // Loading state
   if (loading) {

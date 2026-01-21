@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   Database,
@@ -36,7 +36,7 @@ export default function SupabaseStatsCard({ showChart = true }: SupabaseStatsCar
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     if (!supabase) return;
 
     try {
@@ -49,11 +49,11 @@ export default function SupabaseStatsCard({ showChart = true }: SupabaseStatsCar
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [supabase]);
 
   useEffect(() => {
     fetchStats();
-  }, [supabase]);
+  }, [fetchStats]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);

@@ -6,7 +6,7 @@
  * @see https://github.com/mejohnc-ft/MeJohnC.Org/issues/110
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Layers, Plus } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
 import { Card } from '@/components/ui/card';
@@ -25,11 +25,7 @@ export default function ComponentsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadGuidelines();
-  }, []);
-
-  const loadGuidelines = async () => {
+  const loadGuidelines = useCallback(async () => {
     try {
       setIsLoading(true);
       const service = new StyleServiceSupabase();
@@ -44,7 +40,11 @@ export default function ComponentsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    loadGuidelines();
+  }, [loadGuidelines]);
 
   if (isLoading) {
     return (

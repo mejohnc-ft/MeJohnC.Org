@@ -4,8 +4,10 @@
  * Provides hooks to check feature flags in React components
  */
 
+/* eslint-disable react-refresh/only-export-components */
+
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   featureFlags,
   isFeatureEnabled,

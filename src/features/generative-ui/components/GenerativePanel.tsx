@@ -8,14 +8,14 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Sparkles, Send, Loader2, Copy, Check, Save, RefreshCw, Zap } from 'lucide-react';
+import { Sparkles, Send, Loader2, Copy, Check, Save, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { UIRenderer } from './UIRenderer';
 import { generationService } from '../services/generation-service';
-import type { GeneratedUI, GenerateUIRequest } from '../schemas';
+import type { GeneratedUI } from '../schemas';
 
 // Example prompts for inspiration
 const EXAMPLE_PROMPTS = [

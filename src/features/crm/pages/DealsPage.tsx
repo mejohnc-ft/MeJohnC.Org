@@ -4,7 +4,7 @@
  * List view of all deals with filtering
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DollarSign, Plus, Loader2 } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -23,17 +23,13 @@ const DealsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState<string>('open');
 
-  useEffect(() => {
-    loadDeals();
-  }, [selectedStatus]);
-
-  const loadDeals = async () => {
+  const loadDeals = useCallback(async () => {
     if (!supabase) return;
     setIsLoading(true);
 
     try {
       const data = await getDeals({
-        status: selectedStatus as any || undefined,
+        status: (selectedStatus as DealWithDetails['status']) || undefined,
       }, supabase);
       setDeals(data);
     } catch (error) {
@@ -43,7 +39,11 @@ const DealsPage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [supabase, selectedStatus]);
+
+  useEffect(() => {
+    loadDeals();
+  }, [loadDeals]);
 
   const totalValue = deals.reduce((sum, deal) => sum + (deal.value || 0), 0);
   const formatCurrency = (value: number) => {

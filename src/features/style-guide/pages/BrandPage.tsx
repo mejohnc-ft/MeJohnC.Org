@@ -6,7 +6,7 @@
  * @see https://github.com/mejohnc-ft/MeJohnC.Org/issues/110
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Palette, Plus, Settings } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
@@ -26,11 +26,7 @@ export default function BrandPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadBrands();
-  }, []);
-
-  const loadBrands = async () => {
+  const loadBrands = useCallback(async () => {
     try {
       setIsLoading(true);
       const service = new StyleServiceSupabase();
@@ -42,7 +38,11 @@ export default function BrandPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    loadBrands();
+  }, [loadBrands]);
 
   if (isLoading) {
     return (

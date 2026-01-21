@@ -7,7 +7,7 @@
  * @see https://github.com/mejohnc-ft/MeJohnC.Org/issues/110
  */
 
-import type { ServiceContext, BaseService, ListResponse } from '../types';
+import type { ServiceContext, BaseService } from '../types';
 import type {
   Brand,
   CreateBrandInput,

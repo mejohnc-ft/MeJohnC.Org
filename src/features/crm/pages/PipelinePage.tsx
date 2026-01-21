@@ -4,7 +4,7 @@
  * Visual pipeline board for managing deals
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { GitBranch, Loader2 } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
 import { useAuthenticatedSupabase } from '@/lib/supabase';
@@ -24,17 +24,7 @@ const PipelinePage = () => {
   const [deals, setDeals] = useState<DealWithDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    loadPipelines();
-  }, []);
-
-  useEffect(() => {
-    if (selectedPipeline) {
-      loadPipelineData();
-    }
-  }, [selectedPipeline]);
-
-  const loadPipelines = async () => {
+  const loadPipelines = useCallback(async () => {
     if (!supabase) return;
     setIsLoading(true);
 
@@ -51,9 +41,9 @@ const PipelinePage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [supabase]);
 
-  const loadPipelineData = async () => {
+  const loadPipelineData = useCallback(async () => {
     if (!supabase || !selectedPipeline) return;
 
     try {
@@ -69,7 +59,17 @@ const PipelinePage = () => {
         context: 'PipelinePage.loadPipelineData',
       });
     }
-  };
+  }, [supabase, selectedPipeline]);
+
+  useEffect(() => {
+    loadPipelines();
+  }, [loadPipelines]);
+
+  useEffect(() => {
+    if (selectedPipeline) {
+      loadPipelineData();
+    }
+  }, [selectedPipeline, loadPipelineData]);
 
   if (isLoading) {
     return (

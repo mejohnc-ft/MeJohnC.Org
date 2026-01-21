@@ -71,6 +71,7 @@ export interface INewsApiAdapter {
  *
  * This can be replaced with actual implementation when NewsAPI key is available.
  */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 export class NewsApiAdapter implements INewsApiAdapter {
   private apiKey: string;
 
@@ -95,3 +96,4 @@ export class NewsApiAdapter implements INewsApiAdapter {
     return [];
   }
 }
+/* eslint-enable @typescript-eslint/no-unused-vars */

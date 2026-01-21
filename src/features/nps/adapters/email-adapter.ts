@@ -67,6 +67,7 @@ export interface INPSEmailAdapter {
   verifyConfiguration(): Promise<{ valid: boolean; error?: string }>;
 }
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * Example implementation stub for SendGrid
  */
@@ -154,3 +155,4 @@ export class ResendNPSAdapter implements INPSEmailAdapter {
     return { valid: false, error: 'Not implemented' };
   }
 }
+/* eslint-enable @typescript-eslint/no-unused-vars */

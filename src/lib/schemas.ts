@@ -27,10 +27,7 @@ export const TenantSchema = z.object({
 });
 export type Tenant = z.infer<typeof TenantSchema>;
 
-// Base schema with tenant_id (used for extending other schemas)
-const withTenantId = {
-  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
-};
+// Default tenant ID constant is used directly in schemas below
 
 // ============================================
 // APP SCHEMAS

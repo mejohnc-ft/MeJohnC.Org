@@ -25,6 +25,7 @@ import { HeroBlock } from '@/components/site-builder/blocks/HeroBlock';
 import { FeaturesBlock } from '@/components/site-builder/blocks/FeaturesBlock';
 
 // Component registry mapping types to React components
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const COMPONENT_REGISTRY: Record<ComponentType, React.ComponentType<any>> = {
   StatCard,
   StatGrid,
@@ -48,16 +49,7 @@ interface UINodeRendererProps {
 function UINodeRenderer({ node, dataContext }: UINodeRendererProps) {
   const Component = COMPONENT_REGISTRY[node.type];
 
-  if (!Component) {
-    console.warn(`Unknown component type: ${node.type}`);
-    return (
-      <div className="bg-red-500/10 border border-red-500/50 rounded p-4 text-red-400">
-        Unknown component: {node.type}
-      </div>
-    );
-  }
-
-  // Resolve data bindings if present
+  // Resolve data bindings if present - must be called before any early returns
   const resolvedProps = useMemo(() => {
     if (!node.dataBinding || !dataContext) {
       return node.props;
@@ -77,6 +69,15 @@ function UINodeRenderer({ node, dataContext }: UINodeRendererProps) {
 
     return { ...node.props, boundData: value };
   }, [node.props, node.dataBinding, dataContext]);
+
+  if (!Component) {
+    console.warn(`Unknown component type: ${node.type}`);
+    return (
+      <div className="bg-red-500/10 border border-red-500/50 rounded p-4 text-red-400">
+        Unknown component: {node.type}
+      </div>
+    );
+  }
 
   return (
     <div className="ui-node" data-node-id={node.id} data-node-type={node.type}>

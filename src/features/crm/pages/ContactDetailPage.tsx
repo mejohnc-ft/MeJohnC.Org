@@ -4,7 +4,7 @@
  * Detailed view of a single contact with interactions and follow-ups
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, MessageSquare, Calendar, Loader2, Plus } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
@@ -40,11 +40,7 @@ const ContactDetailPage = () => {
     noIndex: true
   });
 
-  useEffect(() => {
-    loadContactData();
-  }, [id]);
-
-  const loadContactData = async () => {
+  const loadContactData = useCallback(async () => {
     if (!supabase || !id) return;
     setIsLoading(true);
 
@@ -65,9 +61,13 @@ const ContactDetailPage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [supabase, id]);
 
-  const handleCreateInteraction = async (data: any) => {
+  useEffect(() => {
+    loadContactData();
+  }, [loadContactData]);
+
+  const handleCreateInteraction = async (data: Omit<Interaction, 'id' | 'created_at' | 'tenant_id' | 'created_by' | 'related_url' | 'attachments'>) => {
     if (!supabase) return;
     try {
       await createInteraction(data, supabase);
@@ -80,7 +80,7 @@ const ContactDetailPage = () => {
     }
   };
 
-  const handleCreateFollowUp = async (data: any) => {
+  const handleCreateFollowUp = async (data: Omit<FollowUp, 'id' | 'created_at' | 'tenant_id' | 'status' | 'completed_at' | 'completed_by' | 'completion_notes' | 'is_recurring' | 'recurrence_rule' | 'parent_follow_up_id' | 'created_by'>) => {
     if (!supabase) return;
     try {
       await createFollowUp(data, supabase);

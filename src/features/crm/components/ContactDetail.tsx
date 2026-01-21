@@ -4,7 +4,7 @@
  * Full detail view of a contact with all information
  */
 
-import { Mail, Phone, Building2, Globe, Linkedin, Twitter, Github, Calendar } from 'lucide-react';
+import { Mail, Phone, Globe, Linkedin, Twitter, Github, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { ContactWithDetails } from '../schemas';
 

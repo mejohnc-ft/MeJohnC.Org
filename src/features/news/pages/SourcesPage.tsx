@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Rss, Loader2 } from 'lucide-react';
 import { SourceManager } from '../components/SourceManager';
 import { NewsServiceSupabase } from '@/services/news';
@@ -25,11 +25,7 @@ export default function SourcesPage() {
   const [categories, setCategories] = useState<NewsCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [sourcesData, categoriesData] = await Promise.all([
         newsService.getSources({ client: supabase }, true),
@@ -45,7 +41,11 @@ export default function SourcesPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleSourceCreate = async (data: Partial<NewsSource>) => {
     try {
