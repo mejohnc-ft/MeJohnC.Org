@@ -28,25 +28,21 @@ import {
   LayoutGrid,
   Columns2,
   Columns3,
-  RefreshCw,
   Eye,
   EyeOff,
   ExternalLink,
-  Copy,
-  Check,
   Layers,
 } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { GenerativePanel } from '../components/GenerativePanel';
-import { genuiQueries, type CatalogComponent, type PanelTemplate } from '../services/genui-queries';
+import { genuiQueries, type PanelTemplate } from '../services/genui-queries';
 import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
 import {
   CENTREX_BRAND_COLORS,
   CENTREX_COMPONENT_CATALOG,
-  type CentrexComponentType,
 } from '@/lib/centrexstyle';
 import type { GeneratedUI, GenerativePanel as GenerativePanelType } from '../schemas';
 
@@ -86,7 +82,6 @@ export default function GenerativePage() {
   const [stats, setStats] = useState<GenerativeStats | null>(null);
   const [panels, setPanels] = useState<GenerativePanelType[]>([]);
   const [templates, setTemplates] = useState<PanelTemplate[]>([]);
-  const [catalog, setCatalog] = useState<CatalogComponent[]>([]);
   const [dataSources, setDataSources] = useState<DataSource[]>([]);
 
   // UI State
@@ -111,17 +106,15 @@ export default function GenerativePage() {
   // Fetch all data
   const fetchData = useCallback(async () => {
     try {
-      const [statsData, panelsData, templatesData, catalogData] = await Promise.all([
+      const [statsData, panelsData, templatesData] = await Promise.all([
         genuiQueries.getStats(),
         genuiQueries.getPanels(),
         genuiQueries.getTemplates(),
-        genuiQueries.getCatalog().catch(() => []), // Catalog table may not exist yet
       ]);
 
       setStats(statsData);
       setPanels(panelsData);
       setTemplates(templatesData);
-      setCatalog(catalogData);
 
       // Mock data sources for now (will be replaced with real DB queries)
       setDataSources([

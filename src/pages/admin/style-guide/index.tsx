@@ -24,10 +24,8 @@ import {
   type GeneratedConfig,
 } from '@/lib/tailwind-generator';
 import {
-  generateCentrexDesignTokens,
   CENTREX_COMPONENT_CATALOG,
   CENTREX_BRAND_COLORS,
-  type CentrexComponentType,
 } from '@/lib/centrexstyle';
 import type { DesignTokens, ColorToken, TypographyToken } from '@/lib/figma-api';
 import { useSEO } from '@/lib/seo';

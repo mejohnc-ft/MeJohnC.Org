@@ -550,7 +550,7 @@ export function generateCentrexDesignTokens(): DesignTokens {
     unit: 'px' as const,
   }));
 
-  const shadows: ShadowToken[] = Object.entries(CENTREX_SHADOWS).map(([key, shadow]) => ({
+  const shadows: ShadowToken[] = Object.entries(CENTREX_SHADOWS).map(([, shadow]) => ({
     name: shadow.name,
     value: shadow.value,
   }));

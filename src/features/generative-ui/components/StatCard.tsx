@@ -14,10 +14,8 @@
 'use client';
 
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import {
   CENTREX_BRAND_COLORS,
-  CENTREX_GRADIENT_COLORS,
   CENTREX_COMPONENT_VARIANTS,
   CENTREX_DARK_THEME,
 } from '@/lib/centrexstyle';
@@ -100,12 +98,6 @@ export function StatCard({
   const colors = colorMap[color];
 
   const TrendIcon = trend === 'up' ? TrendingUp : trend === 'down' ? TrendingDown : Minus;
-  // Use CentrexStyle brand colors for trend indicators
-  const trendColor = trend === 'up'
-    ? `text-[${CENTREX_BRAND_COLORS.primary.hex}]`
-    : trend === 'down'
-    ? `text-[${CENTREX_BRAND_COLORS.accent.hex}]`
-    : 'text-muted-foreground';
 
   return (
     <div
