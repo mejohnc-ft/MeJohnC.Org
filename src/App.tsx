@@ -61,6 +61,11 @@ const TaskEditPage = lazy(() => import('./pages/admin/TaskEditPage'));
 const SiteBuilderIndex = lazy(() => import('./pages/admin/site-builder/index'));
 const SiteBuilderEditor = lazy(() => import('./pages/admin/site-builder/editor'));
 
+// Generative UI admin pages
+const GenerativePage = lazy(() => import('./features/generative-ui/pages/GenerativePage'));
+const ComponentLibraryPage = lazy(() => import('./features/generative-ui/pages/ComponentLibraryPage'));
+const SavedPanelsPage = lazy(() => import('./features/generative-ui/pages/SavedPanelsPage'));
+
 // Marketing admin pages
 const AdminMarketing = lazy(() => import('./pages/admin/Marketing'));
 const AdminMarketingSubscribers = lazy(() => import('./pages/admin/MarketingSubscribers'));
@@ -77,6 +82,9 @@ const PublicBookmarks = lazy(() => import('./pages/Bookmarks'));
 
 // Public custom pages (site builder)
 const PublicPage = lazy(() => import('./pages/PublicPage'));
+
+// Public generative UI panels
+const PanelPage = lazy(() => import('./pages/PanelPage'));
 
 // Minimal loading fallback
 function PageLoader() {
@@ -218,6 +226,22 @@ function AnimatedRoutes() {
     );
   }
 
+  // Public generative UI panels
+  if (location.pathname.startsWith('/panel/')) {
+    return (
+      <Routes location={location}>
+        <Route
+          path="/panel/:slug"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <PanelPage />
+            </Suspense>
+          }
+        />
+      </Routes>
+    );
+  }
+
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
@@ -337,6 +361,10 @@ function AdminRoutes() {
           {/* Site Builder routes */}
           <Route path="/admin/site-builder" element={<SiteBuilderIndex />} />
           <Route path="/admin/site-builder/:pageId" element={<SiteBuilderEditor />} />
+          {/* Generative UI routes */}
+          <Route path="/admin/generative" element={<GenerativePage />} />
+          <Route path="/admin/generative/library" element={<ComponentLibraryPage />} />
+          <Route path="/admin/generative/saved" element={<SavedPanelsPage />} />
         </Routes>
       </Suspense>
     </ErrorBoundary>
@@ -347,14 +375,15 @@ function AppContent() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isCustomPage = location.pathname.startsWith('/p/');
+  const isPanelPage = location.pathname.startsWith('/panel/');
 
   // Don't track admin routes in analytics
   if (isAdminRoute) {
     return <AdminRoutes />;
   }
 
-  // Custom pages (site builder) don't need the default Layout
-  if (isCustomPage) {
+  // Custom pages (site builder) and panels don't need the default Layout
+  if (isCustomPage || isPanelPage) {
     return (
       <ErrorBoundary fallback={<PublicErrorFallback />}>
         <RouteTracker />

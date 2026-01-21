@@ -5,6 +5,7 @@ export { TextBlock, type TextBlockProps } from './TextBlock';
 export { ImageBlock, type ImageBlockProps } from './ImageBlock';
 export { SpacerBlock, type SpacerBlockProps } from './SpacerBlock';
 export { DividerBlock, type DividerBlockProps } from './DividerBlock';
+export { GenerativeBlock, type GenerativeBlockProps } from './GenerativeBlock';
 
 // Block type registry for the editor
 export const BLOCK_COMPONENTS = {
@@ -15,6 +16,7 @@ export const BLOCK_COMPONENTS = {
   image: ImageBlock,
   spacer: SpacerBlock,
   divider: DividerBlock,
+  generative: GenerativeBlock,
 } as const;
 
 export type BlockType = keyof typeof BLOCK_COMPONENTS;
