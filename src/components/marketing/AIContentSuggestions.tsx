@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Sparkles, Copy, Check } from 'lucide-react';
+import { Sparkles, Copy, Check, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { captureException } from '@/lib/sentry';
+import { generateContentSuggestions, isAIConfigured, type ContentSuggestion } from '@/lib/ai-service';
 
 interface AIContentSuggestionsProps {
   contentType: 'email_subject' | 'email_body' | 'social_post' | 'blog_title' | 'landing_page_copy';
@@ -10,46 +11,44 @@ interface AIContentSuggestionsProps {
 }
 
 export function AIContentSuggestions({ contentType, context, onSelect }: AIContentSuggestionsProps) {
-  // Context will be used when integrating with actual AI service
-  void context;
   const [prompt, setPrompt] = useState('');
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<ContentSuggestion[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const generateSuggestions = async () => {
     if (!prompt.trim()) return;
 
     setIsGenerating(true);
+    setError(null);
     try {
-      // TODO: Integrate with actual AI service (OpenAI, Anthropic, etc.)
-      // For now, return mock suggestions
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const result = await generateContentSuggestions(prompt, contentType, context);
 
-      const mockSuggestions = [
-        `${prompt} - Professional Version`,
-        `${prompt} - Engaging Version`,
-        `${prompt} - Creative Version`,
-        `${prompt} - Direct Version`,
-      ];
+      if (result.data) {
+        setSuggestions(result.data);
+      }
 
-      setSuggestions(mockSuggestions);
-    } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      if (result.error && !isAIConfigured()) {
+        setError('AI service not configured. Showing example suggestions.');
+      }
+    } catch (err) {
+      captureException(err instanceof Error ? err : new Error(String(err)), {
         context: 'AIContentSuggestions.generateSuggestions',
       });
+      setError('Failed to generate suggestions. Please try again.');
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const copySuggestion = (suggestion: string, index: number) => {
-    navigator.clipboard.writeText(suggestion);
+  const copySuggestion = (suggestion: ContentSuggestion, index: number) => {
+    navigator.clipboard.writeText(suggestion.content);
     setCopiedIndex(index);
     setTimeout(() => setCopiedIndex(null), 2000);
 
     if (onSelect) {
-      onSelect(suggestion);
+      onSelect(suggestion.content);
     }
   };
 
@@ -99,6 +98,13 @@ export function AIContentSuggestions({ contentType, context, onSelect }: AIConte
         </Button>
       </div>
 
+      {error && (
+        <div className="flex items-center gap-2 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-md">
+          <AlertCircle className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+          <p className="text-sm text-yellow-500">{error}</p>
+        </div>
+      )}
+
       {suggestions.length > 0 && (
         <div className="space-y-2 mt-6">
           <p className="text-sm font-medium text-muted-foreground">Suggestions:</p>
@@ -108,7 +114,12 @@ export function AIContentSuggestions({ contentType, context, onSelect }: AIConte
               className="p-3 bg-muted/50 border border-border rounded-md hover:bg-muted transition-colors group"
             >
               <div className="flex items-start justify-between gap-3">
-                <p className="text-sm text-foreground flex-1">{suggestion}</p>
+                <div className="flex-1">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    {suggestion.tone}
+                  </span>
+                  <p className="text-sm text-foreground mt-1">{suggestion.content}</p>
+                </div>
                 <Button
                   variant="ghost"
                   size="sm"

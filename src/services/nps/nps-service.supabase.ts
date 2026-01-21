@@ -30,6 +30,11 @@ import type {
 } from '@/features/nps/schemas';
 import { getTenantId } from '../types';
 import { NPSSurveySchema, NPSResponseSchema } from '@/features/nps/schemas';
+import {
+  analyzeSentiment as aiAnalyzeSentiment,
+  predictDetractorRisk as aiPredictDetractorRisk,
+  generateFollowUpSuggestions,
+} from '@/lib/ai-service';
 
 /**
  * Parse and validate response data using Zod schema
@@ -390,26 +395,92 @@ export class NpsServiceSupabase implements INpsService {
     };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async analyzeSentiment(ctx: ServiceContext, responseId: string): Promise<NPSAnalysis> {
-    // TODO: Implement AI sentiment analysis
-    // This will integrate with an AI service (OpenAI, Anthropic, etc.)
-    // For now, return a placeholder
-    throw new Error('AI sentiment analysis not yet implemented');
+    const tenantId = getTenantId(ctx);
+
+    // Get the response to analyze
+    const response = await this.getResponseById(ctx, responseId);
+    if (!response) {
+      throw new Error(`Response ${responseId} not found`);
+    }
+
+    // Analyze sentiment using AI service
+    const feedback = response.feedback || '';
+    const result = await aiAnalyzeSentiment(feedback);
+
+    const sentimentData = result.data || {
+      sentiment: 'neutral',
+      score: 0,
+      confidence: 0,
+      themes: [],
+      summary: 'No analysis available',
+    };
+
+    // Store the analysis
+    const { data: analysis, error } = await this.client
+      .from('nps_analysis')
+      .insert({
+        tenant_id: tenantId,
+        survey_id: response.survey_id,
+        response_id: responseId,
+        analysis_type: 'sentiment',
+        result: sentimentData,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return analysis;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async predictDetractorRisk(ctx: ServiceContext, contactId: string): Promise<number> {
-    // TODO: Implement AI detractor prediction
-    // This will analyze contact history and predict likelihood of becoming a detractor
-    throw new Error('AI detractor prediction not yet implemented');
+    const tenantId = getTenantId(ctx);
+
+    // Get recent responses for this contact
+    const { data: responses } = await this.client
+      .from('nps_responses')
+      .select('score, feedback, category')
+      .eq('tenant_id', tenantId)
+      .eq('contact_id', contactId)
+      .order('responded_at', { ascending: false })
+      .limit(10);
+
+    if (!responses || responses.length === 0) {
+      return 25; // Default low risk for no history
+    }
+
+    // Prepare customer data for AI analysis
+    const recentScores = responses.map((r) => r.score);
+    const averageScore = recentScores.reduce((a, b) => a + b, 0) / recentScores.length;
+    const feedback = responses.map((r) => r.feedback).filter(Boolean) as string[];
+
+    const result = await aiPredictDetractorRisk({
+      recentScores,
+      averageScore,
+      feedback,
+      engagementLevel: responses.length >= 5 ? 'high' : responses.length >= 2 ? 'medium' : 'low',
+    });
+
+    return result.data?.riskScore ?? 25;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async suggestFollowup(ctx: ServiceContext, responseId: string): Promise<string[]> {
-    // TODO: Implement AI follow-up suggestions
-    // This will analyze response and suggest appropriate actions
-    throw new Error('AI follow-up suggestions not yet implemented');
+    // Get the response to analyze
+    const response = await this.getResponseById(ctx, responseId);
+    if (!response) {
+      throw new Error(`Response ${responseId} not found`);
+    }
+
+    // Generate AI-powered follow-up suggestions
+    const result = await generateFollowUpSuggestions({
+      score: response.score,
+      category: response.category,
+      feedback: response.feedback || undefined,
+      customerName: response.name || undefined,
+    });
+
+    // Return just the action strings for backward compatibility
+    return (result.data || []).map((s) => s.action);
   }
 
   // ============================================
@@ -448,20 +519,91 @@ export class NpsServiceSupabase implements INpsService {
       ? validScores.reduce((sum, score) => sum + score, 0) / validScores.length
       : null;
 
+    // Get recent trend data
+    const trendData = await this.getTrends(ctx, undefined, 'week');
+
     return {
       total_surveys: totalSurveys || 0,
       active_surveys: activeSurveys || 0,
       total_responses: totalResponses || 0,
       average_score: averageScore,
-      trend: [], // TODO: Implement trend calculation
+      trend: trendData.slice(-6), // Last 6 weeks
     };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getTrends(ctx: ServiceContext, surveyId?: string, period: 'day' | 'week' | 'month' = 'week'): Promise<NPSTrend[]> {
-    // TODO: Implement trend calculation
-    // This will aggregate responses by time period and calculate scores
-    return [];
+    const tenantId = getTenantId(ctx);
+
+    // Calculate date range based on period
+    const now = new Date();
+    const periodsToFetch = period === 'day' ? 30 : period === 'week' ? 12 : 12;
+    const msPerPeriod = period === 'day' ? 86400000 : period === 'week' ? 604800000 : 2592000000;
+    const startDate = new Date(now.getTime() - periodsToFetch * msPerPeriod);
+
+    // Build query
+    let query = this.client
+      .from('nps_responses')
+      .select('score, category, responded_at')
+      .eq('tenant_id', tenantId)
+      .gte('responded_at', startDate.toISOString())
+      .order('responded_at', { ascending: true });
+
+    if (surveyId) {
+      query = query.eq('survey_id', surveyId);
+    }
+
+    const { data: responses, error } = await query;
+    if (error) throw error;
+    if (!responses || responses.length === 0) return [];
+
+    // Group responses by period
+    const periodBuckets = new Map<string, { scores: number[]; promoters: number; detractors: number; total: number }>();
+
+    for (const response of responses) {
+      const date = new Date(response.responded_at);
+      let periodKey: string;
+
+      if (period === 'day') {
+        periodKey = date.toISOString().split('T')[0];
+      } else if (period === 'week') {
+        // Get Monday of the week
+        const monday = new Date(date);
+        monday.setDate(date.getDate() - date.getDay() + 1);
+        periodKey = monday.toISOString().split('T')[0];
+      } else {
+        // Month
+        periodKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`;
+      }
+
+      if (!periodBuckets.has(periodKey)) {
+        periodBuckets.set(periodKey, { scores: [], promoters: 0, detractors: 0, total: 0 });
+      }
+
+      const bucket = periodBuckets.get(periodKey)!;
+      bucket.scores.push(response.score);
+      bucket.total++;
+      if (response.category === 'promoter') bucket.promoters++;
+      if (response.category === 'detractor') bucket.detractors++;
+    }
+
+    // Convert to NPSTrend array
+    const trends: NPSTrend[] = [];
+    for (const [periodKey, bucket] of periodBuckets) {
+      const npsScore = bucket.total > 0
+        ? Math.round(((bucket.promoters - bucket.detractors) / bucket.total) * 100)
+        : 0;
+
+      trends.push({
+        period: periodKey,
+        score: npsScore,
+        responses_count: bucket.total,
+        promoters_count: bucket.promoters,
+        passives_count: bucket.total - bucket.promoters - bucket.detractors,
+        detractors_count: bucket.detractors,
+      });
+    }
+
+    return trends;
   }
 
   async calculateScore(ctx: ServiceContext, surveyId: string): Promise<number> {
