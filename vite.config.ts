@@ -33,6 +33,8 @@ export default defineConfig(({ mode }) => ({
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           // Animation library
           'vendor-framer': ['framer-motion'],
+          // Charting library (large, lazy-loaded via dashboard)
+          'vendor-recharts': ['recharts'],
           // Markdown processing - split for better caching
           'vendor-markdown-core': ['react-markdown'],
           'vendor-markdown-plugins': ['remark-gfm', 'rehype-highlight'],
@@ -51,8 +53,8 @@ export default defineConfig(({ mode }) => ({
         },
       },
     },
-    // Increase warning limit slightly since we're chunking
-    chunkSizeWarningLimit: 300,
+    // Increase warning limit for vendor chunks (recharts is ~365KB but cached/lazy-loaded)
+    chunkSizeWarningLimit: 400,
     // Hidden source maps: generated for Sentry but not exposed to browsers
     sourcemap: 'hidden',
   },
