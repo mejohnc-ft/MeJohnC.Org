@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSEO } from '@/lib/seo';
 import { useAuthenticatedSupabase } from '@/lib/supabase';
 import AdminLayout from '@/components/AdminLayout';
@@ -15,8 +15,15 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Database } from 'lucide-react';
 import { DataSourceConfig } from '../components/DataSourceConfig';
+import { SourceModal, type SourceFormData } from '../components/SourceModal';
+import { SourceDetailPanel } from '../components/SourceDetailPanel';
 import type { MetricsSource } from '../schemas';
-import { getMetricsSources } from '@/lib/metrics-queries';
+import {
+  getMetricsSources,
+  createMetricsSource,
+  updateMetricsSource,
+  deleteMetricsSource,
+} from '@/lib/metrics-queries';
 
 export default function SourcesPage() {
   useSEO({ title: 'Data Sources - Metrics', noIndex: true });
@@ -25,32 +32,101 @@ export default function SourcesPage() {
   const [sources, setSources] = useState<MetricsSource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+  // State for modal and detail panel
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [selectedSource, setSelectedSource] = useState<MetricsSource | null>(null);
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+
+  const loadSources = useCallback(async () => {
     if (!supabase) return;
 
-    const loadSources = async () => {
-      try {
-        const data = await getMetricsSources({}, supabase);
-        setSources(data);
-      } catch (error) {
-        console.error('Failed to load sources:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadSources();
+    try {
+      const data = await getMetricsSources({}, supabase);
+      setSources(data);
+    } catch (error) {
+      console.error('Failed to load sources:', error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [supabase]);
 
-  const handleAddSource = () => {
-    // TODO: Implement add source modal
-    console.log('Add source clicked');
-  };
+  useEffect(() => {
+    loadSources();
+  }, [loadSources]);
 
-  const handleSourceClick = (source: MetricsSource) => {
-    // TODO: Implement source detail/edit view
-    console.log('Source clicked:', source);
-  };
+  const handleAddSource = useCallback(() => {
+    setSelectedSource(null);
+    setModalMode('create');
+    setIsModalOpen(true);
+  }, []);
+
+  const handleSourceClick = useCallback((source: MetricsSource) => {
+    setSelectedSource(source);
+    setIsDetailOpen(true);
+  }, []);
+
+  const handleEditSource = useCallback((source: MetricsSource) => {
+    setSelectedSource(source);
+    setModalMode('edit');
+    setIsDetailOpen(false);
+    setIsModalOpen(true);
+  }, []);
+
+  const handleSaveSource = useCallback(
+    async (data: SourceFormData) => {
+      if (!supabase) return;
+
+      if (modalMode === 'create') {
+        await createMetricsSource(
+          {
+            tenant_id: '00000000-0000-0000-0000-000000000000',
+            name: data.name,
+            slug: data.slug,
+            source_type: data.source_type,
+            description: data.description || null,
+            icon: null,
+            color: data.color,
+            endpoint_url: data.endpoint_url || null,
+            auth_type: data.auth_type === 'none' ? null : data.auth_type,
+            auth_config: Object.keys(data.auth_config).length > 0 ? data.auth_config : undefined,
+            refresh_interval_minutes: data.refresh_interval_minutes,
+            is_active: data.is_active,
+          },
+          supabase
+        );
+      } else if (selectedSource) {
+        await updateMetricsSource(
+          selectedSource.id,
+          {
+            name: data.name,
+            slug: data.slug,
+            source_type: data.source_type,
+            description: data.description || null,
+            color: data.color,
+            endpoint_url: data.endpoint_url || null,
+            auth_type: data.auth_type === 'none' ? null : data.auth_type,
+            auth_config: Object.keys(data.auth_config).length > 0 ? data.auth_config : undefined,
+            refresh_interval_minutes: data.refresh_interval_minutes,
+            is_active: data.is_active,
+          },
+          supabase
+        );
+      }
+
+      await loadSources();
+    },
+    [supabase, modalMode, selectedSource, loadSources]
+  );
+
+  const handleDeleteSource = useCallback(
+    async (source: MetricsSource) => {
+      if (!supabase) return;
+      await deleteMetricsSource(source.id, supabase);
+      await loadSources();
+    },
+    [supabase, loadSources]
+  );
 
   if (isLoading) {
     return (
@@ -105,6 +181,24 @@ export default function SourcesPage() {
           </div>
         )}
       </div>
+
+      {/* Source Modal */}
+      <SourceModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveSource}
+        source={selectedSource}
+        mode={modalMode}
+      />
+
+      {/* Source Detail Panel */}
+      <SourceDetailPanel
+        isOpen={isDetailOpen}
+        onClose={() => setIsDetailOpen(false)}
+        source={selectedSource}
+        onEdit={handleEditSource}
+        onDelete={handleDeleteSource}
+      />
     </AdminLayout>
   );
 }

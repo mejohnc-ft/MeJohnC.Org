@@ -8,14 +8,24 @@
 
 'use client';
 
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState, useCallback } from 'react';
 import { useSEO } from '@/lib/seo';
+import { useAuthenticatedSupabase } from '@/lib/supabase';
 import AdminLayout from '@/components/AdminLayout';
 import { Card } from '@/components/ui/card';
+import { SourceModal, type SourceFormData } from '../components/SourceModal';
+import { SourceDetailPanel } from '../components/SourceDetailPanel';
+import {
+  createMetricsSource,
+  updateMetricsSource,
+  deleteMetricsSource,
+} from '@/lib/metrics-queries';
 import type { MetricsSource } from '@/lib/schemas';
 
 // Lazy load heavy components with charts
-const MetricsDashboard = lazy(() => import('../components/MetricsDashboard').then(m => ({ default: m.MetricsDashboard })));
+const MetricsDashboard = lazy(() =>
+  import('../components/MetricsDashboard').then((m) => ({ default: m.MetricsDashboard }))
+);
 const GitHubMetricsCard = lazy(() => import('@/components/admin/metrics/GitHubMetricsCard'));
 const SupabaseStatsCard = lazy(() => import('@/components/admin/metrics/SupabaseStatsCard'));
 
@@ -30,22 +40,100 @@ function ChartSkeleton() {
 
 export default function DashboardPage() {
   useSEO({ title: 'Metrics Dashboard', noIndex: true });
+  const { supabase } = useAuthenticatedSupabase();
 
-  const handleAddSource = () => {
-    // TODO: Implement add source modal/navigation
-    console.log('Add source clicked');
-  };
+  // State for modal and detail panel
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [selectedSource, setSelectedSource] = useState<MetricsSource | null>(null);
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
 
-  const handleSourceClick = (source: MetricsSource) => {
-    // TODO: Implement source detail view
-    console.log('Source clicked:', source);
-  };
+  // Key to force re-render of MetricsDashboard after mutations
+  const [refreshKey, setRefreshKey] = useState(0);
+  const refreshDashboard = useCallback(() => setRefreshKey((k) => k + 1), []);
+
+  const handleAddSource = useCallback(() => {
+    setSelectedSource(null);
+    setModalMode('create');
+    setIsModalOpen(true);
+  }, []);
+
+  const handleSourceClick = useCallback((source: MetricsSource) => {
+    setSelectedSource(source);
+    setIsDetailOpen(true);
+  }, []);
+
+  const handleEditSource = useCallback((source: MetricsSource) => {
+    setSelectedSource(source);
+    setModalMode('edit');
+    setIsDetailOpen(false);
+    setIsModalOpen(true);
+  }, []);
+
+  const handleSaveSource = useCallback(
+    async (data: SourceFormData) => {
+      if (!supabase) return;
+
+      if (modalMode === 'create') {
+        await createMetricsSource(
+          {
+            tenant_id: '00000000-0000-0000-0000-000000000000',
+            name: data.name,
+            slug: data.slug,
+            source_type: data.source_type,
+            description: data.description || null,
+            icon: null,
+            color: data.color,
+            endpoint_url: data.endpoint_url || null,
+            auth_type: data.auth_type === 'none' ? null : data.auth_type,
+            auth_config: Object.keys(data.auth_config).length > 0 ? data.auth_config : undefined,
+            refresh_interval_minutes: data.refresh_interval_minutes,
+            is_active: data.is_active,
+          },
+          supabase
+        );
+      } else if (selectedSource) {
+        await updateMetricsSource(
+          selectedSource.id,
+          {
+            name: data.name,
+            slug: data.slug,
+            source_type: data.source_type,
+            description: data.description || null,
+            color: data.color,
+            endpoint_url: data.endpoint_url || null,
+            auth_type: data.auth_type === 'none' ? null : data.auth_type,
+            auth_config: Object.keys(data.auth_config).length > 0 ? data.auth_config : undefined,
+            refresh_interval_minutes: data.refresh_interval_minutes,
+            is_active: data.is_active,
+          },
+          supabase
+        );
+      }
+
+      refreshDashboard();
+    },
+    [supabase, modalMode, selectedSource, refreshDashboard]
+  );
+
+  const handleDeleteSource = useCallback(
+    async (source: MetricsSource) => {
+      if (!supabase) return;
+      await deleteMetricsSource(source.id, supabase);
+      refreshDashboard();
+    },
+    [supabase, refreshDashboard]
+  );
 
   return (
     <AdminLayout>
       <div className="space-y-8">
         <Suspense fallback={<ChartSkeleton />}>
-          <MetricsDashboard onAddSource={handleAddSource} onSourceClick={handleSourceClick} />
+          <MetricsDashboard
+            key={refreshKey}
+            onAddSource={handleAddSource}
+            onSourceClick={handleSourceClick}
+          />
         </Suspense>
 
         {/* Live Integrations Section */}
@@ -64,6 +152,24 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Source Modal */}
+      <SourceModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveSource}
+        source={selectedSource}
+        mode={modalMode}
+      />
+
+      {/* Source Detail Panel */}
+      <SourceDetailPanel
+        isOpen={isDetailOpen}
+        onClose={() => setIsDetailOpen(false)}
+        source={selectedSource}
+        onEdit={handleEditSource}
+        onDelete={handleDeleteSource}
+      />
     </AdminLayout>
   );
 }
