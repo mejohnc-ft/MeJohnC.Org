@@ -20,6 +20,7 @@ import {
   Users,
   Palette,
   CheckSquare,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { UserButton } from '@clerk/clerk-react';
@@ -35,13 +36,14 @@ interface AdminLayoutProps {
 const sidebarItems = [
   { label: 'Dashboard', path: '/admin', icon: LayoutDashboard },
   { label: 'AI Manager', path: '/admin/ai-manager', icon: Bot },
+  { label: 'Generative UI', path: '/admin/generative', icon: Sparkles },
   { label: 'Profile', path: '/admin/profile', icon: User },
   { label: 'Tasks', path: '/admin/tasks', icon: CheckSquare },
   { label: 'News', path: '/admin/news', icon: Newspaper },
   { label: 'Bookmarks', path: '/admin/bookmarks', icon: Bookmark },
-  { label: 'Contacts', path: '/admin/contacts', icon: Users },
+  { label: 'CRM', path: '/admin/crm', icon: Users },
   { label: 'Metrics', path: '/admin/metrics', icon: BarChart3 },
-  { label: 'Style Guide', path: '/admin/style-guide', icon: Palette },
+  { label: 'Style Guide', path: '/admin/style', icon: Palette },
   { label: 'Apps', path: '/admin/apps', icon: AppWindow },
   { label: 'Projects', path: '/admin/projects', icon: FolderKanban },
   { label: 'Blog', path: '/admin/blog', icon: FileText },
