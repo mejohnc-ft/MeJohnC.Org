@@ -9,6 +9,9 @@ import {
   Check,
   Download,
   Settings,
+  Sparkles,
+  Component,
+  ExternalLink,
 } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
 import { Card } from '@/components/ui/card';
@@ -20,6 +23,12 @@ import {
   generateTailwindConfig,
   type GeneratedConfig,
 } from '@/lib/tailwind-generator';
+import {
+  generateCentrexDesignTokens,
+  CENTREX_COMPONENT_CATALOG,
+  CENTREX_BRAND_COLORS,
+  type CentrexComponentType,
+} from '@/lib/centrexstyle';
 import type { DesignTokens, ColorToken, TypographyToken } from '@/lib/figma-api';
 import { useSEO } from '@/lib/seo';
 import { ANIMATION } from '@/lib/constants';
@@ -227,6 +236,14 @@ export default function AdminStyleGuide() {
               <Square className="w-4 h-4" />
               Spacing & Radius
             </TabsTrigger>
+            <TabsTrigger value="components" className="gap-2">
+              <Component className="w-4 h-4" />
+              Components
+            </TabsTrigger>
+            <TabsTrigger value="assets" className="gap-2">
+              <Layers className="w-4 h-4" />
+              Assets
+            </TabsTrigger>
             <TabsTrigger value="export" className="gap-2">
               <Download className="w-4 h-4" />
               Export
@@ -296,6 +313,192 @@ export default function AdminStyleGuide() {
                 </div>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* Components Tab */}
+          <TabsContent value="components" className="space-y-6 mt-6">
+            {/* Overview */}
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-foreground">Generative UI Components</h3>
+                </div>
+                <a href="/admin/generative">
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    Open Generator
+                    <ExternalLink className="w-3 h-3" />
+                  </Button>
+                </a>
+              </div>
+              <p className="text-muted-foreground mb-4">
+                These components use CentrexStyle design tokens and can be generated via natural language prompts.
+              </p>
+            </Card>
+
+            {/* Component Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Object.entries(CENTREX_COMPONENT_CATALOG).map(([key, component], index) => (
+                <motion.div
+                  key={key}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <Card className="p-4 h-full hover:border-primary/50 transition-colors">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10">
+                        <Layers className="w-5 h-5 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-foreground">{component.name}</h4>
+                        <p className="text-sm text-muted-foreground mt-1">{component.description}</p>
+                        <div className="flex flex-wrap items-center gap-2 mt-3">
+                          <Badge variant="outline">{component.category}</Badge>
+                          {'variants' in component && (
+                            <span className="text-xs text-muted-foreground">
+                              {(component.variants as string[]).length} color variants
+                            </span>
+                          )}
+                          {'chartTypes' in component && (
+                            <span className="text-xs text-muted-foreground">
+                              {(component.chartTypes as string[]).length} chart types
+                            </span>
+                          )}
+                          {'layouts' in component && (
+                            <span className="text-xs text-muted-foreground">
+                              {(component.layouts as string[]).length} layouts
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Brand Colors Reference */}
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-foreground mb-4">Component Color Variants</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Components that support color variants use these CentrexStyle brand colors:
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {Object.entries(CENTREX_BRAND_COLORS).map(([key, color]) => (
+                  <div key={key} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                    <div
+                      className="w-8 h-8 rounded-lg shadow-sm"
+                      style={{ backgroundColor: color.hex }}
+                    />
+                    <div>
+                      <p className="text-sm font-medium">{key}</p>
+                      <p className="text-xs text-muted-foreground font-mono">{color.hex}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </TabsContent>
+
+          {/* Assets Tab */}
+          <TabsContent value="assets" className="space-y-6 mt-6">
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-foreground">Brand Assets</h3>
+                <Button variant="outline" size="sm" className="gap-2" disabled>
+                  <Download className="w-4 h-4" />
+                  Download All
+                </Button>
+              </div>
+              <p className="text-muted-foreground mb-6">
+                Logos, icons, and brand assets for CentrexStyle. Assets are managed in the style guide database.
+              </p>
+
+              {/* Asset Categories */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Logo Assets */}
+                <Card className="p-4 border-dashed">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-2xl">
+                      🎨
+                    </div>
+                    <div>
+                      <h4 className="font-medium">Logos</h4>
+                      <p className="text-xs text-muted-foreground">Primary brand marks</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    No logo assets uploaded yet. Add logos via the asset management API.
+                  </p>
+                </Card>
+
+                {/* Icon Assets */}
+                <Card className="p-4 border-dashed">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center text-2xl">
+                      ✨
+                    </div>
+                    <div>
+                      <h4 className="font-medium">Icons</h4>
+                      <p className="text-xs text-muted-foreground">UI icons and symbols</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Using Lucide icons. Custom icons can be added via asset management.
+                  </p>
+                </Card>
+
+                {/* Font Assets */}
+                <Card className="p-4 border-dashed">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-2xl">
+                      🔤
+                    </div>
+                    <div>
+                      <h4 className="font-medium">Fonts</h4>
+                      <p className="text-xs text-muted-foreground">Typography assets</p>
+                    </div>
+                  </div>
+                  <div className="space-y-1 text-sm text-muted-foreground">
+                    <p>• GilmerBold - Headings</p>
+                    <p>• Hind - Body text</p>
+                    <p>• Consolas - Code</p>
+                  </div>
+                </Card>
+              </div>
+            </Card>
+
+            {/* Color Swatches as downloadable assets */}
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-foreground mb-4">Color Palette Assets</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Click a color to copy its hex value. These are the official CentrexStyle brand colors.
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {Object.entries(CENTREX_BRAND_COLORS).map(([key, color]) => (
+                  <button
+                    key={key}
+                    onClick={() => {
+                      navigator.clipboard.writeText(color.hex);
+                    }}
+                    className="group p-4 rounded-lg border border-border hover:border-primary/50 transition-colors text-left"
+                  >
+                    <div
+                      className="w-full aspect-video rounded-lg mb-3"
+                      style={{ backgroundColor: color.hex }}
+                    />
+                    <p className="font-medium text-sm">{color.name}</p>
+                    <p className="text-xs text-muted-foreground font-mono">{color.hex}</p>
+                    <p className="text-xs text-muted-foreground">{color.pms}</p>
+                    <p className="text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity mt-1">
+                      Click to copy
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </Card>
           </TabsContent>
 
           {/* Export Tab */}

@@ -321,6 +321,88 @@ a:focus-visible {
 }
 
 /* ============================================
+   CENTREXSTYLE THEME - Official Centrex Brand
+   Source: docs/centrexstyle-demo.html
+   Colors: PMS 361 C (green), 285 C (blue), 151 C (orange), 1795 C (red)
+   Typography: GilmerBold (headings), Hind (body)
+   ============================================ */
+[data-theme="centrex"] {
+  /* Centrex Primary Green as primary */
+  --background: 0 0% 2%;
+  --foreground: 0 0% 90%;
+  --card: 0 0% 7%;
+  --card-foreground: 0 0% 90%;
+  --popover: 0 0% 7%;
+  --popover-foreground: 0 0% 90%;
+  --primary: 112 60% 43%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 207 100% 40%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 0 0% 10%;
+  --muted-foreground: 0 0% 64%;
+  --accent: 30 100% 50%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 4 80% 47%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 15%;
+  --input: 0 0% 15%;
+  --ring: 112 60% 43%;
+  --radius: 0.5rem;
+
+  /* CentrexStyle specific variables */
+  --centrex-primary: #3dae2b;
+  --centrex-secondary: #0071ce;
+  --centrex-tertiary: #ff8300;
+  --centrex-accent: #e1251b;
+  --centrex-primary-rgb: 61, 174, 43;
+  --centrex-secondary-rgb: 0, 113, 206;
+  --centrex-tertiary-rgb: 255, 131, 0;
+  --centrex-accent-rgb: 225, 37, 27;
+
+  /* Theme-specific colors for direct use */
+  --theme-primary-hsl: 112 60% 43%;
+  --theme-bg-card-hsl: 0 0% 7%;
+}
+
+/* CentrexStyle light variant */
+[data-theme="centrex-light"] {
+  --background: 210 20% 98%;
+  --foreground: 0 0% 10%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 10%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 10%;
+  --primary: 112 60% 43%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 207 100% 40%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 210 15% 95%;
+  --muted-foreground: 0 0% 32%;
+  --accent: 30 100% 50%;
+  --accent-foreground: 0 0% 0%;
+  --destructive: 4 80% 47%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 90%;
+  --input: 0 0% 92%;
+  --ring: 112 60% 43%;
+  --radius: 0.5rem;
+
+  /* CentrexStyle specific variables */
+  --centrex-primary: #3dae2b;
+  --centrex-secondary: #0071ce;
+  --centrex-tertiary: #ff8300;
+  --centrex-accent: #e1251b;
+  --centrex-primary-rgb: 61, 174, 43;
+  --centrex-secondary-rgb: 0, 113, 206;
+  --centrex-tertiary-rgb: 255, 131, 0;
+  --centrex-accent-rgb: 225, 37, 27;
+
+  /* Theme-specific colors for direct use */
+  --theme-primary-hsl: 112 60% 43%;
+  --theme-bg-card-hsl: 0 0% 100%;
+}
+
+/* ============================================
    CRISP THEME - Stippled Paper Background
    Engineering notebook dot grid pattern
    ============================================ */

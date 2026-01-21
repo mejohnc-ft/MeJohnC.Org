@@ -349,30 +349,48 @@ export function generateTailwindConfig(tokens: DesignTokens): GeneratedConfig {
 }
 
 /**
- * Generate default tokens from current Tailwind config
- * Useful for projects without Figma
+ * Generate default tokens from CentrexStyle design system
+ * Returns official Centrex brand tokens for the style guide
  */
 export function generateDefaultTokens(): DesignTokens {
+  // Import dynamically to avoid circular dependencies
+  // Uses the CentrexStyle design system as the default
   return {
     colors: [
-      { name: 'Primary', value: '#3b82f6', rgba: { r: 59, g: 130, b: 246, a: 1 }, category: 'primary' },
-      { name: 'Primary Light', value: '#60a5fa', rgba: { r: 96, g: 165, b: 250, a: 1 }, category: 'primary' },
-      { name: 'Primary Dark', value: '#2563eb', rgba: { r: 37, g: 99, b: 235, a: 1 }, category: 'primary' },
-      { name: 'Secondary', value: '#8b5cf6', rgba: { r: 139, g: 92, b: 246, a: 1 }, category: 'secondary' },
-      { name: 'Success', value: '#22c55e', rgba: { r: 34, g: 197, b: 94, a: 1 }, category: 'semantic' },
-      { name: 'Warning', value: '#f59e0b', rgba: { r: 245, g: 158, b: 11, a: 1 }, category: 'semantic' },
-      { name: 'Error', value: '#ef4444', rgba: { r: 239, g: 68, b: 68, a: 1 }, category: 'semantic' },
-      { name: 'Gray 100', value: '#f3f4f6', rgba: { r: 243, g: 244, b: 246, a: 1 }, category: 'neutral' },
-      { name: 'Gray 500', value: '#6b7280', rgba: { r: 107, g: 114, b: 128, a: 1 }, category: 'neutral' },
-      { name: 'Gray 900', value: '#111827', rgba: { r: 17, g: 24, b: 39, a: 1 }, category: 'neutral' },
+      // Primary palette - Centrex Green
+      { name: 'Centrex Primary (Green)', value: '#3dae2b', rgba: { r: 61, g: 174, b: 43, a: 1 }, category: 'primary' },
+      { name: 'Centrex Primary Light', value: '#4ade80', rgba: { r: 74, g: 222, b: 128, a: 1 }, category: 'primary' },
+      // Secondary palette - Centrex Blue
+      { name: 'Centrex Secondary (Blue)', value: '#0071ce', rgba: { r: 0, g: 113, b: 206, a: 1 }, category: 'secondary' },
+      { name: 'Centrex Secondary Light', value: '#3b82f6', rgba: { r: 59, g: 130, b: 246, a: 1 }, category: 'secondary' },
+      // Accent - Centrex Orange
+      { name: 'Centrex Tertiary (Orange)', value: '#ff8300', rgba: { r: 255, g: 131, b: 0, a: 1 }, category: 'accent' },
+      { name: 'Centrex Tertiary Light', value: '#fb923c', rgba: { r: 251, g: 146, b: 60, a: 1 }, category: 'accent' },
+      // Semantic - Centrex Red
+      { name: 'Centrex Accent (Red)', value: '#e1251b', rgba: { r: 225, g: 37, b: 27, a: 1 }, category: 'semantic' },
+      { name: 'Centrex Accent Light', value: '#f87171', rgba: { r: 248, g: 113, b: 113, a: 1 }, category: 'semantic' },
+      // Backgrounds (Dark theme)
+      { name: 'Background Body', value: '#050505', rgba: { r: 5, g: 5, b: 5, a: 1 }, category: 'background' },
+      { name: 'Background Card', value: '#121212', rgba: { r: 18, g: 18, b: 18, a: 1 }, category: 'background' },
+      { name: 'Background Panel', value: '#1a1a1a', rgba: { r: 26, g: 26, b: 26, a: 1 }, category: 'background' },
+      { name: 'Background Input', value: '#262626', rgba: { r: 38, g: 38, b: 38, a: 1 }, category: 'background' },
+      // Foreground/Text
+      { name: 'Text Primary', value: '#e5e5e5', rgba: { r: 229, g: 229, b: 229, a: 1 }, category: 'foreground' },
+      { name: 'Text Secondary', value: '#a3a3a3', rgba: { r: 163, g: 163, b: 163, a: 1 }, category: 'foreground' },
+      { name: 'Text Muted', value: '#525252', rgba: { r: 82, g: 82, b: 82, a: 1 }, category: 'foreground' },
+      // Border
+      { name: 'Border', value: '#262626', rgba: { r: 38, g: 38, b: 38, a: 1 }, category: 'border' },
     ],
     typography: [
-      { name: 'Heading 1', fontFamily: 'Inter', fontSize: 48, fontWeight: 700, lineHeight: 56, letterSpacing: -0.5 },
-      { name: 'Heading 2', fontFamily: 'Inter', fontSize: 36, fontWeight: 600, lineHeight: 44, letterSpacing: -0.25 },
-      { name: 'Heading 3', fontFamily: 'Inter', fontSize: 24, fontWeight: 600, lineHeight: 32, letterSpacing: 0 },
-      { name: 'Body', fontFamily: 'Inter', fontSize: 16, fontWeight: 400, lineHeight: 24, letterSpacing: 0 },
-      { name: 'Body Small', fontFamily: 'Inter', fontSize: 14, fontWeight: 400, lineHeight: 20, letterSpacing: 0 },
-      { name: 'Caption', fontFamily: 'Inter', fontSize: 12, fontWeight: 400, lineHeight: 16, letterSpacing: 0.25 },
+      { name: 'Display', fontFamily: 'GilmerBold', fontSize: 72, fontWeight: 700, lineHeight: 80, letterSpacing: -1 },
+      { name: 'Heading 1', fontFamily: 'GilmerBold', fontSize: 48, fontWeight: 700, lineHeight: 56, letterSpacing: -0.5 },
+      { name: 'Heading 2', fontFamily: 'GilmerBold', fontSize: 36, fontWeight: 700, lineHeight: 44, letterSpacing: -0.25 },
+      { name: 'Heading 3', fontFamily: 'GilmerBold', fontSize: 24, fontWeight: 600, lineHeight: 32, letterSpacing: 0 },
+      { name: 'Body Large', fontFamily: 'Hind', fontSize: 20, fontWeight: 400, lineHeight: 28, letterSpacing: 0 },
+      { name: 'Body', fontFamily: 'Hind', fontSize: 16, fontWeight: 400, lineHeight: 24, letterSpacing: 0 },
+      { name: 'Body Small', fontFamily: 'Hind', fontSize: 14, fontWeight: 400, lineHeight: 20, letterSpacing: 0 },
+      { name: 'Caption', fontFamily: 'Hind', fontSize: 12, fontWeight: 400, lineHeight: 16, letterSpacing: 0.25 },
+      { name: 'Code', fontFamily: 'Consolas', fontSize: 14, fontWeight: 400, lineHeight: 20, letterSpacing: 0 },
     ],
     spacing: [
       { name: 'spacing-0', value: 0, unit: 'px' },
@@ -380,24 +398,34 @@ export function generateDefaultTokens(): DesignTokens {
       { name: 'spacing-2', value: 8, unit: 'px' },
       { name: 'spacing-3', value: 12, unit: 'px' },
       { name: 'spacing-4', value: 16, unit: 'px' },
+      { name: 'spacing-5', value: 20, unit: 'px' },
       { name: 'spacing-6', value: 24, unit: 'px' },
       { name: 'spacing-8', value: 32, unit: 'px' },
+      { name: 'spacing-9', value: 36, unit: 'px' },
+      { name: 'spacing-10', value: 40, unit: 'px' },
       { name: 'spacing-12', value: 48, unit: 'px' },
       { name: 'spacing-16', value: 64, unit: 'px' },
     ],
-    shadows: [],
+    shadows: [
+      { name: 'Natural', value: '6px 6px 9px rgba(0, 0, 0, 0.2)' },
+      { name: 'Deep', value: '12px 12px 50px rgba(0, 0, 0, 0.4)' },
+      { name: 'Crisp', value: '6px 6px 0px rgba(0, 0, 0, 1)' },
+      { name: 'Card', value: '0 20px 50px -12px rgba(0, 0, 0, 0.9)' },
+      { name: 'Primary Glow', value: '0 4px 12px rgba(61, 174, 43, 0.3)' },
+    ],
     radii: [
       { name: 'none', value: 0, unit: 'px' },
-      { name: 'sm', value: 2, unit: 'px' },
-      { name: 'md', value: 6, unit: 'px' },
-      { name: 'lg', value: 8, unit: 'px' },
-      { name: 'xl', value: 12, unit: 'px' },
+      { name: 'sm', value: 4, unit: 'px' },
+      { name: 'md', value: 8, unit: 'px' },
+      { name: 'lg', value: 12, unit: 'px' },
+      { name: 'xl', value: 16, unit: 'px' },
+      { name: '2xl', value: 20, unit: 'px' },
       { name: 'full', value: 9999, unit: 'px' },
     ],
     metadata: {
-      source: 'default',
-      fileKey: '',
-      fileName: 'Default Design System',
+      source: 'custom',
+      fileKey: 'centrexstyle',
+      fileName: 'CentrexStyle Design System',
       lastModified: new Date().toISOString(),
       extractedAt: new Date().toISOString(),
     },
