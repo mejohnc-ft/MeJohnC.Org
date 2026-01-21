@@ -76,18 +76,35 @@ export interface INPSCRMSyncAdapter {
  *
  * This will be implemented once the CRM module (issue #108) is complete.
  * It will use the CRM service to update contact records.
+ *
+ * @see https://github.com/mejohnc-ft/MeJohnC.Org/issues/108
+ * @see https://github.com/mejohnc-ft/MeJohnC.Org/issues/117
  */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 export class CRMNPSSyncAdapter implements INPSCRMSyncAdapter {
+  private static readonly CRM_MODULE_ERROR =
+    'CRM sync requires the CRM module which is not yet available. See issue #108 for progress.';
+
   async syncResponseToContact(response: NPSResponse): Promise<CRMSyncResult> {
-    // TODO: Implement after CRM module is available
-    // Will call CRM service to update contact with NPS data
-    throw new Error('CRM sync not yet implemented - waiting for CRM module (#108)');
+    console.warn('[CRMNPSSyncAdapter] syncResponseToContact called but CRM module not available', {
+      responseId: response.id,
+      score: response.score,
+    });
+    return {
+      success: false,
+      contactId: response.subscriber_id || '',
+      error: CRMNPSSyncAdapter.CRM_MODULE_ERROR,
+    };
   }
 
   async syncResponsesBatch(responses: NPSResponse[]): Promise<CRMSyncResult[]> {
-    // TODO: Implement batch sync after CRM module is available
-    throw new Error('CRM batch sync not yet implemented - waiting for CRM module (#108)');
+    console.warn('[CRMNPSSyncAdapter] syncResponsesBatch called but CRM module not available', {
+      count: responses.length,
+    });
+    return responses.map((response) => ({
+      success: false,
+      contactId: response.subscriber_id || '',
+      error: CRMNPSSyncAdapter.CRM_MODULE_ERROR,
+    }));
   }
 
   async updateContactNPSHistory(
@@ -96,14 +113,34 @@ export class CRMNPSSyncAdapter implements INPSCRMSyncAdapter {
     category: 'promoter' | 'passive' | 'detractor',
     surveyDate: string
   ): Promise<CRMSyncResult> {
-    // TODO: Implement after CRM module is available
-    throw new Error('CRM history update not yet implemented - waiting for CRM module (#108)');
+    console.warn('[CRMNPSSyncAdapter] updateContactNPSHistory called but CRM module not available', {
+      contactId,
+      score,
+      category,
+      surveyDate,
+    });
+    return {
+      success: false,
+      contactId,
+      error: CRMNPSSyncAdapter.CRM_MODULE_ERROR,
+    };
   }
 
-  async flagDetractor(contactId: string, responseId: string, feedback?: string): Promise<CRMSyncResult> {
-    // TODO: Implement after CRM module is available
-    // Will create a task or flag in CRM for follow-up
-    throw new Error('CRM detractor flagging not yet implemented - waiting for CRM module (#108)');
+  async flagDetractor(
+    contactId: string,
+    responseId: string,
+    feedback?: string
+  ): Promise<CRMSyncResult> {
+    console.warn('[CRMNPSSyncAdapter] flagDetractor called but CRM module not available', {
+      contactId,
+      responseId,
+      hasFeedback: !!feedback,
+    });
+    return {
+      success: false,
+      contactId,
+      error: CRMNPSSyncAdapter.CRM_MODULE_ERROR,
+    };
   }
 
   async getContactNPSHistory(contactId: string): Promise<{
@@ -111,12 +148,21 @@ export class CRMNPSSyncAdapter implements INPSCRMSyncAdapter {
     category: 'promoter' | 'passive' | 'detractor' | null;
     history: Array<{ score: number; date: string }>;
   }> {
-    // TODO: Implement after CRM module is available
-    throw new Error('CRM history retrieval not yet implemented - waiting for CRM module (#108)');
+    console.warn('[CRMNPSSyncAdapter] getContactNPSHistory called but CRM module not available', {
+      contactId,
+    });
+    // Return empty history instead of throwing
+    return {
+      currentScore: null,
+      category: null,
+      history: [],
+    };
   }
-/* eslint-enable @typescript-eslint/no-unused-vars */
 
   async verifyConfiguration(): Promise<{ valid: boolean; error?: string }> {
-    return { valid: false, error: 'CRM module not yet available' };
+    return {
+      valid: false,
+      error: 'CRM module not yet available. See issue #108 for implementation progress.',
+    };
   }
 }
