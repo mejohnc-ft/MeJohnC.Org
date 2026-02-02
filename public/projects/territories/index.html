@@ -2102,45 +2102,56 @@
 
         .timemachine-cards {
             position: relative;
-            width: 90vw;
-            height: 90vh;
-            max-width: 1400px;
-            max-height: 1000px;
+            width: 100%;
+            height: 100%;
+            max-width: 800px;
+            max-height: 800px;
             perspective: 1200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .tm-card {
             position: absolute;
-            width: 85vw;
-            max-width: 1200px;
-            height: 85vh;
-            max-height: 900px;
+            width: 60vw;
+            max-width: 700px;
+            height: auto;
+            max-height: 80vh;
             background: #0a0a0a;
             border: 1px solid var(--card-border);
             border-radius: 24px;
             overflow: hidden;
             cursor: pointer;
-            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                        box-shadow 0.5s ease-out,
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                        box-shadow 0.4s ease-out,
                         z-index 0s;
             box-shadow: 0 20px 60px rgba(0,0,0,0.5);
             transform-origin: center center;
             will-change: transform;
             backface-visibility: hidden;
             transform-style: flat;
+            display: flex;
+            flex-direction: column;
         }
 
         .tm-card-preview {
-            height: 75%;
+            flex: 1;
+            min-height: 300px;
             position: relative;
             overflow: hidden;
             background: #0a0a0a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .tm-card-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
             object-position: center;
         }
 
@@ -2286,12 +2297,12 @@
             position: absolute;
             left: 50%;
             top: 50%;
-            width: 70vw;
-            max-width: 1000px;
-            height: 70vh;
-            max-height: 750px;
-            margin-left: -35vw;
-            margin-top: -35vh;
+            width: 50vw;
+            max-width: 600px;
+            height: auto;
+            max-height: 70vh;
+            margin-left: -25vw;
+            margin-top: -30vh;
             background: #0a0a0f;
             border: 1px solid rgba(255,255,255,0.1);
             border-radius: 20px;
@@ -2303,6 +2314,8 @@
                         opacity 0.4s ease,
                         box-shadow 0.4s ease,
                         visibility 0s;
+            display: flex;
+            flex-direction: column;
         }
 
         .tm-tunnel-card.current {
@@ -2313,16 +2326,22 @@
         }
 
         .tm-tunnel-card .tm-card-preview {
-            height: 70%;
+            flex: 1;
+            min-height: 250px;
             position: relative;
             overflow: hidden;
             background: #0a0a0a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .tm-tunnel-card .tm-card-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
             object-position: center;
         }
 
@@ -2392,6 +2411,29 @@
         .tm-era-item.active::after {
             background: #A78BFA;
             box-shadow: 0 0 10px #A78BFA;
+        }
+
+        /* Grabber handle for timeline */
+        .tm-era-item.active::before {
+            content: '⠿';
+            position: absolute;
+            right: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: #A78BFA;
+            background: #0a0a0f;
+            padding: 4px;
+            border-radius: 4px;
+            border: 1px solid #A78BFA;
+            box-shadow: 0 0 10px rgba(167, 139, 250, 0.5);
+            cursor: grab;
+            z-index: 20;
+            line-height: 1;
+        }
+
+        .tm-era-item.active:active::before {
+            cursor: grabbing;
         }
 
         .tm-era-years {
