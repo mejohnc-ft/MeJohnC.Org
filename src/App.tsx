@@ -22,6 +22,7 @@ const About = lazy(() => import('./pages/About'));
 const AppDetail = lazy(() => import('./pages/AppDetail'));
 const AppSuite = lazy(() => import('./pages/AppSuite'));
 const BlogPost = lazy(() => import('./pages/BlogPost'));
+const TerritoriesProject = lazy(() => import('./pages/TerritoriesProject'));
 
 // Lazy load admin pages (rarely accessed)
 const AdminLogin = lazy(() => import('./pages/admin/Login'));
@@ -187,6 +188,7 @@ function RouteTracker() {
       if (pathname.startsWith('/blog/')) return 'Blog Post';
       if (pathname.startsWith('/apps/suite/')) return 'App Suite';
       if (pathname.startsWith('/apps/')) return 'App Detail';
+      if (pathname === '/projects/territories') return 'Territories';
       return 'Page';
     };
 
@@ -285,6 +287,16 @@ function AnimatedRoutes() {
           element={
             <Suspense fallback={<PageLoader />}>
               <PublicBookmarks />
+            </Suspense>
+          }
+        />
+
+        {/* Territories Design System Explorer */}
+        <Route
+          path="/projects/territories"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <TerritoriesProject />
             </Suspense>
           }
         />
