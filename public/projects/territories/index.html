@@ -2102,35 +2102,46 @@
 
         .timemachine-cards {
             position: relative;
-            width: 400px;
-            height: 500px;
+            width: 90vw;
+            height: 90vh;
+            max-width: 1400px;
+            max-height: 1000px;
             perspective: 1200px;
         }
 
         .tm-card {
             position: absolute;
-            width: 380px;
-            height: 480px;
+            width: 85vw;
+            max-width: 1200px;
+            height: 85vh;
+            max-height: 900px;
             background: #0a0a0a;
             border: 1px solid var(--card-border);
             border-radius: 24px;
             overflow: hidden;
             cursor: pointer;
-            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1),
-                        box-shadow 0.8s ease-out,
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                        box-shadow 0.5s ease-out,
                         z-index 0s;
             box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            transform-origin: center bottom;
+            transform-origin: center center;
             will-change: transform;
             backface-visibility: hidden;
             transform-style: flat;
         }
 
         .tm-card-preview {
-            height: 65%;
+            height: 75%;
             position: relative;
             overflow: hidden;
             background: #0a0a0a;
+        }
+
+        .tm-card-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
         }
 
         .tm-card-content {
@@ -2275,10 +2286,12 @@
             position: absolute;
             left: 50%;
             top: 50%;
-            width: 420px;
-            height: 320px;
-            margin-left: -210px;
-            margin-top: -160px;
+            width: 70vw;
+            max-width: 1000px;
+            height: 70vh;
+            max-height: 750px;
+            margin-left: -35vw;
+            margin-top: -35vh;
             background: #0a0a0f;
             border: 1px solid rgba(255,255,255,0.1);
             border-radius: 20px;
@@ -2286,9 +2299,9 @@
             cursor: pointer;
             transform-style: preserve-3d;
             backface-visibility: hidden;
-            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-                        opacity 0.6s ease,
-                        box-shadow 0.6s ease,
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity 0.4s ease,
+                        box-shadow 0.4s ease,
                         visibility 0s;
         }
 
@@ -2300,10 +2313,17 @@
         }
 
         .tm-tunnel-card .tm-card-preview {
-            height: 60%;
+            height: 70%;
             position: relative;
             overflow: hidden;
             background: #0a0a0a;
+        }
+
+        .tm-tunnel-card .tm-card-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
         }
 
         .tm-tunnel-card .tm-card-info {
@@ -13913,13 +13933,12 @@
                     files: [],
                     images: [
                         { path: 'styles/platform-specific/VisionOS/5hgn43nqMqSCqdyoWHDZyK6W0.avif', caption: 'visionOS — Floating windows in 3D space' },
-                        { path: 'styles/platform-specific/VisionOS/apple-liquid-glass-14-1024x576.avif', caption: 'visionOS — Glass materials with extreme blur' },
                         { path: 'styles/platform-specific/VisionOS/F3HbEz6az87wuMMAknt54im2Y0.avif', caption: 'visionOS — Spatial computing interface' },
-                        { path: 'styles/platform-specific/VisionOS/original-14fc1675e54478280ae712d3e564a40a.webp', caption: 'visionOS — Home view with volumetric depth' },
-                        { path: 'styles/platform-specific/VisionOS/original-8317bdfaa78546f20e600878a6386c61.webp', caption: 'visionOS — Apps floating in environment' },
-                        { path: 'styles/platform-specific/VisionOS/original-acddad2ba513366ad170bee85ff990a8.webp', caption: 'visionOS — Safari with glass blur effect' },
-                        { path: 'styles/platform-specific/VisionOS/original-b377d98007782961d562d78f81044127.webp', caption: 'visionOS — Immersive media viewing' },
-                        { path: 'styles/platform-specific/VisionOS/original-deac3fa646c562491f86af6f22e821f6.webp', caption: 'visionOS — Mindfulness and ambient environment' }
+                        { path: 'styles/platform-specific/VisionOS/visionos-01.webp', caption: 'visionOS — Home view with volumetric depth' },
+                        { path: 'styles/platform-specific/VisionOS/visionos-02.webp', caption: 'visionOS — Apps floating in environment' },
+                        { path: 'styles/platform-specific/VisionOS/visionos-03.webp', caption: 'visionOS — Safari with glass blur effect' },
+                        { path: 'styles/platform-specific/VisionOS/visionos-04.webp', caption: 'visionOS — Immersive media viewing' },
+                        { path: 'styles/platform-specific/VisionOS/visionos-05.webp', caption: 'visionOS — Mindfulness and ambient environment' }
                     ],
                     resources: [
                         { name: 'Apple visionOS HIG', url: 'https://developer.apple.com/visionos' },
@@ -22172,8 +22191,8 @@ Create a [COMPONENT TYPE] that embodies this design philosophy. Focus on ${terri
                     updateTimeMachineCards();
                 }
 
-                // Throttle for 800ms to match animation and prevent rapid scrolling
-                setTimeout(() => { wheelThrottle = false; }, 800);
+                // Throttle for 300ms for responsive but controlled scrolling
+                setTimeout(() => { wheelThrottle = false; }, 300);
             });
 
             // Click on current card to open modal
@@ -22477,7 +22496,8 @@ Create a [COMPONENT TYPE] that embodies this design philosophy. Focus on ${terri
                     updateTunnelPositions();
                 }
 
-                setTimeout(() => { wheelThrottled = false; }, 400);
+                // Shorter throttle for more responsive scrolling
+                setTimeout(() => { wheelThrottled = false; }, 250);
             }, { passive: false });
 
             // Era timeline click handlers
