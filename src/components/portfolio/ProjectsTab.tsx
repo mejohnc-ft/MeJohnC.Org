@@ -90,12 +90,45 @@ export default function ProjectsTab() {
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Territories Project - Static Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0 }}
+          >
+            <Link to="/projects/territories">
+              <Card className="overflow-hidden border border-border hover:border-primary transition-all duration-300 bg-card/50 group cursor-pointer">
+                <div className="aspect-video overflow-hidden bg-gradient-to-br from-purple-900/20 to-blue-900/20">
+                  <div className="w-full h-full flex items-center justify-center bg-surface-2">
+                    <span className="text-4xl">🎨</span>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors mb-2">
+                    Territories
+                  </h3>
+                  <p className="text-sm text-primary mb-2">Design System Explorer</p>
+                  <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                    A comprehensive design reference tool for AI-forward product design. 
+                    Explore 50+ design territories, compare philosophies, and build custom design recipes.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline" className="font-mono text-xs">HTML</Badge>
+                    <Badge variant="outline" className="font-mono text-xs">CSS</Badge>
+                    <Badge variant="outline" className="font-mono text-xs">Design Systems</Badge>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+          </motion.div>
+
+          {/* Dynamic Projects from Supabase */}
           {projects.map((project, index) => (
             <motion.div
               key={project.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
+              transition={{ delay: (index + 1) * 0.1 }}
             >
               <Card className="overflow-hidden border border-border hover:border-primary transition-all duration-300 bg-card/50 group">
                 {project.cover_image && (
