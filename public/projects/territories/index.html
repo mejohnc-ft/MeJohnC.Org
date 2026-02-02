@@ -2114,8 +2114,8 @@
 
         .tm-card {
             position: absolute;
-            left: 0;
-            top: 0;
+            left: 50%;
+            top: 50%;
             width: 72vw;
             max-width: 840px;
             height: auto;
@@ -2136,6 +2136,7 @@
             transform-style: flat;
             display: flex;
             flex-direction: column;
+            transform: translate(-50%, -50%);
         }
 
         .tm-card-preview {
@@ -2298,8 +2299,8 @@
         /* Individual cards in the tunnel - always dark theme in overlay */
         .tm-tunnel-card {
             position: absolute;
-            left: 0;
-            top: 0;
+            left: 50%;
+            top: 50%;
             width: 60vw;
             max-width: 720px;
             height: auto;
@@ -2317,6 +2318,7 @@
                         visibility 0s;
             display: flex;
             flex-direction: column;
+            transform: translate(-50%, -50%);
         }
 
         .tm-tunnel-card.current {
