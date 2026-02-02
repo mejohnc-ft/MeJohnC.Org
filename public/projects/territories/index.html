@@ -2114,8 +2114,8 @@
 
         .tm-card {
             position: absolute;
-            left: 50%;
-            top: 50%;
+            left: 0;
+            top: 0;
             width: 72vw;
             max-width: 840px;
             height: auto;
@@ -2125,7 +2125,8 @@
             border-radius: 24px;
             overflow: hidden;
             cursor: pointer;
-            transition: opacity 0.4s ease,
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity 0.4s ease,
                         box-shadow 0.4s ease-out,
                         z-index 0s;
             box-shadow: 0 20px 60px rgba(0,0,0,0.5);
@@ -2297,8 +2298,8 @@
         /* Individual cards in the tunnel - always dark theme in overlay */
         .tm-tunnel-card {
             position: absolute;
-            left: 50%;
-            top: 50%;
+            left: 0;
+            top: 0;
             width: 60vw;
             max-width: 720px;
             height: auto;
@@ -2310,7 +2311,8 @@
             cursor: pointer;
             transform-style: preserve-3d;
             backface-visibility: hidden;
-            transition: opacity 0.4s ease,
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity 0.4s ease,
                         box-shadow 0.4s ease,
                         visibility 0s;
             display: flex;
@@ -22152,14 +22154,14 @@ Create a [COMPONENT TYPE] that embodies this design philosophy. Focus on ${terri
                         card.style.pointerEvents = 'none';
                         card.style.zIndex = '0';
                     } else {
-                        // Rolodex rotation - cards flip around center
+                        // Rolodex rotation - cards flip around bottom axis
                         const rotateX = offset * -15; // Subtle rotation
-                        const yOffset = offset * 60; // Vertical offset for stack effect
+                        const y = offset * 40; // Vertical offset for stack effect
                         const scale = 1 - absOffset * 0.08;
                         const opacity = offset === 0 ? 1 : 0.7 - absOffset * 0.15;
 
-                        // Center with translate(-50%, -50%) then apply offsets
-                        card.style.transform = `translate(calc(-50% + ${yOffset * 0.3}px), calc(-50% + ${yOffset}px)) rotateX(${rotateX}deg) scale(${Math.max(scale, 0.75)})`;
+                        // Center first with translate(-50%, -50%), then apply animation offsets
+                        card.style.transform = `translate(-50%, -50%) translateY(${y}px) rotateX(${rotateX}deg) scale(${Math.max(scale, 0.75)})`;
                         card.style.opacity = Math.max(opacity, 0.2);
                         // Front card gets highest z-index, cards behind get progressively lower
                         card.style.zIndex = String(totalCards - absOffset);
