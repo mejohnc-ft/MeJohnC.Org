@@ -2385,58 +2385,110 @@
             flex-direction: column;
             gap: 0;
             z-index: 10;
+            padding-right: 140px;
+            padding-left: 20px;
+        }
+
+        .tm-era-track {
+            position: absolute;
+            right: 40px;
+            top: 0;
+            bottom: 0;
+            width: 16px;
+            pointer-events: auto;
+            cursor: ns-resize;
+            display: flex;
+            justify-content: center;
+        }
+
+        .tm-era-track-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(167,139,250,0.45));
+            transform: translateX(-50%);
+            border-radius: 2px;
+            pointer-events: none;
+        }
+
+        .tm-era-ticks {
+            position: absolute;
+            right: 80px;
+            top: 0;
+            bottom: 0;
+            width: 90px;
+            pointer-events: none;
+        }
+
+        .tm-era-tick {
+            position: absolute;
+            right: 0;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            justify-content: flex-end;
+        }
+
+        .tm-era-tick-line {
+            display: block;
+            width: 24px;
+            height: 1px;
+            background: rgba(255,255,255,0.25);
+        }
+
+        .tm-era-tick-label {
+            font-size: 10px;
+            color: rgba(255,255,255,0.55);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .tm-era-handle {
+            position: absolute;
+            right: 40px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(5,5,10,0.95);
+            border: 1px solid rgba(167,139,250,0.5);
+            border-radius: 999px;
+            padding: 6px 12px;
+            color: #ffffff;
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: grab;
+            pointer-events: auto;
+            transform: translate(110%, -50%);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .tm-era-handle:active {
+            cursor: grabbing;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .tm-era-handle-icon {
+            font-size: 14px;
+            color: #A78BFA;
+            line-height: 1;
         }
 
         .tm-era-item {
             position: relative;
-            padding: 12px 20px 12px 0;
+            padding: 12px 120px 12px 0;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: color 0.3s ease, transform 0.3s ease;
             text-align: right;
         }
 
-        .tm-era-item::after {
-            content: '';
-            position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 3px;
-            height: 100%;
-            background: rgba(255,255,255,0.1);
-            transition: all 0.3s ease;
-        }
-
-        .tm-era-item:hover::after {
-            background: rgba(255,255,255,0.3);
-        }
-
-        .tm-era-item.active::after {
-            background: #A78BFA;
-            box-shadow: 0 0 10px #A78BFA;
-        }
-
-        /* Grabber handle for timeline */
-        .tm-era-item.active::before {
-            content: '⠿';
-            position: absolute;
-            right: -8px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 14px;
-            color: #A78BFA;
-            background: #0a0a0f;
-            padding: 4px;
-            border-radius: 4px;
-            border: 1px solid #A78BFA;
-            box-shadow: 0 0 10px rgba(167, 139, 250, 0.5);
-            cursor: grab;
-            z-index: 20;
-            line-height: 1;
-        }
-
-        .tm-era-item.active:active::before {
-            cursor: grabbing;
+        .tm-era-years,
+        .tm-era-name {
+            opacity: 0;
+            transform: translateX(8px);
+            transition: opacity 0.2s ease, transform 0.2s ease, color 0.2s ease;
         }
 
         .tm-era-years {
@@ -2444,7 +2496,20 @@
             font-size: 11px;
             color: rgba(255,255,255,0.4);
             margin-bottom: 2px;
-            transition: color 0.3s ease;
+        }
+
+        .tm-era-name {
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.35);
+        }
+
+        .tm-era-item:hover .tm-era-years,
+        .tm-era-item:hover .tm-era-name,
+        .tm-era-item.active .tm-era-years,
+        .tm-era-item.active .tm-era-name {
+            opacity: 1;
+            transform: translateX(0);
         }
 
         .tm-era-item:hover .tm-era-years,
@@ -2452,15 +2517,8 @@
             color: #ffffff;
         }
 
-        .tm-era-name {
-            font-size: 12px;
-            font-weight: 500;
-            color: rgba(255,255,255,0.4);
-            transition: color 0.3s ease;
-        }
-
         .tm-era-item:hover .tm-era-name {
-            color: rgba(255,255,255,0.7);
+            color: rgba(255,255,255,0.75);
         }
 
         .tm-era-item.active .tm-era-name {
@@ -10875,6 +10933,14 @@
         </div>
 
         <div class="tm-era-timeline" id="tm-era-timeline">
+            <div class="tm-era-track" id="tm-era-track">
+                <div class="tm-era-track-line" id="tm-era-track-line"></div>
+                <div class="tm-era-ticks" id="tm-era-ticks"></div>
+                <button class="tm-era-handle" id="tm-era-handle" type="button">
+                    <span class="tm-era-handle-icon">⠿</span>
+                    <span class="tm-era-handle-year" id="tm-era-handle-year">—</span>
+                </button>
+            </div>
             <div class="tm-era-item" data-era="pre1900">
                 <div class="tm-era-years">Pre-1900s</div>
                 <div class="tm-era-name">Neoclassical</div>
@@ -22077,6 +22143,26 @@ Create a [COMPONENT TYPE] that embodies this design philosophy. Focus on ${terri
             }
         })();
 
+    const YEAR_REGEX = /(\d{1,4})/;
+    const BC_REGEX = /(bce|bc)/i;
+
+    function parseTimelineYear(eraText) {
+        if (!eraText) return 0;
+        const match = eraText.match(YEAR_REGEX);
+        if (!match) return 0;
+        let year = parseInt(match[1], 10);
+        if (BC_REGEX.test(eraText)) {
+            year *= -1;
+        }
+        return year;
+    }
+
+    function formatTimelineYear(year) {
+        if (year < 0) return `${Math.abs(year)} BCE`;
+        if (year === 0) return '0';
+        return `${year}`;
+    }
+
         // TIME MACHINE 3D FUNCTIONALITY
         let timeMachineInitialized = false;
         let timelineData = [];
@@ -22099,12 +22185,7 @@ Create a [COMPONENT TYPE] that embodies this design philosophy. Focus on ${terri
             // Build timeline data with years
             timelineData = allTerritories
                 .filter(t => t.history?.era)
-                .map(t => {
-                    const era = t.history.era;
-                    const yearMatch = era.match(/\d{4}/);
-                    const year = yearMatch ? parseInt(yearMatch[0]) : 2000;
-                    return { ...t, year };
-                })
+                .map(t => ({ ...t, year: parseTimelineYear(t.history.era) }))
                 .sort((a, b) => a.year - b.year);
 
             if (timelineData.length === 0) return;
@@ -22162,6 +22243,9 @@ Create a [COMPONENT TYPE] that embodies this design philosophy. Focus on ${terri
                         const scale = 1 - absOffset * 0.08;
                         const opacity = offset === 0 ? 1 : 0.7 - absOffset * 0.15;
 
+                        // Ensure each card positions relative to the center of the stack
+                        card.style.left = '50%';
+                        card.style.top = '50%';
                         // Center first with translate(-50%, -50%), then apply animation offsets
                         card.style.transform = `translate(-50%, -50%) translateY(${y}px) rotateX(${rotateX}deg) scale(${Math.max(scale, 0.75)})`;
                         card.style.opacity = Math.max(opacity, 0.2);
@@ -22180,7 +22264,7 @@ Create a [COMPONENT TYPE] that embodies this design philosophy. Focus on ${terri
                 // Update year and era display
                 const currentTerritory = timelineData[currentCardIndex];
                 if (currentTerritory) {
-                    yearDisplay.textContent = currentTerritory.year;
+                    yearDisplay.textContent = formatTimelineYear(currentTerritory.year);
                     eraLabel.textContent = currentTerritory.history?.era || currentTerritory.name;
                 }
 
@@ -22321,6 +22405,10 @@ Create a [COMPONENT TYPE] that embodies this design philosophy. Focus on ${terri
             const eraTimeline = document.getElementById('tm-era-timeline');
             const currentYearDisplay = document.getElementById('tm-current-year');
             const currentNameDisplay = document.getElementById('tm-current-name');
+            const timelineTrack = document.getElementById('tm-era-track');
+            const timelineHandle = document.getElementById('tm-era-handle');
+            const timelineHandleYear = document.getElementById('tm-era-handle-year');
+            const timelineTicks = document.getElementById('tm-era-ticks');
 
             if (!overlay || !headerBtn || !tunnelTrack) return;
 
@@ -22328,10 +22416,13 @@ Create a [COMPONENT TYPE] that embodies this design philosophy. Focus on ${terri
             let tmCurrentIndex = 0;
             let tmCardData = [];
             let tmInitialized = false;
+            let tmMinYear = Infinity;
+            let tmMaxYear = -Infinity;
+            let isDraggingHandle = false;
 
             // Era definitions with year ranges
             const eras = [
-                { id: 'pre1900', years: 'Pre-1900s', name: 'Neoclassical, Baroque', startYear: 0, endYear: 1899 },
+                { id: 'pre1900', years: 'Pre-1900s', name: 'Neoclassical, Baroque', startYear: -3000, endYear: 1899 },
                 { id: '1890-1920', years: '1890-1920', name: 'Art Nouveau, Victorian', startYear: 1890, endYear: 1920 },
                 { id: '1920-1950', years: '1920-1950', name: 'Art Deco, Bauhaus', startYear: 1920, endYear: 1950 },
                 { id: '1950-1980', years: '1950-1980', name: 'Mid-Century, Pop Art', startYear: 1950, endYear: 1980 },
@@ -22352,16 +22443,84 @@ Create a [COMPONENT TYPE] that embodies this design philosophy. Focus on ${terri
             function buildCardData() {
                 // Use the global allTerritories array
                 if (typeof allTerritories === 'undefined') return [];
+                tmMinYear = Infinity;
+                tmMaxYear = -Infinity;
 
-                return allTerritories
+                const data = allTerritories
                     .filter(t => t.history?.era)
                     .map(t => {
-                        const era = t.history.era;
-                        const yearMatch = era.match(/\d{4}/);
-                        const year = yearMatch ? parseInt(yearMatch[0]) : 2020;
+                        const year = parseTimelineYear(t.history.era);
+                        tmMinYear = Math.min(tmMinYear, year);
+                        tmMaxYear = Math.max(tmMaxYear, year);
                         return { ...t, year };
                     })
                     .sort((a, b) => a.year - b.year);
+
+                if (!isFinite(tmMinYear) || !isFinite(tmMaxYear) || tmMinYear === Infinity) {
+                    tmMinYear = 0;
+                    tmMaxYear = data[data.length - 1]?.year || 1;
+                }
+
+                return data;
+            }
+
+            function yearToPercent(year) {
+                if (!isFinite(tmMinYear) || !isFinite(tmMaxYear) || tmMaxYear === tmMinYear) return 0.5;
+                const clamped = Math.min(Math.max(year, tmMinYear), tmMaxYear);
+                return 1 - ((clamped - tmMinYear) / (tmMaxYear - tmMinYear));
+            }
+
+            function updateTimelineHandle(year) {
+                if (!timelineHandle || !timelineHandleYear || !timelineTrack) return;
+                const percent = yearToPercent(year);
+                timelineHandle.style.top = `${percent * 100}%`;
+                timelineHandleYear.textContent = formatTimelineYear(year);
+            }
+
+            function renderTimelineTicks() {
+                if (!timelineTicks) return;
+                const span = tmMaxYear - tmMinYear;
+                if (span <= 0) {
+                    timelineTicks.innerHTML = '';
+                    return;
+                }
+                const step = span > 3000 ? 500 : span > 1500 ? 250 : 100;
+                const start = Math.ceil(tmMinYear / step) * step;
+                const ticks = [];
+                for (let year = start; year <= tmMaxYear; year += step) {
+                    const percent = yearToPercent(year);
+                    ticks.push(`
+                        <div class="tm-era-tick" style="top:${percent * 100}%">
+                            <span class="tm-era-tick-line"></span>
+                            <span class="tm-era-tick-label">${formatTimelineYear(year)}</span>
+                        </div>
+                    `);
+                }
+                timelineTicks.innerHTML = ticks.join('');
+            }
+
+            function findClosestIndex(year) {
+                if (!tmCardData.length) return 0;
+                let closest = 0;
+                let bestDiff = Infinity;
+                tmCardData.forEach((card, idx) => {
+                    const diff = Math.abs(card.year - year);
+                    if (diff < bestDiff) {
+                        bestDiff = diff;
+                        closest = idx;
+                    }
+                });
+                return closest;
+            }
+
+            function yearFromPointer(clientY) {
+                if (!timelineTrack) return null;
+                const rect = timelineTrack.getBoundingClientRect();
+                if (rect.height === 0) return null;
+                const clampedY = Math.min(Math.max(clientY, rect.top), rect.bottom);
+                const percent = (clampedY - rect.top) / rect.height;
+                const year = tmMinYear + (1 - percent) * (tmMaxYear - tmMinYear);
+                return year;
             }
 
             function renderTunnelCards() {
@@ -22396,6 +22555,8 @@ Create a [COMPONENT TYPE] that embodies this design philosophy. Focus on ${terri
                     }
                 });
 
+                renderTimelineTicks();
+                updateTimelineHandle(tmCardData[tmCurrentIndex]?.year || tmMinYear);
                 updateTunnelPositions();
             }
 
@@ -22422,7 +22583,9 @@ Create a [COMPONENT TYPE] that embodies this design philosophy. Focus on ${terri
                         const y = offset * 30; // Slight vertical offset
 
                         card.style.visibility = 'visible';
-                        card.style.transform = `translateZ(${z}px) translateY(${y}px) scale(${scale})`;
+                        card.style.left = '50%';
+                        card.style.top = '50%';
+                        card.style.transform = `translate(-50%, -50%) translateZ(${z}px) translateY(${y}px) scale(${scale})`;
                         card.style.opacity = opacity;
                         card.style.zIndex = String(100 - absOffset);
                         card.style.pointerEvents = offset === 0 ? 'auto' : 'none';
@@ -22439,8 +22602,9 @@ Create a [COMPONENT TYPE] that embodies this design philosophy. Focus on ${terri
                 // Update current era display
                 const currentCard = tmCardData[tmCurrentIndex];
                 if (currentCard) {
-                    currentYearDisplay.textContent = currentCard.year;
+                    currentYearDisplay.textContent = formatTimelineYear(currentCard.year);
                     currentNameDisplay.textContent = currentCard.name;
+                    updateTimelineHandle(currentCard.year);
 
                     // Update era timeline highlighting
                     const currentEra = getEraForYear(currentCard.year);
@@ -22487,6 +22651,56 @@ Create a [COMPONENT TYPE] that embodies this design philosophy. Focus on ${terri
                     updateTunnelPositions();
                 }
             }
+
+            function jumpToYear(year) {
+                if (!tmCardData.length) return;
+                const idx = findClosestIndex(year);
+                if (idx !== tmCurrentIndex) {
+                    tmCurrentIndex = idx;
+                    updateTunnelPositions();
+                } else {
+                    updateTimelineHandle(tmCardData[idx].year);
+                }
+            }
+
+            if (timelineHandle) {
+                timelineHandle.addEventListener('pointerdown', (e) => {
+                    if (!tmOverlayActive) return;
+                    isDraggingHandle = true;
+                    timelineHandle.setPointerCapture?.(e.pointerId);
+                    e.preventDefault();
+                });
+
+                timelineHandle.addEventListener('pointerup', (e) => {
+                    timelineHandle.releasePointerCapture?.(e.pointerId);
+                    isDraggingHandle = false;
+                });
+            }
+
+            if (timelineTrack) {
+                timelineTrack.addEventListener('pointerdown', (e) => {
+                    if (!tmOverlayActive) return;
+                    if (timelineHandle && timelineHandle.contains(e.target)) return;
+                    const year = yearFromPointer(e.clientY);
+                    if (year !== null) {
+                        jumpToYear(year);
+                    }
+                });
+            }
+
+            document.addEventListener('pointermove', (e) => {
+                if (!isDraggingHandle || !tmOverlayActive) return;
+                const year = yearFromPointer(e.clientY);
+                if (year !== null) {
+                    jumpToYear(year);
+                }
+            });
+
+            document.addEventListener('pointerup', () => {
+                if (isDraggingHandle) {
+                    isDraggingHandle = false;
+                }
+            });
 
             // Event listeners
             headerBtn.addEventListener('click', () => {
