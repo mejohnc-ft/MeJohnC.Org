@@ -79,15 +79,6 @@ export default function ProjectsTab() {
             <CardSkeleton key={i} />
           ))}
         </div>
-      ) : projects.length === 0 ? (
-        <div className="text-center py-20 bg-card/50 border border-border rounded-lg">
-          <p className="text-muted-foreground mb-4">No projects yet.</p>
-          <SignedIn>
-            <Button asChild>
-              <Link to="/admin/projects/new">Add Project</Link>
-            </Button>
-          </SignedIn>
-        </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Territories Project - Static Card */}
@@ -98,9 +89,9 @@ export default function ProjectsTab() {
           >
             <Link to="/projects/territories">
               <Card className="overflow-hidden border border-border hover:border-primary transition-all duration-300 bg-card/50 group cursor-pointer">
-                <div className="aspect-video overflow-hidden bg-gradient-to-br from-purple-900/20 to-blue-900/20">
-                  <div className="w-full h-full flex items-center justify-center bg-surface-2">
-                    <span className="text-4xl">🎨</span>
+                <div className="aspect-video overflow-hidden bg-black">
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="font-serif text-6xl font-bold text-white tracking-tight" style={{ fontFamily: "'Playfair Display', 'Georgia', serif" }}>T</span>
                   </div>
                 </div>
                 <div className="p-6">
@@ -109,7 +100,7 @@ export default function ProjectsTab() {
                   </h3>
                   <p className="text-sm text-primary mb-2">Design System Explorer</p>
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                    A comprehensive design reference tool for AI-forward product design. 
+                    A comprehensive design reference tool for AI-forward product design.
                     Explore 50+ design territories, compare philosophies, and build custom design recipes.
                   </p>
                   <div className="flex flex-wrap gap-2">
