@@ -8791,6 +8791,10 @@
         }
 
         /* Responsive */
+        @media (min-width: 1920px) {
+            .territories { grid-template-columns: repeat(4, 1fr); }
+        }
+
         @media (max-width: 1200px) {
             .territories { grid-template-columns: repeat(2, 1fr); gap: 24px; }
         }
@@ -8806,6 +8810,43 @@
             .edu-scale-item { grid-template-columns: 60px 1fr; }
             .edu-scale-use { display: none; }
             .edu-principle-example { flex-direction: column; }
+        }
+
+        @media (max-width: 480px) {
+            .header { padding: 0 12px; }
+            .hero h1 { font-size: 28px; }
+            .hero p { font-size: 14px; }
+            .main { padding: 72px 12px 32px; }
+            .modal { margin: 0; border-radius: 0; height: 100vh; max-height: 100vh; }
+        }
+
+        /* Accessibility - Focus styles */
+        :focus-visible {
+            outline: 2px solid var(--blue);
+            outline-offset: 2px;
+        }
+
+        .territory-card:focus-visible {
+            outline: 2px solid var(--blue);
+            outline-offset: 2px;
+            border-color: var(--card-border-hover);
+        }
+
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--blue);
+            color: #fff;
+            padding: 8px 16px;
+            z-index: 200;
+            font-size: 14px;
+            border-radius: 0 0 8px 0;
+            transition: top 0.2s;
+        }
+
+        .skip-link:focus {
+            top: 0;
         }
 
         /* Image Carousel */
@@ -9296,12 +9337,13 @@
     </style>
 </head>
 <body>
-    <div class="ambient-canvas">
+    <a class="skip-link" href="#section-territories">Skip to content</a>
+    <div class="ambient-canvas" aria-hidden="true">
         <div class="ambient-orb orb-1"></div>
         <div class="ambient-orb orb-2"></div>
         <div class="ambient-orb orb-3"></div>
     </div>
-    <div class="grid-texture"></div>
+    <div class="grid-texture" aria-hidden="true"></div>
 
     <div class="app">
         <header class="header">
@@ -9352,12 +9394,12 @@
             </div>
 
             <!-- Navigation tabs -->
-            <div class="nav-tabs">
-                <button class="nav-tab active" data-section="territories">Design Territories</button>
-                <button class="nav-tab" data-section="studio">Design Studio</button>
-                <button class="nav-tab" data-section="typography">Typography</button>
-                <button class="nav-tab" data-section="ux">UX Principles</button>
-            </div>
+            <nav class="nav-tabs" role="tablist" aria-label="Content sections">
+                <button class="nav-tab active" data-section="territories" role="tab" aria-selected="true" aria-controls="section-territories">Design Territories</button>
+                <button class="nav-tab" data-section="studio" role="tab" aria-selected="false" aria-controls="section-studio">Design Studio</button>
+                <button class="nav-tab" data-section="typography" role="tab" aria-selected="false" aria-controls="section-typography">Typography</button>
+                <button class="nav-tab" data-section="ux" role="tab" aria-selected="false" aria-controls="section-ux">UX Principles</button>
+            </nav>
 
             <!-- TERRITORIES SECTION -->
             <div class="content-section active" id="section-territories">
@@ -10914,9 +10956,9 @@
         </main>
     </div>
 
-    <div class="modal-overlay" id="modal-overlay"></div>
-    <div class="modal" id="modal">
-        <button class="modal-close" id="modal-close">Territories</button>
+    <div class="modal-overlay" id="modal-overlay" aria-hidden="true"></div>
+    <div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="Territory details">
+        <button class="modal-close" id="modal-close" aria-label="Close modal and return to Territories">Territories</button>
         <div class="modal-content" id="modal-content"></div>
     </div>
 
@@ -12682,7 +12724,6 @@
                         { path: 'styles/48-Glassmorphism/Glassmorphism.webp', caption: 'Glassmorphism frosted glass UI aesthetic' },
                         { path: 'styles/48-Glassmorphism/macos-big-sur-control-center-huseyinemanet.png', caption: 'macOS Big Sur Control Center with layered glass panels' },
                         { path: 'styles/48-Glassmorphism/5B2820A5-7A67-4A73-A9A1-22C625E8D522.jpg', caption: 'Glassmorphism UI components with blur' },
-                        { path: 'styles/48-Glassmorphism/Widgetpod-for-ios-hero.jpg', caption: 'iOS Widgetpod with glassmorphic backgrounds' },
                         { path: 'styles/48-Glassmorphism/windows acrylic.jpg', caption: 'Windows 11 Acrylic material and blur effects' },
                         { path: 'styles/48-Glassmorphism/Screenshot_2026-01-24_232619.png', caption: 'Glassmorphism dashboard example with frosted panels' },
                         { path: 'styles/48-Glassmorphism/Screenshot_2026-01-24_233615.png', caption: 'Glassmorphism card interface with blur' },
@@ -12820,7 +12861,7 @@
                         { path: 'styles/platform-specific/Neumorphism/tesla climate controls.png', caption: 'Tesla — Climate controls with soft pressed/raised states' },
                         { path: 'styles/platform-specific/Neumorphism/calc-Neumorphism.jpg', caption: 'Neumorphic Calculator — Raised buttons with soft shadows' },
                         { path: 'styles/platform-specific/Neumorphism/smart home toggles Neumorphism.png', caption: 'Smart Home Dashboard — Toggles and sliders with depth' },
-                        { path: 'styles/platform-specific/Neumorphism/neumorphism-buttons-playlist-menu-icons-and-volume-sliders-for-music-app-audio-player-user-interface-elements-in-black-design-set-vector.jpg', caption: 'Music Player — Neumorphic buttons and volume controls' }
+                        { path: 'styles/platform-specific/Neumorphism/neumorphism-music-app-ui-set.jpg', caption: 'Music Player — Neumorphic buttons and volume controls' }
                     ],
                     resources: [
                         { name: 'Neumorphism Generator', url: 'https://neumorphism.io' }
@@ -14306,7 +14347,7 @@
                         { path: 'styles/platform-specific/Dashboard-UI/Inventory Dashboard.png', caption: 'Inventory Dashboard — Dense data tables and metrics' },
                         { path: 'styles/platform-specific/Dashboard-UI/modern-dashboard-design-stockcake.webp', caption: 'Modern Dashboard — Clean data visualization layout' },
                         { path: 'styles/platform-specific/Dashboard-UI/1_kzD0It4OatcDD85g3CEoxw.png', caption: 'Analytics Dashboard — Multi-panel metrics view' },
-                        { path: 'styles/platform-specific/Dashboard-UI/stock-vector-dashboard-ui-ux-kit-great-design-for-any-site-purposes-business-infographic-template-vector-1938829057.jpg', caption: 'Dashboard UI Kit — Charts, graphs, and data widgets' }
+                        { path: 'styles/platform-specific/Dashboard-UI/dashboard-ui-kit-1938829057.jpg', caption: 'Dashboard UI Kit — Charts, graphs, and data widgets' }
                     ],
                     resources: [],
                     renderPreview: (el) => {
@@ -14463,8 +14504,8 @@
                     images: [
                         { path: 'styles/platform-specific/iOS/49986-98032-iOS6-xl.jpg', caption: 'iOS 6 — Complete skeuomorphic home screen' },
                         { path: 'styles/platform-specific/iOS/0_7ckvHZgH4ITuSglb.png', caption: 'iOS Skeuomorphism — Textured app interfaces' },
-                        { path: 'styles/platform-specific/iOS/A8tVupnCStOBgvZeSpxD_elements-skeuomorphism-new.png', caption: 'Skeuomorphic Elements — Leather, wood, and felt textures' },
-                        { path: 'styles/platform-specific/iOS/remember-when-iphone-apps-looked-like-their-real-life-v0-9b6n1sw0xbvf1.webp', caption: 'Real-life metaphors — Physical materials in digital UI' }
+                        { path: 'styles/platform-specific/iOS/skeuomorphism-elements.png', caption: 'Skeuomorphic Elements — Leather, wood, and felt textures' },
+                        { path: 'styles/platform-specific/iOS/iphone-skeuomorphic-apps.webp', caption: 'Real-life metaphors — Physical materials in digital UI' }
                     ],
                     resources: [
                         { name: 'Apple Human Interface Guidelines (iOS 6)', url: 'https://web.archive.org/web/2013/developer.apple.com/design' }
@@ -14890,9 +14931,9 @@
                     files: [],
                     images: [
                         { path: 'styles/platform-specific/Material-Design/material-you-rgb.png', caption: 'Material You — Dynamic color system overview' },
-                        { path: 'styles/platform-specific/Material-Design/google-material-you-philip-battin-software-design_dezeen_2364_col_10.jpg', caption: 'Material Design 3 — Expressive color tokens' },
-                        { path: 'styles/platform-specific/Material-Design/google-material-you-philip-battin-software-design_dezeen_2364_col_11.jpg', caption: 'Material You — Dynamic theming in action' },
-                        { path: 'styles/platform-specific/Material-Design/themed-all-my-devices-inspired-from-googles-material-you-v0-a0c8g0eqb5za1.webp', caption: 'Material You — Cross-device theming' },
+                        { path: 'styles/platform-specific/Material-Design/material-you-battin-col-10.jpg', caption: 'Material Design 3 — Expressive color tokens' },
+                        { path: 'styles/platform-specific/Material-Design/material-you-battin-col-11.jpg', caption: 'Material You — Dynamic theming in action' },
+                        { path: 'styles/platform-specific/Material-Design/material-you-all-devices.webp', caption: 'Material You — Cross-device theming' },
                         { path: 'styles/platform-specific/Material-Design/3Krb6embAtNbRmb7EaUADn-1000-80.jpg', caption: 'Android 12+ — Material Design 3 widgets' },
                         { path: 'styles/platform-specific/Material-Design/hq720.jpg', caption: 'Material Design 3 — Components and surfaces' }
                     ],
@@ -15041,22 +15082,22 @@
                     brands: ['Apple native apps (iOS 26)', 'Forward-thinking iOS developers'],
                     files: [],
                     images: [
-                        { path: 'styles/platform-specific/iOS/ios-26.jpg', caption: 'iOS 26 — Overview of the Liquid Glass redesign' },
-                        { path: 'styles/platform-specific/iOS/apple-liquid-glass-11-1536x1152.jpg', caption: 'iOS 26 — Liquid glass materials with real-time refraction' },
-                        { path: 'styles/platform-specific/iOS/ios26-safari.webp', caption: 'iOS 26 Safari — Glass browser with compact controls' },
-                        { path: 'styles/platform-specific/iOS/ios-26-safari-popup.webp', caption: 'iOS 26 Safari — Popup menus with glass effect' },
+                        { path: 'styles/48-Glassmorphism/ios-26.jpg', caption: 'iOS 26 — Overview of the Liquid Glass redesign' },
+                        { path: 'styles/48-Glassmorphism/apple-liquid-glass-11-1536x1152.jpg', caption: 'iOS 26 — Liquid glass materials with real-time refraction' },
+                        { path: 'styles/48-Glassmorphism/ios26-safari.webp', caption: 'iOS 26 Safari — Glass browser with compact controls' },
+                        { path: 'styles/48-Glassmorphism/ios-26-safari-popup.webp', caption: 'iOS 26 Safari — Popup menus with glass effect' },
                         { path: 'styles/platform-specific/iOS/1_xn1FgYmOvSD7-7v4cTVpow.png', caption: 'iOS 26 — App layout with liquid glass cards' },
                         { path: 'styles/platform-specific/iOS/NtH2C1d7FQG7zlTWltpfdR1oPg.webp', caption: 'iOS 26 — Control Center with glass panels' },
-                        { path: 'styles/platform-specific/iOS/mpv-shot0053-1536x864.jpg.webp', caption: 'iOS 26 — Home screen with compact widgets' },
+                        { path: 'styles/41-Neo-Frutiger-Aero/mpv-shot0053-1536x864.jpg.webp', caption: 'iOS 26 — Home screen with compact widgets' },
                         { path: 'styles/platform-specific/iOS/mpv-shot0057-1536x864.jpg.webp', caption: 'iOS 26 — Messages with glass conversation bubbles' },
-                        { path: 'styles/platform-specific/iOS/mpv-shot0064-1536x864.jpg.webp', caption: 'iOS 26 — Settings with reactive micro-animations' },
+                        { path: 'styles/48-Glassmorphism/mpv-shot0064-1536x864.jpg.webp', caption: 'iOS 26 — Settings with reactive micro-animations' },
                         { path: 'styles/platform-specific/iOS/mpv-shot0066-1536x864.jpg.webp', caption: 'iOS 26 — Apple Intelligence integration' },
-                        { path: 'styles/platform-specific/iOS/mpv-shot0068-1536x864.jpg.webp', caption: 'iOS 26 — Notification center with glass sheets' },
+                        { path: 'styles/48-Glassmorphism/mpv-shot0068-1536x864.jpg.webp', caption: 'iOS 26 — Notification center with glass sheets' },
                         { path: 'styles/platform-specific/iOS/mpv-shot0084-1536x864.jpg.webp', caption: 'iOS 26 — Dynamic Island expanded view' },
-                        { path: 'styles/platform-specific/iOS/mpv-shot0085-1536x864.jpg.webp', caption: 'iOS 26 — Photos app with glass overlay' },
+                        { path: 'styles/48-Glassmorphism/mpv-shot0085-1536x864.jpg.webp', caption: 'iOS 26 — Photos app with glass overlay' },
                         { path: 'styles/platform-specific/iOS/mpv-shot0087-1536x864.jpg.webp', caption: 'iOS 26 — App Store with glass navigation' },
                         { path: 'styles/platform-specific/iOS/mpv-shot0088-1536x864.jpg.webp', caption: 'iOS 26 — Music app with liquid glass player' },
-                        { path: 'styles/platform-specific/iOS/mpv-shot0089-1536x864.jpg.webp', caption: 'iOS 26 — Maps with glass UI elements' }
+                        { path: 'styles/48-Glassmorphism/mpv-shot0089-1536x864.jpg.webp', caption: 'iOS 26 — Maps with glass UI elements' }
                     ],
                     resources: [
                         { name: 'Apple Human Interface Guidelines', url: 'https://developer.apple.com/design' },
@@ -15172,13 +15213,13 @@
                     },
                     images: [
                         { path: 'styles/03-Aurora/Aurora.webp', caption: 'Aurora cosmic gradient aesthetic' },
-                        { path: 'styles/03-Aurora/Untitled.jpg', caption: 'Aurora dashboard with ethereal gradients' },
-                        { path: 'styles/03-Aurora/Untitled 2.jpg', caption: 'Aurora interface with cosmic color flows' },
-                        { path: 'styles/03-Aurora/Untitled 3.jpg', caption: 'Aurora UI with northern lights atmosphere' },
-                        { path: 'styles/03-Aurora/Untitled 4.jpg', caption: 'Aurora design with glowing accent elements' },
-                        { path: 'styles/03-Aurora/Untitled 5.jpg', caption: 'Aurora gradient cards and soft lighting' },
-                        { path: 'styles/03-Aurora/Untitled 6.jpg', caption: 'Aurora ethereal data visualization' },
-                        { path: 'styles/03-Aurora/Untitled 7.jpg', caption: 'Aurora ambient interface composition' }
+                        { path: 'styles/projects/6-Aurora-Dashboard/Untitled.jpg', caption: 'Aurora dashboard with ethereal gradients' },
+                        { path: 'styles/projects/6-Aurora-Dashboard/Untitled 2.jpg', caption: 'Aurora interface with cosmic color flows' },
+                        { path: 'styles/projects/6-Aurora-Dashboard/Untitled 3.jpg', caption: 'Aurora UI with northern lights atmosphere' },
+                        { path: 'styles/projects/6-Aurora-Dashboard/Untitled 4.jpg', caption: 'Aurora design with glowing accent elements' },
+                        { path: 'styles/projects/6-Aurora-Dashboard/Untitled 5.jpg', caption: 'Aurora gradient cards and soft lighting' },
+                        { path: 'styles/projects/6-Aurora-Dashboard/Untitled 6.jpg', caption: 'Aurora ethereal data visualization' },
+                        { path: 'styles/projects/6-Aurora-Dashboard/Untitled 7.jpg', caption: 'Aurora ambient interface composition' }
                     ],
                     renderPreview: (el) => { el.innerHTML = `<div style="height:100%;background:linear-gradient(135deg, #0a0a20 0%, #1a1a40 50%, #0a0a30 100%);position:relative;overflow:hidden;">
                         <div style="position:absolute;top:0;left:0;right:0;height:60%;background:linear-gradient(180deg, rgba(102,126,234,0.4) 0%, rgba(118,75,162,0.3) 40%, rgba(246,79,89,0.2) 70%, transparent 100%);filter:blur(20px);"></div>
@@ -15538,7 +15579,7 @@
                         { path: 'styles/22-Bauhaus/1000_F_475188580_R99SpAPJzmn4QHAFVZ3h5pn8uzSRZAsh.jpg', caption: 'Bauhaus primary color composition' },
                         { path: 'styles/22-Bauhaus/12503027_4959859-scaled.webp', caption: 'Bauhaus geometric poster with grid system' },
                         { path: 'styles/22-Bauhaus/G-Dy34YbgAA3QCA.jpg', caption: 'Bauhaus-inspired interface cards' },
-                        { path: 'styles/22-Bauhaus/G-E7YBUa0Ac4oW5.jpg', caption: 'Bauhaus modernist typography layout' }
+                        { path: 'styles/50-Neo-Brutalism/G-E7YBUa0Ac4oW5.jpg', caption: 'Bauhaus modernist typography layout' }
                     ],
                     renderPreview: (el) => { el.innerHTML = `<div class="preview-bauhaus">
                         <div class="bauhaus-shape"><div class="bauhaus-circle"></div></div>
@@ -15669,7 +15710,7 @@
                     },
                     images: [
                         { path: 'styles/38-Utilitarian/Utilitarian.webp', caption: 'Utilitarian functional design' },
-                        { path: 'styles/38-Utilitarian/personal-ai-maturity-model-v1.png', caption: 'Utilitarian AI maturity model diagram' },
+                        { path: 'styles/projects/7-Reference-Frameworks/personal-ai-maturity-model-v1.png', caption: 'Utilitarian AI maturity model diagram' },
                         { path: 'styles/38-Utilitarian/Screenshot_2026-01-24_234655.png', caption: 'Utilitarian data dashboard interface' },
                         { path: 'styles/38-Utilitarian/Screenshot_2026-01-24_234750.png', caption: 'Utilitarian functional UI components' }
                     ],
@@ -19144,18 +19185,13 @@
                     },
                     images: [
                         { path: 'styles/39-Mid-Century/MidCentury.webp', caption: 'Mid-Century modern aesthetic' },
-                        { path: 'styles/39-Mid-Century/160406-wpa-national-parks-posters-02.webp', caption: 'Mid-Century WPA national parks poster style' },
-                        { path: 'styles/39-Mid-Century/584472522_17931531477114187_3084937486762203037_n.jpg', caption: 'Mid-Century vintage travel poster' },
-                        { path: 'styles/39-Mid-Century/587569127_17931531480114187_904921819265463458_n.jpg', caption: 'Mid-Century retro illustration style' },
-                        { path: 'styles/39-Mid-Century/587606821_17931531444114187_4071909258681024558_n.jpg', caption: 'Mid-Century atomic age design' },
-                        { path: 'styles/39-Mid-Century/587736911_17931531435114187_712254519902936527_n.jpg', caption: 'Mid-Century organic poster shapes' },
-                        { path: 'styles/39-Mid-Century/588623040_17931531426114187_4158586733262726159_n.jpg', caption: 'Mid-Century modernist composition' },
-                        { path: 'styles/39-Mid-Century/Acadia-10.17.jpg', caption: 'Mid-Century Acadia national park poster' },
+                        { path: 'styles/17-Art-Deco/160406-wpa-national-parks-posters-02.webp', caption: 'Mid-Century WPA national parks poster style' },
+                        { path: 'styles/17-Art-Deco/Acadia-10.17.jpg', caption: 'Mid-Century Acadia national park poster' },
                         { path: 'styles/39-Mid-Century/Federal_Art_Project.jpg', caption: 'Mid-Century Federal Art Project poster' },
                         { path: 'styles/39-Mid-Century/G-Dy34daQAAXB6N.png', caption: 'Mid-Century inspired interface design' },
-                        { path: 'styles/39-Mid-Century/sequoia-hawaii.jpg', caption: 'Mid-Century Sequoia and Hawaii park posters' },
-                        { path: 'styles/39-Mid-Century/WPA_3.jpg', caption: 'Mid-Century WPA poster design' },
-                        { path: 'styles/39-Mid-Century/WPA_Posters.webp', caption: 'Mid-Century WPA poster collection' }
+                        { path: 'styles/17-Art-Deco/sequoia-hawaii.jpg', caption: 'Mid-Century Sequoia and Hawaii park posters' },
+                        { path: 'styles/45-Southwest-Wild-West/WPA_3.jpg', caption: 'Mid-Century WPA poster design' },
+                        { path: 'styles/17-Art-Deco/WPA_Posters.webp', caption: 'Mid-Century WPA poster collection' }
                     ],
                     renderPreview: (el) => { el.innerHTML = `<div class="preview-midcentury">
                         <div class="midcent-card">
@@ -19323,7 +19359,7 @@
                 const encodedImg = hasRealImage ? encodeURI(previewImg) : '';
 
                 return `
-                <div class="territory-card" data-id="${t.id}" data-territory="${t.id}" data-category="${containerId.replace('territories-', '')}">
+                <div class="territory-card" data-id="${t.id}" data-territory="${t.id}" data-category="${containerId.replace('territories-', '')}" tabindex="0" role="button" aria-label="${t.name} - ${t.feeling || 'Design territory'}">
                     <div class="territory-preview" id="preview-${t.id}" ${hasRealImage ? `style="background-image: url('${encodedImg}'); background-size: cover; background-position: center;"` : ''}></div>
                     <div class="territory-info">
                         <div class="territory-header">
@@ -21343,28 +21379,27 @@ Create a [COMPONENT TYPE] that embodies this design philosophy. Focus on ${terri
         const styleAllImagesMap = {
             'aurora': [
                 { path: 'styles/03-Aurora/Aurora.webp', caption: 'Aurora - Cosmic gradient aesthetic' },
-                { path: 'styles/03-Aurora/Untitled.jpg', caption: 'Coming Soon / Vision - Roadmap with Knowledge, Pulse, Align, AI Teammate' },
-                { path: 'styles/03-Aurora/Untitled 2.jpg', caption: 'Built & Ready - Three platforms with progress bars' },
-                { path: 'styles/03-Aurora/Untitled 3.jpg', caption: 'Critical Insights - Big stat cards (+35.8%, +155%)' },
-                { path: 'styles/03-Aurora/Untitled 4.jpg', caption: 'Workflow Performance - Data table with trends' },
-                { path: 'styles/03-Aurora/Untitled 5.jpg', caption: 'Performance Charts - Line graph, donut chart, bar comparison' },
-                { path: 'styles/03-Aurora/Untitled 6.jpg', caption: 'Vision Roadmap alternate view' },
-                { path: 'styles/03-Aurora/Untitled 7.jpg', caption: 'Success Report Hero - Large headline, stat cards' }
+                { path: 'styles/projects/6-Aurora-Dashboard/Untitled.jpg', caption: 'Coming Soon / Vision - Roadmap with Knowledge, Pulse, Align, AI Teammate' },
+                { path: 'styles/projects/6-Aurora-Dashboard/Untitled 2.jpg', caption: 'Built & Ready - Three platforms with progress bars' },
+                { path: 'styles/projects/6-Aurora-Dashboard/Untitled 3.jpg', caption: 'Critical Insights - Big stat cards (+35.8%, +155%)' },
+                { path: 'styles/projects/6-Aurora-Dashboard/Untitled 4.jpg', caption: 'Workflow Performance - Data table with trends' },
+                { path: 'styles/projects/6-Aurora-Dashboard/Untitled 5.jpg', caption: 'Performance Charts - Line graph, donut chart, bar comparison' },
+                { path: 'styles/projects/6-Aurora-Dashboard/Untitled 6.jpg', caption: 'Vision Roadmap alternate view' },
+                { path: 'styles/projects/6-Aurora-Dashboard/Untitled 7.jpg', caption: 'Success Report Hero - Large headline, stat cards' }
             ],
             'spatial-canvas': [
                 { path: 'styles/03-Aurora/Aurora.webp', caption: 'Aurora - Cosmic gradient aesthetic' },
-                { path: 'styles/03-Aurora/Untitled.jpg', caption: 'Coming Soon / Vision - Roadmap with Knowledge, Pulse, Align, AI Teammate' },
-                { path: 'styles/03-Aurora/Untitled 2.jpg', caption: 'Built & Ready - Three platforms with progress bars' },
-                { path: 'styles/03-Aurora/Untitled 3.jpg', caption: 'Critical Insights - Big stat cards (+35.8%, +155%)' },
-                { path: 'styles/03-Aurora/Untitled 4.jpg', caption: 'Workflow Performance - Data table with trends' },
-                { path: 'styles/03-Aurora/Untitled 5.jpg', caption: 'Performance Charts - Line graph, donut chart, bar comparison' },
-                { path: 'styles/03-Aurora/Untitled 7.jpg', caption: 'Success Report Hero - Large headline, stat cards' }
+                { path: 'styles/projects/6-Aurora-Dashboard/Untitled.jpg', caption: 'Coming Soon / Vision - Roadmap with Knowledge, Pulse, Align, AI Teammate' },
+                { path: 'styles/projects/6-Aurora-Dashboard/Untitled 2.jpg', caption: 'Built & Ready - Three platforms with progress bars' },
+                { path: 'styles/projects/6-Aurora-Dashboard/Untitled 3.jpg', caption: 'Critical Insights - Big stat cards (+35.8%, +155%)' },
+                { path: 'styles/projects/6-Aurora-Dashboard/Untitled 4.jpg', caption: 'Workflow Performance - Data table with trends' },
+                { path: 'styles/projects/6-Aurora-Dashboard/Untitled 5.jpg', caption: 'Performance Charts - Line graph, donut chart, bar comparison' },
+                { path: 'styles/projects/6-Aurora-Dashboard/Untitled 7.jpg', caption: 'Success Report Hero - Large headline, stat cards' }
             ],
             'glassmorphism': [
                 { path: 'styles/48-Glassmorphism/Glassmorphism.webp', caption: 'Glassmorphism - Frosted glass UI aesthetic' },
                 { path: 'styles/48-Glassmorphism/macos-big-sur-control-center-huseyinemanet.png', caption: 'macOS Big Sur Control Center - Frosted glass panels' },
                 { path: 'styles/48-Glassmorphism/5B2820A5-7A67-4A73-A9A1-22C625E8D522.jpg', caption: 'Glassmorphism widget design' },
-                { path: 'styles/48-Glassmorphism/Widgetpod-for-ios-hero.jpg', caption: 'Widgetpod iOS - Frosted glass widgets' },
                 { path: 'styles/48-Glassmorphism/windows acrylic.jpg', caption: 'Windows Acrylic - Microsoft fluent design' },
                 { path: 'styles/48-Glassmorphism/command-palette-main-interface.avif', caption: 'Command palette with glass blur' },
                 { path: 'styles/48-Glassmorphism/Screenshot_2026-01-24_232619.png', caption: 'Glassmorphism dashboard example 1' },
@@ -21375,27 +21410,22 @@ Create a [COMPONENT TYPE] that embodies this design philosophy. Focus on ${terri
             ],
             'mid-century': [
                 { path: 'styles/39-Mid-Century/MidCentury.webp', caption: 'Mid-Century Modern - Atomic age aesthetic' },
-                { path: 'styles/39-Mid-Century/160406-wpa-national-parks-posters-02.webp', caption: 'WPA National Parks poster style' },
-                { path: 'styles/39-Mid-Century/WPA_Posters.webp', caption: 'WPA Posters collection' },
-                { path: 'styles/39-Mid-Century/WPA_3.jpg', caption: 'WPA Works Progress Administration style' },
+                { path: 'styles/17-Art-Deco/160406-wpa-national-parks-posters-02.webp', caption: 'WPA National Parks poster style' },
+                { path: 'styles/17-Art-Deco/WPA_Posters.webp', caption: 'WPA Posters collection' },
+                { path: 'styles/45-Southwest-Wild-West/WPA_3.jpg', caption: 'WPA Works Progress Administration style' },
                 { path: 'styles/39-Mid-Century/Federal_Art_Project.jpg', caption: 'Federal Art Project poster' },
-                { path: 'styles/39-Mid-Century/Acadia-10.17.jpg', caption: 'Acadia National Park poster' },
-                { path: 'styles/39-Mid-Century/sequoia-hawaii.jpg', caption: 'Sequoia/Hawaii poster style' },
+                { path: 'styles/17-Art-Deco/Acadia-10.17.jpg', caption: 'Acadia National Park poster' },
+                { path: 'styles/17-Art-Deco/sequoia-hawaii.jpg', caption: 'Sequoia/Hawaii poster style' },
                 { path: 'styles/39-Mid-Century/G-Dy34daQAAXB6N.png', caption: 'Mid-Century dashboard design' },
-                { path: 'styles/39-Mid-Century/584472522_17931531477114187_3084937486762203037_n.jpg', caption: 'Mid-Century illustration 1' },
-                { path: 'styles/39-Mid-Century/587569127_17931531480114187_904921819265463458_n.jpg', caption: 'Mid-Century illustration 2' },
-                { path: 'styles/39-Mid-Century/587606821_17931531444114187_4071909258681024558_n.jpg', caption: 'Mid-Century illustration 3' },
-                { path: 'styles/39-Mid-Century/587736911_17931531435114187_712254519902936527_n.jpg', caption: 'Mid-Century illustration 4' },
-                { path: 'styles/39-Mid-Century/588623040_17931531426114187_4158586733262726159_n.jpg', caption: 'Mid-Century illustration 5' },
-                { path: 'styles/39-Mid-Century/Mystery.avif', caption: 'Mid-Century Mystery style' },
-                { path: 'styles/39-Mid-Century/New-1.avif', caption: 'Mid-Century New design' },
-                { path: 'styles/39-Mid-Century/Real.avif', caption: 'Mid-Century Real example' },
-                { path: 'styles/39-Mid-Century/Yosemite.avif', caption: 'Yosemite National Park poster' }
+                { path: 'styles/17-Art-Deco/Mystery.avif', caption: 'Mid-Century Mystery style' },
+                { path: 'styles/17-Art-Deco/New-1.avif', caption: 'Mid-Century New design' },
+                { path: 'styles/17-Art-Deco/Real.avif', caption: 'Mid-Century Real example' },
+                { path: 'styles/17-Art-Deco/Yosemite.avif', caption: 'Yosemite National Park poster' }
             ],
             'skeuomorphism': [
                 { path: 'styles/39-Mid-Century/MidCentury.webp', caption: 'Mid-Century Modern aesthetic' },
-                { path: 'styles/39-Mid-Century/160406-wpa-national-parks-posters-02.webp', caption: 'WPA National Parks poster style' },
-                { path: 'styles/39-Mid-Century/WPA_Posters.webp', caption: 'WPA Posters collection' }
+                { path: 'styles/17-Art-Deco/160406-wpa-national-parks-posters-02.webp', caption: 'WPA National Parks poster style' },
+                { path: 'styles/17-Art-Deco/WPA_Posters.webp', caption: 'WPA Posters collection' }
             ],
             'retro-y2k': [
                 { path: 'styles/21-Y2K/Y2K.webp', caption: 'Y2K - Millennium futurism aesthetic' },
@@ -21406,14 +21436,14 @@ Create a [COMPONENT TYPE] that embodies this design philosophy. Focus on ${terri
             ],
             'bauhaus': [
                 { path: 'styles/22-Bauhaus/Bauhaus.webp', caption: 'Bauhaus - Geometric modernism' },
-                { path: 'styles/22-Bauhaus/G-E7YBUa0Ac4oW5.jpg', caption: 'Bauhaus geometric patterns' },
+                { path: 'styles/50-Neo-Brutalism/G-E7YBUa0Ac4oW5.jpg', caption: 'Bauhaus geometric patterns' },
                 { path: 'styles/22-Bauhaus/G-Dy34YbgAA3QCA.jpg', caption: 'Bauhaus typography example' },
                 { path: 'styles/22-Bauhaus/1000_F_475188580_R99SpAPJzmn4QHAFVZ3h5pn8uzSRZAsh.jpg', caption: 'Bauhaus geometric composition' },
                 { path: 'styles/22-Bauhaus/12503027_4959859-scaled.webp', caption: 'Bauhaus design principles' }
             ],
             'swiss-style': [
                 { path: 'styles/22-Bauhaus/Bauhaus.webp', caption: 'Swiss/Bauhaus geometric style' },
-                { path: 'styles/22-Bauhaus/G-E7YBUa0Ac4oW5.jpg', caption: 'Swiss grid system' },
+                { path: 'styles/50-Neo-Brutalism/G-E7YBUa0Ac4oW5.jpg', caption: 'Swiss grid system' },
                 { path: 'styles/22-Bauhaus/G-Dy34YbgAA3QCA.jpg', caption: 'International typographic style' }
             ],
             'neo-brutalism': [
@@ -21426,13 +21456,13 @@ Create a [COMPONENT TYPE] that embodies this design philosophy. Focus on ${terri
             ],
             'utilitarian': [
                 { path: 'styles/38-Utilitarian/Utilitarian.webp', caption: 'Utilitarian - Function-first design' },
-                { path: 'styles/38-Utilitarian/personal-ai-maturity-model-v1.png', caption: 'AI Maturity Model diagram' },
+                { path: 'styles/projects/7-Reference-Frameworks/personal-ai-maturity-model-v1.png', caption: 'AI Maturity Model diagram' },
                 { path: 'styles/38-Utilitarian/Screenshot_2026-01-24_234655.png', caption: 'Utilitarian dashboard example 1' },
                 { path: 'styles/38-Utilitarian/Screenshot_2026-01-24_234750.png', caption: 'Utilitarian dashboard example 2' }
             ],
             'dashboard-dense': [
                 { path: 'styles/38-Utilitarian/Utilitarian.webp', caption: 'Utilitarian dense dashboard' },
-                { path: 'styles/38-Utilitarian/personal-ai-maturity-model-v1.png', caption: 'AI Maturity Model diagram' },
+                { path: 'styles/projects/7-Reference-Frameworks/personal-ai-maturity-model-v1.png', caption: 'AI Maturity Model diagram' },
                 { path: 'styles/38-Utilitarian/Screenshot_2026-01-24_234655.png', caption: 'Dense dashboard example 1' },
                 { path: 'styles/38-Utilitarian/Screenshot_2026-01-24_234750.png', caption: 'Dense dashboard example 2' }
             ],
@@ -21458,7 +21488,7 @@ Create a [COMPONENT TYPE] that embodies this design philosophy. Focus on ${terri
             ],
             'bento-box': [
                 { path: 'styles/28-Bento-Box/Bento Box.webp', caption: 'Bento Box - Modular grid layout' },
-                { path: 'styles/28-Bento-Box/G_RBoNmbkAEuC74.png', caption: 'Bento box dashboard design' }
+                { path: 'styles/50-Neo-Brutalism/G_RBoNmbkAEuC74.png', caption: 'Bento box dashboard design' }
             ]
         };
 
@@ -21580,19 +21610,6 @@ Create a [COMPONENT TYPE] that embodies this design philosophy. Focus on ${terri
             ...thematicGenre
         ].filter(Boolean);
 
-        // DEBUG: Log section sizes
-        console.log('Section sizes:', {
-            interfaceDesign: interfaceDesign.length,
-            brandIdentity: brandIdentity.length,
-            digitalMovements: digitalMovements.length,
-            lifestyleCultural: lifestyleCultural.length,
-            historicalPeriods: historicalPeriods.length,
-            decorativeIllustration: decorativeIllustration.length,
-            thematicGenre: thematicGenre.length,
-            allTerritories: allTerritories.length
-        });
-        console.log('decorativeIllustration IDs:', decorativeIllustration.map(t => t?.id));
-        console.log('thematicGenre IDs:', thematicGenre.map(t => t?.id));
 
         renderTerritories('territories-row1', interfaceDesign);
         renderTerritories('territories-row2', brandIdentity);
@@ -21604,18 +21621,18 @@ Create a [COMPONENT TYPE] that embodies this design philosophy. Focus on ${terri
 
         // Event listeners
         document.querySelectorAll('.territory-card').forEach(card => {
-            card.addEventListener('click', () => {
+            const openCard = () => {
                 const id = card.dataset.id;
-                console.log('Card clicked, id:', id);
-                // Search across all reorganized territories
                 const territory = allTerritories.find(t => t.id === id);
-                console.log('Territory found:', territory ? territory.name : 'NOT FOUND');
                 if (territory) {
-                    try {
-                        openModal(territory);
-                    } catch (e) {
-                        console.error('Error opening modal for', id, ':', e);
-                    }
+                    openModal(territory);
+                }
+            };
+            card.addEventListener('click', openCard);
+            card.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openCard();
                 }
             });
         });
@@ -21636,9 +21653,13 @@ Create a [COMPONENT TYPE] that embodies this design philosophy. Focus on ${terri
             tab.addEventListener('click', () => {
                 const targetSection = tab.dataset.section;
 
-                // Update active tab
-                navTabs.forEach(t => t.classList.remove('active'));
+                // Update active tab and ARIA states
+                navTabs.forEach(t => {
+                    t.classList.remove('active');
+                    t.setAttribute('aria-selected', 'false');
+                });
                 tab.classList.add('active');
+                tab.setAttribute('aria-selected', 'true');
 
                 // Show target section, hide others
                 contentSections.forEach(section => {

@@ -18,7 +18,7 @@ export default function TerritoriesProject() {
 
   useEffect(() => {
     // Redirect to the static HTML application
-    window.location.href = '/projects/territories/index.html';
+    window.location.href = '/projects/territories/';
   }, []);
 
   return (

@@ -1,1 +1,6 @@
+# Serve Territories app directly (before SPA catch-all)
+/projects/territories   /projects/territories/index.html   200
+/projects/territories/  /projects/territories/index.html   200
+
+# SPA catch-all for React Router
 /*    /index.html   200
