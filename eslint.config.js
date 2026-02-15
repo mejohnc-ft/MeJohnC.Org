@@ -89,6 +89,9 @@ export default tseslint.config(
           leadingUnderscore: "allow",
         },
       ],
+      complexity: ["warn", { max: 15 }],
+      "max-depth": ["warn", { max: 4 }],
+      "max-nested-callbacks": ["warn", { max: 3 }],
     },
   },
 );
