@@ -21,6 +21,7 @@ import {
   Palette,
   CheckSquare,
   Sparkles,
+  Cable,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { UserButton } from '@clerk/clerk-react';
@@ -44,6 +45,7 @@ const sidebarItems = [
   { label: 'CRM', path: '/admin/crm', icon: Users },
   { label: 'Metrics', path: '/admin/metrics', icon: BarChart3 },
   { label: 'Style Guide', path: '/admin/style', icon: Palette },
+  { label: 'APIs', path: '/admin/apis', icon: Cable },
   { label: 'Apps', path: '/admin/apps', icon: AppWindow },
   { label: 'Projects', path: '/admin/projects', icon: FolderKanban },
   { label: 'Blog', path: '/admin/blog', icon: FileText },

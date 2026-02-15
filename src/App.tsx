@@ -23,6 +23,7 @@ const AppDetail = lazy(() => import('./pages/AppDetail'));
 const AppSuite = lazy(() => import('./pages/AppSuite'));
 const BlogPost = lazy(() => import('./pages/BlogPost'));
 const TerritoriesProject = lazy(() => import('./pages/TerritoriesProject'));
+const PalimpsestProject = lazy(() => import('./pages/PalimpsestProject'));
 
 // Lazy load admin pages (rarely accessed)
 const AdminLogin = lazy(() => import('./pages/admin/Login'));
@@ -42,6 +43,9 @@ const AdminAIManager = lazy(() => import('./pages/admin/ai-manager/index'));
 
 // Bookmarks admin page
 const AdminBookmarks = lazy(() => import('./pages/admin/bookmarks/index'));
+
+// API Registry admin page
+const AdminApiRegistry = lazy(() => import('./pages/admin/ApiRegistry'));
 
 // Site Builder admin pages (will be migrated to feature module)
 const SiteBuilderIndex = lazy(() => import('./pages/admin/site-builder/index'));
@@ -189,6 +193,7 @@ function RouteTracker() {
       if (pathname.startsWith('/apps/suite/')) return 'App Suite';
       if (pathname.startsWith('/apps/')) return 'App Detail';
       if (pathname === '/projects/territories') return 'Territories';
+      if (pathname === '/projects/palimpsest') return 'Palimpsest';
       return 'Page';
     };
 
@@ -301,6 +306,16 @@ function AnimatedRoutes() {
           }
         />
 
+        {/* Palimpsest Interactive Text Decay */}
+        <Route
+          path="/projects/palimpsest"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <PalimpsestProject />
+            </Suspense>
+          }
+        />
+
         {/* Redirects for old routes */}
         <Route path="/work" element={<Navigate to="/portfolio" replace />} />
         <Route path="/apps" element={<Navigate to="/portfolio" replace />} />
@@ -341,6 +356,8 @@ function AdminRoutes() {
           <Route path="/admin/ai-manager" element={<AdminAIManager />} />
           {/* Bookmarks route */}
           <Route path="/admin/bookmarks" element={<AdminBookmarks />} />
+          {/* API Registry route */}
+          <Route path="/admin/apis" element={<AdminApiRegistry />} />
           {/* Marketing routes (legacy - will be migrated to feature module) */}
           <Route path="/admin/marketing" element={<AdminMarketing />} />
           <Route path="/admin/marketing/subscribers" element={<AdminMarketingSubscribers />} />
