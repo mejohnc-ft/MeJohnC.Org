@@ -23,7 +23,6 @@ const AppDetail = lazy(() => import('./pages/AppDetail'));
 const AppSuite = lazy(() => import('./pages/AppSuite'));
 const BlogPost = lazy(() => import('./pages/BlogPost'));
 const TerritoriesProject = lazy(() => import('./pages/TerritoriesProject'));
-const PalimpsestProject = lazy(() => import('./pages/PalimpsestProject'));
 
 // Lazy load admin pages (rarely accessed)
 const AdminLogin = lazy(() => import('./pages/admin/Login'));
@@ -193,7 +192,6 @@ function RouteTracker() {
       if (pathname.startsWith('/apps/suite/')) return 'App Suite';
       if (pathname.startsWith('/apps/')) return 'App Detail';
       if (pathname === '/projects/territories') return 'Territories';
-      if (pathname === '/projects/palimpsest') return 'Palimpsest';
       return 'Page';
     };
 
@@ -302,16 +300,6 @@ function AnimatedRoutes() {
           element={
             <Suspense fallback={<PageLoader />}>
               <TerritoriesProject />
-            </Suspense>
-          }
-        />
-
-        {/* Palimpsest Interactive Text Decay */}
-        <Route
-          path="/projects/palimpsest"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <PalimpsestProject />
             </Suspense>
           }
         />
