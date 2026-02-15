@@ -9334,6 +9334,566 @@
             border-radius: 0 16px 16px 0;
             line-height: 1.5;
         }
+
+        /* ============================================
+           MUSEUM MODE OVERLAY
+           ============================================ */
+
+        /* Header button */
+        .museum-header-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(128,128,128,0.15);
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            margin-right: 12px;
+        }
+
+        .museum-header-btn:hover {
+            color: var(--text);
+            background: rgba(200, 170, 80, 0.2);
+            border-color: #c8a850;
+        }
+
+        /* Overlay base */
+        .museum-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .museum-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Minimal toolbar — hidden until mouse moves */
+        .museum-toolbar {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(30,30,30,0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            padding: 6px 10px;
+            opacity: 0;
+            transform: translateY(-8px);
+            transition: opacity 0.35s ease, transform 0.35s ease;
+            pointer-events: none;
+        }
+
+        :root.force-light .museum-toolbar {
+            background: rgba(255,255,255,0.8);
+            border-color: rgba(0,0,0,0.1);
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root:not(.force-dark) .museum-toolbar {
+                background: rgba(255,255,255,0.8);
+                border-color: rgba(0,0,0,0.1);
+            }
+        }
+
+        .museum-overlay.mouse-active .museum-toolbar {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .museum-toolbar-counter {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 0.04em;
+            padding: 0 8px 0 4px;
+            white-space: nowrap;
+        }
+
+        :root.force-light .museum-toolbar-counter { color: rgba(0,0,0,0.4); }
+        @media (prefers-color-scheme: light) {
+            :root:not(.force-dark) .museum-toolbar-counter { color: rgba(0,0,0,0.4); }
+        }
+
+        .museum-toolbar-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,0.6);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+
+        :root.force-light .museum-toolbar-btn { color: rgba(0,0,0,0.5); }
+        @media (prefers-color-scheme: light) {
+            :root:not(.force-dark) .museum-toolbar-btn { color: rgba(0,0,0,0.5); }
+        }
+
+        .museum-toolbar-btn:hover {
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+        }
+
+        :root.force-light .museum-toolbar-btn:hover {
+            background: rgba(0,0,0,0.08);
+            color: #000;
+        }
+        @media (prefers-color-scheme: light) {
+            :root:not(.force-dark) .museum-toolbar-btn:hover {
+                background: rgba(0,0,0,0.08);
+                color: #000;
+            }
+        }
+
+        .museum-toolbar-close:hover {
+            background: rgba(255,80,80,0.25);
+            color: #ff6b6b;
+        }
+
+        .museum-toolbar-sep {
+            width: 1px;
+            height: 18px;
+            background: rgba(255,255,255,0.12);
+            margin: 0 4px;
+        }
+
+        :root.force-light .museum-toolbar-sep { background: rgba(0,0,0,0.1); }
+        @media (prefers-color-scheme: light) {
+            :root:not(.force-dark) .museum-toolbar-sep { background: rgba(0,0,0,0.1); }
+        }
+
+        .museum-toolbar-btn.paused .museum-pause-icon { display: none; }
+        .museum-toolbar-btn.paused .museum-play-icon { display: block !important; }
+
+        /* Timer dropdown */
+        .museum-timer-wrap {
+            position: relative;
+        }
+
+        .museum-timer-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.02em;
+        }
+
+        .museum-timer-menu {
+            position: absolute;
+            top: calc(100% + 6px);
+            right: 0;
+            background: rgba(30,30,30,0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 4px;
+            display: none;
+            flex-direction: column;
+            min-width: 90px;
+            z-index: 30;
+        }
+
+        :root.force-light .museum-timer-menu {
+            background: rgba(255,255,255,0.9);
+            border-color: rgba(0,0,0,0.1);
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root:not(.force-dark) .museum-timer-menu {
+                background: rgba(255,255,255,0.9);
+                border-color: rgba(0,0,0,0.1);
+            }
+        }
+
+        .museum-timer-menu.open {
+            display: flex;
+        }
+
+        .museum-timer-opt {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.6);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.12s ease;
+            white-space: nowrap;
+        }
+
+        :root.force-light .museum-timer-opt { color: rgba(0,0,0,0.5); }
+        @media (prefers-color-scheme: light) {
+            :root:not(.force-dark) .museum-timer-opt { color: rgba(0,0,0,0.5); }
+        }
+
+        .museum-timer-opt:hover {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+
+        :root.force-light .museum-timer-opt:hover {
+            background: rgba(0,0,0,0.06);
+            color: #000;
+        }
+        @media (prefers-color-scheme: light) {
+            :root:not(.force-dark) .museum-timer-opt:hover {
+                background: rgba(0,0,0,0.06);
+                color: #000;
+            }
+        }
+
+        .museum-timer-opt.active {
+            color: #c8a850;
+        }
+
+        /* Split layout */
+        .museum-stage {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .museum-art-panel {
+            width: 55%;
+            position: relative;
+            overflow: hidden;
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .museum-text-panel {
+            width: 45%;
+            overflow-y: auto;
+            padding: 48px 48px 40px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--card-border) transparent;
+        }
+
+        /* Art frame — contain images, never crop */
+        .museum-art-frame {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .museum-art-frame img {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 6px;
+            animation: kenBurns 20s ease-in-out infinite alternate;
+        }
+
+        .museum-art-frame .museum-preview-container {
+            width: 85%;
+            height: 75%;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        @keyframes kenBurns {
+            0% { transform: scale(1) translate(0, 0); }
+            100% { transform: scale(1.05) translate(-0.8%, -0.5%); }
+        }
+
+        /* Plaque typography */
+        .museum-plaque-name {
+            font-family: 'Fraunces', serif;
+            font-size: 36px;
+            font-weight: 400;
+            color: var(--text);
+            line-height: 1.2;
+            margin-bottom: 8px;
+            opacity: 0;
+            animation: museumFadeUp 0.6s ease forwards;
+        }
+
+        .museum-plaque-feeling {
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            font-style: italic;
+            font-weight: 300;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: museumFadeUp 0.6s ease forwards;
+            animation-delay: 0.1s;
+        }
+
+        .museum-plaque-era {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: #c8a850;
+            background: rgba(200,170,80,0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 24px;
+            opacity: 0;
+            animation: museumFadeUp 0.6s ease forwards;
+            animation-delay: 0.2s;
+        }
+
+        /* Originator block */
+        .museum-plaque-originator {
+            padding: 16px 0 16px 16px;
+            margin-bottom: 24px;
+            border-left: 3px solid #c8a850;
+            opacity: 0;
+            animation: museumFadeUp 0.6s ease forwards;
+            animation-delay: 0.3s;
+        }
+
+        .museum-plaque-originator-name {
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            font-variant: small-caps;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .museum-plaque-originator-role {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            color: var(--text-dim);
+            line-height: 1.4;
+        }
+
+        .museum-plaque-originator-years {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .museum-plaque-originator-contribution {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-style: italic;
+            color: var(--text-dim);
+            margin-top: 6px;
+        }
+
+        /* Origin story */
+        .museum-plaque-origin {
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 300;
+            color: var(--text-dim);
+            line-height: 1.7;
+            margin-bottom: 24px;
+            opacity: 0;
+            animation: museumFadeUp 0.6s ease forwards;
+            animation-delay: 0.45s;
+        }
+
+        /* Philosophy quote */
+        .museum-plaque-philosophy {
+            font-family: 'Fraunces', serif;
+            font-size: 18px;
+            font-style: italic;
+            color: var(--text-dim);
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            border-left: 3px solid #c8a850;
+            background: rgba(200,170,80,0.04);
+            border-radius: 0 12px 12px 0;
+            line-height: 1.6;
+            opacity: 0;
+            animation: museumFadeUp 0.6s ease forwards;
+            animation-delay: 0.6s;
+        }
+
+        /* Key moments timeline (reuses existing museum-timeline styles) */
+        .museum-plaque-timeline-section {
+            margin-bottom: 24px;
+            opacity: 0;
+            animation: museumFadeUp 0.6s ease forwards;
+            animation-delay: 0.75s;
+        }
+
+        .museum-plaque-timeline-title {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        /* Gold overrides for timeline inside Museum Mode overlay */
+        .museum-overlay .museum-timeline::before {
+            background: linear-gradient(to bottom, #c8a850, #a08030);
+        }
+
+        .museum-overlay .museum-timeline-dot {
+            background: #c8a850;
+        }
+
+        .museum-overlay .museum-timeline-year {
+            color: #c8a850;
+        }
+
+        /* Influences tags */
+        .museum-plaque-influences {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 4px;
+            opacity: 0;
+            animation: museumFadeUp 0.6s ease forwards;
+            animation-delay: 0.9s;
+        }
+
+        .museum-plaque-influence-tag {
+            background: rgba(200,170,80,0.12);
+            color: #c8a850;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Transition animations */
+        @keyframes museumSlideOutLeft {
+            0% { transform: translateX(0) scale(1); opacity: 1; }
+            100% { transform: translateX(-120%) scale(0.95); opacity: 0; }
+        }
+
+        @keyframes museumSlideInRight {
+            0% { transform: translateX(80px); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes museumSlideOutRight {
+            0% { transform: translateX(0) scale(1); opacity: 1; }
+            100% { transform: translateX(120%) scale(0.95); opacity: 0; }
+        }
+
+        @keyframes museumSlideInLeft {
+            0% { transform: translateX(-80px); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes museumFadeUp {
+            0% { transform: translateY(24px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .museum-exit-left .museum-stage {
+            animation: museumSlideOutLeft 0.6s ease forwards;
+        }
+
+        .museum-enter-right .museum-stage {
+            animation: museumSlideInRight 0.8s ease forwards;
+        }
+
+        .museum-exit-right .museum-stage {
+            animation: museumSlideOutRight 0.6s ease forwards;
+        }
+
+        .museum-enter-left .museum-stage {
+            animation: museumSlideInLeft 0.8s ease forwards;
+        }
+
+        /* Responsive: stack vertically below 900px */
+        @media (max-width: 900px) {
+            .museum-stage {
+                flex-direction: column;
+            }
+
+            .museum-art-panel {
+                width: 100%;
+                height: 40vh;
+                flex-shrink: 0;
+                padding: 16px;
+            }
+
+            .museum-text-panel {
+                width: 100%;
+                padding: 24px 20px 32px;
+            }
+
+            .museum-plaque-name {
+                font-size: 28px;
+            }
+
+            .museum-plaque-philosophy {
+                font-size: 16px;
+                padding: 16px 20px;
+            }
+
+            .museum-toolbar {
+                top: 10px;
+                right: 10px;
+                padding: 4px 8px;
+            }
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            .museum-art-frame img {
+                animation: none;
+            }
+
+            .museum-plaque-name,
+            .museum-plaque-feeling,
+            .museum-plaque-era,
+            .museum-plaque-originator,
+            .museum-plaque-origin,
+            .museum-plaque-philosophy,
+            .museum-plaque-timeline-section,
+            .museum-plaque-influences {
+                animation: none;
+                opacity: 1;
+            }
+
+            .museum-exit-left .museum-stage,
+            .museum-enter-right .museum-stage,
+            .museum-exit-right .museum-stage,
+            .museum-enter-left .museum-stage {
+                animation: none;
+            }
+
+            .museum-overlay {
+                transition: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -9359,6 +9919,13 @@
                 </div>
             </div>
             <div class="header-controls">
+                <button class="museum-header-btn" id="museum-header-btn" title="Museum Mode - Cinematic gallery experience">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="3" width="20" height="18" rx="2"/>
+                        <rect x="5" y="6" width="14" height="10" rx="1"/>
+                        <line x1="8" y1="20" x2="16" y2="20"/>
+                    </svg>
+                </button>
                 <button class="tm-header-btn" id="tm-header-btn" title="Time Machine - Explore design history">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"/>
@@ -11028,6 +11595,47 @@
         </div>
     </div>
 
+    <!-- Museum Mode Overlay -->
+    <div id="museum-overlay" class="museum-overlay" aria-hidden="true">
+        <div class="museum-toolbar" id="museum-toolbar">
+            <span class="museum-toolbar-counter" id="museum-slide-counter">01 / 50</span>
+            <button class="museum-toolbar-btn" id="museum-prev-btn" aria-label="Previous" title="Previous (Arrow Left)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <button class="museum-toolbar-btn" id="museum-pause-btn" aria-label="Pause" title="Pause / Play (Space)">
+                <svg class="museum-pause-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                <svg class="museum-play-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><polygon points="5 3 19 12 5 21"/></svg>
+            </button>
+            <button class="museum-toolbar-btn" id="museum-next-btn" aria-label="Next" title="Next (Arrow Right)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <div class="museum-toolbar-sep"></div>
+            <div class="museum-timer-wrap" id="museum-timer-wrap">
+                <button class="museum-toolbar-btn museum-timer-toggle" id="museum-timer-toggle" aria-label="Slide timer" title="Slide duration">
+                    <span class="museum-timer-label" id="museum-timer-label">90s</span>
+                </button>
+                <div class="museum-timer-menu" id="museum-timer-menu">
+                    <button class="museum-timer-opt" data-ms="30000">30 sec</button>
+                    <button class="museum-timer-opt active" data-ms="90000">90 sec</button>
+                    <button class="museum-timer-opt" data-ms="300000">5 min</button>
+                    <button class="museum-timer-opt" data-ms="900000">15 min</button>
+                </div>
+            </div>
+            <div class="museum-toolbar-sep"></div>
+            <button class="museum-toolbar-btn museum-toolbar-close" id="museum-close-btn" aria-label="Exit Museum Mode" title="Exit (Esc)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="museum-stage" id="museum-stage">
+            <div class="museum-art-panel" id="museum-art-panel">
+                <div class="museum-art-frame" id="museum-art-frame"></div>
+            </div>
+            <div class="museum-text-panel" id="museum-text-panel">
+                <div class="museum-plaque" id="museum-plaque"></div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Theme toggle functionality
         (function initTheme() {
@@ -11082,6 +11690,7 @@
                     // MUSEUM: Origins & Philosophy
                     history: {
                         era: '2018–Present',
+                        originator: { name: 'Cultural Movement', role: 'Japanese aesthetic philosophy', years: '15th century–Present', contribution: 'Finding beauty in imperfection and impermanence' },
                         origin: 'Neo-Vintage emerged as a counter-movement to cold, clinical tech aesthetics. Drawing from Japanese wabi-sabi philosophy and mid-century print design, it brings humanity back to digital interfaces through tactile metaphors and organic imperfection.',
                         evolution: 'Rooted in the craft revival movement and influenced by indie game aesthetics, letterpress revival, and the broader "cozy" design trend. Wellness apps like Headspace pioneered this warmth, proving that digital products can feel handmade.',
                         keyMoments: [
@@ -11213,6 +11822,7 @@
                     // MUSEUM: Origins & Philosophy
                     history: {
                         era: '1950s–Present (Digital Revival 2015+)',
+                        originator: { name: 'Josef Müller-Brockmann', role: 'Swiss graphic designer', years: '1914–1996', contribution: 'Championed grid systems and objective design' },
                         origin: 'The International Typographic Style (Swiss Style) emerged in Switzerland in the 1950s, championing clarity, objectivity, and systematic design. Its digital revival brings these principles to modern product design with bold color and modular layouts.',
                         evolution: 'From Josef Müller-Brockmann\'s concert posters to Stripe\'s product pages, Swiss design principles have proven timeless. The digital era added bold duotones and card-based modularity while preserving the grid-first philosophy.',
                         keyMoments: [
@@ -11330,6 +11940,7 @@
                     // MUSEUM: Origins & Philosophy
                     history: {
                         era: '2016–Present',
+                        originator: { name: 'Jony Ive', role: 'British-American industrial designer', years: '1967–Present', contribution: 'Pioneered premium tech-product design language' },
                         origin: 'Technical Elegance emerged from the developer tools renaissance, where companies like Stripe proved that B2B products could be beautiful. It combines engineering precision with design sophistication.',
                         evolution: 'Born from the frustration with ugly enterprise software, this style proved that technical products deserve beautiful interfaces. Linear, Vercel, and Supabase became the standard-bearers for this aesthetic.',
                         keyMoments: [
@@ -11464,6 +12075,7 @@
                     // MUSEUM: Origins & Philosophy
                     history: {
                         era: '1960s–Present (Digital Peak 2010s)',
+                        originator: { name: 'Dieter Rams', role: 'German industrial designer', years: '1932–Present', contribution: 'Defined "Less but better" with 10 Principles of Good Design' },
                         origin: 'Minimalism in design traces to post-war modernism and the famous "less is more" principle. In digital, Apple\'s iOS 7 (2013) marked the mass shift from skeuomorphism to flat, minimal interfaces.',
                         evolution: 'From Donald Judd\'s sculptures to Jony Ive\'s iOS, minimalism has been about removing until nothing more can be taken away. Today\'s ultra-clean aesthetic is the digital zenith of this philosophy.',
                         keyMoments: [
@@ -11593,6 +12205,7 @@
 
                     history: {
                         era: '1920s–1940s',
+                        originator: { name: 'Cultural Movement', role: 'International decorative arts movement', years: '1920–1940', contribution: 'Fused luxury craftsmanship with machine-age geometry' },
                         origin: 'Debuted at the 1925 Exposition Internationale des Arts Décoratifs in Paris. It was a reaction against the organic curves of Art Nouveau, embracing machine-age geometry and mass production while maintaining handcraft luxury.',
                         evolution: 'Spread globally through architecture (Chrysler Building, Empire State), interior design, fashion, and graphic arts. Experienced revival in 1960s-80s and again in 2010s digital design.',
                         keyMoments: [
@@ -11715,6 +12328,7 @@
 
                     history: {
                         era: '1890–1910',
+                        originator: { name: 'Alphonse Mucha', role: 'Czech painter & decorative artist', years: '1860–1939', contribution: 'Defined the Art Nouveau poster style' },
                         origin: 'Emerged simultaneously across Europe as a reaction against academic art and industrialization. Named after Siegfried Bing\'s Parisian gallery "L\'Art Nouveau." Known as Jugendstil in Germany, Stile Liberty in Italy, Modernisme in Catalonia.',
                         evolution: 'Peaked around 1900 with Mucha, Guimard, and Gaudí. Declined by 1910 as Art Deco emerged. Experienced revivals in 1960s psychedelic art and 2000s digital illustration.',
                         keyMoments: [
@@ -11831,6 +12445,7 @@
 
                     history: {
                         era: '1837–1901',
+                        originator: { name: 'William Morris', role: 'British designer & Arts and Crafts pioneer', years: '1834–1896', contribution: 'Revived handcrafted design against industrialization' },
                         origin: 'Named for Queen Victoria\'s reign, this era saw rapid industrialization enabling mass production of decorative goods. Combined Gothic Revival, Orientalism, and Classical influences into maximalist aesthetic.',
                         evolution: 'Evolved from early Gothic Revival through High Victorian eclecticism to Arts & Crafts reaction. Revivals in Steampunk, Harry Potter aesthetics, and dark academia.',
                         keyMoments: [
@@ -11949,6 +12564,7 @@
 
                     history: {
                         era: '1600–1750',
+                        originator: { name: 'Gian Lorenzo Bernini', role: 'Italian sculptor & architect', years: '1598–1680', contribution: 'Defined Baroque theatrical grandeur in art and architecture' },
                         origin: 'Emerged in Rome as the Catholic Church\'s visual response to Protestant Reformation. Used art and architecture to inspire faith through emotional impact and sensory overwhelm.',
                         evolution: 'Spread from Italy throughout Catholic Europe. Evolved into Rococo (lighter, more playful). Baroque revival in 19th century opera houses and government buildings.',
                         keyMoments: [
@@ -12066,6 +12682,7 @@
 
                     history: {
                         era: '1760–1850',
+                        originator: { name: 'Johann Joachim Winckelmann', role: 'German art historian', years: '1717–1768', contribution: 'Founded Neoclassicism through study of Greek and Roman art' },
                         origin: 'Sparked by archaeological discoveries at Pompeii and Herculaneum. Enlightenment values of reason and democracy found visual expression in Greek and Roman forms.',
                         evolution: 'Dominated architecture of new democracies (US Capitol, British Museum). Evolved into Federal style in America, Empire style in France. Still influences civic and institutional design.',
                         keyMoments: [
@@ -12186,6 +12803,7 @@
                     // MUSEUM: Origins & Philosophy
                     history: {
                         era: 'Print Heritage to Digital Peak 2018+',
+                        originator: { name: 'Jan Tschichold', role: 'German-Swiss typographer', years: '1902–1974', contribution: 'Revolutionized modern typography with "Die neue Typographie"' },
                         origin: 'Typography-first design revives both the expressive tradition of David Carson and Emigre magazine, and the publishing heritage of Brodovitch and the New York Times. Now supercharged with variable fonts and CSS animation. Type becomes interface.',
                         evolution: 'From Gutenberg to grunge typography to refined variable font animations. The New York Times Immersive team pioneered kinetic type on web, while Medium and Substack proved long-form reading works on screens.',
                         keyMoments: [
@@ -12322,6 +12940,7 @@
                     // MUSEUM: Origins & Philosophy
                     history: {
                         era: '2020–Present',
+                        originator: { name: 'Cultural Movement', role: 'Web design counter-movement', years: '2017–Present', contribution: 'Rejected polished UI conventions for raw, honest design' },
                         origin: 'TechnoBrutalism fuses Brutalist architecture\'s raw honesty with retro-futuristic sci-fi aesthetics. Emerged as AI agents needed a visual language distinct from chatbots and assistants.',
                         evolution: 'Inspired by industrial design, factory aesthetics, and the visual language of manufacturing. Isometric illustration style creates a "machine world" where AI agents feel native.',
                         keyMoments: [
@@ -12486,6 +13105,7 @@
                     // MUSEUM: Origins & Philosophy
                     history: {
                         era: '2020–Present',
+                        originator: { name: 'Michal Malewicz', role: 'Polish UI designer & author', years: 'Active 2020s', contribution: 'Coined and popularized claymorphism design trend' },
                         origin: 'Claymorphism emerged from the 3D illustration renaissance, where tools like Blender became accessible. Duolingo\'s 3D owl and characters popularized the soft, tactile 3D style.',
                         evolution: 'As flat design fatigued users, claymorphism offered depth without the baggage of skeuomorphism. 3D tools and WebGL made clay-like renders achievable across platforms.',
                         keyMoments: [
@@ -12625,6 +13245,7 @@
                     // MUSEUM: Origins & Philosophy
                     history: {
                         era: '2020–Present',
+                        originator: { name: 'Cultural Movement', role: 'UI design trend', years: '2013–Present', contribution: 'Evolved frosted glass aesthetics from iOS 7 onwards' },
                         origin: 'Glassmorphism emerged with Apple\'s macOS Big Sur (2020), marking a departure from flat design toward depth and materiality. The style draws from real-world frosted glass, creating interfaces that feel both digital and physical.',
                         evolution: 'Evolved from iOS 7\'s blur effects and Microsoft\'s Fluent Design "Acrylic" material. Big Sur unified the aesthetic across Apple platforms, while Windows 11 adopted similar principles with its Mica material.',
                         keyMoments: [
@@ -12764,6 +13385,7 @@
                     // MUSEUM: Origins & Philosophy
                     history: {
                         era: '2019–2021 (Peak), Selective Use Today',
+                        originator: { name: 'Alexander Plyuto', role: 'Ukrainian UI designer', years: 'Active 2019–Present', contribution: 'Popularized soft UI with his Dribbble explorations' },
                         origin: 'Neumorphism (New + Skeuomorphism) emerged as a reaction to flat design\'s lack of tactility. Ukrainian designer Alexander Plyuto\'s Dribbble shots in 2019 sparked the trend.',
                         evolution: 'Initially viral on Dribbble, neumorphism faced accessibility criticism (low contrast, unclear affordances). Today it\'s used selectively for decorative elements rather than primary UI.',
                         keyMoments: [
@@ -12890,6 +13512,7 @@
 
                     history: {
                         era: '2020s–Present',
+                        originator: { name: 'Apple Design Team', role: 'Product design & marketing', years: '2020–Present', contribution: 'Popularized bento grid layouts for feature presentation' },
                         origin: 'Named after the Japanese bento lunch box with organized compartments. Became a recognized design pattern after Apple\'s product pages used it extensively for feature showcases.',
                         evolution: 'From Apple marketing pages to SaaS landing pages to dashboard design. The pattern works for any content requiring modular organization with visual hierarchy.',
                         keyMoments: [
@@ -13035,6 +13658,7 @@
                     // MUSEUM: Origins & Philosophy
                     history: {
                         era: 'Print Heritage, Digital Revival 2015+',
+                        originator: { name: 'Alexey Brodovitch', role: 'Russian-American art director', years: '1898–1971', contribution: 'Revolutionized magazine layout at Harper\'s Bazaar' },
                         origin: 'Editorial design draws from centuries of print journalism and magazine layout. The digital revival was led by publications like NYT, The Outline, and later Substack, proving long-form reading works on screens.',
                         evolution: 'From Gutenberg to Medium, editorial design is about guiding the eye through content. Modern editorial web design merges print sophistication with digital interactivity.',
                         keyMoments: [
@@ -13157,6 +13781,7 @@
                     // MUSEUM: Origins & Philosophy
                     history: {
                         era: '1995–2005 (Original), 2020+ (Revival)',
+                        originator: { name: 'Cultural Movement', role: 'Turn-of-millennium digital culture', years: '1997–2004', contribution: 'Captured the optimism and chaos of early internet aesthetics' },
                         origin: 'Y2K aesthetic emerged from millennium optimism, early web design, CD-ROM interfaces, and the visual language of The Matrix. It represented unbridled digital enthusiasm before the dot-com crash.',
                         evolution: 'After years of minimalism, Gen Z\'s nostalgia for the era they never experienced sparked a Y2K revival. Balenciaga, K-pop, and indie games brought chrome gradients back.',
                         keyMoments: [
@@ -13278,6 +13903,7 @@
 
                     history: {
                         era: '1980s (Original), 2010s+ (Revival)',
+                        originator: { name: 'Cultural Movement', role: 'Electronic music & retro-futurist aesthetic', years: '2005–Present', contribution: 'Revived 1980s neon aesthetics through music and visual culture' },
                         origin: 'Emerged from French house music producers like Kavinsky and College in the late 2000s. Visual aesthetic codified through album art, music videos, and the film Drive (2011).',
                         evolution: 'From underground music scene to mainstream visual aesthetic. Now appears in video games (Hotline Miami, Far Cry 3: Blood Dragon), fashion, and UI design.',
                         keyMoments: [
@@ -13386,6 +14012,7 @@
 
                     history: {
                         era: '2010s–Present',
+                        originator: { name: 'Cultural Movement', role: 'Internet art & music movement', years: '2010–Present', contribution: 'Deconstructed consumerism through surreal digital collage' },
                         origin: 'Born on Tumblr and Bandcamp around 2010-2011. Musicians like Macintosh Plus slowed down 80s pop, paired with visuals of empty malls, Greek busts, and Windows 95 interfaces.',
                         evolution: 'From music subculture to mainstream meme aesthetic. Influenced fashion, art, and UI design. "Aesthetic" became a word meaning this specific visual style.',
                         keyMoments: [
@@ -13496,6 +14123,7 @@
 
                     history: {
                         era: '1981–1987 (Original), 2015+ (Revival)',
+                        originator: { name: 'Ettore Sottsass', role: 'Italian architect & designer', years: '1917–2007', contribution: 'Founded the Memphis Group challenging Modernist design' },
                         origin: 'Founded in Milan in 1981 by Ettore Sottsass and a group of young designers. Named after the Bob Dylan song "Stuck Inside of Mobile with the Memphis Blues Again."',
                         evolution: 'Provocative in its era, faded in 90s minimalism, then revived as Gen Z discovered its "ugly-beautiful" charm. Now influences digital design and branding.',
                         keyMoments: [
@@ -13616,6 +14244,7 @@
 
                     history: {
                         era: '1950s–1970s (Original), ongoing influence',
+                        originator: { name: 'Andy Warhol', role: 'American artist & cultural icon', years: '1928–1987', contribution: 'Blurred boundaries between fine art, commercial art, and mass culture' },
                         origin: 'Emerged in Britain and America as artists embraced consumer culture imagery. Andy Warhol, Roy Lichtenstein, and Jasper Johns challenged what "art" could be.',
                         evolution: 'From gallery movement to permanent influence on graphic design, advertising, and digital media. Pop Art vocabulary is now standard design language.',
                         keyMoments: [
@@ -13738,6 +14367,7 @@
                     // MUSEUM: Origins & Philosophy
                     history: {
                         era: '2018–Present',
+                        originator: { name: 'Neri Oxman', role: 'American-Israeli designer & architect', years: '1976–Present', contribution: 'Pioneered material ecology merging biology and digital design' },
                         origin: 'Bio-Digital emerged from the convergence of AI visualization, generative art, and environmental awareness. TeamLab\'s immersive installations and neural network diagrams created a visual language for living systems.',
                         evolution: 'As AI became more complex, visualizations borrowed from biology — neural networks, synapses, mycelium. This organic language made machine learning feel more natural and alive.',
                         keyMoments: [
@@ -13854,6 +14484,7 @@
                     // MUSEUM: Origins & Philosophy
                     history: {
                         era: '2015–Present',
+                        originator: { name: 'Cultural Movement', role: 'Spatial computing design paradigm', years: '2023–Present', contribution: 'Reimagined UI as volumetric objects in three-dimensional space' },
                         origin: 'Spatial canvas design emerged from visual programming tools (nodes in Unreal, Houdini) and collaboration tools (Miro, Figma). The infinite canvas metaphor allows complex systems to be explored spatially.',
                         evolution: 'As AI systems became multi-agent, the spatial canvas became essential for showing relationships, data flow, and system state. Tools like Langflow and n8n popularized this for AI workflows.',
                         keyMoments: [
@@ -13983,6 +14614,7 @@
                     // MUSEUM: Origins & Philosophy
                     history: {
                         era: '2024–Future',
+                        originator: { name: 'Apple Vision Pro Team', role: 'Spatial computing hardware & OS design', years: '2023–Present', contribution: 'Defined the spatial computing interaction paradigm with visionOS' },
                         origin: 'visionOS launched with Apple Vision Pro as a purpose-built spatial computing OS. It represents Apple\'s vision for computing beyond screens — interfaces that exist in your physical space.',
                         evolution: 'Born from decades of AR/VR research, visionOS introduced new interaction paradigms: gaze-based selection, pinch gestures, and spatial audio. The heavy blur aesthetic differentiates it from iOS glass.',
                         keyMoments: [
@@ -14138,6 +14770,7 @@
                     // MUSEUM: Origins & Philosophy
                     history: {
                         era: '2018–Present',
+                        originator: { name: 'Cultural Movement', role: 'Digital design technique', years: '2018–Present', contribution: 'Elevated gradients from simple transitions to complex mesh compositions' },
                         origin: 'Gradient mesh design was popularized by Stripe\'s iconic homepage gradients. What began as decorative background treatment became a full design language adopted by Linear, Vercel, and countless startups.',
                         evolution: 'From simple linear gradients to complex animated meshes, this style evolved with CSS capabilities and canvas/WebGL tools. It represents the quest for organic beauty in digital space.',
                         keyMoments: [
@@ -14255,6 +14888,7 @@
                     // MUSEUM: Origins & Philosophy
                     history: {
                         era: '1980s–Present (Continuous Evolution)',
+                        originator: { name: 'Edward Tufte', role: 'American statistician & data visualization pioneer', years: '1942–Present', contribution: 'Established principles of data-dense, high-information displays' },
                         origin: 'Data-dense interfaces trace to Bloomberg Terminals, NASA mission control, and financial trading floors. These high-stakes environments required maximum information in minimum space.',
                         evolution: 'From green-screen terminals to modern analytics platforms, data density remains essential for professionals who need comprehensive awareness. Grafana, Datadog, and Tableau represent modern evolution.',
                         keyMoments: [
@@ -14407,6 +15041,7 @@
                     // MUSEUM: Origins & Philosophy
                     history: {
                         era: '2007–2013',
+                        originator: { name: 'Scott Forstall', role: 'Apple software executive', years: '1969–Present', contribution: 'Championed real-world texture metaphors in early iOS design' },
                         origin: 'Skeuomorphism dominated the first era of iOS and Mac OS X design. Scott Forstall championed rich textures and realistic metaphors to help users understand new digital paradigms by connecting them to familiar physical objects.',
                         evolution: 'From the original iPhone\'s glossy icons through iOS 6, Apple perfected the art of digital textures. The leather-bound Calendar, wooden bookshelf Newsstand, and felt-covered Game Center became iconic — and eventually controversial.',
                         keyMoments: [
@@ -14546,6 +15181,7 @@
                     // MUSEUM: Origins & Philosophy
                     history: {
                         era: '2013–2024',
+                        originator: { name: 'Jony Ive', role: 'Apple Chief Design Officer', years: '1967–Present', contribution: 'Led the iOS 7 flat design revolution' },
                         origin: 'iOS 7 was a radical departure from skeuomorphism, eliminating faux textures for honest digital design. The style matured over 11 years, adding blur (iOS 7), widgets (iOS 14), dark mode (iOS 13), and finally Apple Intelligence (iOS 18).',
                         evolution: 'From iOS 7\'s stark flat white to the sophisticated material system of iOS 18. Apple progressively added depth through blur and translucency rather than shadows, creating the "glassmorphism" aesthetic that defined an era.',
                         keyMoments: [
@@ -14698,6 +15334,7 @@
                     // MUSEUM: Origins & Philosophy
                     history: {
                         era: '2024–Present',
+                        originator: { name: 'Cultural Movement', role: 'Dashboard design trend', years: '2020–Present', contribution: 'Merged aurora gradient aesthetics with data-rich interfaces' },
                         origin: 'Aurora Dashboard style emerged from the need to visualize AI automation workflows while maintaining approachability. It blends enterprise dashboard functionality with modern AI aesthetics.',
                         evolution: 'This design emerged from the need to visualize complex automation workflows while maintaining approachability. The aurora header signals AI intelligence while the card system keeps data organized.',
                         keyMoments: [
@@ -14839,6 +15476,7 @@
                     // MUSEUM: Origins & Philosophy
                     history: {
                         era: '2021–Present',
+                        originator: { name: 'Matías Duarte', role: 'Google VP of Design', years: 'Active 2010s–Present', contribution: 'Created Material Design language bridging digital and physical' },
                         origin: 'Material Design 3 (M3) evolved from Google\'s original Material Design (2014), introducing dynamic color and more expressive components. It powers Android 12+ and all Google products.',
                         evolution: 'From flat paper metaphors in M1 to elevation and shadows in M2, M3 embraces personalization through dynamic color while maintaining systematic rigor through design tokens.',
                         keyMoments: [
@@ -14978,6 +15616,7 @@
                     // MUSEUM: Origins & Philosophy
                     history: {
                         era: '2025–Present',
+                        originator: { name: 'Alan Dye', role: 'Apple VP of Human Interface Design', years: 'Active 2010s–Present', contribution: 'Led the liquid glass design language evolution for iOS' },
                         origin: 'iOS 26 bridges the gap between visionOS spatial computing and practical mobile interfaces. It brings the glass aesthetic to phones without requiring spatial input, using touch physics and reactive animations to create depth and responsiveness.',
                         evolution: 'From iOS 18\'s introduction of Apple Intelligence to iOS 26\'s full embrace of glass materials. The Dynamic Island expands, Control Center becomes more modular, and every system component gains reactive animation.',
                         keyMoments: [
@@ -15172,6 +15811,7 @@
                     brands: ['Spotify (Year in Review)', 'Calm', 'Headspace', 'Stripe', 'Linear', 'Arc Browser', 'Apple TV+', 'Discord Nitro'],
                     history: {
                         era: '2007-Present',
+                        originator: { name: 'Cultural Movement', role: 'Digital gradient aesthetic', years: '2007–Present', contribution: 'Translated natural aurora phenomena into digital design language' },
                         origin: 'Aurora design draws from the natural phenomenon of polar lights, translated into digital aesthetics through advances in gradient rendering and display technology.',
                         evolution: 'From early iOS gradient-heavy UI design to modern mesh gradients, aurora aesthetics have become synonymous with premium, atmospheric digital experiences.',
                         keyMoments: [
@@ -15257,6 +15897,7 @@
                     brands: ['Shopify (Dev docs)', 'GitHub (Octocat)', 'Discord (Events)', 'A24 (Film promos)', 'Adult Swim', 'itch.io'],
                     history: {
                         era: '1970s-Present',
+                        originator: { name: 'Cultural Movement', role: 'Digital art form from early computing', years: '1972–Present', contribution: 'Born from hardware constraints, became an enduring art style' },
                         origin: 'Pixel art emerged from technical necessity in early computing and gaming, where hardware limitations required pixel-by-pixel drawing. It evolved into a deliberate aesthetic choice.',
                         evolution: 'From Space Invaders to modern indie games, pixel art transitioned from limitation to intentional style. The indie game renaissance of 2008+ brought a major revival.',
                         keyMoments: [
@@ -15344,6 +15985,7 @@
                     brands: ['Bloomberg Businessweek', 'Balenciaga', 'The Outline', 'Dazed Digital', 'Adult Swim', 'Cargo Collective'],
                     history: {
                         era: '1950s Architecture / 2014-Present Web',
+                        originator: { name: 'Le Corbusier', role: 'Swiss-French architect', years: '1887–1965', contribution: 'Pioneered raw concrete (béton brut) architecture' },
                         origin: 'Web brutalism takes its name from Brutalist architecture (beton brut). It emerged in the mid-2010s as a reaction against homogeneous, over-polished web design.',
                         evolution: 'From Le Corbusier\'s raw concrete to Bloomberg Businessweek\'s digital redesign, brutalism evolved from architectural movement to web design rebellion.',
                         keyMoments: [
@@ -15404,6 +16046,7 @@
 
                     history: {
                         era: '2016–Present (Roots in 1920s-1950s)',
+                        originator: { name: 'Cultural Movement', role: 'Japanese-Scandinavian design fusion', years: '2015–Present', contribution: 'Merged wabi-sabi imperfection with Nordic functionalism' },
                         origin: 'Japandi emerged from the convergence of Japanese and Scandinavian design philosophies, both cultures valuing simplicity, craftsmanship, and connection to nature.',
                         evolution: 'Scandinavian functionalism (1920s) met Japanese minimalism through global design exchange. MUJI brought Japanese minimal to global market (1994). The term "Japandi" gained traction in 2016, became mainstream by 2022, with wellness apps widely adopting the aesthetic by 2024.',
                         keyMoments: [
@@ -15535,6 +16178,7 @@
                     brands: ['IBM Carbon Design System', 'Braun', 'IKEA', 'Herman Miller', 'Muji', 'MIT Media Lab'],
                     history: {
                         era: '1919-1933 (Original) / Ongoing Influence',
+                        originator: { name: 'Walter Gropius', role: 'German architect & educator', years: '1883–1969', contribution: 'Founded the Bauhaus school uniting art, craft, and technology' },
                         origin: 'The Bauhaus was a German art school founded by Walter Gropius in 1919 that fundamentally shaped modern design. It sought to reunite art and craft for the industrial age.',
                         evolution: 'From Weimar to Dessau to Berlin, the school operated until Nazi pressure closed it in 1933. Its principles became global as faculty emigrated and spread Bauhaus thinking worldwide.',
                         keyMoments: [
@@ -15649,6 +16293,7 @@
                     ],
                     history: {
                         era: '1910s-Present (Digital Interface Standard)',
+                        originator: { name: 'Cultural Movement', role: 'Function-first design philosophy', years: '1960s–Present', contribution: 'Prioritized pure utility and efficiency over aesthetics' },
                         origin: 'Utilitarian design philosophy emerged from industrial necessity and military requirements where clarity and function were literally life-or-death concerns. The approach was formalized through movements like De Stijl, Bauhaus, and later through government and military specification standards.',
                         evolution: 'In digital design, utilitarianism manifests in terminal interfaces, enterprise software, technical documentation. The recent aesthetic revival celebrates this rawness as an antidote to overdesigned consumer products.',
                         keyMoments: [
@@ -15777,6 +16422,7 @@
                     ],
                     history: {
                         era: '2004-2013 (Revival 2020s+)',
+                        originator: { name: 'Adrian Frutiger', role: 'Swiss typeface designer', years: '1928–2015', contribution: 'Created Frutiger typeface and influenced aero glass aesthetics' },
                         origin: 'Frutiger Aero dominated technology aesthetics from roughly 2004-2013, representing a techno-utopian vision where technology was friendly, natural, and optimistic. The style appeared across operating systems, advertising, stock photography, and consumer electronics.',
                         evolution: 'After the flat design revolution (iOS 7, 2013), the style was considered dated. The 2020s brought nostalgic revival, with designers reimagining these aesthetics as "Neo-Frutiger Aero."',
                         keyMoments: [
@@ -15895,6 +16541,7 @@
                     brands: ['Cyberpunk 2077', 'DEF CON', 'Mr. Robot', 'Razer', 'Watch Dogs', 'System Shock'],
                     history: {
                         era: '1980s-Present',
+                        originator: { name: 'Cultural Movement', role: 'Cyberpunk-inspired digital aesthetic', years: '2018–Present', contribution: 'Translated cyberpunk fiction into interactive design language' },
                         origin: 'Cybercore emerged from cyberpunk science fiction, hacker culture, and digital art. It visualizes cyberspace and the techno-dystopian visions of William Gibson\'s "Neuromancer" and films like "Blade Runner" and "The Matrix."',
                         evolution: 'From early hacker zines to modern games, cybercore evolved with each generation of digital technology while maintaining its core dark, neon-lit aesthetic.',
                         keyMoments: [
@@ -15975,6 +16622,7 @@
 
                     history: {
                         era: '2020–Present (Peak 2022+)',
+                        originator: { name: 'Cultural Movement', role: 'Feminine romantic aesthetic revival', years: '2022–Present', contribution: 'Revived rococo femininity for digital-age visual culture' },
                         origin: 'Coquette derives from the French word for "flirt." The modern aesthetic emerged around 2020-2022 through TikTok and Pinterest as a reaction against minimalism and celebration of hyperfeminine romantic expression.',
                         evolution: 'Draws from French boudoir aesthetics, early 2000s "It Girl" fashion, Marie Antoinette-era romanticism, and Sofia Coppola\'s visual language. Represents reclamation of traditionally feminine symbols as empowerment.',
                         keyMoments: [
@@ -16089,6 +16737,7 @@
 
                     history: {
                         era: '2015–Present (Peak 2019+)',
+                        originator: { name: 'Cultural Movement', role: 'Internet aesthetic subculture', years: '2015–Present', contribution: 'Romanticized classical scholarship through gothic visual codes' },
                         origin: 'Emerged as variant of "Dark Academia" from Tumblr circa 2015. Added mystical and supernatural elements to scholarly devotion, blending academia with occult fascination.',
                         evolution: 'Draws from Gothic literature (Shelley, Poe), Harry Potter\'s visual world, medieval manuscripts, and esoteric traditions. Represents romanticization of forbidden knowledge.',
                         keyMoments: [
@@ -16204,6 +16853,7 @@
 
                     history: {
                         era: '2019–Present',
+                        originator: { name: 'Cultural Movement', role: 'Internet aesthetic subculture', years: '2020–Present', contribution: 'Reframed scholarly aesthetics through luminous optimism' },
                         origin: 'Emerged as optimistic counterpart to Dark Academia around 2019-2020. Shares intellectual foundation but emphasizes warmth, hope, and gentle pleasure of learning.',
                         evolution: 'Draws from European academic traditions, classical literature, art history, and romanticized university life. Lockdown (2020) romanticized home study; aesthetic peaked.',
                         keyMoments: [
@@ -16321,6 +16971,7 @@
 
                     history: {
                         era: 'Ancient–Present (Digital Peak 2010s+)',
+                        originator: { name: 'Walt Disney', role: 'American animator & entertainment pioneer', years: '1901–1966', contribution: 'Established character-driven design and anthropomorphic expression' },
                         origin: 'Anthropomorphism in design draws from ancient traditions of giving human qualities to animals and objects, refined through animation and digital interface design.',
                         evolution: 'Mickey Mouse (1928) established modern cartoon anthropomorphism. Japanese kawaii culture (1980s) influenced global character design. Digital era brought Clippy (1994), Duolingo owl (2010), Discord Wumpus (2020).',
                         keyMoments: [
@@ -16428,6 +17079,7 @@
 
                     history: {
                         era: '1850s–Present',
+                        originator: { name: 'Cultural Movement', role: 'Counter-cultural artistic lifestyle', years: '1850s–Present', contribution: 'Championed artistic freedom and unconventional aesthetics' },
                         origin: 'Bohemian style traces to 19th-century artists and writers who rejected conventional society, embracing freedom, travel, and unconventional beauty.',
                         evolution: 'Hippie counterculture (1960s-70s) embraced global handmade style. "Boho chic" emerged in 1990s fashion. Anthropologie brought boho to mainstream home goods. Etsy amplified artisanal aesthetic. "Jungalow" maximalism peaked on Instagram.',
                         keyMoments: [
@@ -16535,6 +17187,7 @@
 
                     history: {
                         era: '1980s–Present',
+                        originator: { name: 'Rachel Ashwell', role: 'British interior designer', years: '1959–Present', contribution: 'Created the Shabby Chic brand and aesthetic movement' },
                         origin: 'Emerged in the 1980s-90s as a design movement celebrating imperfect beauty and romantic nostalgia, popularized by designer Rachel Ashwell.',
                         evolution: 'Ashwell opened first Shabby Chic store in Santa Monica (1989). Style dominated wedding industry in 2000s. Peak popularity in home decor and weddings around 2010. Evolved into "modern farmhouse" variants.',
                         keyMoments: [
@@ -16694,6 +17347,7 @@
                     ],
                     history: {
                         era: '1800s-Present',
+                        originator: { name: 'Cultural Movement', role: 'Internet aesthetic idealizing rural life', years: '2018–Present', contribution: 'Romanticized pastoral simplicity as antidote to digital burnout' },
                         origin: 'Farmhouse style draws from American rural traditions, while cottagecore emerged as a romanticized internet aesthetic celebrating pastoral simplicity.',
                         evolution: 'American farmhouse architecture established functional rural aesthetic in the 1800s. Modern farmhouse gained traction in the 2000s, codified by Fixer Upper (2013) and Magnolia brand (2016). "Cottagecore" term emerged on Tumblr in 2018, accelerated by pandemic escape fantasies in 2020.',
                         keyMoments: [
@@ -16819,6 +17473,7 @@
                     ],
                     history: {
                         era: '1970s-Present (Global Expansion 2000s+)',
+                        originator: { name: 'Yuko Shimizu', role: 'Japanese illustrator (Hello Kitty designer)', years: '1946–Present', contribution: 'Created Hello Kitty, crystallizing kawaii visual language' },
                         origin: 'Kawaii emerged as a cultural phenomenon in 1970s Japan, initially as a handwriting style among teenage girls who wrote in rounded, childlike characters. This rebellion against traditional formal writing evolved into a full aesthetic movement.',
                         evolution: 'The style gained commercial traction through Sanrio (Hello Kitty debuted 1974) and later through anime, manga, and video game culture. The 2000s saw kawaii become a global design language, influencing app interfaces to food packaging.',
                         keyMoments: [
@@ -16936,6 +17591,7 @@
                     ],
                     history: {
                         era: '12th Century-Present',
+                        originator: { name: 'Cultural Movement', role: 'Medieval architectural & literary tradition', years: '12th century–Present', contribution: 'Established dark romanticism through soaring architecture and shadow' },
                         origin: 'Gothic originated in medieval architecture (12th-16th century), characterized by pointed arches, ribbed vaults, and flying buttresses in cathedrals like Notre-Dame and Chartres.',
                         evolution: 'Gothic revivals occurred in the 18th-19th centuries (Gothic Revival architecture, Gothic literature like Frankenstein and Dracula), and again in the late 20th century with Gothic subculture (music, fashion).',
                         keyMoments: [
@@ -17041,6 +17697,7 @@
                     ],
                     history: {
                         era: '1980s-Present',
+                        originator: { name: 'K.W. Jeter', role: 'American science fiction author', years: '1950–Present', contribution: 'Coined the term "steampunk" and defined the genre' },
                         origin: 'Steampunk emerged as a literary subgenre in the 1980s, coined by author K.W. Jeter. The aesthetic draws from Jules Verne and H.G. Wells science fiction.',
                         evolution: 'From literary origins through film, fashion, and gaming. Victorian industrial design and Arts and Crafts movement provide visual vocabulary.',
                         keyMoments: [
@@ -17155,6 +17812,7 @@
                     ],
                     history: {
                         era: '1848-Present',
+                        originator: { name: 'Cultural Movement', role: 'Dreamlike visual aesthetic', years: '2010s–Present', contribution: 'Captured otherworldly beauty through soft focus and luminosity' },
                         origin: 'Spiritual and romantic artistic traditions',
                         evolution: 'Ethereal design draws from Pre-Raphaelite painting, Japanese mono no aware philosophy, soft-focus photography, romantic poetry, and meditation practices.',
                         keyMoments: [
@@ -17275,6 +17933,7 @@
                     ],
                     history: {
                         era: '3000 BCE-Present',
+                        originator: { name: 'Cultural Movement', role: 'Ancient metalwork art form', years: '3000 BCE–Present', contribution: 'Refined delicate wirework into enduring ornamental tradition' },
                         origin: 'Ancient Mesopotamian metalworking',
                         evolution: 'Filigree evolved from ancient goldsmithing through Etruscan mastery, Roman elaboration, Islamic geometric patterns, Renaissance court jewelry, and Victorian mass production.',
                         keyMoments: [
@@ -17400,6 +18059,7 @@
                     ],
                     history: {
                         era: 'c. 450 BCE-Present',
+                        originator: { name: 'Callimachus', role: 'Ancient Greek sculptor & architect', years: 'c. 5th century BCE', contribution: 'Legendarily created the Corinthian capital inspired by acanthus leaves' },
                         origin: 'Ancient Greek Corinthian architecture',
                         evolution: 'Legend credits sculptor Callimachus with inventing the Corinthian capital featuring acanthus leaves. The motif spread through Roman architecture, Byzantine art, Renaissance revival, and Beaux-Arts tradition.',
                         keyMoments: [
@@ -17518,6 +18178,7 @@
                     ],
                     history: {
                         era: 'Renaissance-Present',
+                        originator: { name: 'Leonardo da Vinci', role: 'Italian polymath & artist', years: '1452–1519', contribution: 'Elevated the sketch from preparation to art form' },
                         origin: 'Leonardo da Vinci\'s notebooks establishing sketch-as-thinking methodology',
                         evolution: 'From artist studies and architectural blueprints through industrial design sketches to paper prototyping in software development.',
                         keyMoments: [
@@ -17640,6 +18301,7 @@
                     ],
                     history: {
                         era: '1590s-1650s (Peak), Ongoing Influence',
+                        originator: { name: 'Caravaggio', role: 'Italian Baroque painter', years: '1571–1610', contribution: 'Pioneered dramatic light-dark contrast in painting' },
                         origin: 'Late 16th century painting, most associated with Caravaggio',
                         evolution: 'Developed by Caravaggio in Rome, spread through his travels, influenced Rembrandt, adapted to film noir and modern cinematography.',
                         keyMoments: [
@@ -17762,6 +18424,7 @@
                     ],
                     history: {
                         era: '1884-1910 (Original), Ongoing Influence',
+                        originator: { name: 'Georges Seurat', role: 'French Post-Impressionist painter', years: '1859–1891', contribution: 'Invented pointillism with systematic dot-based color theory' },
                         origin: 'Developed by Georges Seurat and Paul Signac in 1880s Paris',
                         evolution: 'Based on Chevreul\'s color theory, aimed for greater luminosity than traditional mixing. Influenced Fauvism, early abstraction, Pop Art Ben-Day dots, and digital filters.',
                         keyMoments: [
@@ -17896,6 +18559,7 @@
                     ],
                     history: {
                         era: 'Early 20th Century-Present',
+                        originator: { name: 'Pablo Picasso', role: 'Spanish painter & sculptor', years: '1881–1973', contribution: 'Pioneered collage and mixed-media techniques in fine art' },
                         origin: 'Cubist collages by Picasso and Braque (1912)',
                         evolution: 'From Dadaist photomontage through Surrealist collage, Pop Art, punk zine culture, David Carson\'s deconstructed typography, to digital collage and AI-assisted generation.',
                         keyMoments: [
@@ -18019,6 +18683,7 @@
                     ],
                     history: {
                         era: '1920s-Present (Digital Renaissance 2010s+)',
+                        originator: { name: 'André Breton', role: 'French writer & poet', years: '1896–1966', contribution: 'Founded the Surrealist movement with the 1924 Manifesto' },
                         origin: 'Paris 1924, Andre Breton\'s first Surrealist Manifesto',
                         evolution: 'From Dadaism and Freudian psychoanalysis, surrealists explored dreams and the unconscious. The movement produced art history\'s most recognizable images and continues through AI generation renaissance.',
                         keyMoments: [
@@ -18139,6 +18804,7 @@
                     ],
                     history: {
                         era: '2015-Present',
+                        originator: { name: 'Cultural Movement', role: 'American frontier mythology', years: '1860s–Present', contribution: 'Fused frontier imagery with spiritual mysticism' },
                         origin: 'Intersection of tarot revival, desert-chic fashion (Coachella aesthetic), and Americana nostalgia',
                         evolution: 'Found visual language through indie brands, crystal shops, and wellness industry, particularly in the American Southwest.',
                         keyMoments: [
@@ -18260,6 +18926,7 @@
                     ],
                     history: {
                         era: 'Mid-20th Century to Present',
+                        originator: { name: 'Cultural Movement', role: 'Popular culture aesthetic', years: '1860s–Present', contribution: 'Embraced mass-produced sentimentality as cultural expression' },
                         origin: 'The term "kitsch" comes from German, meaning "cheap" or "gaudy." Originally derogatory for mass-produced, sentimental art, kitsch has been reclaimed as a legitimate aesthetic category.',
                         evolution: 'Postmodern artists and designers began embracing kitsch ironically in the 1960s-80s. Today, kitsch exists as both sincere appreciation for "bad taste" aesthetics and ironic commentary on consumer culture.',
                         keyMoments: [
@@ -18380,6 +19047,7 @@
                     ],
                     history: {
                         era: '1960s-Present (Ongoing Cultural Movement)',
+                        originator: { name: 'Cultural Movement', role: 'Urban street art tradition', years: '1960s–Present', contribution: 'Transformed public spaces into canvases for self-expression' },
                         origin: 'Modern graffiti emerged from 1960s Philadelphia (Cornbread often cited as pioneer) and exploded in 1970s New York City subway systems. Deeply connected to hip-hop culture alongside DJing, MCing, and breakdancing.',
                         evolution: 'Writers developed increasingly complex styles, from simple tags to elaborate wildstyle pieces. The form spread globally and influenced fine art, graphic design, and commercial applications.',
                         keyMoments: [
@@ -18499,6 +19167,7 @@
                     ],
                     history: {
                         era: '1800s-Present (Digital Renaissance 2000s+)',
+                        originator: { name: 'Cultural Movement', role: 'Personal memory-keeping craft', years: '15th century–Present', contribution: 'Preserved personal narratives through collected ephemera' },
                         origin: 'Scrapbooking as organized hobby emerged in the late 19th century with Victorian "friendship albums." The modern scrapbooking industry exploded in the 1990s-2000s.',
                         evolution: 'Digital scrapbooking emerged alongside photo editing software. Today, scrapbook style influences social media design, journaling apps, and memory-keeping digital products.',
                         keyMoments: [
@@ -18623,6 +19292,7 @@
                     ],
                     history: {
                         era: '1800s-Present (Design Revival 2010s+)',
+                        originator: { name: 'Cultural Movement', role: 'Southwestern American design tradition', years: 'Pre-Columbian–Present', contribution: 'Wove indigenous patterns with desert landscape inspiration' },
                         origin: 'The Southwest aesthetic draws from multiple sources: the actual American frontier period (1850s-1890s), Native American artistic traditions, Spanish colonial influence, and the Hollywood Western genre.',
                         evolution: 'Contemporary Southwest design experienced revival through brands embracing Americana, music movements, and fashion cycles. It represents rugged individualism, natural beauty, and American heritage.',
                         keyMoments: [
@@ -18748,6 +19418,7 @@
                     ],
                     history: {
                         era: '18th Century-Present (Design Standard)',
+                        originator: { name: 'Cultural Movement', role: 'Maritime design tradition', years: '16th century–Present', contribution: 'Codified naval visual language from flags to navigation charts' },
                         origin: 'Nautical aesthetic originates from the practical needs of maritime life: uniforms for visibility and durability, signaling systems using specific colors, and equipment marked for quick identification.',
                         evolution: 'The style transitioned from function to fashion through yacht club culture, coastal resorts, and designers like Coco Chanel who popularized sailor stripes in the 1920s.',
                         keyMoments: [
@@ -18879,6 +19550,7 @@
                     ],
                     history: {
                         era: 'Ancient-Present (Digital Renaissance 2000s+)',
+                        originator: { name: 'Cultural Movement', role: 'Visual wordplay tradition', years: 'Ancient–Present', contribution: 'Combined images and text to create meaning through visual puzzles' },
                         origin: 'Ancient civilizations using pictographs; Latin "rebus" meaning "by things"',
                         evolution: 'From Egyptian hieroglyphs through medieval heraldry, Victorian newspaper puzzles, Otto Neurath\'s Isotype system, Munich Olympics pictograms, to emoji and modern icon systems.',
                         keyMoments: [
@@ -19001,6 +19673,7 @@
                     ],
                     history: {
                         era: '1470-Present (Digital Mastery 2000s+)',
+                        originator: { name: 'Giambattista Bodoni', role: 'Italian typographer & type designer', years: '1740–1813', contribution: 'Created the Bodoni typeface defining luxury typography' },
                         origin: 'Luxury typography draws from centuries of refined letterpress and editorial design, codified through fashion and luxury brand communications.',
                         evolution: 'From Jenson\'s foundational Roman type through Baskerville and Bodoni to Art Deco elegance. Fashion magazines like Harper\'s Bazaar and Vogue refined the aesthetic. Modern luxury rebrands (Celine 2012, Burberry 2018) set new standards.',
                         keyMoments: [
@@ -19125,6 +19798,7 @@
                     ],
                     history: {
                         era: '1940s-1960s (Digital Revival 2010s+)',
+                        originator: { name: 'Charles & Ray Eames', role: 'American designer duo', years: '1907–1978 / 1912–1988', contribution: 'Defined mid-century modern through furniture and visual design' },
                         origin: 'Mid-Century Modern emerged from post-WWII optimism, technological confidence, and the democratization of good design. American designers adapted European Modernism (Bauhaus, International Style) into an optimistic, accessible aesthetic.',
                         evolution: 'The movement encompassed architecture (Eames, Saarinen), furniture, graphic design, and illustration. The style experienced major revival beginning in the 2010s, driven by nostalgia and appreciation for its timeless appeal.',
                         keyMoments: [
@@ -19263,6 +19937,7 @@
                     ],
                     history: {
                         era: '1920s-Present (Digital Expansion 2010s+)',
+                        originator: { name: 'Karl Gerstner', role: 'Swiss graphic designer', years: '1930–2017', contribution: 'Pioneered systematic, programmatic approaches to typography' },
                         origin: 'Modular typography has roots in early 20th-century constructivist and Bauhaus experiments with geometric type construction. Designers like Herbert Bayer, Josef Albers, and Wim Crouwel explored type as systematic, buildable forms.',
                         evolution: 'Digital technology enabled new possibilities: variable fonts, responsive typography, and algorithmic type systems. Contemporary modular typography spans from strict grid-based construction to fluid, parametric systems.',
                         keyMoments: [
@@ -22796,6 +23471,339 @@ Create a [COMPONENT TYPE] that embodies this design philosophy. Focus on ${terri
                         closeTimeMachine();
                         setTimeout(() => openModal(t), 300);
                     }
+                }
+            });
+        })();
+
+        // ============================================
+        // MUSEUM MODE - Cinematic Auto-Advancing Gallery
+        // ============================================
+        (function initMuseumMode() {
+            const overlay = document.getElementById('museum-overlay');
+            const headerBtn = document.getElementById('museum-header-btn');
+            const closeBtn = document.getElementById('museum-close-btn');
+            const artFrame = document.getElementById('museum-art-frame');
+            const textPanel = document.getElementById('museum-text-panel');
+            const plaque = document.getElementById('museum-plaque');
+            const slideCounter = document.getElementById('museum-slide-counter');
+            const pauseBtn = document.getElementById('museum-pause-btn');
+            const prevBtn = document.getElementById('museum-prev-btn');
+            const nextBtn = document.getElementById('museum-next-btn');
+            const toolbar = document.getElementById('museum-toolbar');
+
+            if (!overlay || !headerBtn) return;
+
+            const timerToggle = document.getElementById('museum-timer-toggle');
+            const timerLabel = document.getElementById('museum-timer-label');
+            const timerMenu = document.getElementById('museum-timer-menu');
+
+            let museumData = [];
+            let currentIndex = 0;
+            let isPaused = false;
+            let autoTimer = null;
+            let isTransitioning = false;
+            let isOpen = false;
+            let mouseIdleTimer = null;
+            let slideInterval = 90000; // default 90s
+
+            // Mouse-activity: show toolbar on move, hide after 3s idle
+            function showToolbar() {
+                overlay.classList.add('mouse-active');
+                clearTimeout(mouseIdleTimer);
+                mouseIdleTimer = setTimeout(() => {
+                    // Don't hide if hovering directly over toolbar
+                    if (!toolbar.matches(':hover')) {
+                        overlay.classList.remove('mouse-active');
+                    }
+                }, 3000);
+            }
+
+            overlay.addEventListener('mousemove', () => {
+                if (isOpen) showToolbar();
+            });
+
+            toolbar.addEventListener('mouseenter', () => {
+                clearTimeout(mouseIdleTimer);
+                overlay.classList.add('mouse-active');
+            });
+
+            toolbar.addEventListener('mouseleave', () => {
+                mouseIdleTimer = setTimeout(() => {
+                    overlay.classList.remove('mouse-active');
+                }, 1500);
+            });
+
+            // Build sorted museum data from allTerritories
+            function buildMuseumData() {
+                if (typeof allTerritories === 'undefined') return [];
+                return allTerritories
+                    .filter(t => t && t.history && t.history.era)
+                    .sort((a, b) => {
+                        const yearA = parseInt(String(a.history.era).match(/-?\d+/)?.[0]) || 9999;
+                        const yearB = parseInt(String(b.history.era).match(/-?\d+/)?.[0]) || 9999;
+                        return yearA - yearB;
+                    });
+            }
+
+            // Timer dropdown
+            timerToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                timerMenu.classList.toggle('open');
+            });
+
+            timerMenu.addEventListener('click', (e) => {
+                const opt = e.target.closest('.museum-timer-opt');
+                if (!opt) return;
+                e.stopPropagation();
+                const ms = parseInt(opt.dataset.ms);
+                if (!ms) return;
+                slideInterval = ms;
+                timerMenu.querySelectorAll('.museum-timer-opt').forEach(o => o.classList.remove('active'));
+                opt.classList.add('active');
+                timerLabel.textContent = opt.textContent.trim();
+                timerMenu.classList.remove('open');
+                // Restart timer with new interval
+                if (!isPaused && isOpen) {
+                    stopAutoAdvance();
+                    startAutoAdvance();
+                }
+            });
+
+            // Close menu when clicking elsewhere
+            overlay.addEventListener('click', () => {
+                timerMenu.classList.remove('open');
+            });
+
+            // Render art panel
+            function renderArt(territory) {
+                artFrame.innerHTML = '';
+                const imgPath = territory.previewImage || (territory.images && territory.images.length > 0 ? territory.images[0].path : null);
+                if (imgPath) {
+                    const img = document.createElement('img');
+                    img.src = imgPath;
+                    img.alt = territory.name + ' preview';
+                    img.loading = 'eager';
+                    img.onerror = function() {
+                        if (typeof territory.renderPreview === 'function') {
+                            artFrame.innerHTML = '';
+                            const container = document.createElement('div');
+                            container.className = 'museum-preview-container';
+                            territory.renderPreview(container);
+                            artFrame.appendChild(container);
+                        }
+                    };
+                    artFrame.appendChild(img);
+                } else if (typeof territory.renderPreview === 'function') {
+                    const container = document.createElement('div');
+                    container.className = 'museum-preview-container';
+                    territory.renderPreview(container);
+                    artFrame.appendChild(container);
+                }
+            }
+
+            // Render plaque text
+            function renderPlaque(territory) {
+                const h = territory.history || {};
+                const p = territory.philosophy || {};
+                const orig = h.originator || {};
+                const moments = (h.keyMoments || []).slice(0, 4);
+                const influences = (p.influences || []);
+
+                let html = '';
+                html += '<div class="museum-plaque-name">' + escapeHTML(territory.name) + '</div>';
+                if (territory.feeling) {
+                    html += '<div class="museum-plaque-feeling">' + escapeHTML(territory.feeling) + '</div>';
+                }
+                if (h.era) {
+                    html += '<div class="museum-plaque-era">' + escapeHTML(h.era) + '</div>';
+                }
+                if (orig.name) {
+                    html += '<div class="museum-plaque-originator">';
+                    html += '<div class="museum-plaque-originator-name">' + escapeHTML(orig.name) + '</div>';
+                    if (orig.role) html += '<div class="museum-plaque-originator-role">' + escapeHTML(orig.role) + '</div>';
+                    if (orig.years) html += '<div class="museum-plaque-originator-years">' + escapeHTML(orig.years) + '</div>';
+                    if (orig.contribution) html += '<div class="museum-plaque-originator-contribution">' + escapeHTML(orig.contribution) + '</div>';
+                    html += '</div>';
+                }
+                if (h.origin) {
+                    html += '<div class="museum-plaque-origin">' + escapeHTML(h.origin) + '</div>';
+                }
+                if (p.coreIdea) {
+                    html += '<blockquote class="museum-plaque-philosophy">' + escapeHTML(p.coreIdea) + '</blockquote>';
+                }
+                if (moments.length > 0) {
+                    html += '<div class="museum-plaque-timeline-section">';
+                    html += '<div class="museum-plaque-timeline-title">Key Moments</div>';
+                    html += '<div class="museum-timeline">';
+                    moments.forEach(m => {
+                        html += '<div class="museum-timeline-item">';
+                        html += '<div class="museum-timeline-dot"></div>';
+                        html += '<div class="museum-timeline-year">' + escapeHTML(m.year) + '</div>';
+                        html += '<div class="museum-timeline-event">' + escapeHTML(m.event) + '</div>';
+                        html += '</div>';
+                    });
+                    html += '</div></div>';
+                }
+                if (influences.length > 0) {
+                    html += '<div class="museum-plaque-timeline-title" style="margin-top:8px">Influences</div>';
+                    html += '<div class="museum-plaque-influences">';
+                    influences.forEach(inf => {
+                        html += '<span class="museum-plaque-influence-tag">' + escapeHTML(inf) + '</span>';
+                    });
+                    html += '</div>';
+                }
+                plaque.innerHTML = html;
+                textPanel.scrollTop = 0;
+            }
+
+            function escapeHTML(str) {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            // Render slide with transition
+            function renderSlide(index, direction) {
+                if (isTransitioning) return;
+                isTransitioning = true;
+                stopAutoAdvance();
+
+                const exitClass = direction === 'next' ? 'museum-exit-left' : 'museum-exit-right';
+                const enterClass = direction === 'next' ? 'museum-enter-right' : 'museum-enter-left';
+
+                overlay.classList.add(exitClass);
+
+                setTimeout(() => {
+                    overlay.classList.remove(exitClass);
+                    currentIndex = ((index % museumData.length) + museumData.length) % museumData.length;
+                    const territory = museumData[currentIndex];
+
+                    renderArt(territory);
+                    renderPlaque(territory);
+
+                    updateCounter();
+
+                    const accentColor = territory.colors && territory.colors.length > 1 ? territory.colors[1] : '#c8a850';
+                    const origBlock = plaque.querySelector('.museum-plaque-originator');
+                    if (origBlock) origBlock.style.borderLeftColor = accentColor;
+
+                    overlay.classList.add(enterClass);
+                    setTimeout(() => {
+                        overlay.classList.remove(enterClass);
+                        isTransitioning = false;
+                        if (!isPaused) startAutoAdvance();
+                    }, 800);
+                }, 600);
+            }
+
+            // Direct render (no transition, for initial load)
+            function renderSlideDirect(index) {
+                currentIndex = ((index % museumData.length) + museumData.length) % museumData.length;
+                const territory = museumData[currentIndex];
+                renderArt(territory);
+                renderPlaque(territory);
+                updateCounter();
+
+                const accentColor = territory.colors && territory.colors.length > 1 ? territory.colors[1] : '#c8a850';
+                const origBlock = plaque.querySelector('.museum-plaque-originator');
+                if (origBlock) origBlock.style.borderLeftColor = accentColor;
+
+                if (!isPaused) startAutoAdvance();
+            }
+
+            function updateCounter() {
+                const num = String(currentIndex + 1).padStart(2, '0');
+                const total = String(museumData.length).padStart(2, '0');
+                slideCounter.textContent = num + ' / ' + total;
+            }
+
+            // Auto-advance
+            function startAutoAdvance() {
+                stopAutoAdvance();
+                if (isPaused || !isOpen) return;
+
+                autoTimer = setTimeout(() => {
+                    renderSlide(currentIndex + 1, 'next');
+                }, slideInterval);
+            }
+
+            function stopAutoAdvance() {
+                if (autoTimer) {
+                    clearTimeout(autoTimer);
+                    autoTimer = null;
+                }
+            }
+
+            function togglePause() {
+                isPaused = !isPaused;
+                pauseBtn.classList.toggle('paused', isPaused);
+                if (isPaused) {
+                    stopAutoAdvance();
+                } else {
+                    startAutoAdvance();
+                }
+            }
+
+            // Open Museum Mode
+            function openMuseum() {
+                const tmOverlay = document.getElementById('tm-overlay');
+                if (tmOverlay && tmOverlay.classList.contains('active')) {
+                    tmOverlay.classList.remove('active');
+                    const tmBtn = document.getElementById('tm-header-btn');
+                    if (tmBtn) tmBtn.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+
+                museumData = buildMuseumData();
+                if (museumData.length === 0) return;
+
+                isOpen = true;
+                isPaused = false;
+                pauseBtn.classList.remove('paused');
+                overlay.classList.add('active');
+                overlay.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+
+                renderSlideDirect(0);
+                // Brief flash of toolbar on open so user knows it's there
+                showToolbar();
+            }
+
+            // Close Museum Mode
+            function closeMuseum() {
+                isOpen = false;
+                stopAutoAdvance();
+                clearTimeout(mouseIdleTimer);
+                overlay.classList.remove('active', 'mouse-active');
+                overlay.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+            }
+
+            // Event listeners
+            headerBtn.addEventListener('click', openMuseum);
+            closeBtn.addEventListener('click', closeMuseum);
+            prevBtn.addEventListener('click', () => {
+                if (!isTransitioning) renderSlide(currentIndex - 1, 'prev');
+            });
+            nextBtn.addEventListener('click', () => {
+                if (!isTransitioning) renderSlide(currentIndex + 1, 'next');
+            });
+            pauseBtn.addEventListener('click', togglePause);
+
+            // Keyboard
+            document.addEventListener('keydown', (e) => {
+                if (!isOpen) return;
+                if (e.key === 'Escape') {
+                    closeMuseum();
+                } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (!isTransitioning) renderSlide(currentIndex + 1, 'next');
+                } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (!isTransitioning) renderSlide(currentIndex - 1, 'prev');
+                } else if (e.key === ' ') {
+                    e.preventDefault();
+                    togglePause();
                 }
             });
         })();
