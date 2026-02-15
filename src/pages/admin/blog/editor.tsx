@@ -1,35 +1,49 @@
-import { useEffect, useState, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Save, Eye, Loader2, Send, Clock, Search } from 'lucide-react';
-import AdminLayout from '@/components/AdminLayout';
-import EditorPanel, { Field, Input, Textarea, Select, TagInput } from '@/components/admin/EditorPanel';
-import MarkdownEditor from '@/components/admin/MarkdownEditor';
-import ImageUploader from '@/components/admin/ImageUploader';
-import VersionHistory from '@/components/admin/VersionHistory';
-import { Button } from '@/components/ui/button';
-import { useAuthenticatedSupabase } from '@/lib/supabase';
+import { useEffect, useState, useCallback } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  ArrowLeft,
+  Save,
+  Eye,
+  Loader2,
+  Send,
+  Clock,
+  Search,
+} from "lucide-react";
+import AdminLayout from "@/components/AdminLayout";
+import EditorPanel, {
+  Field,
+  Input,
+  Textarea,
+  Select,
+  TagInput,
+} from "@/components/admin/EditorPanel";
+import MarkdownEditor from "@/components/admin/MarkdownEditor";
+import ImageUploader from "@/components/admin/ImageUploader";
+import VersionHistory from "@/components/admin/VersionHistory";
+import { Button } from "@/components/ui/button";
+import { useAuthenticatedSupabase } from "@/lib/supabase";
 import {
   getBlogPostById,
   createBlogPost,
   updateBlogPost,
   generateSlug,
   calculateReadingTime,
-  type BlogPost
-} from '@/lib/supabase-queries';
-import { useSEO } from '@/lib/seo';
-import { captureException } from '@/lib/sentry';
+  type BlogPost,
+} from "@/lib/supabase-queries";
+import { useSEO } from "@/lib/seo";
+import { captureException } from "@/lib/sentry";
 
-type PostFormData = Omit<BlogPost, 'id' | 'created_at' | 'updated_at'>;
+type PostFormData = Omit<BlogPost, "id" | "created_at" | "updated_at">;
 
 const initialFormData: PostFormData = {
-  title: '',
-  slug: '',
-  excerpt: '',
-  content: '',
-  cover_image: '',
+  title: "",
+  slug: "",
+  excerpt: "",
+  content: "",
+  cover_image: "",
   tags: [],
-  status: 'draft',
+  status: "draft",
   published_at: null,
   scheduled_for: null,
   reading_time: null,
@@ -39,7 +53,7 @@ const initialFormData: PostFormData = {
 };
 
 const BlogEditor = () => {
-  useSEO({ title: 'Blog Editor', noIndex: true });
+  useSEO({ title: "Blog Editor", noIndex: true });
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isEditing = !!id;
@@ -51,33 +65,38 @@ const BlogEditor = () => {
   const [error, setError] = useState<string | null>(null);
   const [autoSlug, setAutoSlug] = useState(true);
 
-  const fetchPost = useCallback(async (postId: string) => {
-    if (!supabase) return;
-    try {
-      const post = await getBlogPostById(postId, supabase);
-      setFormData({
-        title: post.title,
-        slug: post.slug,
-        excerpt: post.excerpt || '',
-        content: post.content,
-        cover_image: post.cover_image || '',
-        tags: post.tags || [],
-        status: post.status,
-        published_at: post.published_at,
-        scheduled_for: post.scheduled_for,
-        reading_time: post.reading_time,
-        meta_title: post.meta_title,
-        meta_description: post.meta_description,
-        og_image: post.og_image,
-      });
-      setAutoSlug(false);
-    } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'BlogEditor.fetchPost' });
-      setError('Post not found');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [supabase]);
+  const fetchPost = useCallback(
+    async (postId: string) => {
+      if (!supabase) return;
+      try {
+        const post = await getBlogPostById(postId, supabase);
+        setFormData({
+          title: post.title,
+          slug: post.slug,
+          excerpt: post.excerpt || "",
+          content: post.content,
+          cover_image: post.cover_image || "",
+          tags: post.tags || [],
+          status: post.status,
+          published_at: post.published_at,
+          scheduled_for: post.scheduled_for,
+          reading_time: post.reading_time,
+          meta_title: post.meta_title,
+          meta_description: post.meta_description,
+          og_image: post.og_image,
+        });
+        setAutoSlug(false);
+      } catch (err) {
+        captureException(err instanceof Error ? err : new Error(String(err)), {
+          context: "BlogEditor.fetchPost",
+        });
+        setError("Post not found");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [supabase],
+  );
 
   const handleVersionRestore = useCallback(() => {
     if (id) {
@@ -111,19 +130,19 @@ const BlogEditor = () => {
 
   async function handleSave(publish = false, schedule = false) {
     if (!supabase) {
-      setError('Database not configured');
+      setError("Database not configured");
       return;
     }
     if (!formData.title.trim()) {
-      setError('Title is required');
+      setError("Title is required");
       return;
     }
     if (!formData.content.trim()) {
-      setError('Content is required');
+      setError("Content is required");
       return;
     }
     if (schedule && !formData.scheduled_for) {
-      setError('Please select a scheduled date and time');
+      setError("Please select a scheduled date and time");
       return;
     }
 
@@ -132,19 +151,19 @@ const BlogEditor = () => {
 
     try {
       let status = formData.status;
-      let published_at = formData.published_at;
+      let publishedAt = formData.published_at;
 
       if (publish) {
-        status = 'published';
-        published_at = published_at || new Date().toISOString();
+        status = "published";
+        publishedAt = publishedAt || new Date().toISOString();
       } else if (schedule) {
-        status = 'scheduled';
+        status = "scheduled";
       }
 
       const dataToSave = {
         ...formData,
         status,
-        published_at,
+        published_at: publishedAt,
       } as PostFormData;
 
       if (isEditing && id) {
@@ -157,11 +176,13 @@ const BlogEditor = () => {
       setFormData((prev) => ({
         ...prev,
         status,
-        published_at,
+        published_at: publishedAt,
       }));
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'BlogEditor.savePost' });
-      setError('Failed to save post. Make sure you have permission.');
+      captureException(err instanceof Error ? err : new Error(String(err)), {
+        context: "BlogEditor.savePost",
+      });
+      setError("Failed to save post. Make sure you have permission.");
     } finally {
       setIsSaving(false);
     }
@@ -169,7 +190,7 @@ const BlogEditor = () => {
 
   function updateField<K extends keyof PostFormData>(
     key: K,
-    value: PostFormData[K]
+    value: PostFormData[K],
   ) {
     setFormData((prev) => ({ ...prev, [key]: value }));
   }
@@ -201,15 +222,18 @@ const BlogEditor = () => {
 
             <div className="flex items-center gap-2">
               {/* Preview button - works for drafts and scheduled */}
-              {formData.slug && formData.status !== 'published' && (
+              {formData.slug && formData.status !== "published" && (
                 <Button asChild variant="ghost" size="sm">
-                  <Link to={`/blog/${formData.slug}?preview=true`} target="_blank">
+                  <Link
+                    to={`/blog/${formData.slug}?preview=true`}
+                    target="_blank"
+                  >
                     <Eye className="w-4 h-4 mr-2" />
                     Preview
                   </Link>
                 </Button>
               )}
-              {formData.status === 'published' && (
+              {formData.status === "published" && (
                 <Button asChild variant="ghost" size="sm">
                   <Link to={`/blog/${formData.slug}`} target="_blank">
                     <Eye className="w-4 h-4 mr-2" />
@@ -230,7 +254,7 @@ const BlogEditor = () => {
                 )}
                 Save Draft
               </Button>
-              {formData.status !== 'published' && formData.scheduled_for && (
+              {formData.status !== "published" && formData.scheduled_for && (
                 <Button
                   size="sm"
                   variant="secondary"
@@ -245,7 +269,7 @@ const BlogEditor = () => {
                   Schedule
                 </Button>
               )}
-              {formData.status !== 'published' && (
+              {formData.status !== "published" && (
                 <Button
                   size="sm"
                   onClick={() => handleSave(true, false)}
@@ -277,12 +301,14 @@ const BlogEditor = () => {
 
               {/* Title */}
               <div>
-                <label htmlFor="post-title" className="sr-only">Post title</label>
+                <label htmlFor="post-title" className="sr-only">
+                  Post title
+                </label>
                 <input
                   id="post-title"
                   type="text"
                   value={formData.title}
-                  onChange={(e) => updateField('title', e.target.value)}
+                  onChange={(e) => updateField("title", e.target.value)}
                   placeholder="Post title..."
                   aria-required="true"
                   className="w-full text-4xl font-bold bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none"
@@ -291,11 +317,13 @@ const BlogEditor = () => {
 
               {/* Content */}
               <div>
-                <label htmlFor="post-content" className="sr-only">Post content (Markdown)</label>
+                <label htmlFor="post-content" className="sr-only">
+                  Post content (Markdown)
+                </label>
                 <MarkdownEditor
                   id="post-content"
                   value={formData.content}
-                  onChange={(value) => updateField('content', value)}
+                  onChange={(value) => updateField("content", value)}
                   placeholder="Write your post content in markdown..."
                   minHeight="500px"
                 />
@@ -311,7 +339,7 @@ const BlogEditor = () => {
               value={formData.slug}
               onChange={(e) => {
                 setAutoSlug(false);
-                updateField('slug', e.target.value);
+                updateField("slug", e.target.value);
               }}
               placeholder="post-slug"
             />
@@ -319,8 +347,8 @@ const BlogEditor = () => {
 
           <Field label="Excerpt" description="Brief summary for previews">
             <Textarea
-              value={formData.excerpt || ''}
-              onChange={(e) => updateField('excerpt', e.target.value)}
+              value={formData.excerpt || ""}
+              onChange={(e) => updateField("excerpt", e.target.value)}
               placeholder="A brief description of the post..."
               rows={3}
             />
@@ -328,8 +356,8 @@ const BlogEditor = () => {
 
           <Field label="Cover Image">
             <ImageUploader
-              value={formData.cover_image || ''}
-              onChange={(value) => updateField('cover_image', value)}
+              value={formData.cover_image || ""}
+              onChange={(value) => updateField("cover_image", value)}
               folder="blog"
               aspectRatio="video"
             />
@@ -338,7 +366,7 @@ const BlogEditor = () => {
           <Field label="Tags">
             <TagInput
               value={formData.tags || []}
-              onChange={(value) => updateField('tags', value)}
+              onChange={(value) => updateField("tags", value)}
               placeholder="Press Enter to add tag"
             />
           </Field>
@@ -346,21 +374,40 @@ const BlogEditor = () => {
           <Field label="Status">
             <Select
               value={formData.status}
-              onChange={(e) => updateField('status', e.target.value as 'draft' | 'published' | 'scheduled')}
+              onChange={(e) =>
+                updateField(
+                  "status",
+                  e.target.value as "draft" | "published" | "scheduled",
+                )
+              }
               options={[
-                { value: 'draft', label: 'Draft' },
-                { value: 'scheduled', label: 'Scheduled' },
-                { value: 'published', label: 'Published' },
+                { value: "draft", label: "Draft" },
+                { value: "scheduled", label: "Scheduled" },
+                { value: "published", label: "Published" },
               ]}
             />
           </Field>
 
-          {formData.status !== 'published' && (
-            <Field label="Schedule For" description="Auto-publish at this date/time">
+          {formData.status !== "published" && (
+            <Field
+              label="Schedule For"
+              description="Auto-publish at this date/time"
+            >
               <Input
                 type="datetime-local"
-                value={formData.scheduled_for ? formData.scheduled_for.slice(0, 16) : ''}
-                onChange={(e) => updateField('scheduled_for', e.target.value ? new Date(e.target.value).toISOString() : null)}
+                value={
+                  formData.scheduled_for
+                    ? formData.scheduled_for.slice(0, 16)
+                    : ""
+                }
+                onChange={(e) =>
+                  updateField(
+                    "scheduled_for",
+                    e.target.value
+                      ? new Date(e.target.value).toISOString()
+                      : null,
+                  )
+                }
                 min={new Date().toISOString().slice(0, 16)}
               />
             </Field>
@@ -378,38 +425,56 @@ const BlogEditor = () => {
           <div className="pt-4 border-t border-border">
             <div className="flex items-center gap-2 mb-4">
               <Search className="w-4 h-4 text-muted-foreground" />
-              <h3 className="text-sm font-medium text-foreground">SEO Settings</h3>
+              <h3 className="text-sm font-medium text-foreground">
+                SEO Settings
+              </h3>
             </div>
 
-            <Field label="Meta Title" description="Overrides page title in search results">
+            <Field
+              label="Meta Title"
+              description="Overrides page title in search results"
+            >
               <Input
-                value={formData.meta_title || ''}
-                onChange={(e) => updateField('meta_title', e.target.value || null)}
-                placeholder={formData.title || 'Page title...'}
+                value={formData.meta_title || ""}
+                onChange={(e) =>
+                  updateField("meta_title", e.target.value || null)
+                }
+                placeholder={formData.title || "Page title..."}
                 maxLength={60}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                {(formData.meta_title || formData.title || '').length}/60
+                {(formData.meta_title || formData.title || "").length}/60
               </p>
             </Field>
 
-            <Field label="Meta Description" description="Shown in search results">
+            <Field
+              label="Meta Description"
+              description="Shown in search results"
+            >
               <Textarea
-                value={formData.meta_description || ''}
-                onChange={(e) => updateField('meta_description', e.target.value || null)}
-                placeholder={formData.excerpt || 'Brief description for search engines...'}
+                value={formData.meta_description || ""}
+                onChange={(e) =>
+                  updateField("meta_description", e.target.value || null)
+                }
+                placeholder={
+                  formData.excerpt || "Brief description for search engines..."
+                }
                 rows={3}
                 maxLength={160}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                {(formData.meta_description || formData.excerpt || '').length}/160
+                {(formData.meta_description || formData.excerpt || "").length}
+                /160
               </p>
             </Field>
 
-            <Field label="Social Image" description="Image for social sharing (OG image)">
+            <Field
+              label="Social Image"
+              description="Image for social sharing (OG image)"
+            >
               <ImageUploader
-                value={formData.og_image || ''}
-                onChange={(value) => updateField('og_image', value || null)}
+                value={formData.og_image || ""}
+                onChange={(value) => updateField("og_image", value || null)}
                 folder="og-images"
                 aspectRatio="video"
               />
