@@ -1,6 +1,6 @@
 -- Agent Platform Migration
 -- Issues: #140 - agents table, #141 - API key functions, #142 - agent_id columns,
---          #143 - workflow tables, #144 - integrations and credentials tables
+--          #143 - workflow tables, #144 - integrations/credentials, #145 - audit_log
 -- Prerequisites: schema.sql must be applied first (is_admin, update_updated_at_column)
 -- Requires: pgcrypto extension (for SHA-256 hashing)
 -- This migration is idempotent and safe to re-run
@@ -158,8 +158,8 @@ BEGIN
   -- Log rotation if audit_log table exists (created by #145)
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'audit_log') THEN
     EXECUTE format(
-      'INSERT INTO audit_log (agent_id, action, resource_type, resource_id, details) VALUES (%L, %L, %L, %L, %L)',
-      p_agent_id, 'api_key_rotated', 'agent', p_agent_id, '{"action": "rotate"}'::jsonb
+      'INSERT INTO audit_log (actor_type, actor_id, action, resource_type, resource_id, details) VALUES (%L, %L, %L, %L, %L, %L)',
+      'system', p_agent_id, 'api_key_rotated', 'agent', p_agent_id, '{"action": "rotate"}'::jsonb
     );
   END IF;
 
@@ -186,8 +186,8 @@ BEGIN
   -- Log revocation if audit_log table exists (created by #145)
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'audit_log') THEN
     EXECUTE format(
-      'INSERT INTO audit_log (agent_id, action, resource_type, resource_id, details) VALUES (%L, %L, %L, %L, %L)',
-      p_agent_id, 'api_key_revoked', 'agent', p_agent_id, '{"action": "revoke"}'::jsonb
+      'INSERT INTO audit_log (actor_type, actor_id, action, resource_type, resource_id, details) VALUES (%L, %L, %L, %L, %L, %L)',
+      'system', p_agent_id, 'api_key_revoked', 'agent', p_agent_id, '{"action": "revoke"}'::jsonb
     );
   END IF;
 
@@ -390,13 +390,174 @@ CREATE POLICY "Agents can view granted integrations" ON integrations
   );
 
 -- ============================================
+-- AUDIT_LOG TABLE (#145)
+-- ============================================
+-- Partitioned by month for query performance.
+-- Agents CANNOT read or write this table directly.
+
+CREATE TABLE IF NOT EXISTS audit_log (
+  id UUID NOT NULL DEFAULT gen_random_uuid(),
+  timestamp TIMESTAMPTZ NOT NULL DEFAULT now(),
+  actor_type TEXT NOT NULL CHECK (actor_type IN ('user', 'agent', 'system', 'scheduler')),
+  actor_id TEXT,
+  action TEXT NOT NULL,
+  resource_type TEXT,
+  resource_id TEXT,
+  details JSONB DEFAULT '{}'::jsonb,
+  correlation_id UUID,
+  ip_address INET,
+  user_agent TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (id, timestamp)
+) PARTITION BY RANGE (timestamp);
+
+-- Create partitions for current and next 3 months
+CREATE TABLE IF NOT EXISTS audit_log_2026_02 PARTITION OF audit_log
+  FOR VALUES FROM ('2026-02-01') TO ('2026-03-01');
+CREATE TABLE IF NOT EXISTS audit_log_2026_03 PARTITION OF audit_log
+  FOR VALUES FROM ('2026-03-01') TO ('2026-04-01');
+CREATE TABLE IF NOT EXISTS audit_log_2026_04 PARTITION OF audit_log
+  FOR VALUES FROM ('2026-04-01') TO ('2026-05-01');
+CREATE TABLE IF NOT EXISTS audit_log_2026_05 PARTITION OF audit_log
+  FOR VALUES FROM ('2026-05-01') TO ('2026-06-01');
+
+CREATE INDEX IF NOT EXISTS idx_audit_log_action_ts ON audit_log (action, timestamp);
+CREATE INDEX IF NOT EXISTS idx_audit_log_actor_ts ON audit_log (actor_id, timestamp);
+CREATE INDEX IF NOT EXISTS idx_audit_log_resource ON audit_log (resource_type, resource_id);
+CREATE INDEX IF NOT EXISTS idx_audit_log_correlation ON audit_log (correlation_id) WHERE correlation_id IS NOT NULL;
+
+ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Admins can do everything with audit_log" ON audit_log;
+CREATE POLICY "Admins can do everything with audit_log" ON audit_log
+  FOR ALL USING (is_admin());
+
+-- ============================================
+-- AUDIT HELPER FUNCTION (#145)
+-- ============================================
+
+CREATE OR REPLACE FUNCTION log_audit_event(
+  p_actor_type TEXT,
+  p_actor_id TEXT,
+  p_action TEXT,
+  p_resource_type TEXT DEFAULT NULL,
+  p_resource_id TEXT DEFAULT NULL,
+  p_details JSONB DEFAULT '{}'::jsonb,
+  p_correlation_id UUID DEFAULT NULL
+)
+RETURNS UUID AS $$
+DECLARE
+  new_id UUID;
+BEGIN
+  INSERT INTO audit_log (actor_type, actor_id, action, resource_type, resource_id, details, correlation_id)
+  VALUES (p_actor_type, p_actor_id, p_action, p_resource_type, p_resource_id, p_details, p_correlation_id)
+  RETURNING id INTO new_id;
+
+  RETURN new_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ============================================
+-- AUDIT AUTO-LOGGING TRIGGERS (#145)
+-- ============================================
+
+-- Generic audit trigger function for INSERT/UPDATE/DELETE
+CREATE OR REPLACE FUNCTION audit_trigger_func()
+RETURNS TRIGGER AS $$
+DECLARE
+  audit_action TEXT;
+  resource_id_val TEXT;
+  detail_json JSONB;
+BEGIN
+  audit_action := TG_TABLE_NAME || '.' || lower(TG_OP);
+
+  IF TG_OP = 'DELETE' THEN
+    resource_id_val := OLD.id::TEXT;
+    detail_json := jsonb_build_object('operation', TG_OP);
+  ELSIF TG_OP = 'INSERT' THEN
+    resource_id_val := NEW.id::TEXT;
+    detail_json := jsonb_build_object('operation', TG_OP);
+  ELSE -- UPDATE
+    resource_id_val := NEW.id::TEXT;
+    detail_json := jsonb_build_object('operation', TG_OP);
+  END IF;
+
+  INSERT INTO audit_log (actor_type, actor_id, action, resource_type, resource_id, details)
+  VALUES (
+    CASE WHEN current_agent_id() IS NOT NULL THEN 'agent' ELSE 'user' END,
+    COALESCE(current_agent_id()::TEXT, current_setting('request.jwt.claims', true)::jsonb->>'sub'),
+    audit_action,
+    TG_TABLE_NAME,
+    resource_id_val,
+    detail_json
+  );
+
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Attach audit triggers to key tables
+DROP TRIGGER IF EXISTS audit_agents ON agents;
+CREATE TRIGGER audit_agents
+  AFTER INSERT OR UPDATE OR DELETE ON agents
+  FOR EACH ROW EXECUTE FUNCTION audit_trigger_func();
+
+DROP TRIGGER IF EXISTS audit_workflows ON workflows;
+CREATE TRIGGER audit_workflows
+  AFTER INSERT OR UPDATE OR DELETE ON workflows
+  FOR EACH ROW EXECUTE FUNCTION audit_trigger_func();
+
+DROP TRIGGER IF EXISTS audit_workflow_runs ON workflow_runs;
+CREATE TRIGGER audit_workflow_runs
+  AFTER INSERT OR UPDATE ON workflow_runs
+  FOR EACH ROW EXECUTE FUNCTION audit_trigger_func();
+
+DROP TRIGGER IF EXISTS audit_integration_credentials ON integration_credentials;
+CREATE TRIGGER audit_integration_credentials
+  AFTER INSERT OR UPDATE OR DELETE ON integration_credentials
+  FOR EACH ROW EXECUTE FUNCTION audit_trigger_func();
+
+DROP TRIGGER IF EXISTS audit_agent_commands ON agent_commands;
+CREATE TRIGGER audit_agent_commands
+  AFTER INSERT ON agent_commands
+  FOR EACH ROW EXECUTE FUNCTION audit_trigger_func();
+
+-- ============================================
+-- AUTO-CREATE FUTURE PARTITIONS (#145)
+-- ============================================
+-- Call monthly via pg_cron or manually to create next month's partition.
+
+CREATE OR REPLACE FUNCTION create_audit_log_partition()
+RETURNS VOID AS $$
+DECLARE
+  next_month DATE;
+  partition_name TEXT;
+  start_date TEXT;
+  end_date TEXT;
+BEGIN
+  next_month := date_trunc('month', now() + interval '1 month');
+  partition_name := 'audit_log_' || to_char(next_month, 'YYYY_MM');
+  start_date := to_char(next_month, 'YYYY-MM-DD');
+  end_date := to_char(next_month + interval '1 month', 'YYYY-MM-DD');
+
+  EXECUTE format(
+    'CREATE TABLE IF NOT EXISTS %I PARTITION OF audit_log FOR VALUES FROM (%L) TO (%L)',
+    partition_name, start_date, end_date
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ============================================
 -- DONE
 -- ============================================
 
 DO $$
 BEGIN
   RAISE NOTICE 'Agent Platform migration completed successfully';
-  RAISE NOTICE 'Tables created: agents, workflows, workflow_runs, integrations, integration_credentials, agent_integrations';
+  RAISE NOTICE 'Tables created: agents, workflows, workflow_runs, integrations, integration_credentials, agent_integrations, audit_log (partitioned)';
   RAISE NOTICE 'Columns added: agent_id on agent_commands, agent_responses, agent_tasks, agent_task_runs';
-  RAISE NOTICE 'Functions created: current_agent_id(), generate_agent_api_key(), verify_agent_api_key(), rotate_agent_api_key(), revoke_agent_api_key()';
+  RAISE NOTICE 'Functions created: current_agent_id(), generate/verify/rotate/revoke_agent_api_key(), log_audit_event(), audit_trigger_func(), create_audit_log_partition()';
 END $$;
