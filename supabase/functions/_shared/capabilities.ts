@@ -133,7 +133,8 @@ export function resolveRoute(action: string): RouteTarget {
 
   switch (prefix) {
     case 'agent':
-      return { type: 'agent', handler: 'agent-command' }
+      // Handled inline by api-gateway (no separate edge function)
+      return { type: 'agent', handler: 'api-gateway' }
     case 'workflow':
       return { type: 'workflow', handler: 'workflow-executor' }
     case 'integration':
