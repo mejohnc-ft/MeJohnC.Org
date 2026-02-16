@@ -30,7 +30,13 @@
     "release": "npm version",
     "release:patch": "npm version patch -m 'chore(release): %s'",
     "release:minor": "npm version minor -m 'chore(release): %s'",
-    "release:major": "npm version major -m 'chore(release): %s'"
+    "release:major": "npm version major -m 'chore(release): %s'",
+    "db:push": "supabase db push",
+    "db:reset": "supabase db reset",
+    "db:status": "supabase db status",
+    "db:new": "supabase migration new",
+    "netlify:dev": "netlify dev",
+    "netlify:env": "netlify env:list"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.60.0",
@@ -82,9 +88,11 @@
     "husky": "^9.1.7",
     "jsdom": "^27.4.0",
     "lint-staged": "^15.4.3",
+    "netlify-cli": "^23.15.1",
     "playwright": "^1.58.2",
     "postcss": "^8.4.35",
     "rollup-plugin-visualizer": "^6.0.5",
+    "supabase": "^2.76.8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.54.0",
