@@ -45,7 +45,7 @@ interface RouteTarget {
 function resolveRoute(action: string): RouteTarget {
   const prefix = action.split('.')[0]
   switch (prefix) {
-    case 'agent': return { type: 'agent', handler: 'agent-command' }
+    case 'agent': return { type: 'agent', handler: 'api-gateway' }
     case 'workflow': return { type: 'workflow', handler: 'workflow-executor' }
     case 'integration': return { type: 'integration', handler: 'integration-credentials' }
     case 'query': return { type: 'query', handler: 'query-engine' }
@@ -110,7 +110,7 @@ describe('API Gateway', () => {
     // Agent action routes to agent handler
     const agentRoute = resolveRoute('agent.status')
     expect(agentRoute.type).toBe('agent')
-    expect(agentRoute.handler).toBe('agent-command')
+    expect(agentRoute.handler).toBe('api-gateway')
 
     // Integration action routes to integration handler
     const intRoute = resolveRoute('integration.status')
