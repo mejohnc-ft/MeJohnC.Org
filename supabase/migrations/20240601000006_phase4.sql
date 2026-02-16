@@ -21,6 +21,12 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'audit_log') THEN
     RAISE EXCEPTION 'Missing prerequisite: audit_log table. Run agent platform migrations first.';
   END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
+    RAISE EXCEPTION 'Missing prerequisite: pg_cron extension. Run 20240601000005_scheduler.sql first.';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_net') THEN
+    RAISE EXCEPTION 'Missing prerequisite: pg_net extension. Run 20240601000005_scheduler.sql first.';
+  END IF;
 END $$;
 
 -- ============================================
