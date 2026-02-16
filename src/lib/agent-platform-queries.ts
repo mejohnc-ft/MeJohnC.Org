@@ -8,6 +8,12 @@ import {
   type Integration,
   type AgentIntegration,
   type ScheduledWorkflowRun,
+  type CapabilityDefinition,
+  type AgentSkill,
+  type AgentSkillWithCapability,
+  type EventType,
+  type EventSubscription,
+  type Event,
 } from './schemas';
 
 // ============================================
@@ -352,6 +358,8 @@ export interface AgentPlatformStats {
   integrations: number;
   recentRuns: number;
   failedRuns: number;
+  capabilities: number;
+  eventTypes: number;
 }
 
 export async function getAgentPlatformStats(
@@ -368,6 +376,8 @@ export async function getAgentPlatformStats(
     integrationsResult,
     recentRunsResult,
     failedRunsResult,
+    capabilitiesResult,
+    eventTypesResult,
   ] = await Promise.all([
     client.from('agents').select('id', { count: 'exact', head: true }),
     client.from('agents').select('id', { count: 'exact', head: true }).eq('status', 'active'),
@@ -376,6 +386,8 @@ export async function getAgentPlatformStats(
     client.from('integrations').select('id', { count: 'exact', head: true }),
     client.from('workflow_runs').select('id', { count: 'exact', head: true }).gte('created_at', twentyFourHoursAgo),
     client.from('workflow_runs').select('id', { count: 'exact', head: true }).gte('created_at', twentyFourHoursAgo).eq('status', 'failed'),
+    client.from('capability_definitions').select('name', { count: 'exact', head: true }),
+    client.from('event_types').select('name', { count: 'exact', head: true }),
   ]);
 
   return {
@@ -386,5 +398,292 @@ export async function getAgentPlatformStats(
     integrations: integrationsResult.count ?? 0,
     recentRuns: recentRunsResult.count ?? 0,
     failedRuns: failedRunsResult.count ?? 0,
+    capabilities: capabilitiesResult.count ?? 0,
+    eventTypes: eventTypesResult.count ?? 0,
   };
+}
+
+// ============================================
+// CAPABILITY DEFINITIONS (Phase 4)
+// ============================================
+
+export async function getCapabilityDefinitions(client: SupabaseClient = getSupabase()) {
+  const { data, error } = await client
+    .from('capability_definitions')
+    .select('*')
+    .order('category, name');
+
+  return handleQueryResult(data, error, {
+    operation: 'getCapabilityDefinitions',
+    returnFallback: true,
+    fallback: [] as CapabilityDefinition[],
+  });
+}
+
+export async function createCapabilityDefinition(
+  capability: Omit<CapabilityDefinition, 'created_at'>,
+  client: SupabaseClient = supabase
+) {
+  const { data, error } = await client
+    .from('capability_definitions')
+    .insert(capability)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as CapabilityDefinition;
+}
+
+export async function deleteCapabilityDefinition(name: string, client: SupabaseClient = getSupabase()) {
+  const { error } = await client
+    .from('capability_definitions')
+    .delete()
+    .eq('name', name);
+
+  if (error) throw error;
+}
+
+// ============================================
+// AGENT SKILLS (Phase 4)
+// ============================================
+
+export async function getAgentSkills(agentId: string, client: SupabaseClient = getSupabase()) {
+  const { data, error } = await client
+    .from('agent_skills')
+    .select('*, capability_definitions(*)')
+    .eq('agent_id', agentId)
+    .order('proficiency', { ascending: false });
+
+  return handleQueryResult(data, error, {
+    operation: 'getAgentSkills',
+    returnFallback: true,
+    fallback: [] as AgentSkillWithCapability[],
+  });
+}
+
+export async function getSkillAgents(capabilityName: string, client: SupabaseClient = getSupabase()) {
+  const { data, error } = await client
+    .from('agent_skills')
+    .select('*, agents(id, name, type, status)')
+    .eq('capability_name', capabilityName)
+    .order('proficiency', { ascending: false });
+
+  return handleQueryResult(data, error, {
+    operation: 'getSkillAgents',
+    returnFallback: true,
+    fallback: [] as (AgentSkill & { agents: AgentPlatform })[],
+  });
+}
+
+export async function assignAgentSkill(
+  agentId: string,
+  capabilityName: string,
+  proficiency: number,
+  grantedBy: string,
+  client: SupabaseClient = supabase
+) {
+  const { data, error } = await client
+    .from('agent_skills')
+    .upsert({
+      agent_id: agentId,
+      capability_name: capabilityName,
+      proficiency,
+      granted_by: grantedBy,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as AgentSkill;
+}
+
+export async function removeAgentSkill(
+  agentId: string,
+  capabilityName: string,
+  client: SupabaseClient = getSupabase()
+) {
+  const { error } = await client
+    .from('agent_skills')
+    .delete()
+    .eq('agent_id', agentId)
+    .eq('capability_name', capabilityName);
+
+  if (error) throw error;
+}
+
+export async function getBestAgentForSkill(
+  capabilityName: string,
+  client: SupabaseClient = getSupabase()
+) {
+  const { data, error } = await client.rpc('get_best_agent_for_skill', {
+    p_capability_name: capabilityName,
+  });
+
+  if (error) throw error;
+  return data?.[0] as { agent_id: string; agent_name: string; proficiency: number } | null;
+}
+
+// ============================================
+// SIGNING SECRETS (Phase 4)
+// ============================================
+
+export async function generateSigningSecret(agentId: string, client: SupabaseClient = supabase) {
+  const { data, error } = await client.rpc('generate_signing_secret', { p_agent_id: agentId });
+  if (error) throw error;
+  return data as string;
+}
+
+export async function rotateSigningSecret(agentId: string, client: SupabaseClient = supabase) {
+  const { data, error } = await client.rpc('rotate_signing_secret', { p_agent_id: agentId });
+  if (error) throw error;
+  return data as string;
+}
+
+export async function revokeSigningSecret(agentId: string, client: SupabaseClient = supabase) {
+  const { data, error } = await client.rpc('revoke_signing_secret', { p_agent_id: agentId });
+  if (error) throw error;
+  return data;
+}
+
+// ============================================
+// EVENT TYPES (Phase 4)
+// ============================================
+
+export async function getEventTypes(client: SupabaseClient = getSupabase()) {
+  const { data, error } = await client
+    .from('event_types')
+    .select('*')
+    .order('category, name');
+
+  return handleQueryResult(data, error, {
+    operation: 'getEventTypes',
+    returnFallback: true,
+    fallback: [] as EventType[],
+  });
+}
+
+export async function createEventType(
+  eventType: Omit<EventType, 'created_at'>,
+  client: SupabaseClient = supabase
+) {
+  const { data, error } = await client
+    .from('event_types')
+    .insert(eventType)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as EventType;
+}
+
+export async function deleteEventType(name: string, client: SupabaseClient = getSupabase()) {
+  const { error } = await client
+    .from('event_types')
+    .delete()
+    .eq('name', name);
+
+  if (error) throw error;
+}
+
+// ============================================
+// EVENT SUBSCRIPTIONS (Phase 4)
+// ============================================
+
+export async function getEventSubscriptions(
+  eventType?: string,
+  client: SupabaseClient = getSupabase()
+) {
+  let query = client
+    .from('event_subscriptions')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (eventType) {
+    query = query.eq('event_type', eventType);
+  }
+
+  const { data, error } = await query;
+
+  return handleQueryResult(data, error, {
+    operation: 'getEventSubscriptions',
+    returnFallback: true,
+    fallback: [] as EventSubscription[],
+  });
+}
+
+export async function createEventSubscription(
+  subscription: Omit<EventSubscription, 'id' | 'created_at' | 'updated_at'>,
+  client: SupabaseClient = supabase
+) {
+  const { data, error } = await client
+    .from('event_subscriptions')
+    .insert(subscription)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as EventSubscription;
+}
+
+export async function updateEventSubscription(
+  id: string,
+  subscription: Partial<EventSubscription>,
+  client: SupabaseClient = supabase
+) {
+  const { data, error } = await client
+    .from('event_subscriptions')
+    .update(subscription)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as EventSubscription;
+}
+
+export async function deleteEventSubscription(id: string, client: SupabaseClient = getSupabase()) {
+  const { error } = await client
+    .from('event_subscriptions')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+}
+
+// ============================================
+// EVENTS (Phase 4)
+// ============================================
+
+export async function getEvents(
+  options: {
+    eventType?: string;
+    sourceType?: string;
+    correlationId?: string;
+    limit?: number;
+  } = {},
+  client: SupabaseClient = getSupabase()
+) {
+  let query = client
+    .from('events')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(options.limit || 50);
+
+  if (options.eventType) {
+    query = query.eq('event_type', options.eventType);
+  }
+  if (options.sourceType) {
+    query = query.eq('source_type', options.sourceType);
+  }
+  if (options.correlationId) {
+    query = query.eq('correlation_id', options.correlationId);
+  }
+
+  const { data, error } = await query;
+
+  return handleQueryResult(data, error, {
+    operation: 'getEvents',
+    returnFallback: true,
+    fallback: [] as Event[],
+  });
 }
