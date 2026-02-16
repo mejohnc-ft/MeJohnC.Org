@@ -3,10 +3,11 @@
 // Invoke: POST /functions/v1/metrics-webhook with JSON body
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
+import { CORS_ORIGIN } from '../_shared/cors.ts'
 
 // CORS headers for browser requests
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': CORS_ORIGIN,
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-webhook-secret',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
