@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect, useCallback } from 'react';
+import { ReactNode, useState, useEffect, useCallback, useMemo } from 'react';
 import { Link, useLocation, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
@@ -27,6 +27,8 @@ import {
   Server,
   FileCode2,
   BookOpen,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { UserButton } from '@clerk/clerk-react';
@@ -39,28 +41,86 @@ interface AdminLayoutProps {
   children: ReactNode;
 }
 
-const sidebarItems = [
-  { label: 'Dashboard', path: '/admin', icon: LayoutDashboard },
-  { label: 'AI Manager', path: '/admin/ai-manager', icon: Bot },
-  { label: 'Generative UI', path: '/admin/generative', icon: Sparkles },
+interface SidebarItem {
+  label: string;
+  path: string;
+  icon: typeof LayoutDashboard;
+}
+
+interface SidebarSection {
+  id: string;
+  label: string;
+  items: SidebarItem[];
+}
+
+// Pinned item always visible at top
+const pinnedItem: SidebarItem = {
+  label: 'Dashboard', path: '/admin', icon: LayoutDashboard,
+};
+
+// Grouped sections (collapsible)
+const sidebarSections: SidebarSection[] = [
+  {
+    id: 'content',
+    label: 'Content',
+    items: [
+      { label: 'Blog', path: '/admin/blog', icon: FileText },
+      { label: 'News', path: '/admin/news', icon: Newspaper },
+      { label: 'Bookmarks', path: '/admin/bookmarks', icon: Bookmark },
+    ],
+  },
+  {
+    id: 'ai',
+    label: 'AI Tools',
+    items: [
+      { label: 'AI Manager', path: '/admin/ai-manager', icon: Bot },
+      { label: 'Generative UI', path: '/admin/generative', icon: Sparkles },
+      { label: 'Prompts', path: '/admin/prompts', icon: BookText },
+      { label: 'Skills', path: '/admin/skills', icon: Wrench },
+      { label: 'Runbooks', path: '/admin/runbooks', icon: BookOpen },
+    ],
+  },
+  {
+    id: 'management',
+    label: 'Management',
+    items: [
+      { label: 'Tasks', path: '/admin/tasks', icon: CheckSquare },
+      { label: 'CRM', path: '/admin/crm', icon: Users },
+      { label: 'Projects', path: '/admin/projects', icon: FolderKanban },
+      { label: 'Apps', path: '/admin/apps', icon: AppWindow },
+      { label: 'Metrics', path: '/admin/metrics', icon: BarChart3 },
+    ],
+  },
+  {
+    id: 'platform',
+    label: 'Platform',
+    items: [
+      { label: 'Infrastructure', path: '/admin/infrastructure', icon: Server },
+      { label: 'APIs', path: '/admin/apis', icon: Cable },
+      { label: 'Configs', path: '/admin/configs', icon: FileCode2 },
+      { label: 'Style Guide', path: '/admin/style', icon: Palette },
+    ],
+  },
+];
+
+// Pinned items at bottom (above footer)
+const accountItems: SidebarItem[] = [
   { label: 'Profile', path: '/admin/profile', icon: User },
-  { label: 'Tasks', path: '/admin/tasks', icon: CheckSquare },
-  { label: 'News', path: '/admin/news', icon: Newspaper },
-  { label: 'Bookmarks', path: '/admin/bookmarks', icon: Bookmark },
-  { label: 'CRM', path: '/admin/crm', icon: Users },
-  { label: 'Metrics', path: '/admin/metrics', icon: BarChart3 },
-  { label: 'Style Guide', path: '/admin/style', icon: Palette },
-  { label: 'Prompts', path: '/admin/prompts', icon: BookText },
-  { label: 'Skills', path: '/admin/skills', icon: Wrench },
-  { label: 'Infrastructure', path: '/admin/infrastructure', icon: Server },
-  { label: 'Configs', path: '/admin/configs', icon: FileCode2 },
-  { label: 'Runbooks', path: '/admin/runbooks', icon: BookOpen },
-  { label: 'APIs', path: '/admin/apis', icon: Cable },
-  { label: 'Apps', path: '/admin/apps', icon: AppWindow },
-  { label: 'Projects', path: '/admin/projects', icon: FolderKanban },
-  { label: 'Blog', path: '/admin/blog', icon: FileText },
   { label: 'Settings', path: '/admin/settings', icon: Settings },
 ];
+
+function loadSectionState(): Record<string, boolean> {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.SIDEBAR_SECTIONS);
+    if (stored) return JSON.parse(stored);
+  } catch { /* ignore */ }
+  // Default: all sections expanded
+  return Object.fromEntries(sidebarSections.map(s => [s.id, true]));
+}
+
+function saveSectionState(state: Record<string, boolean>) {
+  localStorage.setItem(STORAGE_KEYS.SIDEBAR_SECTIONS, JSON.stringify(state));
+}
 
 const SIDEBAR_WIDTH = 256;
 
@@ -121,74 +181,142 @@ const reducedMobileVariants = {
   closed: { x: -SIDEBAR_WIDTH, opacity: 0 },
 };
 
+// Reusable nav link component
+function NavLink({ item, location, onClick }: {
+  item: SidebarItem;
+  location: ReturnType<typeof useLocation>;
+  onClick: () => void;
+}) {
+  const isActive = location.pathname === item.path ||
+    (item.path !== '/admin' && location.pathname.startsWith(item.path));
+  const Icon = item.icon;
+
+  return (
+    <Link
+      to={item.path}
+      onClick={onClick}
+      className={`
+        flex items-center gap-3 px-4 py-2 rounded-lg
+        transition-colors duration-150 whitespace-nowrap
+        ${isActive
+          ? 'bg-primary/10 text-primary'
+          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+        }
+      `}
+    >
+      <Icon className="w-4 h-4 flex-shrink-0" />
+      <span className="text-sm font-medium">{item.label}</span>
+    </Link>
+  );
+}
+
 // Extracted sidebar content for reuse in mobile and desktop
 interface SidebarContentProps {
   location: ReturnType<typeof useLocation>;
   handleNavClick: () => void;
   user: ReturnType<typeof useAuth>['user'];
   signOut: ReturnType<typeof useAuth>['signOut'];
+  expandedSections: Record<string, boolean>;
+  toggleSection: (id: string) => void;
 }
 
-const SidebarContent = ({ location, handleNavClick, user, signOut }: SidebarContentProps) => (
+const SidebarContent = ({
+  location,
+  handleNavClick,
+  user,
+  signOut,
+  expandedSections,
+  toggleSection,
+}: SidebarContentProps) => (
   <>
     {/* Navigation */}
-    <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-      {sidebarItems.map((item) => {
-        const isActive = location.pathname === item.path ||
-          (item.path !== '/admin' && location.pathname.startsWith(item.path));
-        const Icon = item.icon;
+    <nav className="flex-1 px-3 py-3 overflow-y-auto space-y-1">
+      {/* Pinned: Dashboard */}
+      <NavLink item={pinnedItem} location={location} onClick={handleNavClick} />
 
+      <div className="pt-1" />
+
+      {/* Collapsible sections */}
+      {sidebarSections.map((section) => {
+        const isExpanded = expandedSections[section.id] ?? true;
         return (
-          <Link
-            key={item.path}
-            to={item.path}
-            onClick={handleNavClick}
-            className={`
-              flex items-center gap-3 px-4 py-2.5 rounded-lg
-              transition-colors duration-150 whitespace-nowrap
-              ${isActive
-                ? 'bg-primary/10 text-primary'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+          <div key={section.id}>
+            <button
+              onClick={() => toggleSection(section.id)}
+              className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70 hover:text-muted-foreground transition-colors duration-150"
+              aria-expanded={isExpanded}
+            >
+              <span>{section.label}</span>
+              {isExpanded
+                ? <ChevronDown className="w-3.5 h-3.5" />
+                : <ChevronRight className="w-3.5 h-3.5" />
               }
-            `}
-          >
-            <Icon className="w-5 h-5 flex-shrink-0" />
-            <span className="font-medium">{item.label}</span>
-          </Link>
+            </button>
+            <AnimatePresence initial={false}>
+              {isExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.15, ease: 'easeInOut' }}
+                  className="overflow-hidden"
+                >
+                  <div className="space-y-0.5 pb-1">
+                    {section.items.map((item) => (
+                      <NavLink
+                        key={item.path}
+                        item={item}
+                        location={location}
+                        onClick={handleNavClick}
+                      />
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         );
       })}
+
+      {/* Divider before account items */}
+      <div className="border-t border-border my-2" />
+
+      {/* Account items */}
+      {accountItems.map((item) => (
+        <NavLink key={item.path} item={item} location={location} onClick={handleNavClick} />
+      ))}
     </nav>
 
     {/* Footer */}
-    <div className="p-4 border-t border-border space-y-2 flex-shrink-0">
+    <div className="px-3 py-3 border-t border-border space-y-1 flex-shrink-0">
       {/* User info with Clerk UserButton */}
-      <div className="flex items-center gap-3 px-4 py-2.5">
+      <div className="flex items-center gap-3 px-4 py-2">
         <UserButton
           appearance={{
             elements: {
-              avatarBox: 'w-8 h-8',
+              avatarBox: 'w-7 h-7',
             }
           }}
         />
-        <span className="text-sm text-muted-foreground truncate whitespace-nowrap">
+        <span className="text-xs text-muted-foreground truncate whitespace-nowrap">
           {user?.primaryEmailAddress?.emailAddress}
         </span>
       </div>
 
       <Link
         to="/"
-        className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors duration-150 whitespace-nowrap"
+        className="flex items-center gap-3 px-4 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors duration-150 whitespace-nowrap"
       >
-        <Home className="w-5 h-5 flex-shrink-0" />
-        <span className="font-medium">View Site</span>
+        <Home className="w-4 h-4 flex-shrink-0" />
+        <span className="text-sm font-medium">View Site</span>
       </Link>
       <Button
         variant="ghost"
         onClick={() => signOut()}
-        className="w-full justify-start gap-3 px-4 py-2.5 text-muted-foreground hover:text-foreground whitespace-nowrap"
+        className="w-full justify-start gap-3 px-4 py-2 text-muted-foreground hover:text-foreground whitespace-nowrap"
       >
-        <LogOut className="w-5 h-5 flex-shrink-0" />
-        <span className="font-medium">Sign Out</span>
+        <LogOut className="w-4 h-4 flex-shrink-0" />
+        <span className="text-sm font-medium">Sign Out</span>
       </Button>
     </div>
   </>
@@ -262,6 +390,39 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       clearTimeout(resizeTimeout);
     };
   }, [isMobile, sidebarOpen]);
+
+  // Section collapse state
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(loadSectionState);
+
+  const toggleSection = useCallback((id: string) => {
+    setExpandedSections((prev) => {
+      const next = { ...prev, [id]: !prev[id] };
+      saveSectionState(next);
+      return next;
+    });
+  }, []);
+
+  // Auto-expand the section containing the active route
+  const activeSectionId = useMemo(() => {
+    for (const section of sidebarSections) {
+      for (const item of section.items) {
+        if (location.pathname === item.path || location.pathname.startsWith(item.path)) {
+          return section.id;
+        }
+      }
+    }
+    return null;
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (activeSectionId && !expandedSections[activeSectionId]) {
+      setExpandedSections((prev) => {
+        const next = { ...prev, [activeSectionId]: true };
+        saveSectionState(next);
+        return next;
+      });
+    }
+  }, [activeSectionId, expandedSections]);
 
   // Close sidebar on route change (mobile only)
   useEffect(() => {
@@ -373,6 +534,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                 handleNavClick={handleNavClick}
                 user={user}
                 signOut={signOut}
+                expandedSections={expandedSections}
+                toggleSection={toggleSection}
               />
             </motion.aside>
           )}
@@ -394,6 +557,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
               handleNavClick={handleNavClick}
               user={user}
               signOut={signOut}
+              expandedSections={expandedSections}
+              toggleSection={toggleSection}
             />
           </div>
         </motion.aside>
