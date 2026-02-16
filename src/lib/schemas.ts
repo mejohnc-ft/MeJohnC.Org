@@ -536,6 +536,131 @@ export const AgentConfirmationSchema = z.object({
 export type AgentConfirmation = z.infer<typeof AgentConfirmationSchema>;
 
 // ============================================
+// AGENT PLATFORM SCHEMAS (Phase 1 tables)
+// ============================================
+
+// Platform Agent Types
+export const PlatformAgentTypeSchema = z.enum(['autonomous', 'supervised', 'tool']);
+export type PlatformAgentType = z.infer<typeof PlatformAgentTypeSchema>;
+
+export const PlatformAgentStatusSchema = z.enum(['active', 'inactive', 'suspended']);
+export type PlatformAgentStatus = z.infer<typeof PlatformAgentStatusSchema>;
+
+export const AgentPlatformSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  type: PlatformAgentTypeSchema,
+  status: PlatformAgentStatusSchema,
+  capabilities: z.array(z.string()).nullable().transform(v => v ?? []),
+  api_key_prefix: z.string().nullable(),
+  health_status: z.string().nullable(),
+  rate_limit_rpm: z.number().nullable(),
+  metadata: z.record(z.unknown()).nullable(),
+  last_seen_at: z.string().nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type AgentPlatform = z.infer<typeof AgentPlatformSchema>;
+
+// Workflow Types
+export const WorkflowTriggerTypeSchema = z.enum(['manual', 'scheduled', 'webhook', 'event']);
+export type WorkflowTriggerType = z.infer<typeof WorkflowTriggerTypeSchema>;
+
+export const WorkflowSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  description: z.string().nullable(),
+  trigger_type: WorkflowTriggerTypeSchema,
+  trigger_config: z.record(z.unknown()).nullable(),
+  steps: z.array(z.record(z.unknown())).nullable().transform(v => v ?? []),
+  is_active: z.boolean(),
+  created_by: z.string().nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type Workflow = z.infer<typeof WorkflowSchema>;
+
+// Workflow Run Types
+export const WorkflowRunStatusSchema = z.enum(['pending', 'running', 'completed', 'failed', 'cancelled']);
+export type WorkflowRunStatus = z.infer<typeof WorkflowRunStatusSchema>;
+
+export const WorkflowRunSchema = z.object({
+  id: z.string().uuid(),
+  workflow_id: z.string().uuid(),
+  status: WorkflowRunStatusSchema,
+  trigger_type: z.string().nullable(),
+  trigger_data: z.record(z.unknown()).nullable(),
+  step_results: z.array(z.record(z.unknown())).nullable().transform(v => v ?? []),
+  error: z.string().nullable(),
+  started_at: z.string().nullable(),
+  completed_at: z.string().nullable(),
+  created_at: z.string(),
+});
+export type WorkflowRun = z.infer<typeof WorkflowRunSchema>;
+
+// Integration Types
+export const IntegrationServiceTypeSchema = z.enum(['oauth2', 'api_key', 'webhook', 'custom']);
+export type IntegrationServiceType = z.infer<typeof IntegrationServiceTypeSchema>;
+
+export const IntegrationStatusSchema = z.enum(['active', 'inactive', 'error']);
+export type IntegrationStatus = z.infer<typeof IntegrationStatusSchema>;
+
+export const IntegrationSchema = z.object({
+  id: z.string().uuid(),
+  service_name: z.string(),
+  service_type: IntegrationServiceTypeSchema,
+  display_name: z.string(),
+  description: z.string().nullable(),
+  icon_url: z.string().nullable(),
+  config: z.record(z.unknown()).nullable(),
+  status: IntegrationStatusSchema,
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type Integration = z.infer<typeof IntegrationSchema>;
+
+// Agent-Integration Access
+export const AgentIntegrationSchema = z.object({
+  agent_id: z.string().uuid(),
+  integration_id: z.string().uuid(),
+  granted_scopes: z.array(z.string()).nullable().transform(v => v ?? []),
+  granted_at: z.string(),
+  granted_by: z.string().nullable(),
+});
+export type AgentIntegration = z.infer<typeof AgentIntegrationSchema>;
+
+// Audit Log Entry (Phase 1 partitioned table)
+export const AuditLogActorTypeSchema = z.enum(['user', 'agent', 'system', 'scheduler']);
+export type AuditLogActorType = z.infer<typeof AuditLogActorTypeSchema>;
+
+export const AuditLogEntrySchema = z.object({
+  id: z.string().uuid(),
+  timestamp: z.string(),
+  actor_type: AuditLogActorTypeSchema,
+  actor_id: z.string().nullable(),
+  action: z.string(),
+  resource_type: z.string().nullable(),
+  resource_id: z.string().nullable(),
+  details: z.record(z.unknown()).nullable(),
+  correlation_id: z.string().nullable(),
+  ip_address: z.string().nullable(),
+  user_agent: z.string().nullable(),
+});
+export type AuditLogEntry = z.infer<typeof AuditLogEntrySchema>;
+
+// Scheduled Workflow Runs
+export const ScheduledWorkflowRunSchema = z.object({
+  id: z.string().uuid(),
+  workflow_id: z.string().uuid(),
+  scheduled_at: z.string(),
+  dispatched_at: z.string().nullable(),
+  status: z.string(),
+  response_status: z.number().nullable(),
+  error: z.string().nullable(),
+});
+export type ScheduledWorkflowRun = z.infer<typeof ScheduledWorkflowRunSchema>;
+
+// ============================================
 // BOOKMARK SCHEMAS
 // ============================================
 

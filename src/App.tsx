@@ -59,6 +59,14 @@ const AdminRunbooks = lazy(() => import('./pages/admin/Runbooks'));
 const SiteBuilderIndex = lazy(() => import('./pages/admin/site-builder/index'));
 const SiteBuilderEditor = lazy(() => import('./pages/admin/site-builder/editor'));
 
+// Agent Platform admin pages
+const AdminAgentRegistry = lazy(() => import('./pages/admin/AgentRegistry'));
+const AdminWorkflows = lazy(() => import('./pages/admin/Workflows'));
+const AdminWorkflowEditor = lazy(() => import('./pages/admin/WorkflowEditor'));
+const AdminScheduler = lazy(() => import('./pages/admin/Scheduler'));
+const AdminIntegrationHub = lazy(() => import('./pages/admin/IntegrationHub'));
+const AdminAuditLog = lazy(() => import('./pages/admin/AuditLog'));
+
 // Note: These routes are now dynamically loaded from feature modules:
 // - Tasks (/admin/tasks/*) - from tasks module
 // - CRM (/admin/crm/*) - from crm module
@@ -376,6 +384,13 @@ function AdminRoutes() {
           {/* Site Builder routes (legacy - will be migrated to feature module) */}
           <Route path="/admin/site-builder" element={<SiteBuilderIndex />} />
           <Route path="/admin/site-builder/:pageId" element={<SiteBuilderEditor />} />
+          {/* Agent Platform routes */}
+          <Route path="/admin/agents" element={<AdminAgentRegistry />} />
+          <Route path="/admin/workflows" element={<AdminWorkflows />} />
+          <Route path="/admin/workflows/:id" element={<AdminWorkflowEditor />} />
+          <Route path="/admin/scheduler" element={<AdminScheduler />} />
+          <Route path="/admin/integrations" element={<AdminIntegrationHub />} />
+          <Route path="/admin/audit" element={<AdminAuditLog />} />
 
           {/* Dynamic feature module routes */}
           {renderFeatureRoutes()}
