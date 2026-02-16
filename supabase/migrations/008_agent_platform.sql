@@ -1,5 +1,5 @@
 -- Agent Platform Migration
--- Issues: #140 - Create agents registry table, #141 - API key management functions
+-- Issues: #140 - Create agents table, #141 - API key functions, #142 - Add agent_id to existing tables
 -- Prerequisites: schema.sql must be applied first (is_admin, update_updated_at_column)
 -- Requires: pgcrypto extension (for SHA-256 hashing)
 -- This migration is idempotent and safe to re-run
@@ -195,6 +195,41 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ============================================
+-- ADD agent_id TO EXISTING AGENT TABLES (#142)
+-- ============================================
+-- Existing rows keep agent_id = NULL (single-agent era).
+-- New rows from authenticated agents will have agent_id set by edge functions.
+
+ALTER TABLE agent_commands ADD COLUMN IF NOT EXISTS agent_id UUID REFERENCES agents(id) ON DELETE SET NULL;
+ALTER TABLE agent_responses ADD COLUMN IF NOT EXISTS agent_id UUID REFERENCES agents(id) ON DELETE SET NULL;
+ALTER TABLE agent_tasks ADD COLUMN IF NOT EXISTS agent_id UUID REFERENCES agents(id) ON DELETE SET NULL;
+ALTER TABLE agent_task_runs ADD COLUMN IF NOT EXISTS agent_id UUID REFERENCES agents(id) ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS idx_agent_commands_agent_id ON agent_commands(agent_id);
+CREATE INDEX IF NOT EXISTS idx_agent_responses_agent_id ON agent_responses(agent_id);
+CREATE INDEX IF NOT EXISTS idx_agent_tasks_agent_id ON agent_tasks(agent_id);
+CREATE INDEX IF NOT EXISTS idx_agent_task_runs_agent_id ON agent_task_runs(agent_id);
+
+-- Agent-scoped RLS policies: agents can only access rows belonging to them.
+-- Dashboard (admin) users retain full access via existing is_admin() policies.
+
+DROP POLICY IF EXISTS "Agents can access their own commands" ON agent_commands;
+CREATE POLICY "Agents can access their own commands" ON agent_commands
+  FOR ALL USING (agent_id = current_agent_id());
+
+DROP POLICY IF EXISTS "Agents can access their own responses" ON agent_responses;
+CREATE POLICY "Agents can access their own responses" ON agent_responses
+  FOR ALL USING (agent_id = current_agent_id());
+
+DROP POLICY IF EXISTS "Agents can access their own tasks" ON agent_tasks;
+CREATE POLICY "Agents can access their own tasks" ON agent_tasks
+  FOR ALL USING (agent_id = current_agent_id());
+
+DROP POLICY IF EXISTS "Agents can read their own task runs" ON agent_task_runs;
+CREATE POLICY "Agents can read their own task runs" ON agent_task_runs
+  FOR SELECT USING (agent_id = current_agent_id());
+
+-- ============================================
 -- DONE
 -- ============================================
 
@@ -202,5 +237,6 @@ DO $$
 BEGIN
   RAISE NOTICE 'Agent Platform migration completed successfully';
   RAISE NOTICE 'Tables created: agents';
+  RAISE NOTICE 'Columns added: agent_id on agent_commands, agent_responses, agent_tasks, agent_task_runs';
   RAISE NOTICE 'Functions created: current_agent_id(), generate_agent_api_key(), verify_agent_api_key(), rotate_agent_api_key(), revoke_agent_api_key()';
 END $$;
