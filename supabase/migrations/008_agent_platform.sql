@@ -1,5 +1,5 @@
 -- Agent Platform Migration
--- Issues: #140 - Create agents table, #141 - API key functions, #142 - Add agent_id to existing tables
+-- Issues: #140 - agents table, #141 - API key functions, #142 - agent_id columns, #143 - workflow tables
 -- Prerequisites: schema.sql must be applied first (is_admin, update_updated_at_column)
 -- Requires: pgcrypto extension (for SHA-256 hashing)
 -- This migration is idempotent and safe to re-run
@@ -230,13 +230,72 @@ CREATE POLICY "Agents can read their own task runs" ON agent_task_runs
   FOR SELECT USING (agent_id = current_agent_id());
 
 -- ============================================
+-- WORKFLOWS TABLE (#143)
+-- ============================================
+-- Workflow definitions with step-based execution plans.
+-- Note: created_by uses TEXT (Clerk user ID) to match existing agent table patterns.
+
+CREATE TABLE IF NOT EXISTS workflows (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  description TEXT,
+  trigger_type TEXT NOT NULL CHECK (trigger_type IN ('manual', 'scheduled', 'webhook', 'event')),
+  trigger_config JSONB DEFAULT '{}'::jsonb,
+  steps JSONB NOT NULL DEFAULT '[]'::jsonb,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_by TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_workflows_trigger_type ON workflows(trigger_type);
+CREATE INDEX IF NOT EXISTS idx_workflows_is_active ON workflows(is_active) WHERE is_active = true;
+
+DROP TRIGGER IF EXISTS update_workflows_updated_at ON workflows;
+CREATE TRIGGER update_workflows_updated_at
+  BEFORE UPDATE ON workflows
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+ALTER TABLE workflows ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Admins can do everything with workflows" ON workflows;
+CREATE POLICY "Admins can do everything with workflows" ON workflows
+  FOR ALL USING (is_admin());
+
+-- ============================================
+-- WORKFLOW_RUNS TABLE (#143)
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS workflow_runs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  workflow_id UUID NOT NULL REFERENCES workflows(id) ON DELETE CASCADE,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'running', 'completed', 'failed', 'cancelled')),
+  trigger_type TEXT NOT NULL,
+  trigger_data JSONB DEFAULT '{}'::jsonb,
+  step_results JSONB DEFAULT '[]'::jsonb,
+  error TEXT,
+  started_at TIMESTAMPTZ,
+  completed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_workflow_runs_workflow_history ON workflow_runs(workflow_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_workflow_runs_status ON workflow_runs(status) WHERE status IN ('pending', 'running');
+
+ALTER TABLE workflow_runs ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Admins can do everything with workflow_runs" ON workflow_runs;
+CREATE POLICY "Admins can do everything with workflow_runs" ON workflow_runs
+  FOR ALL USING (is_admin());
+
+-- ============================================
 -- DONE
 -- ============================================
 
 DO $$
 BEGIN
   RAISE NOTICE 'Agent Platform migration completed successfully';
-  RAISE NOTICE 'Tables created: agents';
+  RAISE NOTICE 'Tables created: agents, workflows, workflow_runs';
   RAISE NOTICE 'Columns added: agent_id on agent_commands, agent_responses, agent_tasks, agent_task_runs';
   RAISE NOTICE 'Functions created: current_agent_id(), generate_agent_api_key(), verify_agent_api_key(), rotate_agent_api_key(), revoke_agent_api_key()';
 END $$;
