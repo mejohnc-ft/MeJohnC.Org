@@ -16,9 +16,10 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 import { decrypt, EncryptedPayload } from '../_shared/encryption.ts'
 import { Logger } from '../_shared/logger.ts'
+import { CORS_ORIGIN } from '../_shared/cors.ts'
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': CORS_ORIGIN,
   'Access-Control-Allow-Headers':
     'authorization, x-client-info, apikey, content-type, x-scheduler-secret',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',

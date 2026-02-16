@@ -17,9 +17,10 @@ import { canPerformAction, resolveRoute, ACTION_CAPABILITY_MAP } from '../_share
 import { verifySignature } from '../_shared/command-signing.ts'
 import { Logger } from '../_shared/logger.ts'
 import { validateInput, validateFields } from '../_shared/input-validator.ts'
+import { CORS_ORIGIN } from '../_shared/cors.ts'
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': CORS_ORIGIN,
   'Access-Control-Allow-Headers':
     'authorization, x-client-info, apikey, content-type, x-agent-key, x-scheduler-secret, x-signature',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',

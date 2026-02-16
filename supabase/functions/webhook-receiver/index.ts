@@ -17,9 +17,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 import { Logger } from '../_shared/logger.ts'
 import { validateInput } from '../_shared/input-validator.ts'
 import { createRateLimiter, getClientId } from '../_shared/rate-limiter.ts'
+import { CORS_ORIGIN } from '../_shared/cors.ts'
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': CORS_ORIGIN,
   'Access-Control-Allow-Headers':
     'authorization, x-client-info, apikey, content-type, x-webhook-signature, stripe-signature, x-hub-signature-256',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
