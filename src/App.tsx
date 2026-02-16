@@ -46,6 +46,9 @@ const AdminBookmarks = lazy(() => import('./pages/admin/bookmarks/index'));
 // API Registry admin page
 const AdminApiRegistry = lazy(() => import('./pages/admin/ApiRegistry'));
 
+// Prompt Library admin page
+const AdminPromptLibrary = lazy(() => import('./pages/admin/PromptLibrary'));
+
 // Site Builder admin pages (will be migrated to feature module)
 const SiteBuilderIndex = lazy(() => import('./pages/admin/site-builder/index'));
 const SiteBuilderEditor = lazy(() => import('./pages/admin/site-builder/editor'));
@@ -346,6 +349,8 @@ function AdminRoutes() {
           <Route path="/admin/bookmarks" element={<AdminBookmarks />} />
           {/* API Registry route */}
           <Route path="/admin/apis" element={<AdminApiRegistry />} />
+          {/* Prompt Library route */}
+          <Route path="/admin/prompts" element={<AdminPromptLibrary />} />
           {/* Marketing routes (legacy - will be migrated to feature module) */}
           <Route path="/admin/marketing" element={<AdminMarketing />} />
           <Route path="/admin/marketing/subscribers" element={<AdminMarketingSubscribers />} />
