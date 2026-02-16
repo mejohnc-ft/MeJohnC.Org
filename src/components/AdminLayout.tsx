@@ -23,6 +23,10 @@ import {
   Sparkles,
   Cable,
   BookText,
+  Wrench,
+  Server,
+  FileCode2,
+  BookOpen,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { UserButton } from '@clerk/clerk-react';
@@ -47,6 +51,10 @@ const sidebarItems = [
   { label: 'Metrics', path: '/admin/metrics', icon: BarChart3 },
   { label: 'Style Guide', path: '/admin/style', icon: Palette },
   { label: 'Prompts', path: '/admin/prompts', icon: BookText },
+  { label: 'Skills', path: '/admin/skills', icon: Wrench },
+  { label: 'Infrastructure', path: '/admin/infrastructure', icon: Server },
+  { label: 'Configs', path: '/admin/configs', icon: FileCode2 },
+  { label: 'Runbooks', path: '/admin/runbooks', icon: BookOpen },
   { label: 'APIs', path: '/admin/apis', icon: Cable },
   { label: 'Apps', path: '/admin/apps', icon: AppWindow },
   { label: 'Projects', path: '/admin/projects', icon: FolderKanban },

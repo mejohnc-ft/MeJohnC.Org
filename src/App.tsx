@@ -49,6 +49,12 @@ const AdminApiRegistry = lazy(() => import('./pages/admin/ApiRegistry'));
 // Prompt Library admin page
 const AdminPromptLibrary = lazy(() => import('./pages/admin/PromptLibrary'));
 
+// Command Center admin pages
+const AdminSkillsRegistry = lazy(() => import('./pages/admin/SkillsRegistry'));
+const AdminInfrastructureMap = lazy(() => import('./pages/admin/InfrastructureMap'));
+const AdminConfigVault = lazy(() => import('./pages/admin/ConfigVault'));
+const AdminRunbooks = lazy(() => import('./pages/admin/Runbooks'));
+
 // Site Builder admin pages (will be migrated to feature module)
 const SiteBuilderIndex = lazy(() => import('./pages/admin/site-builder/index'));
 const SiteBuilderEditor = lazy(() => import('./pages/admin/site-builder/editor'));
@@ -351,6 +357,11 @@ function AdminRoutes() {
           <Route path="/admin/apis" element={<AdminApiRegistry />} />
           {/* Prompt Library route */}
           <Route path="/admin/prompts" element={<AdminPromptLibrary />} />
+          {/* Command Center routes */}
+          <Route path="/admin/skills" element={<AdminSkillsRegistry />} />
+          <Route path="/admin/infrastructure" element={<AdminInfrastructureMap />} />
+          <Route path="/admin/configs" element={<AdminConfigVault />} />
+          <Route path="/admin/runbooks" element={<AdminRunbooks />} />
           {/* Marketing routes (legacy - will be migrated to feature module) */}
           <Route path="/admin/marketing" element={<AdminMarketing />} />
           <Route path="/admin/marketing/subscribers" element={<AdminMarketingSubscribers />} />
