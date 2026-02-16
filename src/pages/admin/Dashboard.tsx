@@ -6,6 +6,7 @@ import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import AdminLayout from '@/components/AdminLayout';
 import AuditLogViewer from '@/components/admin/AuditLogViewer';
+import AgentPlatformHealth from '@/components/admin/AgentPlatformHealth';
 import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
 
@@ -210,14 +211,24 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Recent Activity */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <AuditLogViewer limit={10} showFilters={true} />
-        </motion.div>
+        {/* Agent Platform + Recent Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45 }}
+          >
+            <AgentPlatformHealth />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <AuditLogViewer limit={10} showFilters={true} />
+          </motion.div>
+        </div>
 
         {/* View Site Button */}
         <div className="pt-4">

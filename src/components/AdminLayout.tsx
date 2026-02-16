@@ -29,6 +29,10 @@ import {
   BookOpen,
   ChevronDown,
   ChevronRight,
+  GitBranch,
+  Clock,
+  Plug,
+  FileSearch,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { UserButton } from '@clerk/clerk-react';
@@ -99,6 +103,17 @@ const sidebarSections: SidebarSection[] = [
       { label: 'APIs', path: '/admin/apis', icon: Cable },
       { label: 'Configs', path: '/admin/configs', icon: FileCode2 },
       { label: 'Style Guide', path: '/admin/style', icon: Palette },
+    ],
+  },
+  {
+    id: 'agents',
+    label: 'Agent Platform',
+    items: [
+      { label: 'Agents', path: '/admin/agents', icon: Bot },
+      { label: 'Workflows', path: '/admin/workflows', icon: GitBranch },
+      { label: 'Scheduler', path: '/admin/scheduler', icon: Clock },
+      { label: 'Integrations', path: '/admin/integrations', icon: Plug },
+      { label: 'Audit Log', path: '/admin/audit', icon: FileSearch },
     ],
   },
 ];
