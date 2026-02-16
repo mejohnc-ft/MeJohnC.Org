@@ -1,8 +1,11 @@
 -- Agent Platform Migration
--- Issue: #140 - Create agents registry table
+-- Issues: #140 - Create agents registry table, #141 - API key management functions
 -- Prerequisites: schema.sql must be applied first (is_admin, update_updated_at_column)
+-- Requires: pgcrypto extension (for SHA-256 hashing)
 -- This migration is idempotent and safe to re-run
 -- Tables: agents
+-- Functions: current_agent_id, generate_agent_api_key, verify_agent_api_key,
+--            rotate_agent_api_key, revoke_agent_api_key
 
 -- ============================================
 -- VERIFY PREREQUISITES
@@ -80,6 +83,118 @@ CREATE TRIGGER update_agents_updated_at
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================
+-- PGCRYPTO EXTENSION (for SHA-256 hashing)
+-- ============================================
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- ============================================
+-- API KEY MANAGEMENT FUNCTIONS (#141)
+-- ============================================
+
+-- Generate a new API key for an agent.
+-- Key format: mj_agent_<32 random hex chars> (42 chars total)
+-- Stores SHA-256 hash + prefix; returns plaintext key (only time it's visible).
+CREATE OR REPLACE FUNCTION generate_agent_api_key(p_agent_id UUID)
+RETURNS TEXT AS $$
+DECLARE
+  raw_key TEXT;
+  full_key TEXT;
+  key_hash TEXT;
+  key_prefix TEXT;
+BEGIN
+  -- Generate 32 random hex chars
+  raw_key := encode(gen_random_bytes(16), 'hex');
+  full_key := 'mj_agent_' || raw_key;
+  key_prefix := 'mj_agent_' || substring(raw_key from 1 for 8) || '...';
+  key_hash := encode(digest(full_key, 'sha256'), 'hex');
+
+  UPDATE agents
+  SET api_key_hash = key_hash,
+      api_key_prefix = key_prefix,
+      updated_at = now()
+  WHERE id = p_agent_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Agent not found: %', p_agent_id;
+  END IF;
+
+  RETURN full_key;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Verify an API key and return the agent row if valid and active.
+-- Returns NULL if key is invalid or agent is not active.
+CREATE OR REPLACE FUNCTION verify_agent_api_key(p_api_key TEXT)
+RETURNS SETOF agents AS $$
+DECLARE
+  key_hash TEXT;
+BEGIN
+  key_hash := encode(digest(p_api_key, 'sha256'), 'hex');
+
+  RETURN QUERY
+  SELECT *
+  FROM agents
+  WHERE agents.api_key_hash = key_hash
+    AND agents.status = 'active';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
+
+-- Grant anon role execute on verify so edge functions can authenticate agents.
+GRANT EXECUTE ON FUNCTION verify_agent_api_key(TEXT) TO anon;
+
+-- Rotate an agent's API key: generates a new key, invalidating the old one.
+-- Logs the rotation to audit_log if that table exists.
+-- Returns the new plaintext key.
+CREATE OR REPLACE FUNCTION rotate_agent_api_key(p_agent_id UUID)
+RETURNS TEXT AS $$
+DECLARE
+  new_key TEXT;
+BEGIN
+  -- generate_agent_api_key overwrites the hash, effectively invalidating the old key
+  new_key := generate_agent_api_key(p_agent_id);
+
+  -- Log rotation if audit_log table exists (created by #145)
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'audit_log') THEN
+    EXECUTE format(
+      'INSERT INTO audit_log (agent_id, action, resource_type, resource_id, details) VALUES (%L, %L, %L, %L, %L)',
+      p_agent_id, 'api_key_rotated', 'agent', p_agent_id, '{"action": "rotate"}'::jsonb
+    );
+  END IF;
+
+  RETURN new_key;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Revoke an agent's API key by clearing the hash and prefix.
+-- Logs the revocation to audit_log if that table exists.
+-- Returns true on success.
+CREATE OR REPLACE FUNCTION revoke_agent_api_key(p_agent_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  UPDATE agents
+  SET api_key_hash = NULL,
+      api_key_prefix = NULL,
+      updated_at = now()
+  WHERE id = p_agent_id;
+
+  IF NOT FOUND THEN
+    RETURN false;
+  END IF;
+
+  -- Log revocation if audit_log table exists (created by #145)
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'audit_log') THEN
+    EXECUTE format(
+      'INSERT INTO audit_log (agent_id, action, resource_type, resource_id, details) VALUES (%L, %L, %L, %L, %L)',
+      p_agent_id, 'api_key_revoked', 'agent', p_agent_id, '{"action": "revoke"}'::jsonb
+    );
+  END IF;
+
+  RETURN true;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ============================================
 -- DONE
 -- ============================================
 
@@ -87,5 +202,5 @@ DO $$
 BEGIN
   RAISE NOTICE 'Agent Platform migration completed successfully';
   RAISE NOTICE 'Tables created: agents';
-  RAISE NOTICE 'Functions created: current_agent_id()';
+  RAISE NOTICE 'Functions created: current_agent_id(), generate_agent_api_key(), verify_agent_api_key(), rotate_agent_api_key(), revoke_agent_api_key()';
 END $$;
