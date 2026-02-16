@@ -116,13 +116,18 @@ async function executeStepInner(
       const { command, payload } = step.config as { command: string; payload?: unknown }
       if (!command) throw new Error('agent_command step requires "command" in config')
 
+      const content = typeof payload === 'string' ? payload : JSON.stringify(payload || {})
+
       const { data, error } = await supabase
         .from('agent_commands')
         .insert({
-          command,
-          payload: payload || {},
+          command_type: 'task',
+          content,
           status: 'pending',
-          agent_id: agentId,
+          user_id: agentId || 'system',
+          user_email: 'workflow@system',
+          session_id: crypto.randomUUID(),
+          metadata: { workflow_command: command },
         })
         .select('id')
         .single()
