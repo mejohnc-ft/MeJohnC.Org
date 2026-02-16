@@ -1,5 +1,6 @@
 -- Agent Platform Migration
--- Issues: #140 - agents table, #141 - API key functions, #142 - agent_id columns, #143 - workflow tables
+-- Issues: #140 - agents table, #141 - API key functions, #142 - agent_id columns,
+--          #143 - workflow tables, #144 - integrations and credentials tables
 -- Prerequisites: schema.sql must be applied first (is_admin, update_updated_at_column)
 -- Requires: pgcrypto extension (for SHA-256 hashing)
 -- This migration is idempotent and safe to re-run
@@ -289,13 +290,113 @@ CREATE POLICY "Admins can do everything with workflow_runs" ON workflow_runs
   FOR ALL USING (is_admin());
 
 -- ============================================
+-- INTEGRATIONS TABLE (#144)
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS integrations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  service_name TEXT NOT NULL UNIQUE,
+  service_type TEXT NOT NULL CHECK (service_type IN ('oauth2', 'api_key', 'webhook', 'custom')),
+  display_name TEXT NOT NULL,
+  description TEXT,
+  icon_url TEXT,
+  config JSONB DEFAULT '{}'::jsonb,
+  status TEXT NOT NULL DEFAULT 'inactive' CHECK (status IN ('active', 'inactive', 'error')),
+  health_checked_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_integrations_service_name ON integrations(service_name);
+CREATE INDEX IF NOT EXISTS idx_integrations_status ON integrations(status) WHERE status = 'active';
+
+DROP TRIGGER IF EXISTS update_integrations_updated_at ON integrations;
+CREATE TRIGGER update_integrations_updated_at
+  BEFORE UPDATE ON integrations
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+ALTER TABLE integrations ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Admins can do everything with integrations" ON integrations;
+CREATE POLICY "Admins can do everything with integrations" ON integrations
+  FOR ALL USING (is_admin());
+
+-- ============================================
+-- INTEGRATION_CREDENTIALS TABLE (#144)
+-- ============================================
+-- encrypted_data is AES-256-GCM encrypted JSON, decrypted only server-side in edge functions.
+-- NEVER returned to agents via RLS — agents have no direct policy on this table.
+
+CREATE TABLE IF NOT EXISTS integration_credentials (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  integration_id UUID NOT NULL REFERENCES integrations(id) ON DELETE CASCADE,
+  agent_id UUID REFERENCES agents(id) ON DELETE CASCADE,
+  credential_type TEXT NOT NULL CHECK (credential_type IN ('oauth2_token', 'api_key', 'service_account', 'custom')),
+  encrypted_data TEXT NOT NULL,
+  encryption_key_id TEXT NOT NULL,
+  expires_at TIMESTAMPTZ,
+  last_used_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_integration_credentials_lookup ON integration_credentials(integration_id, agent_id);
+CREATE INDEX IF NOT EXISTS idx_integration_credentials_expiry ON integration_credentials(expires_at) WHERE expires_at IS NOT NULL;
+
+DROP TRIGGER IF EXISTS update_integration_credentials_updated_at ON integration_credentials;
+CREATE TRIGGER update_integration_credentials_updated_at
+  BEFORE UPDATE ON integration_credentials
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+ALTER TABLE integration_credentials ENABLE ROW LEVEL SECURITY;
+
+-- Admin-only: credentials are never exposed to agents directly.
+-- Edge functions use service_role key which bypasses RLS.
+DROP POLICY IF EXISTS "Admins can do everything with integration_credentials" ON integration_credentials;
+CREATE POLICY "Admins can do everything with integration_credentials" ON integration_credentials
+  FOR ALL USING (is_admin());
+
+-- ============================================
+-- AGENT_INTEGRATIONS JUNCTION TABLE (#144)
+-- ============================================
+-- Maps which agents have access to which integrations.
+-- granted_by uses TEXT (Clerk user ID) to match existing patterns.
+
+CREATE TABLE IF NOT EXISTS agent_integrations (
+  agent_id UUID NOT NULL REFERENCES agents(id) ON DELETE CASCADE,
+  integration_id UUID NOT NULL REFERENCES integrations(id) ON DELETE CASCADE,
+  granted_scopes TEXT[] DEFAULT '{}',
+  granted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  granted_by TEXT,
+  PRIMARY KEY (agent_id, integration_id)
+);
+
+ALTER TABLE agent_integrations ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Admins can do everything with agent_integrations" ON agent_integrations;
+CREATE POLICY "Admins can do everything with agent_integrations" ON agent_integrations
+  FOR ALL USING (is_admin());
+
+-- Agents can see which integrations they've been granted.
+DROP POLICY IF EXISTS "Agents can view their own integrations" ON agent_integrations;
+CREATE POLICY "Agents can view their own integrations" ON agent_integrations
+  FOR SELECT USING (agent_id = current_agent_id());
+
+-- Agents can view integration details for their granted integrations.
+DROP POLICY IF EXISTS "Agents can view granted integrations" ON integrations;
+CREATE POLICY "Agents can view granted integrations" ON integrations
+  FOR SELECT USING (
+    id IN (SELECT integration_id FROM agent_integrations WHERE agent_id = current_agent_id())
+  );
+
+-- ============================================
 -- DONE
 -- ============================================
 
 DO $$
 BEGIN
   RAISE NOTICE 'Agent Platform migration completed successfully';
-  RAISE NOTICE 'Tables created: agents, workflows, workflow_runs';
+  RAISE NOTICE 'Tables created: agents, workflows, workflow_runs, integrations, integration_credentials, agent_integrations';
   RAISE NOTICE 'Columns added: agent_id on agent_commands, agent_responses, agent_tasks, agent_task_runs';
   RAISE NOTICE 'Functions created: current_agent_id(), generate_agent_api_key(), verify_agent_api_key(), rotate_agent_api_key(), revoke_agent_api_key()';
 END $$;
