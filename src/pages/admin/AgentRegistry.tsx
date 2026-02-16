@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Bot, Plus, Search, Pencil, Trash2, Key, RotateCcw, ShieldOff, Loader2, Copy, Check, MoreVertical } from 'lucide-react';
+import { Bot, Plus, Search, Pencil, Trash2, Key, RotateCcw, ShieldOff, Loader2, Copy, Check } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';

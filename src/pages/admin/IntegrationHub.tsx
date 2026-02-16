@@ -23,7 +23,7 @@ import {
 import type { Integration, AgentPlatform } from '@/lib/schemas';
 
 type ServiceType = 'oauth2' | 'api_key' | 'webhook' | 'custom';
-type IntegrationStatus = 'active' | 'inactive' | 'error';
+
 
 interface IntegrationWithAgents extends Integration {
   agentCount: number;
@@ -168,7 +168,7 @@ export default function IntegrationHub() {
       let config = {};
       try {
         config = JSON.parse(formData.config);
-      } catch (e) {
+      } catch {
         alert('Invalid JSON in config field');
         setSubmitting(false);
         return;
@@ -202,7 +202,7 @@ export default function IntegrationHub() {
       let config = {};
       try {
         config = JSON.parse(formData.config);
-      } catch (e) {
+      } catch {
         alert('Invalid JSON in config field');
         setSubmitting(false);
         return;

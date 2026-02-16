@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GitBranch, Save, Play, Plus, Trash2, ChevronDown, ChevronRight, GripVertical, ArrowLeft, Loader2, Clock, AlertCircle, CheckCircle2 } from 'lucide-react';
@@ -76,7 +76,7 @@ const WorkflowEditor = () => {
 
         // Parse steps array
         const steps = Array.isArray(data.steps)
-          ? data.steps.map((step: any) => ({
+          ? data.steps.map((step: Record<string, unknown>) => ({
               id: step.id || crypto.randomUUID(),
               type: step.type || 'agent_command',
               config: step.config || {},
@@ -180,7 +180,7 @@ const WorkflowEditor = () => {
     setTestResult(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke('workflow-executor', {
+      const { error } = await supabase.functions.invoke('workflow-executor', {
         body: { workflow_id: id, trigger_type: 'manual', trigger_data: {} }
       });
 

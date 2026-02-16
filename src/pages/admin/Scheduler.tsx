@@ -19,7 +19,7 @@ function getNextCronRun(cronExpr: string): string {
     if (parts.length !== 5) return 'Invalid cron';
     const now = new Date();
     // Simple approximation for display only
-    const [min, hour, dom, , dow] = parts;
+    const [min, hour] = parts;
     const next = new Date(now);
 
     if (min !== '*' && hour !== '*') {
