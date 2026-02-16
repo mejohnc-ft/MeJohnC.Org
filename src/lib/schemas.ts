@@ -1452,3 +1452,77 @@ export const MarketingStatsSchema = z.object({
   recent_nps_responses: z.number(),
 });
 export type MarketingStats = z.infer<typeof MarketingStatsSchema>;
+
+// ============================================
+// AGENT PLATFORM PHASE 4 SCHEMAS
+// ============================================
+
+// Capability Definitions
+export const CapabilityDefinitionSchema = z.object({
+  name: z.string(),
+  display_name: z.string(),
+  description: z.string().nullable(),
+  category: z.string(),
+  created_at: z.string(),
+});
+export type CapabilityDefinition = z.infer<typeof CapabilityDefinitionSchema>;
+
+// Agent Skills (junction table)
+export const AgentSkillSchema = z.object({
+  agent_id: z.string().uuid(),
+  capability_name: z.string(),
+  proficiency: z.number().min(0).max(100),
+  granted_at: z.string(),
+  granted_by: z.string().nullable(),
+});
+export type AgentSkill = z.infer<typeof AgentSkillSchema>;
+
+// Agent Skill with capability details (for joins)
+export const AgentSkillWithCapabilitySchema = AgentSkillSchema.extend({
+  capability_definitions: CapabilityDefinitionSchema.nullable(),
+});
+export type AgentSkillWithCapability = z.infer<typeof AgentSkillWithCapabilitySchema>;
+
+// Event Types
+export const EventTypeSchema = z.object({
+  name: z.string(),
+  display_name: z.string(),
+  description: z.string().nullable(),
+  category: z.string(),
+  schema: z.record(z.unknown()).nullable(),
+  is_built_in: z.boolean(),
+  created_at: z.string(),
+});
+export type EventType = z.infer<typeof EventTypeSchema>;
+
+// Event Subscriptions
+export const EventSubscriberTypeSchema = z.enum(['workflow', 'agent', 'webhook']);
+export type EventSubscriberType = z.infer<typeof EventSubscriberTypeSchema>;
+
+export const EventSubscriptionSchema = z.object({
+  id: z.string().uuid(),
+  event_type: z.string(),
+  subscriber_type: EventSubscriberTypeSchema,
+  subscriber_id: z.string(),
+  config: z.record(z.unknown()).nullable(),
+  is_active: z.boolean(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type EventSubscription = z.infer<typeof EventSubscriptionSchema>;
+
+// Events
+export const EventSourceTypeSchema = z.enum(['agent', 'workflow', 'system', 'webhook', 'user']);
+export type EventSourceType = z.infer<typeof EventSourceTypeSchema>;
+
+export const EventSchema = z.object({
+  id: z.string().uuid(),
+  event_type: z.string(),
+  payload: z.record(z.unknown()),
+  source_type: EventSourceTypeSchema,
+  source_id: z.string().nullable(),
+  correlation_id: z.string().nullable(),
+  dispatched_to: z.array(z.record(z.unknown())).nullable(),
+  created_at: z.string(),
+});
+export type Event = z.infer<typeof EventSchema>;
