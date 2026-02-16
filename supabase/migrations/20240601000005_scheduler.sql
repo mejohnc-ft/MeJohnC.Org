@@ -27,6 +27,17 @@ END $$;
 CREATE EXTENSION IF NOT EXISTS pg_cron;
 CREATE EXTENSION IF NOT EXISTS pg_net;
 
+-- Verify extensions were actually created (they may be unavailable on some Postgres instances)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
+    RAISE EXCEPTION 'pg_cron extension could not be created. Ensure it is available on your Postgres instance (required for scheduled workflows).';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_net') THEN
+    RAISE EXCEPTION 'pg_net extension could not be created. Ensure it is available on your Postgres instance (required for HTTP dispatch to edge functions).';
+  END IF;
+END $$;
+
 -- ============================================
 -- SCHEDULED_WORKFLOW_RUNS TRACKING TABLE
 -- ============================================
