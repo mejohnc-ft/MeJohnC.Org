@@ -4,16 +4,22 @@
  * Provides AES-256-GCM encryption/decryption for credential storage.
  * Uses Web Crypto API (available in Deno/edge functions).
  *
- * Key derivation: PBKDF2 from SUPABASE_SERVICE_ROLE_KEY + random salt.
- * Each encryption generates a unique key via PBKDF2 with a random salt,
- * ensuring different ciphertext even for identical plaintext.
+ * Key rotation support (Issue #182):
+ * - key-v1: Derives from SUPABASE_SERVICE_ROLE_KEY (legacy, read-only)
+ * - key-v2: Derives from ENCRYPTION_MASTER_KEY (current, used for new encryptions)
+ * - decrypt() reads key_id from payload to select the correct key source
+ * - reEncrypt() migrates data from any old key to the current key
  *
  * Usage:
- *   import { encrypt, decrypt } from '../_shared/encryption.ts'
+ *   import { encrypt, decrypt, reEncrypt, CURRENT_KEY_ID } from '../_shared/encryption.ts'
  *
- *   const encrypted = await encrypt({ token: 'secret' }, 'key-v1')
+ *   const encrypted = await encrypt({ token: 'secret' })
  *   const decrypted = await decrypt(encrypted)
+ *   const migrated = await reEncrypt(oldPayload) // re-encrypts with current key
  */
+
+/** Current encryption key version used for new encryptions */
+export const CURRENT_KEY_ID = 'key-v2'
 
 export interface EncryptedPayload {
   /** Base64-encoded ciphertext */
@@ -34,18 +40,37 @@ const IV_LENGTH = 12 // bytes
 const SALT_LENGTH = 16 // bytes
 
 /**
- * Derive an AES-256 key from the service role key + salt using PBKDF2
+ * Get the master secret for a given key ID.
+ * key-v1: Uses SUPABASE_SERVICE_ROLE_KEY (legacy)
+ * key-v2+: Uses ENCRYPTION_MASTER_KEY (dedicated encryption secret)
  */
-async function deriveKey(salt: Uint8Array): Promise<CryptoKey> {
-  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-  if (!serviceRoleKey) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for encryption')
+function getMasterSecret(keyId: string): string {
+  if (keyId === 'key-v1') {
+    const secret = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    if (!secret) {
+      throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for key-v1 decryption')
+    }
+    return secret
   }
+
+  // key-v2 and all future versions use the dedicated master key
+  const secret = Deno.env.get('ENCRYPTION_MASTER_KEY')
+  if (!secret) {
+    throw new Error('ENCRYPTION_MASTER_KEY env var is required for encryption. Generate with: openssl rand -base64 32')
+  }
+  return secret
+}
+
+/**
+ * Derive an AES-256 key from a master secret + salt using PBKDF2
+ */
+async function deriveKey(salt: Uint8Array, keyId: string = CURRENT_KEY_ID): Promise<CryptoKey> {
+  const secret = getMasterSecret(keyId)
 
   const encoder = new TextEncoder()
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
-    encoder.encode(serviceRoleKey),
+    encoder.encode(secret),
     'PBKDF2',
     false,
     ['deriveKey']
@@ -92,16 +117,16 @@ function fromBase64(base64: string): Uint8Array {
  * Encrypt a JSON object using AES-256-GCM
  *
  * @param data - The data to encrypt (will be JSON-serialized)
- * @param keyId - Key identifier for rotation tracking
+ * @param keyId - Key identifier for rotation tracking (defaults to CURRENT_KEY_ID)
  * @returns Encrypted payload with base64-encoded components
  */
 export async function encrypt(
   data: Record<string, unknown>,
-  keyId: string
+  keyId: string = CURRENT_KEY_ID
 ): Promise<EncryptedPayload> {
   const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH))
   const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH))
-  const key = await deriveKey(salt)
+  const key = await deriveKey(salt, keyId)
 
   const encoder = new TextEncoder()
   const plaintext = encoder.encode(JSON.stringify(data))
@@ -122,7 +147,8 @@ export async function encrypt(
 }
 
 /**
- * Decrypt an encrypted payload back to the original JSON object
+ * Decrypt an encrypted payload back to the original JSON object.
+ * Reads key_id from the payload to select the correct decryption key.
  *
  * @param payload - The encrypted payload from encrypt()
  * @returns The original JSON object
@@ -133,7 +159,7 @@ export async function decrypt(
   const salt = fromBase64(payload.salt)
   const iv = fromBase64(payload.iv)
   const ciphertext = fromBase64(payload.ciphertext)
-  const key = await deriveKey(salt)
+  const key = await deriveKey(salt, payload.key_id)
 
   const plaintext = await crypto.subtle.decrypt(
     { name: 'AES-GCM', iv },
@@ -143,4 +169,22 @@ export async function decrypt(
 
   const decoder = new TextDecoder()
   return JSON.parse(decoder.decode(plaintext))
+}
+
+/**
+ * Re-encrypt a payload with the current key version.
+ * Use this to migrate credentials from old key versions to the current one.
+ *
+ * @param payload - The old encrypted payload
+ * @returns New encrypted payload using CURRENT_KEY_ID
+ */
+export async function reEncrypt(
+  payload: EncryptedPayload
+): Promise<EncryptedPayload> {
+  if (payload.key_id === CURRENT_KEY_ID) {
+    return payload // Already using current key
+  }
+
+  const decrypted = await decrypt(payload)
+  return encrypt(decrypted, CURRENT_KEY_ID)
 }

@@ -1,115 +1,278 @@
-import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { FileSearch, Download, ChevronDown, ChevronRight, Filter, X, Loader2 } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Shield,
+  Activity,
+  AlertTriangle,
+  Download,
+  Search,
+  Filter,
+  X,
+  ChevronDown,
+  ChevronRight,
+  Copy,
+  ExternalLink,
+  RefreshCw,
+  Clock,
+  User,
+  Bot,
+  Settings,
+  Zap,
+  Loader2,
+} from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
 import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
-import { getAuditLogEntries, formatPlatformAuditAction, formatPlatformTableName, type AuditLogFilters } from '@/lib/audit-platform';
-import type { AuditLogEntry } from '@/lib/schemas';
+import {
+  getAuditEvents,
+  getAuditStats,
+  exportAuditEvents,
+  type AuditEventFilters,
+} from '@/lib/audit-queries';
+import type { AuditLogEntry, AuditLogActorType } from '@/lib/schemas';
 
-const PAGE_SIZE = 100;
-
-const actorTypeColors: Record<string, string> = {
-  user: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
-  agent: 'bg-purple-500/10 text-purple-500 border-purple-500/20',
-  system: 'bg-gray-500/10 text-gray-500 border-gray-500/20',
-  scheduler: 'bg-orange-500/10 text-orange-500 border-orange-500/20',
+// Actor type icons
+const actorIcons: Record<AuditLogActorType, typeof User> = {
+  user: User,
+  agent: Bot,
+  system: Settings,
+  scheduler: Clock,
 };
 
-function exportCSV(entries: AuditLogEntry[]) {
-  const headers = ['Timestamp', 'Actor Type', 'Actor ID', 'Action', 'Resource Type', 'Resource ID', 'Correlation ID'];
-  const rows = entries.map(e => [
-    e.timestamp, e.actor_type, e.actor_id || '', e.action,
-    e.resource_type || '', e.resource_id || '', e.correlation_id || ''
-  ]);
-  const csv = [headers.join(','), ...rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))].join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `audit-log-${new Date().toISOString().split('T')[0]}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+// Actor type colors
+const actorColors: Record<AuditLogActorType, string> = {
+  user: 'bg-blue-500/10 text-blue-500 border-blue-500/30',
+  agent: 'bg-purple-500/10 text-purple-500 border-purple-500/30',
+  system: 'bg-gray-500/10 text-gray-500 border-gray-500/30',
+  scheduler: 'bg-orange-500/10 text-orange-500 border-orange-500/30',
+};
+
+// Action category colors (based on action prefix)
+const actionColors: Record<string, string> = {
+  auth: 'text-blue-500',
+  agent: 'text-green-500',
+  workflow: 'text-green-500',
+  credential: 'text-orange-500',
+  error: 'text-red-500',
+  failed: 'text-red-500',
+  default: 'text-foreground',
+};
+
+function getActionColor(action: string): string {
+  const prefix = action.split('.')[0] || '';
+  if (prefix.includes('error') || prefix.includes('failed')) return actionColors.error;
+  if (prefix === 'auth') return actionColors.auth;
+  if (prefix === 'agent' || prefix === 'workflow') return actionColors.agent;
+  if (prefix === 'credential') return actionColors.credential;
+  return actionColors.default;
 }
 
-function exportJSON(entries: AuditLogEntry[]) {
-  const blob = new Blob([JSON.stringify(entries, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `audit-log-${new Date().toISOString().split('T')[0]}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
+function formatTimestamp(timestamp: string): string {
+  const date = new Date(timestamp);
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
 }
 
-function truncateId(id: string | null, maxLength = 8): string {
+function getRelativeTime(timestamp: string): string {
+  const now = Date.now();
+  const then = new Date(timestamp).getTime();
+  const diffMs = now - then;
+  const diffMins = Math.floor(diffMs / 60000);
+
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}d ago`;
+}
+
+function truncateId(id: string | null, length = 8): string {
   if (!id) return '-';
-  return id.length > maxLength ? `${id.slice(0, maxLength)}...` : id;
+  return id.length > length ? `${id.slice(0, length)}...` : id;
+}
+
+// Date range presets
+const datePresets = [
+  { label: 'Last hour', value: 'hour' },
+  { label: 'Last 24h', value: '24h' },
+  { label: 'Last 7 days', value: '7d' },
+  { label: 'Last 30 days', value: '30d' },
+  { label: 'Custom', value: 'custom' },
+];
+
+function getDateRange(preset: string): { start: string; end: string } | null {
+  const now = new Date();
+  const end = now.toISOString();
+
+  switch (preset) {
+    case 'hour':
+      return { start: new Date(now.getTime() - 60 * 60 * 1000).toISOString(), end };
+    case '24h':
+      return { start: new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString(), end };
+    case '7d':
+      return { start: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString(), end };
+    case '30d':
+      return { start: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(), end };
+    default:
+      return null;
+  }
 }
 
 export default function AuditLog() {
   useSEO({ title: 'Audit Log', noIndex: true });
 
-  const supabase = useAuthenticatedSupabase();
+  const { supabase, isLoading: authLoading } = useAuthenticatedSupabase();
 
   // Filter state
-  const [filters, setFilters] = useState<AuditLogFilters>({});
   const [searchQuery, setSearchQuery] = useState('');
+  const [actorTypeFilter, setActorTypeFilter] = useState<AuditLogActorType | ''>('');
+  const [dateRangePreset, setDateRangePreset] = useState('24h');
+  const [customDateStart, setCustomDateStart] = useState('');
+  const [customDateEnd, setCustomDateEnd] = useState('');
 
   // Data state
-  const [entries, setEntries] = useState<AuditLogEntry[]>([]);
-  const [page, setPage] = useState(0);
+  const [events, setEvents] = useState<AuditLogEntry[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(false);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-  const [isLoading, setIsLoading] = useState(false);
+  const [hasNewEvents, setHasNewEvents] = useState(false);
 
-  // Fetch entries when filters or page change
-  const fetchEntries = useCallback(async () => {
+  // Infinite scroll state
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  // Build filter object
+  const buildFilters = useCallback((): AuditEventFilters => {
+    const filters: AuditEventFilters = {};
+
+    if (actorTypeFilter) {
+      filters.actor_type = actorTypeFilter;
+    }
+
+    if (searchQuery.trim()) {
+      filters.search = searchQuery.trim();
+    }
+
+    // Date range
+    if (dateRangePreset === 'custom' && customDateStart && customDateEnd) {
+      filters.date_range = {
+        start: new Date(customDateStart).toISOString(),
+        end: new Date(customDateEnd).toISOString(),
+      };
+    } else if (dateRangePreset !== 'custom') {
+      const range = getDateRange(dateRangePreset);
+      if (range) {
+        filters.date_range = range;
+      }
+    }
+
+    return filters;
+  }, [actorTypeFilter, searchQuery, dateRangePreset, customDateStart, customDateEnd]);
+
+  // Load events
+  const loadEvents = useCallback(
+    async (reset = false) => {
+      if (!supabase) return;
+
+      try {
+        setLoading(true);
+        const filters = buildFilters();
+        const currentOffset = reset ? 0 : offset;
+
+        const data = await getAuditEvents(
+          { ...filters, limit: 50, offset: currentOffset },
+          supabase
+        );
+
+        if (reset) {
+          setEvents(data);
+          setOffset(data.length);
+          setHasMore(data.length === 50);
+        } else {
+          setEvents((prev) => [...prev, ...data]);
+          setOffset((prev) => prev + data.length);
+          setHasMore(data.length === 50);
+        }
+
+        setTotalCount((prev) => (reset ? data.length : prev + data.length));
+        setHasNewEvents(false);
+      } catch (error) {
+        captureException(error instanceof Error ? error : new Error(String(error)));
+        console.error('Failed to load audit events:', error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [supabase, buildFilters, offset]
+  );
+
+  // Initial load and filter changes
+  useEffect(() => {
+    loadEvents(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [supabase, actorTypeFilter, searchQuery, dateRangePreset, customDateStart, customDateEnd]);
+
+  // Real-time subscription for new events indicator
+  useEffect(() => {
     if (!supabase) return;
 
-    setIsLoading(true);
-    try {
-      const data = await getAuditLogEntries(
-        filters,
-        PAGE_SIZE,
-        page * PAGE_SIZE,
-        supabase
-      );
-      setEntries(data);
-    } catch (error) {
-      captureException(error as Error, { context: 'AuditLog.fetchEntries', filters, page });
-      setEntries([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [supabase, filters, page]);
+    const channel = supabase
+      .channel('audit_log_changes')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'audit_log' }, () => {
+        setHasNewEvents(true);
+      })
+      .subscribe();
 
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase]);
+
+  // Infinite scroll observer
   useEffect(() => {
-    fetchEntries();
-  }, [fetchEntries]);
+    if (!loadMoreRef.current || loading || !hasMore) return;
 
-  // Client-side search filter
-  const filteredEntries = searchQuery
-    ? entries.filter(e =>
-        e.action.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : entries;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadEvents(false);
+        }
+      },
+      { threshold: 0.1 }
+    );
 
-  // Clear all filters
+    observer.observe(loadMoreRef.current);
+
+    return () => observer.disconnect();
+  }, [loading, hasMore, loadEvents]);
+
+  // Clear filters
   const clearFilters = () => {
-    setFilters({});
     setSearchQuery('');
-    setPage(0);
+    setActorTypeFilter('');
+    setDateRangePreset('24h');
+    setCustomDateStart('');
+    setCustomDateEnd('');
   };
+
+  const hasFilters =
+    searchQuery || actorTypeFilter || dateRangePreset !== '24h' || customDateStart || customDateEnd;
 
   // Toggle row expansion
   const toggleRow = (id: string) => {
-    setExpandedRows(prev => {
+    setExpandedRows((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
@@ -120,13 +283,44 @@ export default function AuditLog() {
     });
   };
 
-  // Set correlation ID filter when clicking a correlation ID
-  const setCorrelationFilter = (correlationId: string) => {
-    setFilters(prev => ({ ...prev, correlationId }));
-    setPage(0);
+  // Copy to clipboard
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
   };
 
-  if (!supabase) {
+  // Set correlation filter
+  const filterByCorrelation = (correlationId: string) => {
+    setSearchQuery('');
+    setActorTypeFilter('');
+    setDateRangePreset('24h');
+    setCustomDateStart('');
+    setCustomDateEnd('');
+    // Use search filter for correlation ID
+    setSearchQuery(correlationId);
+  };
+
+  // Export JSON
+  const handleExportJSON = async () => {
+    if (!supabase) return;
+
+    try {
+      const filters = buildFilters();
+      const data = await exportAuditEvents(filters, supabase);
+
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `audit-log-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      captureException(error instanceof Error ? error : new Error(String(error)));
+      console.error('Failed to export audit events:', error);
+    }
+  };
+
+  if (authLoading || !supabase) {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
@@ -135,8 +329,6 @@ export default function AuditLog() {
       </AdminLayout>
     );
   }
-
-  const hasActiveFilters = Object.keys(filters).length > 0 || searchQuery;
 
   return (
     <AdminLayout>
@@ -148,195 +340,171 @@ export default function AuditLog() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <FileSearch className="w-8 h-8 text-primary" />
+            <Shield className="w-8 h-8 text-primary" />
             <div>
               <h1 className="text-3xl font-bold">Audit Log</h1>
-              <p className="text-sm text-muted-foreground">
-                Platform activity and change history
+              <p className="text-sm text-muted-foreground mt-1">
+                {totalCount > 0 ? `${totalCount} events` : 'Platform activity and security events'}
               </p>
             </div>
           </div>
+
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => exportCSV(filteredEntries)}
-              disabled={filteredEntries.length === 0}
-            >
+            {hasNewEvents && (
+              <Button variant="outline" size="sm" onClick={() => loadEvents(true)}>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                New events
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={handleExportJSON} disabled={events.length === 0}>
               <Download className="w-4 h-4 mr-2" />
-              CSV
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => exportJSON(filteredEntries)}
-              disabled={filteredEntries.length === 0}
-            >
-              <Download className="w-4 h-4 mr-2" />
-              JSON
+              Export
             </Button>
           </div>
         </div>
 
-        {/* Filters */}
-        <Card className="p-4">
+        {/* Filter Bar */}
+        <Card className="p-4 bg-card border-border rounded-lg">
           <div className="flex items-center gap-2 mb-4">
             <Filter className="w-4 h-4 text-muted-foreground" />
             <h2 className="text-sm font-semibold">Filters</h2>
-            {hasActiveFilters && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearFilters}
-                className="ml-auto"
-              >
+            {hasFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="ml-auto">
                 <X className="w-4 h-4 mr-1" />
-                Clear
+                Clear all
               </Button>
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="space-y-4">
             {/* Search */}
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block">
-                Search Action
-              </label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Filter by action..."
+                placeholder="Search action, resource type, or resource ID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
               />
             </div>
 
-            {/* Actor Type */}
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block">
-                Actor Type
-              </label>
-              <select
-                className="bg-background border border-border rounded-md px-3 py-2 text-sm text-foreground w-full"
-                value={filters.actorType || ''}
-                onChange={(e) => {
-                  setFilters(prev => ({
-                    ...prev,
-                    actorType: e.target.value ? e.target.value as AuditLogFilters['actorType'] : undefined
-                  }));
-                  setPage(0);
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Actor Type */}
+              <div>
+                <label className="text-xs text-muted-foreground mb-1.5 block">Actor Type</label>
+                <select
+                  value={actorTypeFilter}
+                  onChange={(e) => setActorTypeFilter(e.target.value as AuditLogActorType | '')}
+                  className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
+                >
+                  <option value="">All</option>
+                  <option value="user">User</option>
+                  <option value="agent">Agent</option>
+                  <option value="system">System</option>
+                  <option value="scheduler">Scheduler</option>
+                </select>
+              </div>
+
+              {/* Date Range Preset */}
+              <div>
+                <label className="text-xs text-muted-foreground mb-1.5 block">Date Range</label>
+                <select
+                  value={dateRangePreset}
+                  onChange={(e) => setDateRangePreset(e.target.value)}
+                  className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
+                >
+                  {datePresets.map((preset) => (
+                    <option key={preset.value} value={preset.value}>
+                      {preset.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Custom date inputs (shown when custom is selected) */}
+              {dateRangePreset === 'custom' && (
+                <>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1.5 block">Start Date</label>
+                    <input
+                      type="datetime-local"
+                      value={customDateStart}
+                      onChange={(e) => setCustomDateStart(e.target.value)}
+                      className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1.5 block">End Date</label>
+                    <input
+                      type="datetime-local"
+                      value={customDateEnd}
+                      onChange={(e) => setCustomDateEnd(e.target.value)}
+                      className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Preset Filter Chips */}
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery('auth');
+                  setDateRangePreset('24h');
                 }}
+                className="text-xs"
               >
-                <option value="">All</option>
-                <option value="user">User</option>
-                <option value="agent">Agent</option>
-                <option value="system">System</option>
-                <option value="scheduler">Scheduler</option>
-              </select>
-            </div>
-
-            {/* Resource Type */}
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block">
-                Resource Type
-              </label>
-              <select
-                className="bg-background border border-border rounded-md px-3 py-2 text-sm text-foreground w-full"
-                value={filters.resourceType || ''}
-                onChange={(e) => {
-                  setFilters(prev => ({
-                    ...prev,
-                    resourceType: e.target.value || undefined
-                  }));
-                  setPage(0);
+                <AlertTriangle className="w-3 h-3 mr-1" />
+                Auth failures (24h)
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery('credential');
                 }}
+                className="text-xs"
               >
-                <option value="">All</option>
-                <option value="agents">Agent</option>
-                <option value="workflows">Workflow</option>
-                <option value="workflow_runs">Workflow Run</option>
-                <option value="integrations">Integration</option>
-                <option value="credentials">Credential</option>
-              </select>
-            </div>
-
-            {/* Start Date */}
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block">
-                Start Date
-              </label>
-              <input
-                type="datetime-local"
-                className="bg-background border border-border rounded-md px-3 py-2 text-sm text-foreground w-full"
-                value={filters.startDate || ''}
-                onChange={(e) => {
-                  setFilters(prev => ({
-                    ...prev,
-                    startDate: e.target.value || undefined
-                  }));
-                  setPage(0);
+                <Shield className="w-3 h-3 mr-1" />
+                Credential access
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery('error');
                 }}
-              />
-            </div>
-
-            {/* End Date */}
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block">
-                End Date
-              </label>
-              <input
-                type="datetime-local"
-                className="bg-background border border-border rounded-md px-3 py-2 text-sm text-foreground w-full"
-                value={filters.endDate || ''}
-                onChange={(e) => {
-                  setFilters(prev => ({
-                    ...prev,
-                    endDate: e.target.value || undefined
-                  }));
-                  setPage(0);
-                }}
-              />
-            </div>
-
-            {/* Correlation ID */}
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block">
-                Correlation ID
-              </label>
-              <Input
-                placeholder="Filter by correlation ID..."
-                value={filters.correlationId || ''}
-                onChange={(e) => {
-                  setFilters(prev => ({
-                    ...prev,
-                    correlationId: e.target.value || undefined
-                  }));
-                  setPage(0);
-                }}
-              />
+                className="text-xs"
+              >
+                <AlertTriangle className="w-3 h-3 mr-1" />
+                Workflow errors
+              </Button>
             </div>
           </div>
         </Card>
 
-        {/* Table */}
-        <Card>
-          {isLoading ? (
+        {/* Events Table */}
+        <Card className="bg-card border-border rounded-lg overflow-hidden">
+          {loading && events.length === 0 ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
-          ) : filteredEntries.length === 0 ? (
+          ) : events.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <FileSearch className="w-12 h-12 text-muted-foreground/50 mb-4" />
-              <h3 className="text-lg font-semibold mb-1">No audit logs found</h3>
+              <Activity className="w-12 h-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No events found</h3>
               <p className="text-sm text-muted-foreground">
-                {hasActiveFilters
-                  ? 'Try adjusting your filters or search query'
-                  : 'Audit logs will appear here as actions are performed'}
+                {hasFilters ? 'Try adjusting your filters' : 'Audit events will appear here'}
               </p>
             </div>
           ) : (
             <>
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="border-b border-border">
+                  <thead className="border-b border-border bg-muted/50">
                     <tr>
                       <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">
                         Timestamp
@@ -345,75 +513,97 @@ export default function AuditLog() {
                         Actor
                       </th>
                       <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">
-                        Actor ID
-                      </th>
-                      <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">
                         Action
                       </th>
                       <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">
                         Resource
                       </th>
                       <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">
-                        Resource ID
-                      </th>
-                      <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">
-                        Correlation ID
-                      </th>
-                      <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3 w-16">
                         Details
                       </th>
+                      <th className="w-12"></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {filteredEntries.map((entry) => {
-                      const isExpanded = expandedRows.has(entry.id);
-                      return (
-                        <tr key={entry.id}>
-                          <td colSpan={8} className="p-0">
-                            <div className="hover:bg-muted/50 transition-colors">
-                              <div className="grid grid-cols-[1fr_auto_auto_1fr_auto_auto_auto_auto] gap-4 px-4 py-3">
-                                <div className="text-sm text-foreground">
-                                  {new Date(entry.timestamp).toLocaleString()}
-                                </div>
-                                <div>
-                                  <Badge
-                                    variant="outline"
-                                    className={actorTypeColors[entry.actor_type] || 'bg-gray-500/10 text-gray-500'}
-                                  >
-                                    {entry.actor_type}
-                                  </Badge>
-                                </div>
-                                <div className="text-sm text-muted-foreground font-mono">
-                                  {truncateId(entry.actor_id)}
-                                </div>
-                                <div className="text-sm text-foreground font-medium">
-                                  {formatPlatformAuditAction(entry.action)}
-                                </div>
-                                <div className="text-sm text-muted-foreground">
-                                  {entry.resource_type ? formatPlatformTableName(entry.resource_type) : '-'}
-                                </div>
-                                <div className="text-sm text-muted-foreground font-mono">
-                                  {truncateId(entry.resource_id)}
-                                </div>
-                                <div className="text-sm">
-                                  {entry.correlation_id ? (
-                                    <button
-                                      onClick={() => setCorrelationFilter(entry.correlation_id!)}
-                                      className="text-primary hover:underline font-mono"
-                                      title="Filter by this correlation ID"
-                                    >
-                                      {truncateId(entry.correlation_id)}
-                                    </button>
-                                  ) : (
-                                    <span className="text-muted-foreground">-</span>
-                                  )}
-                                </div>
-                                <div>
+                    <AnimatePresence>
+                      {events.map((event, index) => {
+                        const isExpanded = expandedRows.has(event.id);
+                        const ActorIcon = actorIcons[event.actor_type];
+
+                        return (
+                          <motion.tr
+                            key={event.id}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ delay: index * 0.02 }}
+                            className="hover:bg-muted/50 transition-colors"
+                          >
+                            <td colSpan={6} className="p-0">
+                              <div>
+                                {/* Main row */}
+                                <div className="flex items-center px-4 py-3">
+                                  <div className="flex-1 grid grid-cols-5 gap-4 items-center">
+                                    {/* Timestamp */}
+                                    <div className="group relative">
+                                      <div className="text-sm text-foreground font-medium">
+                                        {getRelativeTime(event.timestamp)}
+                                      </div>
+                                      <div className="text-xs text-muted-foreground">
+                                        {formatTimestamp(event.timestamp)}
+                                      </div>
+                                    </div>
+
+                                    {/* Actor */}
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="outline" className={actorColors[event.actor_type]}>
+                                        <ActorIcon className="w-3 h-3 mr-1" />
+                                        {event.actor_type}
+                                      </Badge>
+                                      {event.actor_id && (
+                                        <span className="text-xs text-muted-foreground font-mono">
+                                          {truncateId(event.actor_id)}
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    {/* Action */}
+                                    <div className={`text-sm font-medium ${getActionColor(event.action)}`}>
+                                      {event.action}
+                                    </div>
+
+                                    {/* Resource */}
+                                    <div>
+                                      {event.resource_type && (
+                                        <>
+                                          <div className="text-sm text-muted-foreground">
+                                            {event.resource_type}
+                                          </div>
+                                          {event.resource_id && (
+                                            <div className="text-xs text-muted-foreground font-mono">
+                                              {truncateId(event.resource_id)}
+                                            </div>
+                                          )}
+                                        </>
+                                      )}
+                                    </div>
+
+                                    {/* Preview */}
+                                    <div className="text-xs text-muted-foreground">
+                                      {event.details && Object.keys(event.details).length > 0 ? (
+                                        <span>{Object.keys(event.details).length} fields</span>
+                                      ) : (
+                                        <span>-</span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Expand button */}
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => toggleRow(entry.id)}
-                                    className="p-1 h-auto"
+                                    onClick={() => toggleRow(event.id)}
+                                    className="ml-2 p-1 h-auto"
                                   >
                                     {isExpanded ? (
                                       <ChevronDown className="w-4 h-4" />
@@ -422,56 +612,118 @@ export default function AuditLog() {
                                     )}
                                   </Button>
                                 </div>
-                              </div>
 
-                              {/* Expanded details */}
-                              {isExpanded && entry.details && (
-                                <motion.div
-                                  initial={{ opacity: 0, height: 0 }}
-                                  animate={{ opacity: 1, height: 'auto' }}
-                                  exit={{ opacity: 0, height: 0 }}
-                                  className="px-4 pb-4"
-                                >
-                                  <Separator className="mb-4" />
-                                  <div className="text-xs text-muted-foreground mb-2 font-semibold">
-                                    Details:
-                                  </div>
-                                  <pre className="font-mono text-xs bg-muted p-4 rounded-lg overflow-auto max-h-64">
-                                    {JSON.stringify(entry.details, null, 2)}
-                                  </pre>
-                                </motion.div>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                                {/* Expanded details panel */}
+                                <AnimatePresence>
+                                  {isExpanded && (
+                                    <motion.div
+                                      initial={{ height: 0, opacity: 0 }}
+                                      animate={{ height: 'auto', opacity: 1 }}
+                                      exit={{ height: 0, opacity: 0 }}
+                                      transition={{ duration: 0.2 }}
+                                      className="overflow-hidden"
+                                    >
+                                      <div className="px-4 pb-4 border-t border-border bg-muted/30">
+                                        <div className="pt-4 space-y-4">
+                                          {/* Metadata */}
+                                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            {event.correlation_id && (
+                                              <div>
+                                                <div className="text-xs text-muted-foreground mb-1">
+                                                  Correlation ID
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                  <button
+                                                    onClick={() => filterByCorrelation(event.correlation_id!)}
+                                                    className="text-xs font-mono text-primary hover:underline"
+                                                    title="Filter by this correlation ID"
+                                                  >
+                                                    {truncateId(event.correlation_id, 12)}
+                                                  </button>
+                                                  <button
+                                                    onClick={() => copyToClipboard(event.correlation_id!)}
+                                                    className="p-1 hover:bg-background rounded transition-colors"
+                                                  >
+                                                    <Copy className="w-3 h-3" />
+                                                  </button>
+                                                  <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                                                </div>
+                                              </div>
+                                            )}
+
+                                            {event.ip_address && (
+                                              <div>
+                                                <div className="text-xs text-muted-foreground mb-1">IP Address</div>
+                                                <div className="text-xs font-mono">{event.ip_address}</div>
+                                              </div>
+                                            )}
+
+                                            {event.user_agent && (
+                                              <div className="col-span-2">
+                                                <div className="text-xs text-muted-foreground mb-1">User Agent</div>
+                                                <div className="text-xs font-mono truncate" title={event.user_agent}>
+                                                  {event.user_agent}
+                                                </div>
+                                              </div>
+                                            )}
+
+                                            <div>
+                                              <div className="text-xs text-muted-foreground mb-1">Event ID</div>
+                                              <div className="flex items-center gap-1">
+                                                <span className="text-xs font-mono">{truncateId(event.id, 12)}</span>
+                                                <button
+                                                  onClick={() => copyToClipboard(event.id)}
+                                                  className="p-1 hover:bg-background rounded transition-colors"
+                                                  title="Copy event ID"
+                                                >
+                                                  <Copy className="w-3 h-3" />
+                                                </button>
+                                              </div>
+                                            </div>
+                                          </div>
+
+                                          {/* JSON Details */}
+                                          {event.details && Object.keys(event.details).length > 0 && (
+                                            <div>
+                                              <div className="text-xs text-muted-foreground mb-2 font-semibold">
+                                                Full Details
+                                              </div>
+                                              <pre className="text-xs bg-background border border-border rounded-lg p-4 overflow-auto max-h-64 font-mono">
+                                                {JSON.stringify(event.details, null, 2)}
+                                              </pre>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              </div>
+                            </td>
+                          </motion.tr>
+                        );
+                      })}
+                    </AnimatePresence>
                   </tbody>
                 </table>
               </div>
 
-              {/* Pagination */}
-              <div className="flex items-center justify-between px-4 py-3 border-t border-border">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(p => Math.max(0, p - 1))}
-                  disabled={page === 0 || isLoading}
-                >
-                  Previous
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  Page {page + 1}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(p => p + 1)}
-                  disabled={filteredEntries.length < PAGE_SIZE || isLoading}
-                >
-                  Next
-                </Button>
-              </div>
+              {/* Infinite scroll loader */}
+              {hasMore && (
+                <div ref={loadMoreRef} className="flex items-center justify-center py-6 border-t border-border">
+                  {loading ? (
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  ) : (
+                    <span className="text-sm text-muted-foreground">Scroll to load more...</span>
+                  )}
+                </div>
+              )}
+
+              {!hasMore && events.length > 0 && (
+                <div className="text-center py-4 text-sm text-muted-foreground border-t border-border">
+                  No more events to load
+                </div>
+              )}
             </>
           )}
         </Card>
