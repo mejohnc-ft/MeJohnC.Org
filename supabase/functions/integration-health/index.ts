@@ -102,12 +102,12 @@ async function checkIntegration(
         try {
           const { data: credRow } = await supabase
             .from('integration_credentials')
-            .select('credentials_encrypted')
+            .select('encrypted_data')
             .eq('integration_id', integration.id)
             .single()
 
-          if (credRow?.credentials_encrypted) {
-            const decrypted = await decrypt(credRow.credentials_encrypted as EncryptedPayload)
+          if (credRow?.encrypted_data) {
+            const decrypted = await decrypt(credRow.encrypted_data as EncryptedPayload)
             token = (decrypted.access_token as string) || ''
           }
         } catch {
@@ -138,12 +138,12 @@ async function checkIntegration(
         try {
           const { data: credRow } = await supabase
             .from('integration_credentials')
-            .select('credentials_encrypted')
+            .select('encrypted_data')
             .eq('integration_id', integration.id)
             .single()
 
-          if (credRow?.credentials_encrypted) {
-            const decrypted = await decrypt(credRow.credentials_encrypted as EncryptedPayload)
+          if (credRow?.encrypted_data) {
+            const decrypted = await decrypt(credRow.encrypted_data as EncryptedPayload)
             apiKey = (decrypted.api_key as string) || ''
           }
         } catch {
