@@ -56,7 +56,7 @@ function parseCronToHuman(cronExpr: string): string {
     const parts = cronExpr.trim().split(/\s+/);
     if (parts.length !== 5) return cronExpr;
 
-    const [minute, hour, dayOfMonth, month, dayOfWeek] = parts;
+    const [minute, hour, dayOfMonth, , dayOfWeek] = parts;
 
     // Check for common patterns
     if (cronExpr === '* * * * *') return 'Every minute';
@@ -112,7 +112,7 @@ function getNextCronRun(cronExpr: string): Date | null {
     if (parts.length !== 5) return null;
 
     const now = new Date();
-    const [minute, hour, dayOfMonth, month, dayOfWeek] = parts;
+    const [minute, hour] = parts;
     const next = new Date(now);
 
     // Simple next run calculation (approximation)
@@ -338,7 +338,7 @@ export default function Scheduler() {
   }
 
   function getStatusBadge(status: string) {
-    const variants: Record<string, { className: string; icon: any }> = {
+    const variants: Record<string, { className: string; icon: typeof Clock }> = {
       pending: { className: 'bg-yellow-500/10 text-yellow-500', icon: Clock },
       running: { className: 'bg-blue-500/10 text-blue-500', icon: Activity },
       success: { className: 'bg-green-500/10 text-green-500', icon: CheckCircle2 },
@@ -503,7 +503,7 @@ export default function Scheduler() {
                   </thead>
                   <tbody>
                     {workflows.map((workflow, index) => {
-                      const cronExpr = (workflow.trigger_config as any)?.cron || '* * * * *';
+                      const cronExpr = (workflow.trigger_config as { cron?: string } | null)?.cron || '* * * * *';
                       const humanCron = parseCronToHuman(cronExpr);
                       const nextRun = workflow.is_active ? getNextCronRun(cronExpr) : null;
                       const isExpanded = expandedWorkflowId === workflow.id;

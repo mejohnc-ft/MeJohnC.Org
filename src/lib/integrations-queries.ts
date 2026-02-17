@@ -166,7 +166,7 @@ export async function getIntegrationAgents(
   }
 
   // Transform the response to match AgentAccessDetail schema
-  return (data || []).map((item: any) => ({
+  return (data || []).map((item: { agent_id: string; agents: { name: string }; granted_scopes: string[] | null; granted_at: string; granted_by: string }) => ({
     agent_id: item.agent_id,
     agent_name: item.agents.name,
     scopes: item.granted_scopes || [],

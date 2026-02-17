@@ -35,7 +35,7 @@ export async function getScheduledWorkflows(client: SupabaseClient = getSupabase
   if (error) throw error;
 
   // Transform data to include only the most recent run
-  const workflows = (data || []).map((workflow: any) => {
+  const workflows = (data || []).map((workflow: Workflow & { workflow_runs?: WorkflowRun[] }) => {
     const runs = workflow.workflow_runs || [];
     const lastRun = runs.length > 0 ? runs[0] : null;
     return {
@@ -113,7 +113,7 @@ export async function getSchedulerHealth(client: SupabaseClient = getSupabase())
       pendingDispatches: pendingDispatchesResult.count ?? 0,
       pgCronEnabled: true, // Assume enabled if queries work
     };
-  } catch (error) {
+  } catch {
     // If queries fail, return default values
     return {
       activeSchedules: 0,

@@ -26,9 +26,7 @@ import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
 import {
   getIntegrations,
-  getIntegration,
   createIntegration,
-  updateIntegration,
   deleteIntegration,
   testConnection,
   getIntegrationAgents,
@@ -807,7 +805,7 @@ export default function IntegrationHub() {
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        service_type: e.target.value as any,
+                        service_type: e.target.value as 'oauth2' | 'api_key' | 'webhook' | 'custom',
                       })
                     }
                     className="w-full px-3 py-2 border border-border rounded-md bg-background"

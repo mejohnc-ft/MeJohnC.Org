@@ -17,7 +17,6 @@ import {
   User,
   Bot,
   Settings,
-  Zap,
   Loader2,
 } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
@@ -30,7 +29,6 @@ import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
 import {
   getAuditEvents,
-  getAuditStats,
   exportAuditEvents,
   type AuditEventFilters,
 } from '@/lib/audit-queries';
