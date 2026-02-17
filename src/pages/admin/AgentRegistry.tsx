@@ -73,7 +73,7 @@ function StatusBadge({ status }: { status: PlatformAgentStatus }) {
 export default function AgentRegistry() {
   useSEO({ title: 'Agent Registry', noIndex: true });
 
-  const supabase = useAuthenticatedSupabase();
+  const { supabase } = useAuthenticatedSupabase();
   const [agents, setAgents] = useState<AgentPlatform[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
