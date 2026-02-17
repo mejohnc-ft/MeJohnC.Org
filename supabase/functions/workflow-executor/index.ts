@@ -195,6 +195,12 @@ async function executeStepInner(
       // Dispatch as an agent command with integration context in metadata
       const content = JSON.stringify(mergedParams)
 
+      const integrationMeta = {
+        workflow_integration_action: action_name,
+        integration_id: integration_id || null,
+        integration_action_id: actionDef?.id || null,
+      }
+
       const { data, error } = await supabase
         .from('agent_commands')
         .insert({
@@ -204,11 +210,7 @@ async function executeStepInner(
           user_id: agentId || 'system',
           user_email: 'workflow@system',
           session_id: crypto.randomUUID(),
-          metadata: {
-            workflow_integration_action: action_name,
-            integration_id: integration_id || null,
-            integration_action_id: actionDef?.id || null,
-          },
+          metadata: integrationMeta,
         })
         .select('id')
         .single()
