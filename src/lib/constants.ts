@@ -47,6 +47,7 @@ export const STORAGE_KEYS = {
   ANALYTICS_CONSENT: 'analytics_consent',
   SIDEBAR_COLLAPSED: 'admin-sidebar-collapsed',
   SIDEBAR_SECTIONS: 'admin-sidebar-sections',
+  DESKTOP_MODE: 'admin-desktop-mode',
 } as const;
 
 // Supabase/PostgreSQL error codes

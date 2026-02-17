@@ -59,6 +59,9 @@ const AdminRunbooks = lazy(() => import('./pages/admin/Runbooks'));
 const SiteBuilderIndex = lazy(() => import('./pages/admin/site-builder/index'));
 const SiteBuilderEditor = lazy(() => import('./pages/admin/site-builder/editor'));
 
+// Desktop OS mode
+const DesktopShell = lazy(() => import('./components/desktop/DesktopShell'));
+
 // Agent Platform admin pages
 const AdminAgentRegistry = lazy(() => import('./pages/admin/AgentRegistry'));
 const AdminWorkflows = lazy(() => import('./pages/admin/Workflows'));
@@ -341,6 +344,9 @@ function AdminRoutes() {
     <ErrorBoundary fallback={<AdminErrorFallback />}>
       <Suspense fallback={<PageLoader />}>
         <Routes>
+          {/* Desktop OS mode (must be before other admin routes) */}
+          <Route path="/admin/desktop/*" element={<DesktopShell />} />
+
           {/* Core admin routes (not from feature modules) */}
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminDashboard />} />

@@ -125,6 +125,14 @@ const DEFAULT_FLAGS: Record<string, FeatureFlag> = {
     description: 'Enable circuit breaker for external calls',
     enabled: true,
   },
+
+  // Desktop OS Mode
+  'desktop.os-mode': {
+    name: 'desktop.os-mode',
+    description: 'macOS-inspired desktop mode for admin panel',
+    enabled: false,
+    environments: ['development', 'staging'],
+  },
 };
 
 /**
