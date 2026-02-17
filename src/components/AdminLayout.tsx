@@ -1,5 +1,5 @@
 import { ReactNode, useState, useEffect, useCallback, useMemo } from 'react';
-import { Link, useLocation, Navigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
   LayoutDashboard,
@@ -33,6 +33,7 @@ import {
   Clock,
   Plug,
   FileSearch,
+  Monitor,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { UserButton } from '@clerk/clerk-react';
@@ -339,6 +340,7 @@ const SidebarContent = ({
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, isSignedIn, isLoaded, signOut } = useAuth();
   const prefersReducedMotion = useReducedMotion();
 
@@ -510,6 +512,14 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           </div>
           <div className="flex items-center gap-3">
             <AdminSearch />
+            <button
+              onClick={() => navigate('/admin/desktop')}
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              aria-label="Switch to Desktop Mode"
+              title="Desktop Mode"
+            >
+              <Monitor className="w-4 h-4" />
+            </button>
             <ThemeToggleMinimal />
           </div>
         </div>
