@@ -225,6 +225,10 @@ export function useWindowManager() {
     dispatch({ type: 'RESIZE_WINDOW', payload: { id, width, height, x, y } });
   }, []);
 
+  const restoreState = useCallback((windows: WindowState[], nextZIndex: number) => {
+    dispatch({ type: 'RESTORE_STATE', payload: { windows, nextZIndex } });
+  }, []);
+
   /** Check if a singleton app is already open, return its window if so */
   const findWindowByAppId = useCallback((appId: string): WindowState | undefined => {
     return state.windows.find(w => w.appId === appId);
@@ -239,8 +243,9 @@ export function useWindowManager() {
     restoreWindow,
     moveWindow,
     resizeWindow,
+    restoreState,
     findWindowByAppId,
-  }), [openWindow, closeWindow, focusWindow, minimizeWindow, maximizeWindow, restoreWindow, moveWindow, resizeWindow, findWindowByAppId]);
+  }), [openWindow, closeWindow, focusWindow, minimizeWindow, maximizeWindow, restoreWindow, moveWindow, resizeWindow, restoreState, findWindowByAppId]);
 
   return { state, ...actions };
 }

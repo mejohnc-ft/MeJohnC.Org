@@ -1,16 +1,16 @@
 import { useCallback, useState } from 'react';
-import { useWindowManagerContext } from './WindowManager';
+import { useWindowManagerContext, useWorkspaceContext } from './WindowManager';
 import Window from './Window';
 import DesktopIcon from './DesktopIcon';
 import ContextMenu from './ContextMenu';
 import { useContextMenu, type ContextMenuItem } from '@/hooks/useContextMenu';
 import { useFileSystem } from '@/hooks/useFileSystem';
 import { ROOT_FOLDERS, type FileSystemNode } from '@/lib/desktop-schemas';
-
-const WALLPAPER_GRADIENT = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 70%, #533483 100%)';
+import { Loader2 } from 'lucide-react';
 
 export default function Desktop() {
   const { state, launchApp } = useWindowManagerContext();
+  const workspace = useWorkspaceContext();
   const contextMenu = useContextMenu();
   const fs = useFileSystem(ROOT_FOLDERS.DESKTOP);
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
@@ -25,10 +25,12 @@ export default function Desktop() {
     const items: ContextMenuItem[] = [
       { id: 'new-folder', label: 'New Folder', onClick: () => fs.createFolder('New Folder') },
       { id: 'sep1', label: '', separator: true },
+      { id: 'change-wallpaper', label: 'Change Wallpaper...', onClick: () => launchApp('wallpaper-picker') },
+      { id: 'sep2', label: '', separator: true },
       { id: 'refresh', label: 'Refresh', shortcut: '⌘R', onClick: () => fs.refresh() },
     ];
     contextMenu.openMenu(e, items);
-  }, [contextMenu, fs]);
+  }, [contextMenu, fs, launchApp]);
 
   const handleIconContextMenu = useCallback((e: React.MouseEvent, node: FileSystemNode) => {
     const items: ContextMenuItem[] = [
@@ -53,10 +55,21 @@ export default function Desktop() {
     setSelectedIconId(id);
   }, []);
 
+  if (workspace.isLoading) {
+    return (
+      <div
+        className="flex-1 relative overflow-hidden flex items-center justify-center"
+        style={{ background: workspace.wallpaper }}
+      >
+        <Loader2 className="w-8 h-8 animate-spin text-white/50" />
+      </div>
+    );
+  }
+
   return (
     <div
       className="flex-1 relative overflow-hidden"
-      style={{ background: WALLPAPER_GRADIENT }}
+      style={{ background: workspace.wallpaper }}
       onClick={handleDesktopClick}
       onContextMenu={handleDesktopContextMenu}
     >

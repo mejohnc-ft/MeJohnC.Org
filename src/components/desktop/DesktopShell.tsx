@@ -7,7 +7,7 @@ import Desktop from './Desktop';
 import Dock from './Dock';
 
 export default function DesktopShell() {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isSignedIn, isLoaded, user } = useAuth();
 
   if (!isLoaded) {
     return (
@@ -17,12 +17,12 @@ export default function DesktopShell() {
     );
   }
 
-  if (!isSignedIn) {
+  if (!isSignedIn || !user) {
     return <Navigate to="/admin/login" replace />;
   }
 
   return (
-    <WindowManagerProvider>
+    <WindowManagerProvider userId={user.id}>
       <div className="h-screen w-screen flex flex-col overflow-hidden bg-background">
         <MenuBar />
         <Desktop />
