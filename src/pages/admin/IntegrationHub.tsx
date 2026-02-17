@@ -1,43 +1,139 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plug, Plus, Pencil, Trash2, Shield, Loader2, ExternalLink, ChevronDown, ChevronRight, X } from 'lucide-react';
+import {
+  Plug,
+  Plus,
+  Github,
+  MessageSquare,
+  Key,
+  Globe,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Shield,
+  Loader2,
+  ChevronDown,
+  ChevronRight,
+  X,
+  Trash2,
+  RefreshCw,
+} from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
 import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
 import {
   getIntegrations,
   createIntegration,
-  updateIntegration,
   deleteIntegration,
+  testConnection,
   getIntegrationAgents,
-  getAgents,
-  grantIntegrationAccess,
-  revokeIntegrationAccess,
-} from '@/lib/agent-platform-queries';
-import type { Integration, AgentPlatform } from '@/lib/schemas';
+  grantAgentAccess,
+  revokeAgentAccess,
+  getAgentsList,
+} from '@/lib/integrations-queries';
+import type { Integration, AgentAccessDetail } from '@/lib/integrations-schemas';
+import type { AgentPlatform } from '@/lib/schemas';
 
-type ServiceType = 'oauth2' | 'api_key' | 'webhook' | 'custom';
+// Integration templates
+interface IntegrationTemplate {
+  service_name: string;
+  service_type: 'oauth2' | 'api_key' | 'webhook' | 'custom';
+  display_name: string;
+  description: string;
+  icon: typeof Github;
+  config: Record<string, unknown>;
+}
 
+const INTEGRATION_TEMPLATES: IntegrationTemplate[] = [
+  {
+    service_name: 'github',
+    service_type: 'oauth2',
+    display_name: 'GitHub',
+    description: 'Connect to GitHub for repository management and API access',
+    icon: Github,
+    config: {
+      client_id: '',
+      scopes: ['repo', 'user', 'workflow'],
+      redirect_uri: '',
+    },
+  },
+  {
+    service_name: 'google_workspace',
+    service_type: 'oauth2',
+    display_name: 'Google Workspace',
+    description: 'Access Gmail, Calendar, Drive, and other Google services',
+    icon: Globe,
+    config: {
+      client_id: '',
+      scopes: ['https://www.googleapis.com/auth/gmail.readonly'],
+      redirect_uri: '',
+    },
+  },
+  {
+    service_name: 'slack',
+    service_type: 'oauth2',
+    display_name: 'Slack',
+    description: 'Send messages and interact with Slack workspaces',
+    icon: MessageSquare,
+    config: {
+      client_id: '',
+      scopes: ['chat:write', 'channels:read'],
+      redirect_uri: '',
+    },
+  },
+  {
+    service_name: 'openai',
+    service_type: 'api_key',
+    display_name: 'OpenAI',
+    description: 'Access GPT models and OpenAI API services',
+    icon: Key,
+    config: {
+      base_url: 'https://api.openai.com/v1',
+    },
+  },
+  {
+    service_name: 'anthropic',
+    service_type: 'api_key',
+    display_name: 'Anthropic',
+    description: 'Access Claude models and Anthropic API services',
+    icon: Key,
+    config: {
+      base_url: 'https://api.anthropic.com/v1',
+    },
+  },
+  {
+    service_name: 'custom_webhook',
+    service_type: 'webhook',
+    display_name: 'Custom Webhook',
+    description: 'Configure a custom webhook endpoint',
+    icon: Plug,
+    config: {
+      webhook_url: '',
+      secret: '',
+    },
+  },
+];
 
 interface IntegrationWithAgents extends Integration {
   agentCount: number;
-  agents?: Array<{
-    agent_id: string;
-    agent_name: string;
-    scopes: string[];
-    granted_at: string;
-  }>;
+  agents?: AgentAccessDetail[];
+}
+
+// Get icon for service
+function getServiceIcon(serviceName: string) {
+  const lowerName = serviceName.toLowerCase();
+  if (lowerName.includes('github')) return Github;
+  if (lowerName.includes('slack')) return MessageSquare;
+  if (lowerName.includes('key') || lowerName.includes('openai') || lowerName.includes('anthropic')) return Key;
+  return Globe;
 }
 
 export default function IntegrationHub() {
   useSEO({ title: 'Integration Hub', noIndex: true });
-  const supabase = useAuthenticatedSupabase();
+  const { supabase, isLoading: authLoading } = useAuthenticatedSupabase();
 
   const [integrations, setIntegrations] = useState<IntegrationWithAgents[]>([]);
   const [agents, setAgents] = useState<AgentPlatform[]>([]);
@@ -46,7 +142,7 @@ export default function IntegrationHub() {
 
   // Modal states
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showGrantModal, setShowGrantModal] = useState(false);
   const [selectedIntegration, setSelectedIntegration] = useState<IntegrationWithAgents | null>(null);
@@ -55,9 +151,10 @@ export default function IntegrationHub() {
   const [formData, setFormData] = useState({
     service_name: '',
     display_name: '',
-    service_type: 'api_key' as ServiceType,
+    service_type: 'api_key' as 'oauth2' | 'api_key' | 'webhook' | 'custom',
     description: '',
     config: '{}',
+    health_check_url: '',
   });
 
   // Grant access form
@@ -67,12 +164,20 @@ export default function IntegrationHub() {
   });
 
   const [submitting, setSubmitting] = useState(false);
+  const [testingConnection, setTestingConnection] = useState<string | null>(null);
+
+  // Status counts
+  const statusCounts = {
+    active: integrations.filter(i => i.status === 'active').length,
+    inactive: integrations.filter(i => i.status === 'inactive').length,
+    error: integrations.filter(i => i.status === 'error').length,
+  };
 
   useEffect(() => {
-    if (supabase) {
+    if (supabase && !authLoading) {
       loadData();
     }
-  }, [supabase]);
+  }, [supabase, authLoading]);
 
   const loadData = async () => {
     if (!supabase) return;
@@ -81,13 +186,13 @@ export default function IntegrationHub() {
     try {
       const [integrationsData, agentsData] = await Promise.all([
         getIntegrations(supabase),
-        getAgents(supabase),
+        getAgentsList(supabase),
       ]);
 
       // Load agent counts for each integration
       const integrationsWithCounts = await Promise.all(
         integrationsData.map(async (integration) => {
-          const agents = await getIntegrationAgents(supabase, integration.id);
+          const agents = await getIntegrationAgents(integration.id, supabase);
           return {
             ...integration,
             agentCount: agents.length,
@@ -98,7 +203,9 @@ export default function IntegrationHub() {
       setIntegrations(integrationsWithCounts);
       setAgents(agentsData);
     } catch (error) {
-      captureException(error);
+      captureException(error instanceof Error ? error : new Error(String(error)), {
+        context: 'IntegrationHub.loadData',
+      });
       console.error('Failed to load data:', error);
     } finally {
       setLoading(false);
@@ -109,16 +216,18 @@ export default function IntegrationHub() {
     if (!supabase) return;
 
     try {
-      const agentAccess = await getIntegrationAgents(supabase, integrationId);
+      const agentAccess = await getIntegrationAgents(integrationId, supabase);
       setIntegrations(prev =>
         prev.map(int =>
           int.id === integrationId
-            ? { ...int, agents: agentAccess }
+            ? { ...int, agents: agentAccess, agentCount: agentAccess.length }
             : int
         )
       );
     } catch (error) {
-      captureException(error);
+      captureException(error instanceof Error ? error : new Error(String(error)), {
+        context: 'IntegrationHub.loadIntegrationAgents',
+      });
       console.error('Failed to load integration agents:', error);
     }
   };
@@ -133,26 +242,20 @@ export default function IntegrationHub() {
   };
 
   const handleAdd = () => {
-    setFormData({
-      service_name: '',
-      display_name: '',
-      service_type: 'api_key',
-      description: '',
-      config: '{}',
-    });
-    setShowAddModal(true);
+    setShowTemplates(true);
   };
 
-  const handleEdit = (integration: IntegrationWithAgents) => {
-    setSelectedIntegration(integration);
+  const handleSelectTemplate = (template: IntegrationTemplate) => {
     setFormData({
-      service_name: integration.service_name,
-      display_name: integration.display_name,
-      service_type: integration.service_type as ServiceType,
-      description: integration.description || '',
-      config: JSON.stringify(integration.config || {}, null, 2),
+      service_name: template.service_name,
+      display_name: template.display_name,
+      service_type: template.service_type,
+      description: template.description,
+      config: JSON.stringify(template.config, null, 2),
+      health_check_url: '',
     });
-    setShowEditModal(true);
+    setShowTemplates(false);
+    setShowAddModal(true);
   };
 
   const handleDelete = (integration: IntegrationWithAgents) => {
@@ -174,54 +277,28 @@ export default function IntegrationHub() {
         return;
       }
 
-      await createIntegration(supabase, {
-        service_name: formData.service_name,
-        display_name: formData.display_name,
-        service_type: formData.service_type,
-        description: formData.description || null,
-        config,
-        status: 'inactive',
-      });
+      await createIntegration(
+        {
+          service_name: formData.service_name,
+          display_name: formData.display_name,
+          service_type: formData.service_type,
+          description: formData.description || null,
+          config,
+          status: 'inactive',
+          icon_url: null,
+          health_check_url: formData.health_check_url || null,
+        },
+        supabase
+      );
 
       await loadData();
       setShowAddModal(false);
     } catch (error) {
-      captureException(error);
+      captureException(error instanceof Error ? error : new Error(String(error)), {
+        context: 'IntegrationHub.createIntegration',
+      });
       console.error('Failed to create integration:', error);
       alert('Failed to create integration');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleSubmitEdit = async () => {
-    if (!supabase || !selectedIntegration) return;
-
-    setSubmitting(true);
-    try {
-      let config = {};
-      try {
-        config = JSON.parse(formData.config);
-      } catch {
-        alert('Invalid JSON in config field');
-        setSubmitting(false);
-        return;
-      }
-
-      await updateIntegration(supabase, selectedIntegration.id, {
-        service_name: formData.service_name,
-        display_name: formData.display_name,
-        service_type: formData.service_type,
-        description: formData.description || null,
-        config,
-      });
-
-      await loadData();
-      setShowEditModal(false);
-    } catch (error) {
-      captureException(error);
-      console.error('Failed to update integration:', error);
-      alert('Failed to update integration');
     } finally {
       setSubmitting(false);
     }
@@ -232,11 +309,13 @@ export default function IntegrationHub() {
 
     setSubmitting(true);
     try {
-      await deleteIntegration(supabase, selectedIntegration.id);
+      await deleteIntegration(selectedIntegration.id, supabase);
       await loadData();
       setShowDeleteModal(false);
     } catch (error) {
-      captureException(error);
+      captureException(error instanceof Error ? error : new Error(String(error)), {
+        context: 'IntegrationHub.deleteIntegration',
+      });
       console.error('Failed to delete integration:', error);
       alert('Failed to delete integration');
     } finally {
@@ -260,17 +339,20 @@ export default function IntegrationHub() {
         .map(s => s.trim())
         .filter(Boolean);
 
-      await grantIntegrationAccess(supabase, {
-        integration_id: selectedIntegration.id,
-        agent_id: grantForm.agent_id,
+      await grantAgentAccess(
+        selectedIntegration.id,
+        grantForm.agent_id,
         scopes,
-      });
+        supabase
+      );
 
       await loadIntegrationAgents(selectedIntegration.id);
       await loadData();
       setShowGrantModal(false);
     } catch (error) {
-      captureException(error);
+      captureException(error instanceof Error ? error : new Error(String(error)), {
+        context: 'IntegrationHub.grantAccess',
+      });
       console.error('Failed to grant access:', error);
       alert('Failed to grant access');
     } finally {
@@ -282,68 +364,42 @@ export default function IntegrationHub() {
     if (!supabase) return;
 
     try {
-      await revokeIntegrationAccess(supabase, integrationId, agentId);
+      await revokeAgentAccess(integrationId, agentId, supabase);
       await loadIntegrationAgents(integrationId);
       await loadData();
     } catch (error) {
-      captureException(error);
+      captureException(error instanceof Error ? error : new Error(String(error)), {
+        context: 'IntegrationHub.revokeAccess',
+      });
       console.error('Failed to revoke access:', error);
       alert('Failed to revoke access');
     }
   };
 
-  const handleOAuthConnect = async (integration: IntegrationWithAgents) => {
+  const handleTestConnection = async (integration: IntegrationWithAgents) => {
     if (!supabase) return;
 
+    setTestingConnection(integration.id);
     try {
-      const { data, error } = await supabase.functions.invoke('integration-auth', {
-        body: { action: 'initiate', integration_id: integration.id },
-      });
-
-      if (error) throw error;
-      if (data?.auth_url) {
-        window.open(data.auth_url, '_blank');
-      }
+      const result = await testConnection(integration.id, supabase);
+      alert(result ? 'Connection successful!' : 'Connection failed.');
+      await loadData();
     } catch (error) {
-      captureException(error);
-      console.error('Failed to initiate OAuth:', error);
-      alert('Failed to initiate OAuth connection');
+      captureException(error instanceof Error ? error : new Error(String(error)), {
+        context: 'IntegrationHub.testConnection',
+      });
+      console.error('Failed to test connection:', error);
+      alert('Failed to test connection');
+    } finally {
+      setTestingConnection(null);
     }
   };
 
-  const getServiceTypeBadgeClass = (type: string) => {
-    switch (type) {
-      case 'oauth2':
-        return 'bg-blue-500/10 text-blue-500';
-      case 'api_key':
-        return 'bg-orange-500/10 text-orange-500';
-      case 'webhook':
-        return 'bg-green-500/10 text-green-500';
-      case 'custom':
-        return 'bg-purple-500/10 text-purple-500';
-      default:
-        return 'bg-gray-500/10 text-gray-500';
-    }
-  };
-
-  const getStatusDotClass = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-500';
-      case 'inactive':
-        return 'bg-gray-500';
-      case 'error':
-        return 'bg-red-500';
-      default:
-        return 'bg-gray-500';
-    }
-  };
-
-  if (!supabase) {
+  if (!supabase || authLoading) {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center min-h-[400px]">
-          <p className="text-gray-500">Please sign in to access the Integration Hub.</p>
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       </AdminLayout>
     );
@@ -357,9 +413,9 @@ export default function IntegrationHub() {
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-3">
               <Plug className="w-8 h-8" />
-              Integration Hub
+              Integrations
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <p className="text-muted-foreground mt-2">
               Manage third-party integrations and agent access control
             </p>
           </div>
@@ -369,28 +425,65 @@ export default function IntegrationHub() {
           </Button>
         </div>
 
-        <Separator />
+        {/* Status Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-card border border-border rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-500/10 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Connected</p>
+                <p className="text-2xl font-bold">{statusCounts.active}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-card border border-border rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gray-500/10 rounded-lg">
+                <AlertCircle className="w-5 h-5 text-gray-500" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Disconnected</p>
+                <p className="text-2xl font-bold">{statusCounts.inactive}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-card border border-border rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-red-500/10 rounded-lg">
+                <XCircle className="w-5 h-5 text-red-500" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Error</p>
+                <p className="text-2xl font-bold">{statusCounts.error}</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Loading State */}
         {loading && (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         )}
 
         {/* Empty State */}
         {!loading && integrations.length === 0 && (
-          <Card className="p-12 text-center">
-            <Plug className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+          <div className="bg-card border border-border rounded-lg p-12 text-center">
+            <Plug className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No integrations yet</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
+            <p className="text-muted-foreground mb-4">
               Get started by adding your first integration
             </p>
             <Button onClick={handleAdd} className="gap-2">
               <Plus className="w-4 h-4" />
               Add Integration
             </Button>
-          </Card>
+          </div>
         )}
 
         {/* Integration Cards Grid */}
@@ -398,6 +491,7 @@ export default function IntegrationHub() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {integrations.map((integration) => {
               const isExpanded = expandedId === integration.id;
+              const ServiceIcon = getServiceIcon(integration.service_name);
 
               return (
                 <motion.div
@@ -408,47 +502,46 @@ export default function IntegrationHub() {
                   exit={{ opacity: 0, scale: 0.95 }}
                   className={isExpanded ? 'md:col-span-2 lg:col-span-3' : ''}
                 >
-                  <Card className="p-6 space-y-4">
+                  <div className="bg-card border border-border rounded-lg p-6 space-y-4">
                     {/* Card Header */}
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-3 flex-1">
-                        <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
-                          <Plug className="w-5 h-5" />
+                        <div className="p-2 rounded-lg bg-muted">
+                          <ServiceIcon className="w-5 h-5" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="font-semibold truncate">
                               {integration.display_name}
                             </h3>
-                            <div
-                              className={`w-2 h-2 rounded-full ${getStatusDotClass(
-                                integration.status
-                              )}`}
-                              title={integration.status}
-                            />
+                            <Badge
+                              className={
+                                integration.status === 'active'
+                                  ? 'bg-green-500/10 text-green-500 border-green-500/20'
+                                  : integration.status === 'error'
+                                  ? 'bg-red-500/10 text-red-500 border-red-500/20'
+                                  : 'bg-gray-500/10 text-gray-500 border-gray-500/20'
+                              }
+                            >
+                              {integration.status}
+                            </Badge>
                           </div>
                           <div className="flex items-center gap-2 mb-2">
-                            <Badge
-                              className={getServiceTypeBadgeClass(
-                                integration.service_type
-                              )}
-                            >
+                            <Badge variant="outline" className="text-xs">
                               {integration.service_type}
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                          <p className="text-sm text-muted-foreground line-clamp-2">
                             {integration.description || 'No description'}
                           </p>
+                          {integration.health_checked_at && (
+                            <p className="text-xs text-muted-foreground mt-2">
+                              Last checked: {new Date(integration.health_checked_at).toLocaleString()}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(integration)}
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Button>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -459,22 +552,27 @@ export default function IntegrationHub() {
                       </div>
                     </div>
 
-                    {/* Agent Count & OAuth Connect */}
-                    <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
-                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    {/* Agent Count & Actions */}
+                    <div className="flex items-center justify-between pt-2 border-t border-border">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Shield className="w-4 h-4" />
-                        {integration.agentCount} agents connected
+                        {integration.agentCount} agent{integration.agentCount !== 1 ? 's' : ''} connected
                       </div>
                       <div className="flex items-center gap-2">
-                        {integration.service_type === 'oauth2' && (
+                        {integration.health_check_url && (
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleOAuthConnect(integration)}
+                            onClick={() => handleTestConnection(integration)}
+                            disabled={testingConnection === integration.id}
                             className="gap-2"
                           >
-                            <ExternalLink className="w-3 h-3" />
-                            Connect
+                            {testingConnection === integration.id ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <RefreshCw className="w-3 h-3" />
+                            )}
+                            Test
                           </Button>
                         )}
                         <Button
@@ -505,7 +603,7 @@ export default function IntegrationHub() {
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: 'auto' }}
                           exit={{ opacity: 0, height: 0 }}
-                          className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4"
+                          className="pt-4 border-t border-border space-y-4"
                         >
                           <div className="flex items-center justify-between">
                             <h4 className="font-semibold flex items-center gap-2">
@@ -526,7 +624,7 @@ export default function IntegrationHub() {
                           {integration.agents && integration.agents.length > 0 ? (
                             <div className="overflow-x-auto">
                               <table className="w-full text-sm">
-                                <thead className="border-b border-gray-200 dark:border-gray-700">
+                                <thead className="border-b border-border">
                                   <tr className="text-left">
                                     <th className="pb-2 font-semibold">Agent Name</th>
                                     <th className="pb-2 font-semibold">Scopes</th>
@@ -538,7 +636,7 @@ export default function IntegrationHub() {
                                   {integration.agents.map((agent) => (
                                     <tr
                                       key={agent.agent_id}
-                                      className="border-b border-gray-100 dark:border-gray-800"
+                                      className="border-b border-border"
                                     >
                                       <td className="py-3">{agent.agent_name}</td>
                                       <td className="py-3">
@@ -554,7 +652,7 @@ export default function IntegrationHub() {
                                           ))}
                                         </div>
                                       </td>
-                                      <td className="py-3 text-gray-600 dark:text-gray-400">
+                                      <td className="py-3 text-muted-foreground">
                                         {new Date(agent.granted_at).toLocaleDateString()}
                                       </td>
                                       <td className="py-3">
@@ -578,14 +676,14 @@ export default function IntegrationHub() {
                               </table>
                             </div>
                           ) : (
-                            <p className="text-sm text-gray-500 text-center py-4">
+                            <p className="text-sm text-muted-foreground text-center py-4">
                               No agents have access yet
                             </p>
                           )}
                         </motion.div>
                       )}
                     </AnimatePresence>
-                  </Card>
+                  </div>
                 </motion.div>
               );
             })}
@@ -593,15 +691,69 @@ export default function IntegrationHub() {
         )}
       </div>
 
+      {/* Template Selection Modal */}
+      <AnimatePresence>
+        {showTemplates && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-card border border-border rounded-lg w-full max-w-4xl p-6 space-y-4"
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold">Choose Integration Template</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowTemplates(false)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {INTEGRATION_TEMPLATES.map((template) => {
+                  const TemplateIcon = template.icon;
+                  return (
+                    <button
+                      key={template.service_name}
+                      onClick={() => handleSelectTemplate(template)}
+                      className="bg-muted hover:bg-muted/80 border border-border rounded-lg p-4 text-left transition-colors"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-card rounded-lg">
+                          <TemplateIcon className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold mb-1">{template.display_name}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {template.description}
+                          </p>
+                          <Badge variant="outline" className="text-xs mt-2">
+                            {template.service_type}
+                          </Badge>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Add Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-          >
-            <Card className="w-full max-w-lg p-6 space-y-4">
+      <AnimatePresence>
+        {showAddModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-card border border-border rounded-lg w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto"
+            >
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold">Add Integration</h2>
                 <Button
@@ -618,12 +770,14 @@ export default function IntegrationHub() {
                   <label className="block text-sm font-medium mb-1">
                     Service Name
                   </label>
-                  <Input
+                  <input
+                    type="text"
                     value={formData.service_name}
                     onChange={(e) =>
                       setFormData({ ...formData, service_name: e.target.value })
                     }
                     placeholder="e.g., github"
+                    className="w-full px-3 py-2 border border-border rounded-md bg-background"
                   />
                 </div>
 
@@ -631,12 +785,14 @@ export default function IntegrationHub() {
                   <label className="block text-sm font-medium mb-1">
                     Display Name
                   </label>
-                  <Input
+                  <input
+                    type="text"
                     value={formData.display_name}
                     onChange={(e) =>
                       setFormData({ ...formData, display_name: e.target.value })
                     }
                     placeholder="e.g., GitHub"
+                    className="w-full px-3 py-2 border border-border rounded-md bg-background"
                   />
                 </div>
 
@@ -649,10 +805,10 @@ export default function IntegrationHub() {
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        service_type: e.target.value as ServiceType,
+                        service_type: e.target.value as 'oauth2' | 'api_key' | 'webhook' | 'custom',
                       })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800"
+                    className="w-full px-3 py-2 border border-border rounded-md bg-background"
                   >
                     <option value="api_key">API Key</option>
                     <option value="oauth2">OAuth2</option>
@@ -670,8 +826,23 @@ export default function IntegrationHub() {
                     onChange={(e) =>
                       setFormData({ ...formData, description: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 min-h-[80px]"
+                    className="w-full px-3 py-2 border border-border rounded-md bg-background min-h-[80px]"
                     placeholder="Brief description of this integration"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Health Check URL (optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.health_check_url}
+                    onChange={(e) =>
+                      setFormData({ ...formData, health_check_url: e.target.value })
+                    }
+                    placeholder="https://api.example.com/health"
+                    className="w-full px-3 py-2 border border-border rounded-md bg-background"
                   />
                 </div>
 
@@ -684,7 +855,7 @@ export default function IntegrationHub() {
                     onChange={(e) =>
                       setFormData({ ...formData, config: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 font-mono text-sm min-h-[120px]"
+                    className="w-full px-3 py-2 border border-border rounded-md bg-background font-mono text-sm min-h-[120px]"
                     placeholder="{}"
                   />
                 </div>
@@ -706,138 +877,21 @@ export default function IntegrationHub() {
                   )}
                 </Button>
               </div>
-            </Card>
-          </motion.div>
-        </div>
-      )}
-
-      {/* Edit Modal */}
-      {showEditModal && selectedIntegration && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-          >
-            <Card className="w-full max-w-lg p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold">Edit Integration</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowEditModal(false)}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Service Name
-                  </label>
-                  <Input
-                    value={formData.service_name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, service_name: e.target.value })
-                    }
-                    placeholder="e.g., github"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Display Name
-                  </label>
-                  <Input
-                    value={formData.display_name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, display_name: e.target.value })
-                    }
-                    placeholder="e.g., GitHub"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Service Type
-                  </label>
-                  <select
-                    value={formData.service_type}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        service_type: e.target.value as ServiceType,
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800"
-                  >
-                    <option value="api_key">API Key</option>
-                    <option value="oauth2">OAuth2</option>
-                    <option value="webhook">Webhook</option>
-                    <option value="custom">Custom</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 min-h-[80px]"
-                    placeholder="Brief description of this integration"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Config (JSON)
-                  </label>
-                  <textarea
-                    value={formData.config}
-                    onChange={(e) =>
-                      setFormData({ ...formData, config: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 font-mono text-sm min-h-[120px]"
-                    placeholder="{}"
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-2 justify-end pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowEditModal(false)}
-                  disabled={submitting}
-                >
-                  Cancel
-                </Button>
-                <Button onClick={handleSubmitEdit} disabled={submitting}>
-                  {submitting ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    'Save'
-                  )}
-                </Button>
-              </div>
-            </Card>
-          </motion.div>
-        </div>
-      )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Delete Modal */}
-      {showDeleteModal && selectedIntegration && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-          >
-            <Card className="w-full max-w-md p-6 space-y-4">
+      <AnimatePresence>
+        {showDeleteModal && selectedIntegration && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-card border border-border rounded-lg w-full max-w-md p-6 space-y-4"
+            >
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold">Delete Integration</h2>
                 <Button
@@ -849,7 +903,7 @@ export default function IntegrationHub() {
                 </Button>
               </div>
 
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-muted-foreground">
                 Are you sure you want to delete{' '}
                 <span className="font-semibold">
                   {selectedIntegration.display_name}
@@ -877,20 +931,21 @@ export default function IntegrationHub() {
                   )}
                 </Button>
               </div>
-            </Card>
-          </motion.div>
-        </div>
-      )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Grant Access Modal */}
-      {showGrantModal && selectedIntegration && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-          >
-            <Card className="w-full max-w-md p-6 space-y-4">
+      <AnimatePresence>
+        {showGrantModal && selectedIntegration && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-card border border-border rounded-lg w-full max-w-md p-6 space-y-4"
+            >
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold">Grant Access</h2>
                 <Button
@@ -902,7 +957,7 @@ export default function IntegrationHub() {
                 </Button>
               </div>
 
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 Grant agent access to {selectedIntegration.display_name}
               </p>
 
@@ -914,7 +969,7 @@ export default function IntegrationHub() {
                     onChange={(e) =>
                       setGrantForm({ ...grantForm, agent_id: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800"
+                    className="w-full px-3 py-2 border border-border rounded-md bg-background"
                   >
                     <option value="">Select an agent</option>
                     {agents.map((agent) => (
@@ -929,14 +984,16 @@ export default function IntegrationHub() {
                   <label className="block text-sm font-medium mb-1">
                     Scopes (comma-separated)
                   </label>
-                  <Input
+                  <input
+                    type="text"
                     value={grantForm.scopes}
                     onChange={(e) =>
                       setGrantForm({ ...grantForm, scopes: e.target.value })
                     }
                     placeholder="read, write, admin"
+                    className="w-full px-3 py-2 border border-border rounded-md bg-background"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Enter scopes separated by commas
                   </p>
                 </div>
@@ -961,10 +1018,10 @@ export default function IntegrationHub() {
                   )}
                 </Button>
               </div>
-            </Card>
-          </motion.div>
-        </div>
-      )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </AdminLayout>
   );
 }

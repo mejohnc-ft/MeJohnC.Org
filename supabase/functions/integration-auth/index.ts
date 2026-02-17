@@ -11,7 +11,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 import { authenticateAgent } from '../_shared/agent-auth.ts'
 import { Logger } from '../_shared/logger.ts'
 import { validateInput, validateFields } from '../_shared/input-validator.ts'
-import { encrypt, decrypt, EncryptedPayload } from '../_shared/encryption.ts'
+import { encrypt, decrypt, reEncrypt, EncryptedPayload, CURRENT_KEY_ID } from '../_shared/encryption.ts'
 import { CORS_ORIGIN } from '../_shared/cors.ts'
 
 const corsHeaders = {
@@ -21,7 +21,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-const ENCRYPTION_KEY_ID = 'key-v1'
+// Uses CURRENT_KEY_ID from encryption module for key rotation support (Issue #182)
 
 interface OAuth2Config {
   client_id: string
@@ -223,7 +223,7 @@ Deno.serve(async (req) => {
         const tokens = (await tokenResponse.json()) as Record<string, unknown>
 
         // Encrypt and store tokens
-        const encrypted = await encrypt(tokens, ENCRYPTION_KEY_ID)
+        const encrypted = await encrypt(tokens, CURRENT_KEY_ID)
 
         // Calculate expiry if provided
         const expiresIn = tokens.expires_in as number | undefined
@@ -238,7 +238,7 @@ Deno.serve(async (req) => {
             agent_id: agentId,
             credential_type: 'oauth2_token',
             encrypted_data: JSON.stringify(encrypted),
-            encryption_key_id: ENCRYPTION_KEY_ID,
+            encryption_key_id: CURRENT_KEY_ID,
             expires_at: expiresAt,
           })
           .select('id')
@@ -331,7 +331,7 @@ Deno.serve(async (req) => {
         }
 
         // Re-encrypt and update
-        const encrypted = await encrypt(newTokens, ENCRYPTION_KEY_ID)
+        const encrypted = await encrypt(newTokens, CURRENT_KEY_ID)
         const expiresIn = newTokens.expires_in as number | undefined
         const expiresAt = expiresIn
           ? new Date(Date.now() + expiresIn * 1000).toISOString()
@@ -341,7 +341,7 @@ Deno.serve(async (req) => {
           .from('integration_credentials')
           .update({
             encrypted_data: JSON.stringify(encrypted),
-            encryption_key_id: ENCRYPTION_KEY_ID,
+            encryption_key_id: CURRENT_KEY_ID,
             expires_at: expiresAt,
             last_used_at: new Date().toISOString(),
           })

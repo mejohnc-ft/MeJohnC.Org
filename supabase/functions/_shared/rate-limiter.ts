@@ -1,24 +1,23 @@
 /**
  * Rate Limiter Utility for Supabase Edge Functions
  *
- * Provides sliding window rate limiting with configurable limits.
- * Uses in-memory storage (resets on cold start) or can be extended for Redis.
+ * Provides rate limiting with two modes:
+ * - In-memory (fast, resets on cold start) for edge/non-critical use
+ * - Persistent (Supabase-backed, survives cold starts) for agent auth
  *
  * Usage:
- *   import { RateLimiter, createRateLimiter } from '../_shared/rate-limiter.ts'
+ *   import { RateLimiter, PersistentRateLimiter } from '../_shared/rate-limiter.ts'
  *
- *   const limiter = createRateLimiter({
- *     windowMs: 60000,    // 1 minute
- *     maxRequests: 100,   // 100 requests per window
- *   })
- *
- *   // In your handler:
- *   const clientId = req.headers.get('x-forwarded-for') || 'unknown'
+ *   // In-memory (existing behavior):
+ *   const limiter = createRateLimiter({ windowMs: 60000, maxRequests: 100 })
  *   const result = limiter.check(clientId)
- *   if (!result.allowed) {
- *     return new Response('Rate limit exceeded', { status: 429 })
- *   }
+ *
+ *   // Persistent (requires Supabase client):
+ *   const limiter = new PersistentRateLimiter(supabase, { windowMs: 60000, maxRequests: 10 })
+ *   const result = await limiter.check(clientId)
  */
+
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 
 export interface RateLimitConfig {
   /** Time window in milliseconds (default: 60000 = 1 minute) */
@@ -243,4 +242,99 @@ export function withRateLimit(
       headers,
     })
   }
+}
+
+/**
+ * Persistent Rate Limiter backed by Supabase
+ *
+ * Uses the check_rate_limit() RPC for atomic, persistent rate limiting
+ * that survives edge function cold starts. Issue #181.
+ */
+export class PersistentRateLimiter {
+  private supabase: ReturnType<typeof createClient>
+  private config: Required<RateLimitConfig>
+  // In-memory fallback for when DB calls fail
+  private fallback: RateLimiter
+
+  constructor(
+    supabase: ReturnType<typeof createClient>,
+    config: RateLimitConfig = {}
+  ) {
+    this.supabase = supabase
+    this.config = {
+      windowMs: config.windowMs ?? 60000,
+      maxRequests: config.maxRequests ?? 100,
+      keyPrefix: config.keyPrefix ?? 'rate',
+      skipIps: config.skipIps ?? ['127.0.0.1', '::1'],
+    }
+    this.fallback = new RateLimiter(config)
+  }
+
+  /**
+   * Check rate limit via Supabase RPC (persistent across cold starts)
+   */
+  async check(clientId: string): Promise<RateLimitResult> {
+    if (this.config.skipIps.includes(clientId)) {
+      return {
+        allowed: true,
+        remaining: this.config.maxRequests,
+        resetAt: Date.now() + this.config.windowMs,
+      }
+    }
+
+    const key = `${this.config.keyPrefix}:${clientId}`
+
+    try {
+      const { data, error } = await this.supabase.rpc('check_rate_limit', {
+        p_key: key,
+        p_window_ms: this.config.windowMs,
+        p_max_requests: this.config.maxRequests,
+      })
+
+      if (error || !data || data.length === 0) {
+        // Fall back to in-memory on DB error
+        return this.fallback.check(clientId)
+      }
+
+      const row = data[0]
+      const resetAt = new Date(row.reset_at).getTime()
+
+      return {
+        allowed: row.allowed,
+        remaining: row.remaining,
+        resetAt,
+        retryAfter: row.retry_after_seconds ?? undefined,
+      }
+    } catch {
+      // Fall back to in-memory on any error
+      return this.fallback.check(clientId)
+    }
+  }
+
+  /**
+   * Get rate limit headers for response
+   */
+  getHeaders(result: RateLimitResult): Record<string, string> {
+    const headers: Record<string, string> = {
+      'X-RateLimit-Limit': this.config.maxRequests.toString(),
+      'X-RateLimit-Remaining': result.remaining.toString(),
+      'X-RateLimit-Reset': Math.ceil(result.resetAt / 1000).toString(),
+    }
+
+    if (result.retryAfter !== undefined) {
+      headers['Retry-After'] = result.retryAfter.toString()
+    }
+
+    return headers
+  }
+}
+
+/**
+ * Create a persistent rate limiter instance
+ */
+export function createPersistentRateLimiter(
+  supabase: ReturnType<typeof createClient>,
+  config?: RateLimitConfig
+): PersistentRateLimiter {
+  return new PersistentRateLimiter(supabase, config)
 }

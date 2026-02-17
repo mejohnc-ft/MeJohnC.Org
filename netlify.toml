@@ -9,6 +9,17 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# Unified API proxy - routes /api/gateway to Netlify function (Issue #184)
+[[redirects]]
+  from = "/api/gateway"
+  to = "/.netlify/functions/gateway"
+  status = 200
+
+[[redirects]]
+  from = "/api/gateway/*"
+  to = "/.netlify/functions/gateway"
+  status = 200
+
 # SPA redirect - let React Router handle all routes
 [[redirects]]
   from = "/*"

@@ -19,7 +19,7 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
-import { createRateLimiter, RateLimiter } from './rate-limiter.ts'
+import { PersistentRateLimiter } from './rate-limiter.ts'
 import { Logger } from './logger.ts'
 
 // Agent profile returned from verify_agent_api_key()
@@ -50,9 +50,9 @@ export interface AgentAuthResult {
 
 const API_KEY_PREFIX = 'mj_agent_'
 
-// Per-agent rate limiters, keyed by agent ID. Created on first auth with agent's rate_limit_rpm.
-// Resets on cold start (acceptable for Phase 2).
-const agentRateLimiters = new Map<string, RateLimiter>()
+// Per-agent persistent rate limiters, keyed by agent ID.
+// Uses Supabase-backed check_rate_limit() RPC to survive cold starts (Issue #181).
+const agentRateLimiters = new Map<string, PersistentRateLimiter>()
 
 /**
  * Extract API key from request headers
@@ -62,12 +62,16 @@ export function extractApiKey(req: Request): string | null {
 }
 
 /**
- * Get or create a rate limiter for a specific agent
+ * Get or create a persistent rate limiter for a specific agent
  */
-function getAgentRateLimiter(agentId: string, rateLimitRpm: number): RateLimiter {
+function getAgentRateLimiter(
+  agentId: string,
+  rateLimitRpm: number,
+  supabase: ReturnType<typeof createClient>
+): PersistentRateLimiter {
   let limiter = agentRateLimiters.get(agentId)
   if (!limiter) {
-    limiter = createRateLimiter({
+    limiter = new PersistentRateLimiter(supabase, {
       windowMs: 60000,
       maxRequests: rateLimitRpm,
       keyPrefix: `agent:${agentId}`,
@@ -138,9 +142,9 @@ export async function authenticateAgent(
 
   const agent = agents[0] as AgentProfile
 
-  // 4. Per-agent rate limiting
-  const limiter = getAgentRateLimiter(agent.id, agent.rate_limit_rpm)
-  const rateResult = limiter.check(agent.id)
+  // 4. Per-agent rate limiting (persistent across cold starts, Issue #181)
+  const limiter = getAgentRateLimiter(agent.id, agent.rate_limit_rpm, supabase)
+  const rateResult = await limiter.check(agent.id)
 
   if (!rateResult.allowed) {
     logger.warn('Agent auth failed: rate limit exceeded', {

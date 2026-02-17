@@ -12,7 +12,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 import { authenticateAgent } from '../_shared/agent-auth.ts'
 import { Logger } from '../_shared/logger.ts'
 import { validateInput, validateFields } from '../_shared/input-validator.ts'
-import { encrypt, decrypt, EncryptedPayload } from '../_shared/encryption.ts'
+import { encrypt, decrypt, EncryptedPayload, CURRENT_KEY_ID } from '../_shared/encryption.ts'
 import { CORS_ORIGIN } from '../_shared/cors.ts'
 
 const corsHeaders = {
@@ -22,7 +22,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-const ENCRYPTION_KEY_ID = 'key-v1'
+// Uses CURRENT_KEY_ID from encryption module for key rotation support (Issue #182)
 
 /**
  * Verify that an agent has access to a specific integration
@@ -136,7 +136,7 @@ Deno.serve(async (req) => {
         }
 
         // Encrypt credentials
-        const encrypted = await encrypt(credentials, ENCRYPTION_KEY_ID)
+        const encrypted = await encrypt(credentials, CURRENT_KEY_ID)
 
         // Store
         const { data: cred, error: insertError } = await supabase
@@ -146,7 +146,7 @@ Deno.serve(async (req) => {
             agent_id: agentId,
             credential_type,
             encrypted_data: JSON.stringify(encrypted),
-            encryption_key_id: ENCRYPTION_KEY_ID,
+            encryption_key_id: CURRENT_KEY_ID,
             expires_at: expires_at || null,
           })
           .select('id, credential_type, created_at')
