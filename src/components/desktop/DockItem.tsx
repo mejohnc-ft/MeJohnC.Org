@@ -3,7 +3,7 @@ import {
   LayoutDashboard, FileText, Newspaper, Bookmark, Bot, BookText,
   Wrench, BookOpen, CheckSquare, Users, FolderKanban, AppWindow,
   BarChart3, Server, Cable, FileCode2, GitBranch, Clock, Plug,
-  FileSearch, Settings, User, Sparkles, Palette,
+  FileSearch, Settings, User, Sparkles, Palette, FolderOpen,
 } from 'lucide-react';
 import type { DesktopApp } from './apps/AppRegistry';
 
@@ -11,7 +11,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   LayoutDashboard, FileText, Newspaper, Bookmark, Bot, BookText,
   Wrench, BookOpen, CheckSquare, Users, FolderKanban, AppWindow,
   BarChart3, Server, Cable, FileCode2, GitBranch, Clock, Plug,
-  FileSearch, Settings, User, Sparkles, Palette,
+  FileSearch, Settings, User, Sparkles, Palette, FolderOpen,
 };
 
 interface DockItemProps {

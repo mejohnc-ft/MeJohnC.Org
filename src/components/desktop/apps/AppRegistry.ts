@@ -303,6 +303,21 @@ const apps: DesktopApp[] = [
     route: '/admin/audit',
   },
 
+  // File System
+  {
+    id: 'file-explorer',
+    name: 'Files',
+    icon: 'FolderOpen',
+    color: 'text-blue-400',
+    category: 'system',
+    component: () => import('@/components/desktop/apps/FileExplorer'),
+    defaultSize: { width: 800, height: 550 },
+    minSize: { width: 500, height: 350 },
+    singleton: false,
+    defaultDockPinned: true,
+    route: undefined,
+  },
+
   // System
   {
     id: 'settings',
