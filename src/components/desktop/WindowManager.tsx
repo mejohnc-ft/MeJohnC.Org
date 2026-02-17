@@ -27,6 +27,7 @@ export interface WorkspaceContextType {
   updateWallpaper: (wallpaper: string) => void;
   pinApp: (appId: string) => void;
   unpinApp: (appId: string) => void;
+  reorderDockItems: (items: string[]) => void;
 }
 
 const WindowManagerContext = createContext<WindowManagerContextType | undefined>(undefined);
@@ -99,7 +100,8 @@ export function WindowManagerProvider({ userId, children }: WindowManagerProvide
     updateWallpaper: workspace.updateWallpaper,
     pinApp: workspace.pinApp,
     unpinApp: workspace.unpinApp,
-  }), [workspace.isLoading, workspace.wallpaper, workspace.dockItems, workspace.updateWallpaper, workspace.pinApp, workspace.unpinApp]);
+    reorderDockItems: workspace.reorderDockItems,
+  }), [workspace.isLoading, workspace.wallpaper, workspace.dockItems, workspace.updateWallpaper, workspace.pinApp, workspace.unpinApp, workspace.reorderDockItems]);
 
   return (
     <WindowManagerContext.Provider

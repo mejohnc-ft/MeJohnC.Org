@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useRef, lazy, useMemo } from 'react';
+import { Suspense, useCallback, useRef, lazy, useMemo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useReducedMotion } from '@/lib/reduced-motion';
 import { useWindowManagerContext } from './WindowManager';
@@ -7,6 +7,7 @@ import { getApp } from './apps/AppRegistry';
 import { useWindowDrag } from '@/hooks/useWindowDrag';
 import { useWindowResize, ResizeHandles } from '@/hooks/useWindowResize';
 import { useSnapZones, SnapPreview } from '@/hooks/useSnapZones';
+import { getDockIconPosition } from '@/lib/dock-icon-positions';
 import type { WindowState } from '@/hooks/useWindowManager';
 
 interface WindowProps {
@@ -21,6 +22,8 @@ function WindowLoader() {
   );
 }
 
+type AnimPhase = 'visible' | 'minimizing' | 'hidden' | 'restoring';
+
 export default function Window({ window: win }: WindowProps) {
   const { state, closeWindow, focusWindow, minimizeWindow, maximizeWindow, restoreWindow, moveWindow, resizeWindow } = useWindowManagerContext();
   const prefersReducedMotion = useReducedMotion();
@@ -28,6 +31,47 @@ export default function Window({ window: win }: WindowProps) {
 
   const isFocused = state.focusedWindowId === win.id;
   const app = getApp(win.appId);
+
+  // Animation state machine for minimize/restore
+  const prevMinimizedRef = useRef(win.minimized);
+  const [animPhase, setAnimPhase] = useState<AnimPhase>(win.minimized ? 'hidden' : 'visible');
+
+  useEffect(() => {
+    const wasMinimized = prevMinimizedRef.current;
+    prevMinimizedRef.current = win.minimized;
+
+    if (!wasMinimized && win.minimized) {
+      // Minimize transition
+      if (prefersReducedMotion) {
+        setAnimPhase('hidden');
+      } else {
+        setAnimPhase('minimizing');
+      }
+    } else if (wasMinimized && !win.minimized) {
+      // Restore transition
+      if (prefersReducedMotion) {
+        setAnimPhase('visible');
+      } else {
+        setAnimPhase('restoring');
+      }
+    }
+  }, [win.minimized, prefersReducedMotion]);
+
+  // Compute dock target for animation
+  const dockTarget = useMemo(() => {
+    const dockRect = getDockIconPosition(win.appId);
+    if (!dockRect) return null;
+    return {
+      x: dockRect.left + dockRect.width / 2,
+      y: dockRect.top + dockRect.height / 2,
+    };
+  }, [win.appId]);
+
+  // Window center
+  const windowCenter = useMemo(() => ({
+    x: win.x + win.width / 2,
+    y: win.y + win.height / 2,
+  }), [win.x, win.y, win.width, win.height]);
 
   const { activeZone, updateSnapZone, commitSnap } = useSnapZones();
 
@@ -37,7 +81,6 @@ export default function Window({ window: win }: WindowProps) {
       onDragEnd: (x: number, y: number) => {
         const snapGeo = commitSnap();
         if (snapGeo) {
-          // Apply snap geometry
           if (windowRef.current) {
             windowRef.current.style.transform = '';
             windowRef.current.style.left = `${snapGeo.x}px`;
@@ -93,12 +136,10 @@ export default function Window({ window: win }: WindowProps) {
     }
   }, [isFocused, focusWindow, win.id]);
 
-  // Enhanced title bar pointer down: wire snap zone detection into the drag
   const handleTitleBarPointerDownWithSnap = useCallback(
     (e: React.PointerEvent) => {
       if (win.maximized) return;
 
-      // Set up snap zone tracking on the window element
       const el = windowRef.current;
       if (!el) {
         handleTitleBarPointerDown(e);
@@ -117,7 +158,6 @@ export default function Window({ window: win }: WindowProps) {
       el.addEventListener('pointermove', handleSnapMove);
       el.addEventListener('pointerup', handleSnapUp);
 
-      // Delegate to the drag hook
       handleTitleBarPointerDown(e);
     },
     [win.maximized, windowRef, handleTitleBarPointerDown, updateSnapZone]
@@ -131,31 +171,68 @@ export default function Window({ window: win }: WindowProps) {
     }
   }, [win.id, win.maximized, maximizeWindow, restoreWindow]);
 
-  // Lazy load the app component (memoized to avoid re-creating on every render)
+  // Lazy load the app component
   const AppComponent = useMemo(() => {
     if (!app) return null;
     return lazy(app.component);
   }, [app]);
 
   if (!app || !AppComponent) return null;
-  if (win.minimized) return null;
 
-  const motionProps = prefersReducedMotion
-    ? {}
-    : {
-        initial: { scale: 0.85, opacity: 0 },
-        animate: { scale: 1, opacity: 1 },
-        transition: { duration: 0.15, ease: 'easeOut' },
+  // Don't render when fully hidden
+  if (animPhase === 'hidden') return null;
+
+  // Compute animation variants for minimize/restore
+  const getAnimateProps = () => {
+    if (animPhase === 'minimizing' && dockTarget) {
+      return {
+        animate: {
+          scale: 0.1,
+          x: dockTarget.x - windowCenter.x,
+          y: dockTarget.y - windowCenter.y,
+          opacity: 0,
+        },
+        transition: {
+          duration: 0.35,
+          ease: [0.4, 0, 0.2, 1],
+        },
+        onAnimationComplete: () => setAnimPhase('hidden'),
       };
+    }
+    if (animPhase === 'restoring' && dockTarget) {
+      return {
+        initial: {
+          scale: 0.1,
+          x: dockTarget.x - windowCenter.x,
+          y: dockTarget.y - windowCenter.y,
+          opacity: 0,
+        },
+        animate: { scale: 1, x: 0, y: 0, opacity: 1 },
+        transition: {
+          duration: 0.3,
+          ease: [0.4, 0, 0.2, 1],
+        },
+        onAnimationComplete: () => setAnimPhase('visible'),
+      };
+    }
+    // Normal open animation
+    if (prefersReducedMotion) return {};
+    return {
+      initial: { scale: 0.85, opacity: 0 },
+      animate: { scale: 1, opacity: 1 },
+      transition: { duration: 0.15, ease: 'easeOut' },
+    };
+  };
+
+  const motionAnimProps = getAnimateProps();
 
   return (
     <>
-      {/* Snap zone preview — rendered as sibling to avoid z-index nesting */}
       {activeZone && <SnapPreview zone={activeZone} />}
 
       <motion.div
         ref={windowRef}
-        {...motionProps}
+        {...motionAnimProps}
         role="dialog"
         aria-label={win.title}
         className={`
@@ -172,7 +249,6 @@ export default function Window({ window: win }: WindowProps) {
         }}
         onPointerDown={handlePointerDown}
       >
-        {/* Resize handles */}
         <ResizeHandles onPointerDown={handleResizePointerDown} maximized={win.maximized} />
 
         <WindowTitleBar

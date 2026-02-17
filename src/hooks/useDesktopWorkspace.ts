@@ -184,6 +184,11 @@ export function useDesktopWorkspace({ userId, windowState, restoreWindowState }:
     });
   }, [saveDockItems]);
 
+  const reorderDockItems = useCallback((items: string[]) => {
+    setDockItems(items);
+    saveDockItems(items);
+  }, [saveDockItems]);
+
   // Cleanup timer on unmount
   useEffect(() => {
     return () => {
@@ -198,5 +203,6 @@ export function useDesktopWorkspace({ userId, windowState, restoreWindowState }:
     updateWallpaper,
     pinApp,
     unpinApp,
+    reorderDockItems,
   };
 }
