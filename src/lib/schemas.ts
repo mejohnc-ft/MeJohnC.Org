@@ -1526,3 +1526,38 @@ export const EventSchema = z.object({
   created_at: z.string(),
 });
 export type Event = z.infer<typeof EventSchema>;
+
+// Integration Actions
+export const IntegrationActionSchema = z.object({
+  id: z.string().uuid(),
+  integration_id: z.string().uuid(),
+  action_name: z.string(),
+  display_name: z.string(),
+  description: z.string().nullable(),
+  category: z.string(),
+  parameter_schema: z.record(z.unknown()),
+  default_config: z.record(z.unknown()),
+  requires_auth: z.boolean(),
+  is_active: z.boolean(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type IntegrationAction = z.infer<typeof IntegrationActionSchema>;
+
+// Step Templates
+export const StepTemplateSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  description: z.string().nullable(),
+  category: z.string(),
+  step_type: z.enum(['agent_command', 'wait', 'condition', 'integration_action']),
+  config: z.record(z.unknown()),
+  timeout_ms: z.number(),
+  retries: z.number(),
+  on_failure: z.enum(['continue', 'stop', 'skip']),
+  integration_action_id: z.string().uuid().nullable(),
+  is_active: z.boolean(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type StepTemplate = z.infer<typeof StepTemplateSchema>;

@@ -14,6 +14,8 @@ import {
   type EventType,
   type EventSubscription,
   type Event,
+  type IntegrationAction,
+  type StepTemplate,
 } from './schemas';
 
 // ============================================
@@ -686,4 +688,104 @@ export async function getEvents(
     returnFallback: true,
     fallback: [] as Event[],
   });
+}
+
+// ============================================
+// INTEGRATION ACTIONS
+// ============================================
+
+export async function getIntegrationActions(
+  integrationId?: string,
+  client: SupabaseClient = getSupabase()
+) {
+  let query = client
+    .from('integration_actions')
+    .select('*')
+    .eq('is_active', true)
+    .order('category, display_name');
+
+  if (integrationId) {
+    query = query.eq('integration_id', integrationId);
+  }
+
+  const { data, error } = await query;
+
+  return handleQueryResult(data, error, {
+    operation: 'getIntegrationActions',
+    returnFallback: true,
+    fallback: [] as IntegrationAction[],
+  });
+}
+
+export async function createIntegrationAction(
+  action: Omit<IntegrationAction, 'id' | 'created_at' | 'updated_at'>,
+  client: SupabaseClient = supabase
+) {
+  const { data, error } = await client
+    .from('integration_actions')
+    .insert(action)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as IntegrationAction;
+}
+
+export async function deleteIntegrationAction(id: string, client: SupabaseClient = getSupabase()) {
+  const { error } = await client
+    .from('integration_actions')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+}
+
+// ============================================
+// STEP TEMPLATES
+// ============================================
+
+export async function getStepTemplates(
+  category?: string,
+  client: SupabaseClient = getSupabase()
+) {
+  let query = client
+    .from('step_templates')
+    .select('*')
+    .eq('is_active', true)
+    .order('category, name');
+
+  if (category) {
+    query = query.eq('category', category);
+  }
+
+  const { data, error } = await query;
+
+  return handleQueryResult(data, error, {
+    operation: 'getStepTemplates',
+    returnFallback: true,
+    fallback: [] as StepTemplate[],
+  });
+}
+
+export async function createStepTemplate(
+  template: Omit<StepTemplate, 'id' | 'created_at' | 'updated_at'>,
+  client: SupabaseClient = supabase
+) {
+  const { data, error } = await client
+    .from('step_templates')
+    .insert(template)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as StepTemplate;
+}
+
+export async function deleteStepTemplate(id: string, client: SupabaseClient = getSupabase()) {
+  const { error } = await client
+    .from('step_templates')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
 }

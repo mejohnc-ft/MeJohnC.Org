@@ -12,11 +12,12 @@ import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
 import { getWorkflowById, updateWorkflow, deleteWorkflow, getWorkflowRuns } from '@/lib/agent-platform-queries';
+import IntegrationActionForm from '@/components/admin/IntegrationActionForm';
 import type { Workflow, WorkflowRun } from '@/lib/schemas';
 
 interface WorkflowStep {
   id: string;
-  type: 'agent_command' | 'wait' | 'condition';
+  type: 'agent_command' | 'wait' | 'condition' | 'integration_action';
   config: Record<string, unknown>;
   timeout_ms: number;
   retries: number;
@@ -44,6 +45,8 @@ const WorkflowEditor = () => {
   const [showRunHistory, setShowRunHistory] = useState(false);
   const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
   const [expandedRuns, setExpandedRuns] = useState<Set<string>>(new Set());
+  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -147,12 +150,14 @@ const WorkflowEditor = () => {
       const updated = await getWorkflowById(id, supabase);
       setWorkflow(updated);
 
-      alert('Workflow saved successfully');
+      setSaveMessage({ type: 'success', text: 'Workflow saved successfully' });
+      setTimeout(() => setSaveMessage(null), 3000);
     } catch (error) {
       captureException(error instanceof Error ? error : new Error(String(error)), {
         context: 'WorkflowEditor.handleSubmit',
       });
-      alert('Failed to save workflow. Please try again.');
+      setSaveMessage({ type: 'error', text: 'Failed to save workflow. Please try again.' });
+      setTimeout(() => setSaveMessage(null), 5000);
     } finally {
       setIsSaving(false);
     }
@@ -160,7 +165,6 @@ const WorkflowEditor = () => {
 
   const handleDelete = async () => {
     if (!supabase || !id) return;
-    if (!confirm('Are you sure you want to delete this workflow?')) return;
 
     try {
       await deleteWorkflow(id, supabase);
@@ -169,7 +173,9 @@ const WorkflowEditor = () => {
       captureException(error instanceof Error ? error : new Error(String(error)), {
         context: 'WorkflowEditor.handleDelete',
       });
-      alert('Failed to delete workflow.');
+      setSaveMessage({ type: 'error', text: 'Failed to delete workflow.' });
+      setTimeout(() => setSaveMessage(null), 5000);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -238,8 +244,6 @@ const WorkflowEditor = () => {
   };
 
   const deleteStep = (stepId: string) => {
-    if (!confirm('Delete this step?')) return;
-
     setFormData({
       ...formData,
       steps: formData.steps.filter(step => step.id !== stepId),
@@ -377,10 +381,22 @@ const WorkflowEditor = () => {
                 </>
               )}
             </Button>
-            <Button variant="destructive" size="sm" onClick={handleDelete}>
-              <Trash2 className="w-4 h-4 mr-2" />
-              Delete
-            </Button>
+            {showDeleteConfirm ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Delete?</span>
+                <Button variant="destructive" size="sm" onClick={handleDelete}>
+                  Confirm
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setShowDeleteConfirm(false)}>
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <Button variant="destructive" size="sm" onClick={() => setShowDeleteConfirm(true)}>
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete
+              </Button>
+            )}
           </div>
         </div>
 
@@ -404,6 +420,31 @@ const WorkflowEditor = () => {
                   <AlertCircle className="w-5 h-5" />
                 )}
                 <span className="font-medium">{testResult.message}</span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Save/Error Message */}
+        <AnimatePresence>
+          {saveMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className={`p-4 rounded-lg border ${
+                saveMessage.type === 'success'
+                  ? 'bg-green-500/10 border-green-500/20 text-green-600'
+                  : 'bg-red-500/10 border-red-500/20 text-red-600'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                {saveMessage.type === 'success' ? (
+                  <CheckCircle2 className="w-5 h-5" />
+                ) : (
+                  <AlertCircle className="w-5 h-5" />
+                )}
+                <span className="font-medium">{saveMessage.text}</span>
               </div>
             </motion.div>
           )}
@@ -665,6 +706,7 @@ const WorkflowEditor = () => {
                                     <option value="agent_command">Agent Command</option>
                                     <option value="wait">Wait</option>
                                     <option value="condition">Condition</option>
+                                    <option value="integration_action">Integration Action</option>
                                   </select>
                                 </div>
 
@@ -749,6 +791,15 @@ const WorkflowEditor = () => {
                                     className="text-sm"
                                   />
                                 </div>
+                              )}
+
+                              {step.type === 'integration_action' && (
+                                <IntegrationActionForm
+                                  config={step.config}
+                                  onChange={(newConfig) =>
+                                    updateStep(step.id, { config: newConfig })
+                                  }
+                                />
                               )}
 
                               <div className="grid grid-cols-2 gap-3">
