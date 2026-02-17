@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useCallback, useMemo, ReactNode } from 'react';
 import { useWindowManager, WindowManagerState } from '@/hooks/useWindowManager';
+import { useDesktopWorkspace } from '@/hooks/useDesktopWorkspace';
 import { getApp } from './apps/AppRegistry';
 
 const MAX_OPEN_WINDOWS = 10;
@@ -19,13 +20,34 @@ interface WindowManagerContextType {
   resizeWindow: (id: string, width: number, height: number, x?: number, y?: number) => void;
 }
 
+export interface WorkspaceContextType {
+  isLoading: boolean;
+  wallpaper: string;
+  dockItems: string[];
+  updateWallpaper: (wallpaper: string) => void;
+  pinApp: (appId: string) => void;
+  unpinApp: (appId: string) => void;
+}
+
 const WindowManagerContext = createContext<WindowManagerContextType | undefined>(undefined);
+const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
 
 // Cascade offset for new windows
 let cascadeOffset = 0;
 
-export function WindowManagerProvider({ children }: { children: ReactNode }) {
+interface WindowManagerProviderProps {
+  userId: string;
+  children: ReactNode;
+}
+
+export function WindowManagerProvider({ userId, children }: WindowManagerProviderProps) {
   const wm = useWindowManager();
+
+  const workspace = useDesktopWorkspace({
+    userId,
+    windowState: wm.state,
+    restoreWindowState: wm.restoreState,
+  });
 
   const launchApp = useCallback((appId: string) => {
     const app = getApp(appId);
@@ -70,6 +92,15 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
     });
   }, [wm]);
 
+  const workspaceValue = useMemo<WorkspaceContextType>(() => ({
+    isLoading: workspace.isLoading,
+    wallpaper: workspace.wallpaper,
+    dockItems: workspace.dockItems,
+    updateWallpaper: workspace.updateWallpaper,
+    pinApp: workspace.pinApp,
+    unpinApp: workspace.unpinApp,
+  }), [workspace.isLoading, workspace.wallpaper, workspace.dockItems, workspace.updateWallpaper, workspace.pinApp, workspace.unpinApp]);
+
   return (
     <WindowManagerContext.Provider
       value={{
@@ -84,7 +115,9 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
         resizeWindow: wm.resizeWindow,
       }}
     >
-      {children}
+      <WorkspaceContext.Provider value={workspaceValue}>
+        {children}
+      </WorkspaceContext.Provider>
     </WindowManagerContext.Provider>
   );
 }
@@ -93,6 +126,14 @@ export function useWindowManagerContext() {
   const context = useContext(WindowManagerContext);
   if (context === undefined) {
     throw new Error('useWindowManagerContext must be used within a WindowManagerProvider');
+  }
+  return context;
+}
+
+export function useWorkspaceContext() {
+  const context = useContext(WorkspaceContext);
+  if (context === undefined) {
+    throw new Error('useWorkspaceContext must be used within a WindowManagerProvider');
   }
   return context;
 }

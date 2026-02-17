@@ -19,9 +19,10 @@ interface DockItemProps {
   isRunning: boolean;
   isFocused: boolean;
   onClick: () => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
 }
 
-export default function DockItem({ app, isRunning, isFocused, onClick }: DockItemProps) {
+export default function DockItem({ app, isRunning, isFocused, onClick, onContextMenu }: DockItemProps) {
   const [bouncing, setBouncing] = useState(false);
   const Icon = ICON_MAP[app.icon];
 
@@ -37,6 +38,7 @@ export default function DockItem({ app, isRunning, isFocused, onClick }: DockIte
   return (
     <button
       onClick={handleClick}
+      onContextMenu={onContextMenu}
       className="relative flex flex-col items-center group"
       role="button"
       aria-pressed={isRunning}

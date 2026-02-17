@@ -318,6 +318,21 @@ const apps: DesktopApp[] = [
     route: undefined,
   },
 
+  // Wallpaper Picker
+  {
+    id: 'wallpaper-picker',
+    name: 'Wallpaper',
+    icon: 'Palette',
+    color: 'text-pink-400',
+    category: 'system',
+    component: () => import('@/components/desktop/WallpaperPicker'),
+    defaultSize: { width: 500, height: 400 },
+    minSize: { width: 400, height: 350 },
+    singleton: true,
+    defaultDockPinned: false,
+    route: undefined,
+  },
+
   // System
   {
     id: 'settings',
