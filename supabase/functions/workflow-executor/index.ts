@@ -22,7 +22,7 @@ const corsHeaders = {
 
 interface WorkflowStep {
   id: string
-  type: 'agent_command' | 'wait' | 'condition'
+  type: 'agent_command' | 'wait' | 'condition' | 'integration_action'
   config: Record<string, unknown>
   timeout_ms?: number
   retries?: number
@@ -162,6 +162,70 @@ async function executeStepInner(
       return {
         condition_met: result,
         next_step: result ? then_step : else_step,
+      }
+    }
+
+    case 'integration_action': {
+      const { integration_id, action_name, parameters } = step.config as {
+        integration_id?: string
+        action_name?: string
+        parameters?: Record<string, unknown>
+      }
+      if (!action_name) throw new Error('integration_action step requires "action_name" in config')
+
+      // Resolve integration action definition
+      let actionDef = null
+      if (integration_id) {
+        const { data } = await supabase
+          .from('integration_actions')
+          .select('*')
+          .eq('integration_id', integration_id)
+          .eq('action_name', action_name)
+          .eq('is_active', true)
+          .single()
+        actionDef = data
+      }
+
+      // Merge default config with provided parameters
+      const mergedParams = {
+        ...(actionDef?.default_config || {}),
+        ...(parameters || {}),
+      }
+
+      // Dispatch as an agent command with integration context in metadata
+      const content = JSON.stringify(mergedParams)
+
+      const { data, error } = await supabase
+        .from('agent_commands')
+        .insert({
+          command_type: 'task',
+          content,
+          status: 'pending',
+          user_id: agentId || 'system',
+          user_email: 'workflow@system',
+          session_id: crypto.randomUUID(),
+          metadata: {
+            workflow_integration_action: action_name,
+            integration_id: integration_id || null,
+            integration_action_id: actionDef?.id || null,
+          },
+        })
+        .select('id')
+        .single()
+
+      if (error) throw new Error(`Failed to dispatch integration action: ${error.message}`)
+
+      logger.info('Dispatched integration action', {
+        commandId: data.id,
+        actionName: action_name,
+        integrationId: integration_id,
+      })
+
+      return {
+        command_id: data.id,
+        action_name,
+        integration_id,
+        parameters: mergedParams,
       }
     }
 
