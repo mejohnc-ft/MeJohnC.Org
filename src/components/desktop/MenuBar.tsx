@@ -1,12 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserButton } from '@clerk/clerk-react';
+import { Bell } from 'lucide-react';
 import { ThemeToggleMinimal } from '@/components/ThemeToggle';
 import { useAuth } from '@/lib/auth';
 import { useWindowManagerContext } from './WindowManager';
 import { getApp } from './apps/AppRegistry';
 
-export default function MenuBar() {
+interface MenuBarProps {
+  onToggleNotifications?: () => void;
+}
+
+export default function MenuBar({ onToggleNotifications }: MenuBarProps) {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const { state } = useWindowManagerContext();
@@ -98,8 +103,18 @@ export default function MenuBar() {
         )}
       </div>
 
-      {/* Right: Clock, Theme, User */}
+      {/* Right: Bell, Clock, Theme, User */}
       <div className="flex items-center gap-3">
+        {onToggleNotifications && (
+          <button
+            data-notification-toggle
+            onClick={onToggleNotifications}
+            className="relative text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Toggle notifications"
+          >
+            <Bell className="w-3.5 h-3.5" />
+          </button>
+        )}
         <span className="text-[11px] text-muted-foreground tabular-nums">
           {clock}
         </span>
