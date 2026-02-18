@@ -34,7 +34,8 @@ import {
 } from "lucide-react";
 import { useReducedMotion } from "@/lib/reduced-motion";
 import { useWindowManagerContext } from "./WindowManager";
-import { appRegistry } from "./apps/AppRegistry";
+import { getAppsForPlan } from "./apps/AppRegistry";
+import { useBilling } from "@/hooks/useBilling";
 import { searchFileSystem } from "@/lib/desktop-queries";
 import { getBlogPosts, getProjects } from "@/lib/supabase-queries";
 import { captureException } from "@/lib/sentry";
@@ -107,6 +108,8 @@ function addRecentSearch(query: string) {
 export default function Spotlight({ isOpen, onClose }: SpotlightProps) {
   const { launchApp } = useWindowManagerContext();
   const prefersReducedMotion = useReducedMotion();
+  const { plan } = useBilling();
+  const planApps = useMemo(() => getAppsForPlan(plan), [plan]);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SpotlightResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -126,11 +129,11 @@ export default function Spotlight({ isOpen, onClose }: SpotlightProps) {
     }
   }, [isOpen]);
 
-  // Search apps (instant, local)
+  // Search apps (instant, local) — filtered by plan
   const searchApps = useCallback(
     (q: string): SpotlightResult[] => {
       const lower = q.toLowerCase();
-      return appRegistry
+      return planApps
         .filter((app) => app.name.toLowerCase().includes(lower))
         .slice(0, 5)
         .map((app) => ({
@@ -146,7 +149,7 @@ export default function Spotlight({ isOpen, onClose }: SpotlightProps) {
           },
         }));
     },
-    [launchApp, onClose],
+    [planApps, launchApp, onClose],
   );
 
   // Debounced search
@@ -279,10 +282,10 @@ export default function Spotlight({ isOpen, onClose }: SpotlightProps) {
     return groups;
   }, [results]);
 
-  // Quick-launch grid when no query
+  // Quick-launch grid when no query — filtered by plan
   const quickLaunchApps = useMemo(
-    () => appRegistry.filter((a) => a.defaultDockPinned),
-    [],
+    () => planApps.filter((a) => a.defaultDockPinned),
+    [planApps],
   );
 
   // Compute flat index map for results across groups (avoids mutable counter in JSX)

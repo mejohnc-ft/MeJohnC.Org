@@ -1,10 +1,11 @@
 import { useMemo, useCallback, useRef, useEffect } from "react";
 import { useWindowManagerContext, useWorkspaceContext } from "./WindowManager";
-import { getApp, appRegistry } from "./apps/AppRegistry";
+import { getApp, appRegistry, getAppsForPlan } from "./apps/AppRegistry";
 import DockItem from "./DockItem";
 import ContextMenu from "./ContextMenu";
 import { useContextMenu, type ContextMenuItem } from "@/hooks/useContextMenu";
 import { useReducedMotion } from "@/lib/reduced-motion";
+import { useBilling } from "@/hooks/useBilling";
 import {
   registerDockIconPosition,
   unregisterDockIconPosition,
@@ -34,28 +35,34 @@ export default function Dock() {
   const workspace = useWorkspaceContext();
   const contextMenu = useContextMenu();
   const prefersReducedMotion = useReducedMotion();
+  const { plan } = useBilling();
+  const planApps = useMemo(() => getAppsForPlan(plan), [plan]);
+  const planAppIds = useMemo(
+    () => new Set(planApps.map((a) => a.id)),
+    [planApps],
+  );
   const dockRef = useRef<HTMLDivElement>(null);
   const iconRefsMap = useRef(new Map<string, HTMLButtonElement>());
   const rafId = useRef(0);
 
-  // Pinned apps from workspace
+  // Pinned apps from workspace (filtered by plan)
   const pinnedApps = useMemo(
     () =>
       workspace.dockItems
         .map((id) => getApp(id))
-        .filter(Boolean) as NonNullable<ReturnType<typeof getApp>>[],
-    [workspace.dockItems],
+        .filter((a): a is NonNullable<typeof a> => !!a && planAppIds.has(a.id)),
+    [workspace.dockItems, planAppIds],
   );
   const pinnedIds = useMemo(
     () => new Set(pinnedApps.map((a) => a.id)),
     [pinnedApps],
   );
 
-  // Running apps that aren't pinned
+  // Running apps that aren't pinned (running windows always show regardless of plan)
   const runningUnpinned = useMemo(() => {
-    const runningAppIds = new Set(state.windows.map((w) => w.appId));
+    const runningIds = new Set(state.windows.map((w) => w.appId));
     return appRegistry.filter(
-      (a) => runningAppIds.has(a.id) && !pinnedIds.has(a.id),
+      (a) => runningIds.has(a.id) && !pinnedIds.has(a.id),
     );
   }, [state.windows, pinnedIds]);
 
