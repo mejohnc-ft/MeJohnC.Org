@@ -1,5 +1,5 @@
-import { useEffect, useRef, useCallback } from 'react';
-import type { ContextMenuItem } from '@/hooks/useContextMenu';
+import { useEffect, useRef, useCallback, useState, useMemo } from "react";
+import type { ContextMenuItem } from "@/hooks/useContextMenu";
 
 interface ContextMenuProps {
   items: ContextMenuItem[];
@@ -7,8 +7,31 @@ interface ContextMenuProps {
   onClose: () => void;
 }
 
-export default function ContextMenu({ items, position, onClose }: ContextMenuProps) {
+export default function ContextMenu({
+  items,
+  position,
+  onClose,
+}: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Indices of actionable (non-separator, non-disabled) items for keyboard nav
+  const actionableIndices = useMemo(
+    () =>
+      items.reduce<number[]>((acc, item, i) => {
+        if (!item.separator && !item.disabled) acc.push(i);
+        return acc;
+      }, []),
+    [items],
+  );
+
+  const [focusedIndex, setFocusedIndex] = useState<number>(() =>
+    actionableIndices.length > 0 ? actionableIndices[0] : -1,
+  );
+
+  // Auto-focus the menu on mount
+  useEffect(() => {
+    menuRef.current?.focus();
+  }, []);
 
   // Viewport clamping
   const clampedPosition = useRef(position);
@@ -28,55 +51,113 @@ export default function ContextMenu({ items, position, onClose }: ContextMenuPro
   }, [position]);
 
   // Close on outside click
-  const handleOutsideClick = useCallback((e: MouseEvent) => {
-    if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-      onClose();
-    }
-  }, [onClose]);
-
-  // Close on Escape
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') onClose();
-  }, [onClose]);
+  const handleOutsideClick = useCallback(
+    (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        onClose();
+      }
+    },
+    [onClose],
+  );
 
   useEffect(() => {
-    document.addEventListener('mousedown', handleOutsideClick);
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [handleOutsideClick, handleKeyDown]);
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [handleOutsideClick]);
+
+  const activateItem = useCallback(
+    (index: number) => {
+      const item = items[index];
+      if (!item || item.separator || item.disabled) return;
+      item.onClick?.();
+      onClose();
+    },
+    [items, onClose],
+  );
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (actionableIndices.length === 0) return;
+
+      switch (e.key) {
+        case "ArrowDown": {
+          e.preventDefault();
+          const curPos = actionableIndices.indexOf(focusedIndex);
+          const next = (curPos + 1) % actionableIndices.length;
+          setFocusedIndex(actionableIndices[next]);
+          break;
+        }
+        case "ArrowUp": {
+          e.preventDefault();
+          const curPos = actionableIndices.indexOf(focusedIndex);
+          const prev =
+            (curPos - 1 + actionableIndices.length) % actionableIndices.length;
+          setFocusedIndex(actionableIndices[prev]);
+          break;
+        }
+        case "Home":
+          e.preventDefault();
+          setFocusedIndex(actionableIndices[0]);
+          break;
+        case "End":
+          e.preventDefault();
+          setFocusedIndex(actionableIndices[actionableIndices.length - 1]);
+          break;
+        case "Enter":
+        case " ":
+          e.preventDefault();
+          activateItem(focusedIndex);
+          break;
+        case "Escape":
+          e.preventDefault();
+          onClose();
+          break;
+      }
+    },
+    [actionableIndices, focusedIndex, activateItem, onClose],
+  );
 
   return (
     <div
       ref={menuRef}
-      className="fixed min-w-[180px] bg-card/95 backdrop-blur-md border border-border rounded-lg shadow-xl py-1"
+      className="fixed min-w-[180px] bg-card/95 backdrop-blur-md border border-border rounded-lg shadow-xl py-1 outline-none"
       style={{
         zIndex: 55,
         left: position.x,
         top: position.y,
       }}
       role="menu"
+      tabIndex={-1}
+      onKeyDown={handleKeyDown}
     >
-      {items.map(item => {
+      {items.map((item, index) => {
         if (item.separator) {
-          return <div key={item.id} className="border-t border-border my-1" role="separator" />;
+          return (
+            <div
+              key={item.id}
+              className="border-t border-border my-1"
+              role="separator"
+            />
+          );
         }
+
+        const isFocused = index === focusedIndex;
 
         return (
           <button
             key={item.id}
             role="menuitem"
             disabled={item.disabled}
+            tabIndex={-1}
             className={`
               w-full text-left px-3 py-1.5 text-xs flex items-center justify-between gap-4
               transition-colors
-              ${item.disabled
-                ? 'text-muted-foreground/50 cursor-not-allowed'
-                : item.danger
-                  ? 'text-red-500 hover:bg-red-500/10'
-                  : 'text-foreground hover:bg-muted'
+              ${
+                item.disabled
+                  ? "text-muted-foreground/50 cursor-not-allowed"
+                  : item.danger
+                    ? `text-red-500 ${isFocused ? "bg-red-500/10" : "hover:bg-red-500/10"}`
+                    : `text-foreground ${isFocused ? "bg-muted" : "hover:bg-muted"}`
               }
             `}
             onClick={() => {
@@ -84,10 +165,15 @@ export default function ContextMenu({ items, position, onClose }: ContextMenuPro
               item.onClick?.();
               onClose();
             }}
+            onMouseEnter={() => {
+              if (!item.disabled) setFocusedIndex(index);
+            }}
           >
             <span>{item.label}</span>
             {item.shortcut && (
-              <span className="text-[10px] text-muted-foreground">{item.shortcut}</span>
+              <span className="text-[10px] text-muted-foreground">
+                {item.shortcut}
+              </span>
             )}
           </button>
         );
