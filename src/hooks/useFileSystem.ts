@@ -106,20 +106,22 @@ export function useFileSystem(
   }, [fetchChildren]);
 
   const createFolder = useCallback(
-    async (name: string) => {
+    async (name: string): Promise<FileSystemNode | null> => {
       try {
-        await createFileSystemNode({
+        const node = await createFileSystemNode({
           parent_id: state.currentParentId,
           name,
           type: "folder",
           icon: "Folder",
         });
         await fetchChildren(state.currentParentId);
+        return node;
       } catch (err) {
         setState((prev) => ({
           ...prev,
           error: err instanceof Error ? err.message : "Failed to create folder",
         }));
+        return null;
       }
     },
     [state.currentParentId, fetchChildren],

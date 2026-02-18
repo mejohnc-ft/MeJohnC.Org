@@ -18,6 +18,7 @@ export default function FileExplorer() {
   const contextMenu = useContextMenu();
   const [viewMode, setViewMode] = useState<FileExplorerViewMode>("icons");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [renamingId, setRenamingId] = useState<string | null>(null);
 
   const isTrash = fs.currentParentId === ROOT_FOLDERS.TRASH;
 
@@ -31,7 +32,6 @@ export default function FileExplorer() {
         fs.navigateTo(node.id);
         setSelectedIds(new Set());
       }
-      // For shortcuts/files, a future phase can open the target
     },
     [fs],
   );
@@ -48,18 +48,35 @@ export default function FileExplorer() {
     [fs],
   );
 
+  const startRename = useCallback((nodeId: string) => {
+    setRenamingId(nodeId);
+  }, []);
+
+  const handleRenameConfirm = useCallback(
+    async (nodeId: string, newName: string) => {
+      setRenamingId(null);
+      const node = fs.children.find((n) => n.id === nodeId);
+      if (newName.trim() && node && newName.trim() !== node.name) {
+        await fs.rename(nodeId, newName.trim());
+      }
+    },
+    [fs],
+  );
+
+  const handleRenameCancel = useCallback(() => {
+    setRenamingId(null);
+  }, []);
+
   const handleNewFolder = useCallback(async () => {
-    const name = prompt("Folder name:");
-    if (name?.trim()) {
-      await fs.createFolder(name.trim());
+    const node = await fs.createFolder("Untitled Folder");
+    if (node) {
+      setSelectedIds(new Set([node.id]));
+      setRenamingId(node.id);
     }
   }, [fs]);
 
   const handleNewShortcut = useCallback(async () => {
-    const name = prompt("Shortcut name:");
-    if (name?.trim()) {
-      await fs.createFile(name.trim(), "url", "", "Link");
-    }
+    await fs.createFile("Untitled Shortcut", "url", "", "Link");
   }, [fs]);
 
   const getNodeMenuItems = useCallback(
@@ -98,12 +115,7 @@ export default function FileExplorer() {
         {
           id: "rename",
           label: "Rename",
-          onClick: async () => {
-            const newName = prompt("New name:", node.name);
-            if (newName?.trim() && newName.trim() !== node.name) {
-              await fs.rename(node.id, newName.trim());
-            }
-          },
+          onClick: () => startRename(node.id),
         },
         { id: "sep2", label: "", separator: true },
         {
@@ -117,7 +129,7 @@ export default function FileExplorer() {
 
       return items;
     },
-    [isTrash, fs, handleOpen],
+    [isTrash, fs, handleOpen, startRename],
   );
 
   const handleContentContextMenu = useCallback(
@@ -129,7 +141,6 @@ export default function FileExplorer() {
 
   const handleBackgroundContextMenu = useCallback(
     (e: React.MouseEvent) => {
-      // Only trigger on the content area background
       if (e.target !== e.currentTarget) return;
       e.preventDefault();
 
@@ -164,7 +175,6 @@ export default function FileExplorer() {
     [isTrash, handleNewFolder, handleNewShortcut, fs, contextMenu],
   );
 
-  // Count trashed items for sidebar badge
   const trashCount = useMemo(() => {
     if (isTrash) return fs.children.length;
     return 0;
@@ -177,7 +187,7 @@ export default function FileExplorer() {
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         onNavigateBack={fs.navigateUp}
-        onNavigateForward={() => {}} // Forward nav not implemented yet
+        onNavigateForward={() => {}}
         onNavigateTo={(id) => fs.navigateTo(id)}
         onNavigateToRoot={fs.navigateToRoot}
         onSearch={fs.search}
@@ -204,6 +214,9 @@ export default function FileExplorer() {
             onOpen={handleOpen}
             onContextMenu={handleContentContextMenu}
             getNodeMenuItems={getNodeMenuItems}
+            renamingId={renamingId}
+            onRenameConfirm={handleRenameConfirm}
+            onRenameCancel={handleRenameCancel}
           />
         </div>
       </div>
