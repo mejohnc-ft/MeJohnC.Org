@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useState,
   useEffect,
@@ -32,6 +33,7 @@ interface TenantContextValue {
   status: TenantStatus;
   isMainSite: boolean;
   error: string | null;
+  refreshTenant: () => void;
 }
 
 const DEFAULT_TENANT_ID = "00000000-0000-0000-0000-000000000001";
@@ -46,6 +48,7 @@ const TenantContext = createContext<TenantContextValue>({
   status: "loading",
   isMainSite: true,
   error: null,
+  refreshTenant: () => {},
 });
 
 // --- Slug extraction ---
@@ -97,6 +100,11 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [status, setStatus] = useState<TenantStatus>("loading");
   const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const refreshTenant = useCallback(() => {
+    setRefreshKey((k) => k + 1);
+  }, []);
 
   useEffect(() => {
     // Determine slug: dev override takes priority, then hostname
@@ -144,7 +152,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [refreshKey]);
 
   const tenantId =
     status === "resolved"
@@ -161,6 +169,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         status,
         isMainSite: status === "main_site",
         error,
+        refreshTenant,
       }}
     >
       {children}
