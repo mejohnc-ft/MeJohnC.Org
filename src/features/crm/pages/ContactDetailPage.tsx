@@ -4,23 +4,37 @@
  * Detailed view of a single contact with interactions and follow-ups
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit, MessageSquare, Calendar, Loader2, Plus } from 'lucide-react';
-import AdminLayout from '@/components/AdminLayout';
-import { Button } from '@/components/ui/button';
-import { useAuthenticatedSupabase } from '@/lib/supabase';
-import { useSEO } from '@/lib/seo';
-import { captureException } from '@/lib/sentry';
-import { ContactDetail } from '../components/ContactDetail';
-import { InteractionLog } from '../components/InteractionLog';
-import { InteractionForm } from '../components/InteractionForm';
-import { FollowUpList } from '../components/FollowUpList';
-import { FollowUpForm } from '../components/FollowUpForm';
-import type { ContactWithDetails, Interaction, FollowUp } from '../schemas';
-import { getContactById, getInteractions, createInteraction, getFollowUps, createFollowUp, completeFollowUp } from '@/lib/crm-queries';
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  Edit,
+  MessageSquare,
+  Calendar,
+  Loader2,
+  Plus,
+} from "lucide-react";
+import AdminLayout from "@/components/AdminLayout";
+import { Button } from "@/components/ui/button";
+import { useAuthenticatedSupabase } from "@/lib/supabase";
+import { useSEO } from "@/lib/seo";
+import { captureException } from "@/lib/sentry";
+import { ContactDetail } from "../components/ContactDetail";
+import { InteractionLog } from "../components/InteractionLog";
+import { InteractionForm } from "../components/InteractionForm";
+import { FollowUpList } from "../components/FollowUpList";
+import { FollowUpForm } from "../components/FollowUpForm";
+import type { ContactWithDetails, Interaction, FollowUp } from "../schemas";
+import {
+  getContactById,
+  getInteractions,
+  createInteraction,
+  getFollowUps,
+  createFollowUp,
+  completeFollowUp,
+} from "@/lib/crm-queries";
 
-type TabType = 'interactions' | 'follow-ups';
+type TabType = "interactions" | "follow-ups";
 
 const ContactDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,13 +45,15 @@ const ContactDetailPage = () => {
   const [interactions, setInteractions] = useState<Interaction[]>([]);
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<TabType>('interactions');
+  const [activeTab, setActiveTab] = useState<TabType>("interactions");
   const [showInteractionForm, setShowInteractionForm] = useState(false);
   const [showFollowUpForm, setShowFollowUpForm] = useState(false);
 
   useSEO({
-    title: contact ? `${contact.first_name || ''} ${contact.last_name || ''} - CRM` : 'Contact Details',
-    noIndex: true
+    title: contact
+      ? `${contact.first_name || ""} ${contact.last_name || ""} - CRM`
+      : "Contact Details",
+    noIndex: true,
   });
 
   const loadContactData = useCallback(async () => {
@@ -55,9 +71,12 @@ const ContactDetailPage = () => {
       setInteractions(interactionsData);
       setFollowUps(followUpsData);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'ContactDetailPage.loadContactData',
-      });
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "ContactDetailPage.loadContactData",
+        },
+      );
     } finally {
       setIsLoading(false);
     }
@@ -67,29 +86,60 @@ const ContactDetailPage = () => {
     loadContactData();
   }, [loadContactData]);
 
-  const handleCreateInteraction = async (data: Omit<Interaction, 'id' | 'created_at' | 'tenant_id' | 'created_by' | 'related_url' | 'attachments'>) => {
+  const handleCreateInteraction = async (
+    data: Omit<
+      Interaction,
+      | "id"
+      | "created_at"
+      | "tenant_id"
+      | "created_by"
+      | "related_url"
+      | "attachments"
+    >,
+  ) => {
     if (!supabase) return;
     try {
       await createInteraction(data, supabase);
       setShowInteractionForm(false);
       loadContactData();
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'ContactDetailPage.createInteraction',
-      });
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "ContactDetailPage.createInteraction",
+        },
+      );
     }
   };
 
-  const handleCreateFollowUp = async (data: Omit<FollowUp, 'id' | 'created_at' | 'tenant_id' | 'status' | 'completed_at' | 'completed_by' | 'completion_notes' | 'is_recurring' | 'recurrence_rule' | 'parent_follow_up_id' | 'created_by'>) => {
+  const handleCreateFollowUp = async (
+    data: Omit<
+      FollowUp,
+      | "id"
+      | "created_at"
+      | "tenant_id"
+      | "status"
+      | "completed_at"
+      | "completed_by"
+      | "completion_notes"
+      | "is_recurring"
+      | "recurrence_rule"
+      | "parent_follow_up_id"
+      | "created_by"
+    >,
+  ) => {
     if (!supabase) return;
     try {
       await createFollowUp(data, supabase);
       setShowFollowUpForm(false);
       loadContactData();
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'ContactDetailPage.createFollowUp',
-      });
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "ContactDetailPage.createFollowUp",
+        },
+      );
     }
   };
 
@@ -99,9 +149,12 @@ const ContactDetailPage = () => {
       await completeFollowUp(followUpId, undefined, undefined, supabase);
       loadContactData();
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'ContactDetailPage.completeFollowUp',
-      });
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "ContactDetailPage.completeFollowUp",
+        },
+      );
     }
   };
 
@@ -120,7 +173,7 @@ const ContactDetailPage = () => {
       <AdminLayout>
         <div className="text-center py-12">
           <h3 className="text-lg font-medium mb-2">Contact not found</h3>
-          <Button onClick={() => navigate('/admin/crm/contacts')}>
+          <Button onClick={() => navigate("/admin/crm/contacts")}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Contacts
           </Button>
@@ -134,7 +187,10 @@ const ContactDetailPage = () => {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={() => navigate('/admin/crm/contacts')}>
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/admin/crm/contacts")}
+          >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Contacts
           </Button>
@@ -151,22 +207,22 @@ const ContactDetailPage = () => {
         <div className="border-b border-border">
           <div className="flex gap-1">
             <button
-              onClick={() => setActiveTab('interactions')}
+              onClick={() => setActiveTab("interactions")}
               className={`flex items-center gap-2 px-4 py-2 border-b-2 transition-colors ${
-                activeTab === 'interactions'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
+                activeTab === "interactions"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
               <MessageSquare className="w-4 h-4" />
               Interactions ({interactions.length})
             </button>
             <button
-              onClick={() => setActiveTab('follow-ups')}
+              onClick={() => setActiveTab("follow-ups")}
               className={`flex items-center gap-2 px-4 py-2 border-b-2 transition-colors ${
-                activeTab === 'follow-ups'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
+                activeTab === "follow-ups"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
               <Calendar className="w-4 h-4" />
@@ -176,10 +232,12 @@ const ContactDetailPage = () => {
         </div>
 
         {/* Tab Content */}
-        {activeTab === 'interactions' && (
+        {activeTab === "interactions" && (
           <div className="space-y-4">
             <div className="flex justify-end">
-              <Button onClick={() => setShowInteractionForm(!showInteractionForm)}>
+              <Button
+                onClick={() => setShowInteractionForm(!showInteractionForm)}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Log Interaction
               </Button>
@@ -199,7 +257,7 @@ const ContactDetailPage = () => {
           </div>
         )}
 
-        {activeTab === 'follow-ups' && (
+        {activeTab === "follow-ups" && (
           <div className="space-y-4">
             <div className="flex justify-end">
               <Button onClick={() => setShowFollowUpForm(!showFollowUpForm)}>
@@ -221,6 +279,11 @@ const ContactDetailPage = () => {
             <FollowUpList
               followUps={followUps}
               onComplete={handleCompleteFollowUp}
+              contactName={
+                contact
+                  ? `${contact.first_name || ""} ${contact.last_name || ""}`.trim()
+                  : undefined
+              }
             />
           </div>
         )}

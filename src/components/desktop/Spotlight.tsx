@@ -84,6 +84,26 @@ interface SpotlightResult {
   action: () => void;
 }
 
+const RECENT_SEARCHES_KEY = "spotlight-recent-searches";
+const MAX_RECENT_SEARCHES = 5;
+
+function getRecentSearches(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(RECENT_SEARCHES_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function addRecentSearch(query: string) {
+  const recent = getRecentSearches().filter((s) => s !== query);
+  recent.unshift(query);
+  localStorage.setItem(
+    RECENT_SEARCHES_KEY,
+    JSON.stringify(recent.slice(0, MAX_RECENT_SEARCHES)),
+  );
+}
+
 export default function Spotlight({ isOpen, onClose }: SpotlightProps) {
   const { launchApp } = useWindowManagerContext();
   const prefersReducedMotion = useReducedMotion();
@@ -91,6 +111,7 @@ export default function Spotlight({ isOpen, onClose }: SpotlightProps) {
   const [results, setResults] = useState<SpotlightResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Focus input when opening
@@ -99,6 +120,7 @@ export default function Spotlight({ isOpen, onClose }: SpotlightProps) {
       setQuery("");
       setResults([]);
       setSelectedIndex(0);
+      setRecentSearches(getRecentSearches());
       // Delay focus to allow animation
       requestAnimationFrame(() => inputRef.current?.focus());
     }
@@ -230,6 +252,7 @@ export default function Spotlight({ isOpen, onClose }: SpotlightProps) {
       } else if (e.key === "Enter") {
         e.preventDefault();
         if (results[selectedIndex]) {
+          if (query.trim()) addRecentSearch(query.trim());
           results[selectedIndex].action();
         }
       }
@@ -300,7 +323,7 @@ export default function Spotlight({ isOpen, onClose }: SpotlightProps) {
           {/* Modal */}
           <motion.div
             {...motionProps}
-            className="fixed top-[20%] left-1/2 -translate-x-1/2 w-full max-w-lg"
+            className="fixed top-[max(80px,20%)] left-1/2 -translate-x-1/2 w-full max-w-lg"
             style={{ zIndex: 60 }}
           >
             <div className="bg-card border border-border rounded-xl shadow-2xl overflow-hidden">
@@ -327,7 +350,7 @@ export default function Spotlight({ isOpen, onClose }: SpotlightProps) {
               </div>
 
               {/* Results */}
-              <div className="max-h-80 overflow-y-auto">
+              <div className="max-h-[min(320px,calc(80vh-160px))] overflow-y-auto">
                 {isLoading && results.length === 0 ? (
                   <div className="flex items-center justify-center py-8">
                     <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -387,8 +410,26 @@ export default function Spotlight({ isOpen, onClose }: SpotlightProps) {
                     No results for &ldquo;{query}&rdquo;
                   </div>
                 ) : (
-                  /* Empty state: quick-launch grid */
+                  /* Empty state: recent searches + quick-launch grid */
                   <div className="p-4">
+                    {recentSearches.length > 0 && (
+                      <div className="mb-3">
+                        <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
+                          Recent Searches
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {recentSearches.map((s) => (
+                            <button
+                              key={s}
+                              onClick={() => setQuery(s)}
+                              className="px-2.5 py-1 text-xs rounded-full bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
+                            >
+                              {s}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                       Quick Launch
                     </div>
