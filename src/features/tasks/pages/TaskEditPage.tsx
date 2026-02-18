@@ -1,23 +1,29 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react';
-import { useAuthenticatedSupabase } from '@/lib/supabase';
-import { getTaskById, getTaskCategories, createTask, updateTask } from '@/lib/task-queries';
-import { Task, TaskCategory } from '@/lib/schemas';
-import { Button } from '@/components/ui/button';
-import AdminLayout from '@/components/AdminLayout';
-import { useSEO } from '@/lib/seo';
-import { captureException } from '@/lib/sentry';
-import { TaskForm } from '../components';
+import { useEffect, useState } from "react";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
+import { ArrowLeft } from "lucide-react";
+import { useAuthenticatedSupabase } from "@/lib/supabase";
+import {
+  getTaskById,
+  getTaskCategories,
+  createTask,
+  updateTask,
+} from "@/lib/task-queries";
+import { Task, TaskCategory } from "@/lib/schemas";
+import { Button } from "@/components/ui/button";
+import AdminLayout from "@/components/AdminLayout";
+import { useSEO } from "@/lib/seo";
+import { captureException } from "@/lib/sentry";
+import { TaskForm } from "../components";
 
 const TaskEditPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { supabase } = useAuthenticatedSupabase();
-  const isNew = !id || id === 'new';
+  const isNew = !id || id === "new";
 
-  useSEO({ title: isNew ? 'New Task' : 'Edit Task', noIndex: true });
+  useSEO({ title: isNew ? "New Task" : "Edit Task", noIndex: true });
 
   const [task, setTask] = useState<Task | undefined>(undefined);
   const [categories, setCategories] = useState<TaskCategory[]>([]);
@@ -43,8 +49,11 @@ const TaskEditPage = () => {
         setTask(taskData);
       }
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), { context: 'TaskEditPage.fetchData' });
-      navigate('/admin/tasks');
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        { context: "TaskEditPage.fetchData" },
+      );
+      navigate("/admin/tasks");
     } finally {
       setIsLoading(false);
     }
@@ -55,19 +64,28 @@ const TaskEditPage = () => {
 
     try {
       if (isNew) {
-        await createTask(data as Omit<Task, 'id' | 'created_at' | 'updated_at' | 'completed_at' | 'is_overdue'>, supabase);
+        await createTask(
+          data as Omit<
+            Task,
+            "id" | "created_at" | "updated_at" | "completed_at" | "is_overdue"
+          >,
+          supabase,
+        );
       } else if (id) {
         await updateTask(id, data, supabase);
       }
-      navigate('/admin/tasks');
+      navigate("/admin/tasks");
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), { context: 'TaskEditPage.handleSubmit' });
-      alert('Failed to save task. Please try again.');
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        { context: "TaskEditPage.handleSubmit" },
+      );
+      toast.error("Failed to save task. Please try again.");
     }
   };
 
   const handleCancel = () => {
-    navigate('/admin/tasks');
+    navigate("/admin/tasks");
   };
 
   return (
@@ -83,10 +101,10 @@ const TaskEditPage = () => {
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              {isNew ? 'New Task' : 'Edit Task'}
+              {isNew ? "New Task" : "Edit Task"}
             </h1>
             <p className="text-muted-foreground mt-1">
-              {isNew ? 'Create a new task' : 'Update task details'}
+              {isNew ? "Create a new task" : "Update task details"}
             </p>
           </div>
         </div>

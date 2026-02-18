@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Save, Trash2, Send, Calendar, Eye } from 'lucide-react';
-import { useAuthenticatedSupabase } from '@/lib/supabase';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import AdminLayout from '@/components/AdminLayout';
-import { useSEO } from '@/lib/seo';
-import { captureException } from '@/lib/sentry';
+import { useEffect, useState } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { ArrowLeft, Save, Trash2, Send, Calendar, Eye } from "lucide-react";
+import { toast } from "sonner";
+import { useAuthenticatedSupabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import AdminLayout from "@/components/AdminLayout";
+import { useSEO } from "@/lib/seo";
+import { captureException } from "@/lib/sentry";
 import {
   getEmailCampaignById,
   createEmailCampaign,
@@ -16,15 +17,15 @@ import {
   getEmailTemplates,
   getEmailLists,
   sendCampaign,
-} from '@/lib/marketing-queries';
-import type { EmailCampaign, EmailTemplate, EmailList } from '@/lib/schemas';
+} from "@/lib/marketing-queries";
+import type { EmailCampaign, EmailTemplate, EmailList } from "@/lib/schemas";
 
 const CampaignEditor = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const isNew = id === 'new';
+  const isNew = id === "new";
 
-  useSEO({ title: isNew ? 'New Campaign' : 'Edit Campaign', noIndex: true });
+  useSEO({ title: isNew ? "New Campaign" : "Edit Campaign", noIndex: true });
   const { supabase } = useAuthenticatedSupabase();
 
   const [isLoading, setIsLoading] = useState(!isNew);
@@ -36,15 +37,15 @@ const CampaignEditor = () => {
   const [showPreview, setShowPreview] = useState(false);
 
   const [formData, setFormData] = useState({
-    name: '',
-    subject: '',
-    preview_text: '',
-    template_id: '',
-    html_content: '',
-    text_content: '',
+    name: "",
+    subject: "",
+    preview_text: "",
+    template_id: "",
+    html_content: "",
+    text_content: "",
     list_ids: [] as string[],
-    status: 'draft' as EmailCampaign['status'],
-    scheduled_for: '',
+    status: "draft" as EmailCampaign["status"],
+    scheduled_for: "",
   });
 
   useEffect(() => {
@@ -67,19 +68,22 @@ const CampaignEditor = () => {
           setFormData({
             name: data.name,
             subject: data.subject,
-            preview_text: data.preview_text || '',
-            template_id: data.template_id || '',
-            html_content: data.html_content || '',
-            text_content: data.text_content || '',
+            preview_text: data.preview_text || "",
+            template_id: data.template_id || "",
+            html_content: data.html_content || "",
+            text_content: data.text_content || "",
             list_ids: data.list_ids || [],
             status: data.status,
-            scheduled_for: data.scheduled_for || '',
+            scheduled_for: data.scheduled_for || "",
           });
         }
       } catch (error) {
-        captureException(error instanceof Error ? error : new Error(String(error)), {
-          context: 'CampaignEditor.fetchData',
-        });
+        captureException(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            context: "CampaignEditor.fetchData",
+          },
+        );
       } finally {
         setIsLoading(false);
       }
@@ -117,12 +121,15 @@ const CampaignEditor = () => {
       } else if (id) {
         await updateEmailCampaign(id, campaignData, supabase);
       }
-      navigate('/admin/marketing/campaigns');
+      navigate("/admin/marketing/campaigns");
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'CampaignEditor.handleSubmit',
-      });
-      alert('Failed to save campaign. Please try again.');
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "CampaignEditor.handleSubmit",
+        },
+      );
+      toast.error("Failed to save campaign. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -130,16 +137,19 @@ const CampaignEditor = () => {
 
   const handleDelete = async () => {
     if (!supabase || !id || isNew) return;
-    if (!confirm('Are you sure you want to delete this campaign?')) return;
+    if (!confirm("Are you sure you want to delete this campaign?")) return;
 
     try {
       await deleteEmailCampaign(id, supabase);
-      navigate('/admin/marketing/campaigns');
+      navigate("/admin/marketing/campaigns");
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'CampaignEditor.handleDelete',
-      });
-      alert('Failed to delete campaign.');
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "CampaignEditor.handleDelete",
+        },
+      );
+      toast.error("Failed to delete campaign.");
     }
   };
 
@@ -148,19 +158,26 @@ const CampaignEditor = () => {
 
     try {
       await scheduleCampaign(id, formData.scheduled_for, supabase);
-      navigate('/admin/marketing/campaigns');
+      navigate("/admin/marketing/campaigns");
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'CampaignEditor.handleSchedule',
-      });
-      alert('Failed to schedule campaign.');
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "CampaignEditor.handleSchedule",
+        },
+      );
+      toast.error("Failed to schedule campaign.");
     }
   };
 
   const handleSendNow = async () => {
     if (!supabase || !id) return;
 
-    if (!confirm('Are you sure you want to send this campaign now? This action cannot be undone.')) {
+    if (
+      !confirm(
+        "Are you sure you want to send this campaign now? This action cannot be undone.",
+      )
+    ) {
       return;
     }
 
@@ -169,16 +186,25 @@ const CampaignEditor = () => {
       const result = await sendCampaign(id, supabase);
 
       if (result.success) {
-        alert(`Campaign sent successfully!\n\nSent: ${result.sent_count}\nFailed: ${result.failed_count}`);
-        navigate('/admin/marketing/campaigns');
+        toast.success(
+          `Campaign sent successfully! Sent: ${result.sent_count}, Failed: ${result.failed_count}`,
+        );
+        navigate("/admin/marketing/campaigns");
       } else {
-        alert(`Campaign sending had issues:\n\nSent: ${result.sent_count}\nFailed: ${result.failed_count}\n\nErrors:\n${result.errors.slice(0, 5).join('\n')}`);
+        toast.error(
+          `Campaign sending had issues. Sent: ${result.sent_count}, Failed: ${result.failed_count}`,
+        );
       }
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'CampaignEditor.handleSendNow',
-      });
-      alert('Failed to send campaign. Check your email provider configuration.');
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "CampaignEditor.handleSendNow",
+        },
+      );
+      toast.error(
+        "Failed to send campaign. Check your email provider configuration.",
+      );
     } finally {
       setIsSending(false);
     }
@@ -186,7 +212,10 @@ const CampaignEditor = () => {
 
   const toggleList = (listId: string) => {
     if (formData.list_ids.includes(listId)) {
-      setFormData({ ...formData, list_ids: formData.list_ids.filter((l) => l !== listId) });
+      setFormData({
+        ...formData,
+        list_ids: formData.list_ids.filter((l) => l !== listId),
+      });
     } else {
       setFormData({ ...formData, list_ids: [...formData.list_ids, listId] });
     }
@@ -201,21 +230,27 @@ const CampaignEditor = () => {
         subject: template.subject_template || formData.subject,
         preview_text: template.preview_text_template || formData.preview_text,
         html_content: template.html_content,
-        text_content: template.text_content || '',
+        text_content: template.text_content || "",
       });
     }
   };
 
-  const getStatusBadge = (status: EmailCampaign['status']) => {
+  const getStatusBadge = (status: EmailCampaign["status"]) => {
     const styles = {
-      draft: 'bg-gray-500/10 text-gray-500',
-      scheduled: 'bg-blue-500/10 text-blue-500',
-      sending: 'bg-yellow-500/10 text-yellow-500',
-      sent: 'bg-green-500/10 text-green-500',
-      paused: 'bg-orange-500/10 text-orange-500',
-      cancelled: 'bg-red-500/10 text-red-500',
+      draft: "bg-gray-500/10 text-gray-500",
+      scheduled: "bg-blue-500/10 text-blue-500",
+      sending: "bg-yellow-500/10 text-yellow-500",
+      sent: "bg-green-500/10 text-green-500",
+      paused: "bg-orange-500/10 text-orange-500",
+      cancelled: "bg-red-500/10 text-red-500",
     };
-    return <span className={`px-2 py-1 rounded text-xs font-medium ${styles[status]}`}>{status}</span>;
+    return (
+      <span
+        className={`px-2 py-1 rounded text-xs font-medium ${styles[status]}`}
+      >
+        {status}
+      </span>
+    );
   };
 
   if (isLoading) {
@@ -242,7 +277,7 @@ const CampaignEditor = () => {
             </Button>
             <div>
               <h1 className="text-2xl font-bold text-foreground">
-                {isNew ? 'New Campaign' : 'Edit Campaign'}
+                {isNew ? "New Campaign" : "Edit Campaign"}
               </h1>
               {!isNew && campaign && (
                 <div className="flex items-center gap-2 mt-1">
@@ -262,7 +297,7 @@ const CampaignEditor = () => {
         </div>
 
         {/* Stats (for sent campaigns) */}
-        {!isNew && campaign && campaign.status === 'sent' && (
+        {!isNew && campaign && campaign.status === "sent" && (
           <div className="grid grid-cols-5 gap-4">
             <div className="bg-card border border-border rounded-lg p-4 text-center">
               <p className="text-sm text-muted-foreground">Sent</p>
@@ -276,21 +311,31 @@ const CampaignEditor = () => {
               <p className="text-sm text-muted-foreground">Open Rate</p>
               <p className="text-2xl font-bold">
                 {campaign.sent_count > 0
-                  ? ((campaign.opened_count / campaign.sent_count) * 100).toFixed(1)
-                  : '0'}%
+                  ? (
+                      (campaign.opened_count / campaign.sent_count) *
+                      100
+                    ).toFixed(1)
+                  : "0"}
+                %
               </p>
             </div>
             <div className="bg-card border border-border rounded-lg p-4 text-center">
               <p className="text-sm text-muted-foreground">Click Rate</p>
               <p className="text-2xl font-bold">
                 {campaign.sent_count > 0
-                  ? ((campaign.clicked_count / campaign.sent_count) * 100).toFixed(1)
-                  : '0'}%
+                  ? (
+                      (campaign.clicked_count / campaign.sent_count) *
+                      100
+                    ).toFixed(1)
+                  : "0"}
+                %
               </p>
             </div>
             <div className="bg-card border border-border rounded-lg p-4 text-center">
               <p className="text-sm text-muted-foreground">Bounced</p>
-              <p className="text-2xl font-bold text-red-500">{campaign.bounced_count}</p>
+              <p className="text-2xl font-bold text-red-500">
+                {campaign.bounced_count}
+              </p>
             </div>
           </div>
         )}
@@ -302,30 +347,42 @@ const CampaignEditor = () => {
             <h2 className="text-lg font-semibold">Campaign Details</h2>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Campaign Name *</label>
+              <label className="block text-sm font-medium mb-2">
+                Campaign Name *
+              </label>
               <Input
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 required
                 placeholder="Monthly Newsletter - January"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Subject Line *</label>
+              <label className="block text-sm font-medium mb-2">
+                Subject Line *
+              </label>
               <Input
                 value={formData.subject}
-                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, subject: e.target.value })
+                }
                 required
                 placeholder="Your January Updates are here!"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Preview Text</label>
+              <label className="block text-sm font-medium mb-2">
+                Preview Text
+              </label>
               <Input
                 value={formData.preview_text}
-                onChange={(e) => setFormData({ ...formData, preview_text: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, preview_text: e.target.value })
+                }
                 placeholder="A short preview shown in email clients..."
               />
             </div>
@@ -335,7 +392,9 @@ const CampaignEditor = () => {
           <div className="bg-card border border-border rounded-lg p-6 space-y-4">
             <h2 className="text-lg font-semibold">Template</h2>
             <div>
-              <label className="block text-sm font-medium mb-2">Use Template</label>
+              <label className="block text-sm font-medium mb-2">
+                Use Template
+              </label>
               <select
                 value={formData.template_id}
                 onChange={(e) => applyTemplate(e.target.value)}
@@ -362,23 +421,29 @@ const CampaignEditor = () => {
                 onClick={() => setShowPreview(!showPreview)}
               >
                 <Eye className="w-4 h-4 mr-2" />
-                {showPreview ? 'Edit' : 'Preview'}
+                {showPreview ? "Edit" : "Preview"}
               </Button>
             </div>
 
             {showPreview ? (
               <div className="border border-border rounded-lg p-4 bg-white">
                 <div
-                  dangerouslySetInnerHTML={{ __html: formData.html_content || '<p>No content yet</p>' }}
+                  dangerouslySetInnerHTML={{
+                    __html: formData.html_content || "<p>No content yet</p>",
+                  }}
                 />
               </div>
             ) : (
               <>
                 <div>
-                  <label className="block text-sm font-medium mb-2">HTML Content</label>
+                  <label className="block text-sm font-medium mb-2">
+                    HTML Content
+                  </label>
                   <textarea
                     value={formData.html_content}
-                    onChange={(e) => setFormData({ ...formData, html_content: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, html_content: e.target.value })
+                    }
                     rows={12}
                     className="w-full px-3 py-2 bg-background border border-border rounded-md font-mono text-sm"
                     placeholder="<html>...</html>"
@@ -386,10 +451,14 @@ const CampaignEditor = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Plain Text Version</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Plain Text Version
+                  </label>
                   <textarea
                     value={formData.text_content}
-                    onChange={(e) => setFormData({ ...formData, text_content: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, text_content: e.target.value })
+                    }
                     rows={6}
                     className="w-full px-3 py-2 bg-background border border-border rounded-md"
                     placeholder="Plain text fallback..."
@@ -402,15 +471,17 @@ const CampaignEditor = () => {
           {/* Recipients */}
           <div className="bg-card border border-border rounded-lg p-6 space-y-4">
             <h2 className="text-lg font-semibold">Recipients</h2>
-            <p className="text-sm text-muted-foreground">Select the lists to send this campaign to.</p>
+            <p className="text-sm text-muted-foreground">
+              Select the lists to send this campaign to.
+            </p>
             <div className="grid grid-cols-2 gap-2">
               {lists.map((list) => (
                 <label
                   key={list.id}
                   className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
                     formData.list_ids.includes(list.id)
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/50'
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50"
                   }`}
                 >
                   <input
@@ -422,12 +493,16 @@ const CampaignEditor = () => {
                   <div
                     className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
                       formData.list_ids.includes(list.id)
-                        ? 'bg-primary border-primary'
-                        : 'border-muted-foreground'
+                        ? "bg-primary border-primary"
+                        : "border-muted-foreground"
                     }`}
                   >
                     {formData.list_ids.includes(list.id) && (
-                      <svg className="w-3 h-3 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
+                      <svg
+                        className="w-3 h-3 text-primary-foreground"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
                         <path
                           fillRule="evenodd"
                           d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -438,7 +513,9 @@ const CampaignEditor = () => {
                   </div>
                   <div>
                     <p className="font-medium text-sm">{list.name}</p>
-                    <p className="text-xs text-muted-foreground">{list.subscriber_count} subscribers</p>
+                    <p className="text-xs text-muted-foreground">
+                      {list.subscriber_count} subscribers
+                    </p>
                   </div>
                 </label>
               ))}
@@ -449,12 +526,23 @@ const CampaignEditor = () => {
           <div className="bg-card border border-border rounded-lg p-6 space-y-4">
             <h2 className="text-lg font-semibold">Scheduling</h2>
             <div>
-              <label className="block text-sm font-medium mb-2">Schedule For</label>
+              <label className="block text-sm font-medium mb-2">
+                Schedule For
+              </label>
               <Input
                 type="datetime-local"
-                value={formData.scheduled_for ? formData.scheduled_for.slice(0, 16) : ''}
+                value={
+                  formData.scheduled_for
+                    ? formData.scheduled_for.slice(0, 16)
+                    : ""
+                }
                 onChange={(e) =>
-                  setFormData({ ...formData, scheduled_for: e.target.value ? new Date(e.target.value).toISOString() : '' })
+                  setFormData({
+                    ...formData,
+                    scheduled_for: e.target.value
+                      ? new Date(e.target.value).toISOString()
+                      : "",
+                  })
                 }
               />
               <p className="text-xs text-muted-foreground mt-1">
@@ -469,13 +557,19 @@ const CampaignEditor = () => {
               <Link to="/admin/marketing/campaigns">Cancel</Link>
             </Button>
             <div className="flex gap-3">
-              {!isNew && campaign?.status === 'draft' && formData.scheduled_for && (
-                <Button type="button" variant="outline" onClick={handleSchedule}>
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Schedule
-                </Button>
-              )}
-              {!isNew && campaign?.status === 'draft' && (
+              {!isNew &&
+                campaign?.status === "draft" &&
+                formData.scheduled_for && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleSchedule}
+                  >
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Schedule
+                  </Button>
+                )}
+              {!isNew && campaign?.status === "draft" && (
                 <Button
                   type="button"
                   variant="default"
@@ -484,12 +578,12 @@ const CampaignEditor = () => {
                   disabled={isSending}
                 >
                   <Send className="w-4 h-4 mr-2" />
-                  {isSending ? 'Sending...' : 'Send Now'}
+                  {isSending ? "Sending..." : "Send Now"}
                 </Button>
               )}
               <Button type="submit" disabled={isSaving}>
                 <Save className="w-4 h-4 mr-2" />
-                {isSaving ? 'Saving...' : 'Save Draft'}
+                {isSaving ? "Saving..." : "Save Draft"}
               </Button>
             </div>
           </div>

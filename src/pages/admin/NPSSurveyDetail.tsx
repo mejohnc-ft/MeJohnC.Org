@@ -1,42 +1,57 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Save, Trash2, Play, Pause, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { useAuthenticatedSupabase } from '@/lib/supabase';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import AdminLayout from '@/components/AdminLayout';
-import { useSEO } from '@/lib/seo';
-import { captureException } from '@/lib/sentry';
+import { useEffect, useState } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import {
+  ArrowLeft,
+  Save,
+  Trash2,
+  Play,
+  Pause,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+} from "lucide-react";
+import { toast } from "sonner";
+import { useAuthenticatedSupabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import AdminLayout from "@/components/AdminLayout";
+import { useSEO } from "@/lib/seo";
+import { captureException } from "@/lib/sentry";
 import {
   getNPSSurveyById,
   createNPSSurvey,
   updateNPSSurvey,
   deleteNPSSurvey,
   getNPSResponses,
-} from '@/lib/marketing-queries';
-import type { NPSSurvey, NPSResponse } from '@/lib/schemas';
+} from "@/lib/marketing-queries";
+import type { NPSSurvey, NPSResponse } from "@/lib/schemas";
 
 const NPSSurveyDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const isNew = id === 'new';
+  const isNew = id === "new";
 
-  useSEO({ title: isNew ? 'New NPS Survey' : 'NPS Survey Details', noIndex: true });
+  useSEO({
+    title: isNew ? "New NPS Survey" : "NPS Survey Details",
+    noIndex: true,
+  });
   const { supabase } = useAuthenticatedSupabase();
 
   const [isLoading, setIsLoading] = useState(!isNew);
   const [isSaving, setIsSaving] = useState(false);
   const [survey, setSurvey] = useState<NPSSurvey | null>(null);
   const [responses, setResponses] = useState<NPSResponse[]>([]);
-  const [activeTab, setActiveTab] = useState<'details' | 'responses'>('details');
+  const [activeTab, setActiveTab] = useState<"details" | "responses">(
+    "details",
+  );
 
   const [formData, setFormData] = useState({
-    name: '',
-    question: 'How likely are you to recommend us to a friend or colleague?',
-    status: 'draft' as NPSSurvey['status'],
-    target_segment: '',
-    starts_at: '',
-    ends_at: '',
+    name: "",
+    question: "How likely are you to recommend us to a friend or colleague?",
+    status: "draft" as NPSSurvey["status"],
+    target_segment: "",
+    starts_at: "",
+    ends_at: "",
   });
 
   useEffect(() => {
@@ -58,15 +73,18 @@ const NPSSurveyDetail = () => {
             name: surveyData.name,
             question: surveyData.question,
             status: surveyData.status,
-            target_segment: surveyData.target_segment || '',
-            starts_at: surveyData.starts_at || '',
-            ends_at: surveyData.ends_at || '',
+            target_segment: surveyData.target_segment || "",
+            starts_at: surveyData.starts_at || "",
+            ends_at: surveyData.ends_at || "",
           });
         }
       } catch (error) {
-        captureException(error instanceof Error ? error : new Error(String(error)), {
-          context: 'NPSSurveyDetail.fetchData',
-        });
+        captureException(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            context: "NPSSurveyDetail.fetchData",
+          },
+        );
       } finally {
         setIsLoading(false);
       }
@@ -97,12 +115,15 @@ const NPSSurveyDetail = () => {
       } else if (id) {
         await updateNPSSurvey(id, surveyData, supabase);
       }
-      navigate('/admin/marketing/nps');
+      navigate("/admin/marketing/nps");
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'NPSSurveyDetail.handleSubmit',
-      });
-      alert('Failed to save survey. Please try again.');
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "NPSSurveyDetail.handleSubmit",
+        },
+      );
+      toast.error("Failed to save survey. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -110,20 +131,28 @@ const NPSSurveyDetail = () => {
 
   const handleDelete = async () => {
     if (!supabase || !id || isNew) return;
-    if (!confirm('Are you sure you want to delete this survey and all its responses?')) return;
+    if (
+      !confirm(
+        "Are you sure you want to delete this survey and all its responses?",
+      )
+    )
+      return;
 
     try {
       await deleteNPSSurvey(id, supabase);
-      navigate('/admin/marketing/nps');
+      navigate("/admin/marketing/nps");
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'NPSSurveyDetail.handleDelete',
-      });
-      alert('Failed to delete survey.');
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "NPSSurveyDetail.handleDelete",
+        },
+      );
+      toast.error("Failed to delete survey.");
     }
   };
 
-  const handleStatusChange = async (newStatus: NPSSurvey['status']) => {
+  const handleStatusChange = async (newStatus: NPSSurvey["status"]) => {
     if (!supabase || !id) return;
 
     try {
@@ -133,28 +162,37 @@ const NPSSurveyDetail = () => {
         setSurvey({ ...survey, status: newStatus });
       }
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'NPSSurveyDetail.handleStatusChange',
-      });
-      alert('Failed to update status.');
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "NPSSurveyDetail.handleStatusChange",
+        },
+      );
+      toast.error("Failed to update status.");
     }
   };
 
-  const getStatusBadge = (status: NPSSurvey['status']) => {
+  const getStatusBadge = (status: NPSSurvey["status"]) => {
     const styles = {
-      draft: 'bg-gray-500/10 text-gray-500',
-      active: 'bg-green-500/10 text-green-500',
-      paused: 'bg-yellow-500/10 text-yellow-500',
-      closed: 'bg-red-500/10 text-red-500',
+      draft: "bg-gray-500/10 text-gray-500",
+      active: "bg-green-500/10 text-green-500",
+      paused: "bg-yellow-500/10 text-yellow-500",
+      closed: "bg-red-500/10 text-red-500",
     };
-    return <span className={`px-2 py-1 rounded text-xs font-medium ${styles[status]}`}>{status}</span>;
+    return (
+      <span
+        className={`px-2 py-1 rounded text-xs font-medium ${styles[status]}`}
+      >
+        {status}
+      </span>
+    );
   };
 
   const getNPSColor = (score: number | null) => {
-    if (score === null) return 'text-gray-500';
-    if (score >= 50) return 'text-green-500';
-    if (score >= 0) return 'text-yellow-500';
-    return 'text-red-500';
+    if (score === null) return "text-gray-500";
+    if (score >= 50) return "text-green-500";
+    if (score >= 0) return "text-yellow-500";
+    return "text-red-500";
   };
 
   const getNPSTrend = (score: number | null) => {
@@ -164,14 +202,14 @@ const NPSSurveyDetail = () => {
     return <TrendingDown className="w-6 h-6 text-red-500" />;
   };
 
-  const getCategoryColor = (category: NPSResponse['category']) => {
+  const getCategoryColor = (category: NPSResponse["category"]) => {
     switch (category) {
-      case 'promoter':
-        return 'text-green-500 bg-green-500/10';
-      case 'passive':
-        return 'text-yellow-500 bg-yellow-500/10';
-      case 'detractor':
-        return 'text-red-500 bg-red-500/10';
+      case "promoter":
+        return "text-green-500 bg-green-500/10";
+      case "passive":
+        return "text-yellow-500 bg-yellow-500/10";
+      case "detractor":
+        return "text-red-500 bg-red-500/10";
     }
   };
 
@@ -199,7 +237,7 @@ const NPSSurveyDetail = () => {
             </Button>
             <div>
               <h1 className="text-2xl font-bold text-foreground">
-                {isNew ? 'New NPS Survey' : survey?.name || 'NPS Survey'}
+                {isNew ? "New NPS Survey" : survey?.name || "NPS Survey"}
               </h1>
               {!isNew && survey && (
                 <div className="flex items-center gap-2 mt-1">
@@ -209,33 +247,33 @@ const NPSSurveyDetail = () => {
             </div>
           </div>
           <div className="flex gap-2">
-            {!isNew && survey?.status === 'draft' && (
+            {!isNew && survey?.status === "draft" && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleStatusChange('active')}
+                onClick={() => handleStatusChange("active")}
                 className="text-green-600 hover:text-green-700"
               >
                 <Play className="w-4 h-4 mr-2" />
                 Activate
               </Button>
             )}
-            {!isNew && survey?.status === 'active' && (
+            {!isNew && survey?.status === "active" && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleStatusChange('paused')}
+                onClick={() => handleStatusChange("paused")}
                 className="text-yellow-600 hover:text-yellow-700"
               >
                 <Pause className="w-4 h-4 mr-2" />
                 Pause
               </Button>
             )}
-            {!isNew && survey?.status === 'paused' && (
+            {!isNew && survey?.status === "paused" && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleStatusChange('active')}
+                onClick={() => handleStatusChange("active")}
                 className="text-green-600 hover:text-green-700"
               >
                 <Play className="w-4 h-4 mr-2" />
@@ -259,8 +297,10 @@ const NPSSurveyDetail = () => {
                 {getNPSTrend(survey.nps_score)}
                 <div>
                   <p className="text-xs text-muted-foreground">NPS Score</p>
-                  <p className={`text-2xl font-bold ${getNPSColor(survey.nps_score)}`}>
-                    {survey.nps_score?.toFixed(0) ?? 'N/A'}
+                  <p
+                    className={`text-2xl font-bold ${getNPSColor(survey.nps_score)}`}
+                  >
+                    {survey.nps_score?.toFixed(0) ?? "N/A"}
                   </p>
                 </div>
               </div>
@@ -271,15 +311,21 @@ const NPSSurveyDetail = () => {
             </div>
             <div className="bg-card border border-border rounded-lg p-4 text-center">
               <p className="text-xs text-muted-foreground">Promoters</p>
-              <p className="text-2xl font-bold text-green-500">{survey.promoters_count}</p>
+              <p className="text-2xl font-bold text-green-500">
+                {survey.promoters_count}
+              </p>
             </div>
             <div className="bg-card border border-border rounded-lg p-4 text-center">
               <p className="text-xs text-muted-foreground">Passives</p>
-              <p className="text-2xl font-bold text-yellow-500">{survey.passives_count}</p>
+              <p className="text-2xl font-bold text-yellow-500">
+                {survey.passives_count}
+              </p>
             </div>
             <div className="bg-card border border-border rounded-lg p-4 text-center">
               <p className="text-xs text-muted-foreground">Detractors</p>
-              <p className="text-2xl font-bold text-red-500">{survey.detractors_count}</p>
+              <p className="text-2xl font-bold text-red-500">
+                {survey.detractors_count}
+              </p>
             </div>
           </div>
         )}
@@ -288,21 +334,21 @@ const NPSSurveyDetail = () => {
         {!isNew && (
           <div className="flex gap-4 border-b border-border">
             <button
-              onClick={() => setActiveTab('details')}
+              onClick={() => setActiveTab("details")}
               className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'details'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
+                activeTab === "details"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
               Details
             </button>
             <button
-              onClick={() => setActiveTab('responses')}
+              onClick={() => setActiveTab("responses")}
               className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'responses'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
+                activeTab === "responses"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
               Responses ({responses.length})
@@ -311,26 +357,34 @@ const NPSSurveyDetail = () => {
         )}
 
         {/* Content */}
-        {(isNew || activeTab === 'details') && (
+        {(isNew || activeTab === "details") && (
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="bg-card border border-border rounded-lg p-6 space-y-4">
               <h2 className="text-lg font-semibold">Survey Details</h2>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Survey Name *</label>
+                <label className="block text-sm font-medium mb-2">
+                  Survey Name *
+                </label>
                 <Input
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   required
                   placeholder="Q1 2024 Customer Satisfaction"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Question *</label>
+                <label className="block text-sm font-medium mb-2">
+                  Question *
+                </label>
                 <textarea
                   value={formData.question}
-                  onChange={(e) => setFormData({ ...formData, question: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, question: e.target.value })
+                  }
                   rows={2}
                   className="w-full px-3 py-2 bg-background border border-border rounded-md"
                   required
@@ -339,10 +393,14 @@ const NPSSurveyDetail = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Target Segment</label>
+                <label className="block text-sm font-medium mb-2">
+                  Target Segment
+                </label>
                 <select
                   value={formData.target_segment}
-                  onChange={(e) => setFormData({ ...formData, target_segment: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, target_segment: e.target.value })
+                  }
                   className="w-full px-3 py-2 bg-background border border-border rounded-md"
                 >
                   <option value="">All Users</option>
@@ -354,27 +412,39 @@ const NPSSurveyDetail = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Start Date</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Start Date
+                  </label>
                   <Input
                     type="datetime-local"
-                    value={formData.starts_at ? formData.starts_at.slice(0, 16) : ''}
+                    value={
+                      formData.starts_at ? formData.starts_at.slice(0, 16) : ""
+                    }
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        starts_at: e.target.value ? new Date(e.target.value).toISOString() : '',
+                        starts_at: e.target.value
+                          ? new Date(e.target.value).toISOString()
+                          : "",
                       })
                     }
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">End Date</label>
+                  <label className="block text-sm font-medium mb-2">
+                    End Date
+                  </label>
                   <Input
                     type="datetime-local"
-                    value={formData.ends_at ? formData.ends_at.slice(0, 16) : ''}
+                    value={
+                      formData.ends_at ? formData.ends_at.slice(0, 16) : ""
+                    }
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        ends_at: e.target.value ? new Date(e.target.value).toISOString() : '',
+                        ends_at: e.target.value
+                          ? new Date(e.target.value).toISOString()
+                          : "",
                       })
                     }
                   />
@@ -389,29 +459,42 @@ const NPSSurveyDetail = () => {
               </Button>
               <Button type="submit" disabled={isSaving}>
                 <Save className="w-4 h-4 mr-2" />
-                {isSaving ? 'Saving...' : 'Save Survey'}
+                {isSaving ? "Saving..." : "Save Survey"}
               </Button>
             </div>
           </form>
         )}
 
         {/* Responses Tab */}
-        {!isNew && activeTab === 'responses' && (
+        {!isNew && activeTab === "responses" && (
           <div className="bg-card border border-border rounded-lg overflow-hidden">
             <table className="w-full">
               <thead className="bg-muted/50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Score</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Category</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Email</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Feedback</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Date</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                    Score
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                    Category
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                    Email
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                    Feedback
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                    Date
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {responses.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                    <td
+                      colSpan={5}
+                      className="px-4 py-8 text-center text-muted-foreground"
+                    >
                       No responses yet.
                     </td>
                   </tr>
@@ -419,20 +502,30 @@ const NPSSurveyDetail = () => {
                   responses.map((response) => (
                     <tr key={response.id} className="hover:bg-muted/50">
                       <td className="px-4 py-3">
-                        <span className={`text-lg font-bold ${getNPSColor(response.score)}`}>
+                        <span
+                          className={`text-lg font-bold ${getNPSColor(response.score)}`}
+                        >
                           {response.score}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${getCategoryColor(response.category)}`}>
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-medium ${getCategoryColor(response.category)}`}
+                        >
                           {response.category}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm">
-                        {response.email || <span className="text-muted-foreground">Anonymous</span>}
+                        {response.email || (
+                          <span className="text-muted-foreground">
+                            Anonymous
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-sm max-w-xs truncate">
-                        {response.feedback || <span className="text-muted-foreground">-</span>}
+                        {response.feedback || (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-sm text-muted-foreground">
                         {new Date(response.responded_at).toLocaleDateString()}

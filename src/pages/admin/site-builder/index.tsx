@@ -1,21 +1,27 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { FileText, Plus, Eye, Edit, Trash2, Globe } from 'lucide-react';
-import AdminLayout from '@/components/AdminLayout';
-import { Button } from '@/components/ui/button';
-import { useSEO } from '@/lib/seo';
-import { useAuthenticatedSupabase } from '@/lib/supabase';
-import { getSiteBuilderPages, deleteSiteBuilderPage, publishSiteBuilderPage, unpublishSiteBuilderPage } from '@/lib/site-builder-queries';
-import type { SiteBuilderPage } from '@/lib/schemas';
-import { captureException } from '@/lib/sentry';
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
+import { FileText, Plus, Eye, Edit, Trash2, Globe } from "lucide-react";
+import AdminLayout from "@/components/AdminLayout";
+import { Button } from "@/components/ui/button";
+import { useSEO } from "@/lib/seo";
+import { useAuthenticatedSupabase } from "@/lib/supabase";
+import {
+  getSiteBuilderPages,
+  deleteSiteBuilderPage,
+  publishSiteBuilderPage,
+  unpublishSiteBuilderPage,
+} from "@/lib/site-builder-queries";
+import type { SiteBuilderPage } from "@/lib/schemas";
+import { captureException } from "@/lib/sentry";
 
 export default function SiteBuilderIndex() {
-  useSEO({ title: 'Site Builder', noIndex: true });
+  useSEO({ title: "Site Builder", noIndex: true });
   const { supabase } = useAuthenticatedSupabase();
   const [pages, setPages] = useState<SiteBuilderPage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all');
+  const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
 
   useEffect(() => {
     loadPages();
@@ -30,25 +36,32 @@ export default function SiteBuilderIndex() {
       const data = await getSiteBuilderPages(true, supabase);
       setPages(data);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'SiteBuilderIndex.loadPages',
-      });
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "SiteBuilderIndex.loadPages",
+        },
+      );
     } finally {
       setIsLoading(false);
     }
   }
 
   async function handleDelete(id: string) {
-    if (!supabase || !confirm('Are you sure you want to delete this page?')) return;
+    if (!supabase || !confirm("Are you sure you want to delete this page?"))
+      return;
 
     try {
       await deleteSiteBuilderPage(id, supabase);
       setPages(pages.filter((p) => p.id !== id));
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'SiteBuilderIndex.handleDelete',
-      });
-      alert('Failed to delete page');
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "SiteBuilderIndex.handleDelete",
+        },
+      );
+      toast.error("Failed to delete page");
     }
   }
 
@@ -56,22 +69,25 @@ export default function SiteBuilderIndex() {
     if (!supabase) return;
 
     try {
-      if (page.status === 'published') {
+      if (page.status === "published") {
         await unpublishSiteBuilderPage(page.id, supabase);
       } else {
         await publishSiteBuilderPage(page.id, supabase);
       }
       loadPages();
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'SiteBuilderIndex.handleTogglePublish',
-      });
-      alert('Failed to update page status');
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "SiteBuilderIndex.handleTogglePublish",
+        },
+      );
+      toast.error("Failed to update page status");
     }
   }
 
   const filteredPages = pages.filter((page) => {
-    if (filter === 'all') return true;
+    if (filter === "all") return true;
     return page.status === filter;
   });
 
@@ -97,31 +113,31 @@ export default function SiteBuilderIndex() {
         {/* Filters */}
         <div className="flex gap-2">
           <button
-            onClick={() => setFilter('all')}
+            onClick={() => setFilter("all")}
             className={`px-4 py-2 rounded-lg transition-colors ${
-              filter === 'all'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-card border border-border hover:border-primary/50'
+              filter === "all"
+                ? "bg-primary text-primary-foreground"
+                : "bg-card border border-border hover:border-primary/50"
             }`}
           >
             All Pages
           </button>
           <button
-            onClick={() => setFilter('published')}
+            onClick={() => setFilter("published")}
             className={`px-4 py-2 rounded-lg transition-colors ${
-              filter === 'published'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-card border border-border hover:border-primary/50'
+              filter === "published"
+                ? "bg-primary text-primary-foreground"
+                : "bg-card border border-border hover:border-primary/50"
             }`}
           >
             Published
           </button>
           <button
-            onClick={() => setFilter('draft')}
+            onClick={() => setFilter("draft")}
             className={`px-4 py-2 rounded-lg transition-colors ${
-              filter === 'draft'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-card border border-border hover:border-primary/50'
+              filter === "draft"
+                ? "bg-primary text-primary-foreground"
+                : "bg-card border border-border hover:border-primary/50"
             }`}
           >
             Drafts
@@ -163,16 +179,18 @@ export default function SiteBuilderIndex() {
                       <h3 className="text-lg font-semibold">{page.title}</h3>
                       <span
                         className={`px-2 py-1 text-xs rounded ${
-                          page.status === 'published'
-                            ? 'bg-green-500/10 text-green-500'
-                            : 'bg-yellow-500/10 text-yellow-500'
+                          page.status === "published"
+                            ? "bg-green-500/10 text-green-500"
+                            : "bg-yellow-500/10 text-yellow-500"
                         }`}
                       >
                         {page.status}
                       </span>
                     </div>
                     {page.description && (
-                      <p className="text-sm text-muted-foreground mb-3">{page.description}</p>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {page.description}
+                      </p>
                     )}
                     <div className="text-xs text-muted-foreground">
                       Slug: /{page.slug}
@@ -180,9 +198,13 @@ export default function SiteBuilderIndex() {
                   </div>
 
                   <div className="flex gap-2">
-                    {page.status === 'published' && (
+                    {page.status === "published" && (
                       <Button asChild variant="ghost" size="sm">
-                        <a href={`/p/${page.slug}`} target="_blank" rel="noopener noreferrer">
+                        <a
+                          href={`/p/${page.slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
                           <Eye className="w-4 h-4" />
                         </a>
                       </Button>

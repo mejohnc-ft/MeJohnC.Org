@@ -1,7 +1,15 @@
-import { useState, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, LayoutGrid, List, Columns, Search } from 'lucide-react';
-import type { FileExplorerViewMode } from '@/lib/desktop-schemas';
-import type { BreadcrumbItem } from '@/hooks/useFileSystem';
+import { useState, useCallback, useEffect } from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  LayoutGrid,
+  List,
+  Columns,
+  Search,
+} from "lucide-react";
+import type { FileExplorerViewMode } from "@/lib/desktop-schemas";
+import type { BreadcrumbItem } from "@/hooks/useFileSystem";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface FileExplorerToolbarProps {
   currentPath: BreadcrumbItem[];
@@ -13,6 +21,7 @@ interface FileExplorerToolbarProps {
   onNavigateToRoot: () => void;
   onSearch: (query: string) => void;
   canGoBack: boolean;
+  canGoForward?: boolean;
 }
 
 export default function FileExplorerToolbar({
@@ -25,19 +34,33 @@ export default function FileExplorerToolbar({
   onNavigateToRoot,
   onSearch,
   canGoBack,
+  canGoForward = false,
 }: FileExplorerToolbarProps) {
-  const [searchValue, setSearchValue] = useState('');
+  const [searchValue, setSearchValue] = useState("");
+  const debouncedSearch = useDebounce(searchValue, 300);
 
-  const handleSearchKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      onSearch(searchValue);
-    }
-  }, [searchValue, onSearch]);
+  // Fire search automatically after debounce
+  useEffect(() => {
+    onSearch(debouncedSearch);
+  }, [debouncedSearch, onSearch]);
 
-  const viewModes: { mode: FileExplorerViewMode; icon: typeof LayoutGrid; label: string }[] = [
-    { mode: 'icons', icon: LayoutGrid, label: 'Icons' },
-    { mode: 'list', icon: List, label: 'List' },
-    { mode: 'columns', icon: Columns, label: 'Columns' },
+  const handleSearchKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        onSearch(searchValue);
+      }
+    },
+    [searchValue, onSearch],
+  );
+
+  const viewModes: {
+    mode: FileExplorerViewMode;
+    icon: typeof LayoutGrid;
+    label: string;
+  }[] = [
+    { mode: "icons", icon: LayoutGrid, label: "Icons" },
+    { mode: "list", icon: List, label: "List" },
+    { mode: "columns", icon: Columns, label: "Columns" },
   ];
 
   return (
@@ -54,7 +77,7 @@ export default function FileExplorerToolbar({
         </button>
         <button
           onClick={onNavigateForward}
-          disabled
+          disabled={!canGoForward}
           className="p-1 rounded hover:bg-muted disabled:opacity-30 transition-colors"
           aria-label="Go forward"
         >
@@ -74,7 +97,9 @@ export default function FileExplorerToolbar({
           <span key={crumb.id} className="flex items-center gap-1 min-w-0">
             <span className="text-muted-foreground/50">/</span>
             {i === currentPath.length - 1 ? (
-              <span className="text-foreground font-medium truncate">{crumb.name}</span>
+              <span className="text-foreground font-medium truncate">
+                {crumb.name}
+              </span>
             ) : (
               <button
                 onClick={() => onNavigateTo(crumb.id)}
@@ -95,8 +120,8 @@ export default function FileExplorerToolbar({
             onClick={() => onViewModeChange(mode)}
             className={`p-1.5 transition-colors ${
               viewMode === mode
-                ? 'bg-primary/20 text-primary'
-                : 'text-muted-foreground hover:bg-muted'
+                ? "bg-primary/20 text-primary"
+                : "text-muted-foreground hover:bg-muted"
             }`}
             aria-label={label}
             aria-pressed={viewMode === mode}
@@ -113,7 +138,7 @@ export default function FileExplorerToolbar({
           type="text"
           placeholder="Search"
           value={searchValue}
-          onChange={e => setSearchValue(e.target.value)}
+          onChange={(e) => setSearchValue(e.target.value)}
           onKeyDown={handleSearchKeyDown}
           className="pl-6 pr-2 py-1 text-xs bg-muted/50 border border-border rounded w-32 focus:w-48 transition-all focus:outline-none focus:ring-1 focus:ring-primary/50"
         />

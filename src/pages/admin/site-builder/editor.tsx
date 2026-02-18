@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Save, Eye, Clock } from 'lucide-react';
-import { useUser } from '@clerk/clerk-react';
-import AdminLayout from '@/components/AdminLayout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useSEO } from '@/lib/seo';
-import { useAuthenticatedSupabase } from '@/lib/supabase';
+import { useEffect, useState } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { ArrowLeft, Save, Eye, Clock } from "lucide-react";
+import { toast } from "sonner";
+import { useUser } from "@clerk/clerk-react";
+import AdminLayout from "@/components/AdminLayout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useSEO } from "@/lib/seo";
+import { useAuthenticatedSupabase } from "@/lib/supabase";
 import {
   getSiteBuilderPageWithComponents,
   createSiteBuilderPage,
@@ -19,32 +20,40 @@ import {
   getSiteBuilderComponentTemplates,
   getSiteBuilderPageVersions,
   createSiteBuilderPageVersion,
-} from '@/lib/site-builder-queries';
-import { generateSlug } from '@/lib/supabase-queries';
-import type { SiteBuilderPage, SiteBuilderPageComponent, SiteBuilderComponentTemplate, SiteBuilderPageVersion } from '@/lib/schemas';
-import { captureException } from '@/lib/sentry';
-import { PageCanvas } from '@/components/site-builder/PageCanvas';
-import { ComponentLibrary } from '@/components/site-builder/ComponentLibrary';
-import { PropertyEditor } from '@/components/site-builder/PropertyEditor';
-import { PreviewModal } from '@/components/site-builder/PreviewModal';
+} from "@/lib/site-builder-queries";
+import { generateSlug } from "@/lib/supabase-queries";
+import type {
+  SiteBuilderPage,
+  SiteBuilderPageComponent,
+  SiteBuilderComponentTemplate,
+  SiteBuilderPageVersion,
+} from "@/lib/schemas";
+import { captureException } from "@/lib/sentry";
+import { PageCanvas } from "@/components/site-builder/PageCanvas";
+import { ComponentLibrary } from "@/components/site-builder/ComponentLibrary";
+import { PropertyEditor } from "@/components/site-builder/PropertyEditor";
+import { PreviewModal } from "@/components/site-builder/PreviewModal";
 
 export default function SiteBuilderEditor() {
   const { pageId } = useParams<{ pageId: string }>();
   const navigate = useNavigate();
   const { user } = useUser();
   const { supabase } = useAuthenticatedSupabase();
-  useSEO({ title: pageId === 'new' ? 'New Page' : 'Edit Page', noIndex: true });
+  useSEO({ title: pageId === "new" ? "New Page" : "Edit Page", noIndex: true });
 
   const [page, setPage] = useState<Partial<SiteBuilderPage>>({
-    title: '',
-    slug: '',
-    description: '',
-    status: 'draft',
+    title: "",
+    slug: "",
+    description: "",
+    status: "draft",
   });
   const [components, setComponents] = useState<SiteBuilderPageComponent[]>([]);
-  const [templates, setTemplates] = useState<SiteBuilderComponentTemplate[]>([]);
+  const [templates, setTemplates] = useState<SiteBuilderComponentTemplate[]>(
+    [],
+  );
   const [, setVersions] = useState<SiteBuilderPageVersion[]>([]);
-  const [selectedComponent, setSelectedComponent] = useState<SiteBuilderPageComponent | null>(null);
+  const [selectedComponent, setSelectedComponent] =
+    useState<SiteBuilderPageComponent | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -66,18 +75,28 @@ export default function SiteBuilderEditor() {
 
       setTemplates(templatesData);
 
-      if (pageId && pageId !== 'new') {
-        const pageData = await getSiteBuilderPageWithComponents(pageId, supabase);
+      if (pageId && pageId !== "new") {
+        const pageData = await getSiteBuilderPageWithComponents(
+          pageId,
+          supabase,
+        );
         setPage(pageData);
         setComponents(pageData.components);
 
-        const versionsData = await getSiteBuilderPageVersions(pageId, 10, supabase);
+        const versionsData = await getSiteBuilderPageVersions(
+          pageId,
+          10,
+          supabase,
+        );
         setVersions(versionsData);
       }
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'SiteBuilderEditor.loadData',
-      });
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "SiteBuilderEditor.loadData",
+        },
+      );
     } finally {
       setIsLoading(false);
     }
@@ -91,19 +110,19 @@ export default function SiteBuilderEditor() {
 
       let currentPageId = pageId;
 
-      if (pageId === 'new') {
+      if (pageId === "new") {
         const newPage = await createSiteBuilderPage(
           {
-            title: page.title || 'Untitled Page',
-            slug: page.slug || generateSlug(page.title || 'untitled-page'),
+            title: page.title || "Untitled Page",
+            slug: page.slug || generateSlug(page.title || "untitled-page"),
             description: page.description,
-            status: page.status || 'draft',
+            status: page.status || "draft",
             meta_title: page.meta_title,
             meta_description: page.meta_description,
             og_image: page.og_image,
             created_by: user.id,
           },
-          supabase
+          supabase,
         );
         currentPageId = newPage.id;
         setPage(newPage);
@@ -119,28 +138,34 @@ export default function SiteBuilderEditor() {
             og_image: page.og_image,
             updated_by: user.id,
           },
-          supabase
+          supabase,
         );
       }
 
-      if (pageId !== 'new' && currentPageId) {
+      if (pageId !== "new" && currentPageId) {
         navigate(`/admin/site-builder/${currentPageId}`, { replace: true });
       }
 
-      alert('Page saved successfully!');
+      toast.success("Page saved successfully!");
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'SiteBuilderEditor.handleSave',
-      });
-      alert('Failed to save page');
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "SiteBuilderEditor.handleSave",
+        },
+      );
+      toast.error("Failed to save page");
     } finally {
       setIsSaving(false);
     }
   }
 
-  async function handleAddComponent(componentType: string, props: Record<string, unknown>) {
-    if (!supabase || !pageId || pageId === 'new') {
-      alert('Please save the page first before adding components');
+  async function handleAddComponent(
+    componentType: string,
+    props: Record<string, unknown>,
+  ) {
+    if (!supabase || !pageId || pageId === "new") {
+      toast.error("Please save the page first before adding components");
       return;
     }
 
@@ -154,30 +179,45 @@ export default function SiteBuilderEditor() {
           order_index: components.length,
           parent_id: null,
         },
-        supabase
+        supabase,
       );
 
       setComponents([...components, newComponent]);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'SiteBuilderEditor.handleAddComponent',
-      });
-      alert('Failed to add component');
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "SiteBuilderEditor.handleAddComponent",
+        },
+      );
+      toast.error("Failed to add component");
     }
   }
 
-  async function handleUpdateComponent(componentId: string, props: Record<string, unknown>) {
+  async function handleUpdateComponent(
+    componentId: string,
+    props: Record<string, unknown>,
+  ) {
     if (!supabase) return;
 
     try {
-      const updated = await updateSiteBuilderPageComponent(componentId, { props }, supabase);
-      setComponents(components.map((c) => (c.id === componentId ? updated : c)));
+      const updated = await updateSiteBuilderPageComponent(
+        componentId,
+        { props },
+        supabase,
+      );
+      setComponents(
+        components.map((c) => (c.id === componentId ? updated : c)),
+      );
       setSelectedComponent(updated);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'SiteBuilderEditor.handleUpdateComponent',
-      });
-      alert('Failed to update component');
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "SiteBuilderEditor.handleUpdateComponent",
+        },
+      );
+      toast.error("Failed to update component");
     }
   }
 
@@ -191,10 +231,13 @@ export default function SiteBuilderEditor() {
         setSelectedComponent(null);
       }
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'SiteBuilderEditor.handleDeleteComponent',
-      });
-      alert('Failed to delete component');
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "SiteBuilderEditor.handleDeleteComponent",
+        },
+      );
+      toast.error("Failed to delete component");
     }
   }
 
@@ -202,45 +245,59 @@ export default function SiteBuilderEditor() {
     if (!supabase) return;
 
     try {
-      const duplicated = await duplicateSiteBuilderPageComponent(componentId, supabase);
+      const duplicated = await duplicateSiteBuilderPageComponent(
+        componentId,
+        supabase,
+      );
       setComponents([...components, duplicated]);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'SiteBuilderEditor.handleDuplicateComponent',
-      });
-      alert('Failed to duplicate component');
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "SiteBuilderEditor.handleDuplicateComponent",
+        },
+      );
+      toast.error("Failed to duplicate component");
     }
   }
 
-  async function handleReorder(reorderedComponents: SiteBuilderPageComponent[]) {
+  async function handleReorder(
+    reorderedComponents: SiteBuilderPageComponent[],
+  ) {
     if (!supabase) return;
 
     try {
       await reorderSiteBuilderPageComponents(
         reorderedComponents.map((c) => c.id),
-        supabase
+        supabase,
       );
       setComponents(reorderedComponents);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'SiteBuilderEditor.handleReorder',
-      });
-      alert('Failed to reorder components');
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "SiteBuilderEditor.handleReorder",
+        },
+      );
+      toast.error("Failed to reorder components");
     }
   }
 
   async function handleCreateVersion() {
-    if (!supabase || !user || !pageId || pageId === 'new') return;
+    if (!supabase || !user || !pageId || pageId === "new") return;
 
     try {
       await createSiteBuilderPageVersion(pageId, user.id, supabase);
-      alert('Version saved successfully!');
+      toast.success("Version saved successfully!");
       loadData();
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'SiteBuilderEditor.handleCreateVersion',
-      });
-      alert('Failed to create version');
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "SiteBuilderEditor.handleCreateVersion",
+        },
+      );
+      toast.error("Failed to create version");
     }
   }
 
@@ -269,7 +326,7 @@ export default function SiteBuilderEditor() {
               </Button>
               <div>
                 <h1 className="text-2xl font-bold text-foreground">
-                  {pageId === 'new' ? 'New Page' : page.title || 'Edit Page'}
+                  {pageId === "new" ? "New Page" : page.title || "Edit Page"}
                 </h1>
               </div>
             </div>
@@ -278,7 +335,7 @@ export default function SiteBuilderEditor() {
                 <Eye className="w-4 h-4 mr-2" />
                 Preview
               </Button>
-              {pageId !== 'new' && (
+              {pageId !== "new" && (
                 <Button variant="outline" onClick={handleCreateVersion}>
                   <Clock className="w-4 h-4 mr-2" />
                   Save Version
@@ -286,7 +343,7 @@ export default function SiteBuilderEditor() {
               )}
               <Button onClick={handleSave} disabled={isSaving}>
                 <Save className="w-4 h-4 mr-2" />
-                {isSaving ? 'Saving...' : 'Save Page'}
+                {isSaving ? "Saving..." : "Save Page"}
               </Button>
             </div>
           </div>
@@ -294,13 +351,18 @@ export default function SiteBuilderEditor() {
           {/* Page Settings */}
           <div className="grid md:grid-cols-2 gap-4 p-4 bg-card border border-border rounded-lg">
             <div>
-              <label className="block text-sm font-medium mb-2">Page Title</label>
+              <label className="block text-sm font-medium mb-2">
+                Page Title
+              </label>
               <Input
-                value={page.title || ''}
+                value={page.title || ""}
                 onChange={(e) => {
                   setPage({ ...page, title: e.target.value });
                   if (!page.slug) {
-                    setPage((prev) => ({ ...prev, slug: generateSlug(e.target.value) }));
+                    setPage((prev) => ({
+                      ...prev,
+                      slug: generateSlug(e.target.value),
+                    }));
                   }
                 }}
                 placeholder="Enter page title"
@@ -309,16 +371,20 @@ export default function SiteBuilderEditor() {
             <div>
               <label className="block text-sm font-medium mb-2">URL Slug</label>
               <Input
-                value={page.slug || ''}
+                value={page.slug || ""}
                 onChange={(e) => setPage({ ...page, slug: e.target.value })}
                 placeholder="page-url-slug"
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium mb-2">Description</label>
+              <label className="block text-sm font-medium mb-2">
+                Description
+              </label>
               <Input
-                value={page.description || ''}
-                onChange={(e) => setPage({ ...page, description: e.target.value })}
+                value={page.description || ""}
+                onChange={(e) =>
+                  setPage({ ...page, description: e.target.value })
+                }
                 placeholder="Brief description of the page"
               />
             </div>
@@ -331,7 +397,10 @@ export default function SiteBuilderEditor() {
               <div className="p-4 border-b border-border">
                 <h3 className="font-semibold">Components</h3>
               </div>
-              <ComponentLibrary templates={templates} onAddComponent={handleAddComponent} />
+              <ComponentLibrary
+                templates={templates}
+                onAddComponent={handleAddComponent}
+              />
             </div>
 
             {/* Canvas */}
@@ -348,7 +417,10 @@ export default function SiteBuilderEditor() {
 
             {/* Property Editor */}
             <div className="col-span-3 bg-card border border-border rounded-lg overflow-hidden">
-              <PropertyEditor component={selectedComponent} onUpdate={handleUpdateComponent} />
+              <PropertyEditor
+                component={selectedComponent}
+                onUpdate={handleUpdateComponent}
+              />
             </div>
           </div>
         </div>
@@ -359,7 +431,7 @@ export default function SiteBuilderEditor() {
         isOpen={showPreview}
         onClose={() => setShowPreview(false)}
         components={components}
-        pageTitle={page.title || 'Untitled Page'}
+        pageTitle={page.title || "Untitled Page"}
       />
     </>
   );

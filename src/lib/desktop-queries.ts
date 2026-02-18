@@ -194,21 +194,28 @@ export async function searchFileSystem(
   return parseArrayResponse(FileSystemNodeSchema, data, "searchFileSystem");
 }
 
-/** Build breadcrumb path by walking parent_id chain */
+/** Build breadcrumb path using a single recursive CTE RPC call */
 export async function getNodePath(
   nodeId: string,
   client: SupabaseClient = getSupabase(),
 ): Promise<FileSystemNode[]> {
-  const path: FileSystemNode[] = [];
-  let currentId: string | null = nodeId;
+  const { data, error } = await client.rpc("get_node_path", {
+    p_node_id: nodeId,
+  });
+  if (error) throw error;
+  return parseArrayResponse(FileSystemNodeSchema, data, "getNodePath");
+}
 
-  while (currentId) {
-    const node = await getFileSystemNode(currentId, client);
-    path.unshift(node);
-    currentId = node.parent_id;
-  }
-
-  return path;
+/** Get total count of trashed items (for sidebar badge) */
+export async function getTrashedCount(
+  client: SupabaseClient = getSupabase(),
+): Promise<number> {
+  const { count, error } = await client
+    .from("desktop_filesystem")
+    .select("*", { count: "exact", head: true })
+    .eq("is_trashed", true);
+  if (error) throw error;
+  return count ?? 0;
 }
 
 /** Update a node's position (for desktop icon dragging) */

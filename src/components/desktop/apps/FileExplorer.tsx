@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useFileSystem } from "@/hooks/useFileSystem";
 import { useContextMenu, type ContextMenuItem } from "@/hooks/useContextMenu";
 import ContextMenu from "@/components/desktop/ContextMenu";
@@ -19,12 +19,76 @@ export default function FileExplorer() {
   const [viewMode, setViewMode] = useState<FileExplorerViewMode>("icons");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [renamingId, setRenamingId] = useState<string | null>(null);
+  const lastSelectedIdRef = useRef<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const isTrash = fs.currentParentId === ROOT_FOLDERS.TRASH;
 
-  const handleSelect = useCallback((id: string) => {
-    setSelectedIds(new Set([id]));
-  }, []);
+  const handleSelect = useCallback(
+    (id: string, event: React.MouseEvent) => {
+      const isMeta = event.metaKey || event.ctrlKey;
+      const isShift = event.shiftKey;
+
+      if (isMeta) {
+        // Toggle individual selection
+        setSelectedIds((prev) => {
+          const next = new Set(prev);
+          if (next.has(id)) {
+            next.delete(id);
+          } else {
+            next.add(id);
+          }
+          return next;
+        });
+        lastSelectedIdRef.current = id;
+      } else if (isShift && lastSelectedIdRef.current) {
+        // Range selection from last selected to clicked
+        const items = fs.children;
+        const lastIdx = items.findIndex(
+          (n) => n.id === lastSelectedIdRef.current,
+        );
+        const curIdx = items.findIndex((n) => n.id === id);
+        if (lastIdx >= 0 && curIdx >= 0) {
+          const start = Math.min(lastIdx, curIdx);
+          const end = Math.max(lastIdx, curIdx);
+          const rangeIds = items.slice(start, end + 1).map((n) => n.id);
+          setSelectedIds((prev) => new Set([...prev, ...rangeIds]));
+        } else {
+          setSelectedIds(new Set([id]));
+          lastSelectedIdRef.current = id;
+        }
+      } else {
+        setSelectedIds(new Set([id]));
+        lastSelectedIdRef.current = id;
+      }
+    },
+    [fs.children],
+  );
+
+  // Delete key trashes all selected items
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        (e.key === "Delete" || e.key === "Backspace") &&
+        selectedIds.size > 0 &&
+        !renamingId
+      ) {
+        e.preventDefault();
+        for (const id of selectedIds) {
+          if (isTrash) {
+            fs.permanentlyDelete(id);
+          } else {
+            fs.moveToTrash(id);
+          }
+        }
+        setSelectedIds(new Set());
+      }
+    };
+    el.addEventListener("keydown", handleKeyDown);
+    return () => el.removeEventListener("keydown", handleKeyDown);
+  }, [selectedIds, renamingId, isTrash, fs]);
 
   const handleOpen = useCallback(
     (node: FileSystemNode) => {
@@ -81,55 +145,84 @@ export default function FileExplorer() {
 
   const getNodeMenuItems = useCallback(
     (node: FileSystemNode): ContextMenuItem[] => {
+      // Determine the effective set of IDs to act on
+      const actionIds =
+        selectedIds.has(node.id) && selectedIds.size > 1
+          ? [...selectedIds]
+          : [node.id];
+      const multi = actionIds.length > 1;
+
       if (isTrash) {
         return [
           {
             id: "restore",
-            label: "Put Back",
-            onClick: () => fs.restoreFromTrash(node.id),
+            label: multi ? `Put Back (${actionIds.length})` : "Put Back",
+            onClick: () => actionIds.forEach((id) => fs.restoreFromTrash(id)),
           },
           { id: "sep1", label: "", separator: true },
           {
             id: "delete-permanent",
-            label: "Delete Permanently",
+            label: multi
+              ? `Delete Permanently (${actionIds.length})`
+              : "Delete Permanently",
             danger: true,
-            onClick: () => fs.permanentlyDelete(node.id),
+            onClick: () => actionIds.forEach((id) => fs.permanentlyDelete(id)),
           },
         ];
       }
 
-      const items: ContextMenuItem[] = [
-        { id: "open", label: "Open", onClick: () => handleOpen(node) },
-      ];
+      const items: ContextMenuItem[] = [];
 
-      if (node.type === "folder") {
+      if (!multi) {
         items.push({
-          id: "open-new",
-          label: "Open in New Window",
-          disabled: true,
+          id: "open",
+          label: "Open",
+          onClick: () => handleOpen(node),
         });
+        if (node.type === "folder") {
+          items.push({
+            id: "open-new",
+            label: "Open in New Window",
+            disabled: true,
+          });
+        }
+        items.push(
+          { id: "sep1", label: "", separator: true },
+          {
+            id: "rename",
+            label: "Rename",
+            onClick: () => startRename(node.id),
+          },
+        );
       }
 
       items.push(
-        { id: "sep1", label: "", separator: true },
-        {
-          id: "rename",
-          label: "Rename",
-          onClick: () => startRename(node.id),
-        },
         { id: "sep2", label: "", separator: true },
         {
           id: "trash",
-          label: "Move to Trash",
+          label: multi
+            ? `Move to Trash (${actionIds.length})`
+            : "Move to Trash",
           shortcut: "⌘⌫",
           danger: true,
-          onClick: () => fs.moveToTrash(node.id),
+          onClick: () => {
+            actionIds.forEach((id) => fs.moveToTrash(id));
+            setSelectedIds(new Set());
+          },
         },
       );
 
       return items;
     },
-    [isTrash, fs, handleOpen, startRename],
+    [isTrash, fs, handleOpen, startRename, selectedIds],
+  );
+
+  const handleMove = useCallback(
+    (nodeId: string, targetFolderId: string) => {
+      fs.move(nodeId, targetFolderId);
+      setSelectedIds(new Set());
+    },
+    [fs],
   );
 
   const handleContentContextMenu = useCallback(
@@ -175,23 +268,25 @@ export default function FileExplorer() {
     [isTrash, handleNewFolder, handleNewShortcut, fs, contextMenu],
   );
 
-  const trashCount = useMemo(() => {
-    if (isTrash) return fs.children.length;
-    return 0;
-  }, [isTrash, fs.children.length]);
+  const trashCount = fs.trashCount;
 
   return (
-    <div className="flex flex-col h-full -m-8 bg-background">
+    <div
+      ref={containerRef}
+      tabIndex={-1}
+      className="flex flex-col h-full -m-8 bg-background outline-none"
+    >
       <FileExplorerToolbar
         currentPath={fs.currentPath}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
-        onNavigateBack={fs.navigateUp}
-        onNavigateForward={() => {}}
+        onNavigateBack={fs.navigateBack}
+        onNavigateForward={fs.navigateForward}
         onNavigateTo={(id) => fs.navigateTo(id)}
         onNavigateToRoot={fs.navigateToRoot}
         onSearch={fs.search}
-        canGoBack={fs.currentPath.length > 0}
+        canGoBack={fs.canGoBack}
+        canGoForward={fs.canGoForward}
       />
       <div className="flex flex-1 min-h-0">
         <FileExplorerSidebar
@@ -212,6 +307,7 @@ export default function FileExplorer() {
             selectedIds={selectedIds}
             onSelect={handleSelect}
             onOpen={handleOpen}
+            onMove={handleMove}
             onContextMenu={handleContentContextMenu}
             getNodeMenuItems={getNodeMenuItems}
             renamingId={renamingId}

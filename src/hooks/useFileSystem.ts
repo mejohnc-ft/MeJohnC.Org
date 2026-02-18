@@ -11,6 +11,7 @@ import {
   emptyTrash as emptyTrashQuery,
   searchFileSystem,
   getNodePath,
+  getTrashedCount,
   updateNodePosition,
 } from "@/lib/desktop-queries";
 
@@ -25,6 +26,7 @@ interface UseFileSystemState {
   children: FileSystemNode[];
   isLoading: boolean;
   error: string | null;
+  trashCount: number;
 }
 
 const ROOT_FOLDER_ENTRIES: { id: string; name: string }[] = [
@@ -45,8 +47,13 @@ export function useFileSystem(
     children: [],
     isLoading: true,
     error: null,
+    trashCount: 0,
   });
   const mountedRef = useRef(true);
+
+  // Navigation history for forward/back
+  const historyRef = useRef<(string | null)[]>([initialParentId]);
+  const historyIndexRef = useRef(0);
 
   useEffect(() => {
     return () => {
@@ -57,9 +64,10 @@ export function useFileSystem(
   const fetchChildren = useCallback(async (parentId: string | null) => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
     try {
-      const [children, path] = await Promise.all([
+      const [children, path, trashCount] = await Promise.all([
         getFileSystemChildren(parentId),
         parentId ? getNodePath(parentId) : Promise.resolve([]),
+        getTrashedCount(),
       ]);
       if (!mountedRef.current) return;
       setState((prev) => ({
@@ -68,6 +76,7 @@ export function useFileSystem(
         currentParentId: parentId,
         currentPath: path.map((n) => ({ id: n.id, name: n.name })),
         isLoading: false,
+        trashCount,
       }));
     } catch (err) {
       if (!mountedRef.current) return;
@@ -85,24 +94,50 @@ export function useFileSystem(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const pushHistory = useCallback((folderId: string | null) => {
+    // Truncate any forward history
+    historyRef.current = historyRef.current.slice(
+      0,
+      historyIndexRef.current + 1,
+    );
+    historyRef.current.push(folderId);
+    historyIndexRef.current = historyRef.current.length - 1;
+  }, []);
+
   const navigateTo = useCallback(
     async (folderId: string) => {
+      pushHistory(folderId);
       await fetchChildren(folderId);
     },
-    [fetchChildren],
+    [fetchChildren, pushHistory],
   );
 
   const navigateUp = useCallback(async () => {
+    let target: string | null;
     if (state.currentPath.length > 1) {
-      const parentIndex = state.currentPath.length - 2;
-      await fetchChildren(state.currentPath[parentIndex].id);
+      target = state.currentPath[state.currentPath.length - 2].id;
     } else {
-      await fetchChildren(null);
+      target = null;
     }
-  }, [state.currentPath, fetchChildren]);
+    pushHistory(target);
+    await fetchChildren(target);
+  }, [state.currentPath, fetchChildren, pushHistory]);
 
   const navigateToRoot = useCallback(async () => {
+    pushHistory(null);
     await fetchChildren(null);
+  }, [fetchChildren, pushHistory]);
+
+  const navigateBack = useCallback(async () => {
+    if (historyIndexRef.current <= 0) return;
+    historyIndexRef.current -= 1;
+    await fetchChildren(historyRef.current[historyIndexRef.current]);
+  }, [fetchChildren]);
+
+  const navigateForward = useCallback(async () => {
+    if (historyIndexRef.current >= historyRef.current.length - 1) return;
+    historyIndexRef.current += 1;
+    await fetchChildren(historyRef.current[historyIndexRef.current]);
   }, [fetchChildren]);
 
   const createFolder = useCallback(
@@ -156,10 +191,17 @@ export function useFileSystem(
 
   const rename = useCallback(
     async (id: string, newName: string) => {
+      // Optimistic: update name locally
+      setState((prev) => ({
+        ...prev,
+        children: prev.children.map((c) =>
+          c.id === id ? { ...c, name: newName } : c,
+        ),
+      }));
       try {
         await renameNodeQuery(id, newName);
-        await fetchChildren(state.currentParentId);
       } catch (err) {
+        await fetchChildren(state.currentParentId);
         setState((prev) => ({
           ...prev,
           error: err instanceof Error ? err.message : "Failed to rename",
@@ -171,10 +213,15 @@ export function useFileSystem(
 
   const move = useCallback(
     async (id: string, newParentId: string | null) => {
+      // Optimistic: remove from current view
+      setState((prev) => ({
+        ...prev,
+        children: prev.children.filter((c) => c.id !== id),
+      }));
       try {
         await moveNodeQuery(id, newParentId);
-        await fetchChildren(state.currentParentId);
       } catch (err) {
+        await fetchChildren(state.currentParentId);
         setState((prev) => ({
           ...prev,
           error: err instanceof Error ? err.message : "Failed to move",
@@ -186,10 +233,16 @@ export function useFileSystem(
 
   const moveToTrash = useCallback(
     async (id: string) => {
+      // Optimistic: remove from view and bump trash count
+      setState((prev) => ({
+        ...prev,
+        children: prev.children.filter((c) => c.id !== id),
+        trashCount: prev.trashCount + 1,
+      }));
       try {
         await moveToTrashQuery(id);
-        await fetchChildren(state.currentParentId);
       } catch (err) {
+        await fetchChildren(state.currentParentId);
         setState((prev) => ({
           ...prev,
           error: err instanceof Error ? err.message : "Failed to move to trash",
@@ -201,10 +254,16 @@ export function useFileSystem(
 
   const restoreFromTrash = useCallback(
     async (id: string) => {
+      // Optimistic: remove from trash view and decrement count
+      setState((prev) => ({
+        ...prev,
+        children: prev.children.filter((c) => c.id !== id),
+        trashCount: Math.max(0, prev.trashCount - 1),
+      }));
       try {
         await restoreFromTrashQuery(id);
-        await fetchChildren(state.currentParentId);
       } catch (err) {
+        await fetchChildren(state.currentParentId);
         setState((prev) => ({
           ...prev,
           error: err instanceof Error ? err.message : "Failed to restore",
@@ -216,10 +275,16 @@ export function useFileSystem(
 
   const permanentlyDelete = useCallback(
     async (id: string) => {
+      // Optimistic: remove from view and decrement trash count
+      setState((prev) => ({
+        ...prev,
+        children: prev.children.filter((c) => c.id !== id),
+        trashCount: Math.max(0, prev.trashCount - 1),
+      }));
       try {
         await permanentlyDeleteQuery(id);
-        await fetchChildren(state.currentParentId);
       } catch (err) {
+        await fetchChildren(state.currentParentId);
         setState((prev) => ({
           ...prev,
           error: err instanceof Error ? err.message : "Failed to delete",
@@ -231,10 +296,16 @@ export function useFileSystem(
 
   const emptyTrash = useCallback(async () => {
     if (!ownerId) return;
+    // Optimistic: clear all children and reset trash count
+    setState((prev) => ({
+      ...prev,
+      children: [],
+      trashCount: 0,
+    }));
     try {
       await emptyTrashQuery(ownerId);
-      await fetchChildren(state.currentParentId);
     } catch (err) {
+      await fetchChildren(state.currentParentId);
       setState((prev) => ({
         ...prev,
         error: err instanceof Error ? err.message : "Failed to empty trash",
@@ -298,12 +369,19 @@ export function useFileSystem(
     [],
   );
 
+  const canGoBack = historyIndexRef.current > 0;
+  const canGoForward = historyIndexRef.current < historyRef.current.length - 1;
+
   return {
     ...state,
     rootFolders: ROOT_FOLDER_ENTRIES,
     navigateTo,
     navigateUp,
     navigateToRoot,
+    navigateBack,
+    navigateForward,
+    canGoBack,
+    canGoForward,
     createFolder,
     createFile,
     rename,

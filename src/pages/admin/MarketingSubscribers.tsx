@@ -1,23 +1,38 @@
-import { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Plus, Search, Mail, UserCheck, UserX, Download, Upload } from 'lucide-react';
-import { useAuthenticatedSupabase } from '@/lib/supabase';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import AdminLayout from '@/components/AdminLayout';
-import { useSEO } from '@/lib/seo';
-import { captureException } from '@/lib/sentry';
-import { getEmailSubscribers, bulkImportSubscribers, type SubscriberQueryOptions } from '@/lib/marketing-queries';
-import type { EmailSubscriber } from '@/lib/schemas';
+import { useEffect, useState, useRef } from "react";
+import { Link } from "react-router-dom";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
+import {
+  Plus,
+  Search,
+  Mail,
+  UserCheck,
+  UserX,
+  Download,
+  Upload,
+} from "lucide-react";
+import { useAuthenticatedSupabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import AdminLayout from "@/components/AdminLayout";
+import { useSEO } from "@/lib/seo";
+import { captureException } from "@/lib/sentry";
+import {
+  getEmailSubscribers,
+  bulkImportSubscribers,
+  type SubscriberQueryOptions,
+} from "@/lib/marketing-queries";
+import type { EmailSubscriber } from "@/lib/schemas";
 
 const MarketingSubscribers = () => {
-  useSEO({ title: 'Email Subscribers', noIndex: true });
+  useSEO({ title: "Email Subscribers", noIndex: true });
   const { supabase } = useAuthenticatedSupabase();
   const [subscribers, setSubscribers] = useState<EmailSubscriber[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<EmailSubscriber['status'] | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<
+    EmailSubscriber["status"] | "all"
+  >("all");
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -30,7 +45,7 @@ const MarketingSubscribers = () => {
       try {
         const options: SubscriberQueryOptions = {};
 
-        if (statusFilter !== 'all') {
+        if (statusFilter !== "all") {
           options.status = statusFilter;
         }
 
@@ -41,9 +56,12 @@ const MarketingSubscribers = () => {
         const data = await getEmailSubscribers(options, supabase);
         setSubscribers(data);
       } catch (error) {
-        captureException(error instanceof Error ? error : new Error(String(error)), {
-          context: 'MarketingSubscribers.fetchSubscribers',
-        });
+        captureException(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            context: "MarketingSubscribers.fetchSubscribers",
+          },
+        );
       } finally {
         setIsLoading(false);
       }
@@ -56,16 +74,18 @@ const MarketingSubscribers = () => {
     return () => clearTimeout(debounceTimer);
   }, [supabase, searchQuery, statusFilter]);
 
-  const getStatusBadge = (status: EmailSubscriber['status']) => {
+  const getStatusBadge = (status: EmailSubscriber["status"]) => {
     const styles = {
-      active: 'bg-green-500/10 text-green-500',
-      unsubscribed: 'bg-gray-500/10 text-gray-500',
-      bounced: 'bg-red-500/10 text-red-500',
-      complained: 'bg-orange-500/10 text-orange-500',
+      active: "bg-green-500/10 text-green-500",
+      unsubscribed: "bg-gray-500/10 text-gray-500",
+      bounced: "bg-red-500/10 text-red-500",
+      complained: "bg-orange-500/10 text-orange-500",
     };
 
     return (
-      <span className={`px-2 py-1 rounded text-xs font-medium ${styles[status]}`}>
+      <span
+        className={`px-2 py-1 rounded text-xs font-medium ${styles[status]}`}
+      >
         {status}
       </span>
     );
@@ -73,33 +93,44 @@ const MarketingSubscribers = () => {
 
   const getEngagementRate = (subscriber: EmailSubscriber) => {
     if (subscriber.total_emails_sent === 0) return 0;
-    return ((subscriber.total_emails_opened / subscriber.total_emails_sent) * 100).toFixed(1);
+    return (
+      (subscriber.total_emails_opened / subscriber.total_emails_sent) *
+      100
+    ).toFixed(1);
   };
 
   const handleExport = () => {
     // Generate CSV content
-    const headers = ['email', 'first_name', 'last_name', 'status', 'lists', 'tags', 'subscribed_at'];
-    const csvRows = [headers.join(',')];
+    const headers = [
+      "email",
+      "first_name",
+      "last_name",
+      "status",
+      "lists",
+      "tags",
+      "subscribed_at",
+    ];
+    const csvRows = [headers.join(",")];
 
     subscribers.forEach((sub) => {
       const row = [
         `"${sub.email}"`,
-        `"${sub.first_name || ''}"`,
-        `"${sub.last_name || ''}"`,
+        `"${sub.first_name || ""}"`,
+        `"${sub.last_name || ""}"`,
         sub.status,
-        `"${sub.lists.join(';')}"`,
-        `"${sub.tags.join(';')}"`,
+        `"${sub.lists.join(";")}"`,
+        `"${sub.tags.join(";")}"`,
         sub.subscribed_at,
       ];
-      csvRows.push(row.join(','));
+      csvRows.push(row.join(","));
     });
 
-    const csvContent = csvRows.join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const csvContent = csvRows.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `subscribers-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `subscribers-${new Date().toISOString().split("T")[0]}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -113,77 +144,97 @@ const MarketingSubscribers = () => {
     setIsImporting(true);
     try {
       const text = await file.text();
-      const lines = text.split('\n').filter((line) => line.trim());
-      const headers = lines[0].split(',').map((h) => h.trim().replace(/"/g, ''));
+      const lines = text.split("\n").filter((line) => line.trim());
+      const headers = lines[0]
+        .split(",")
+        .map((h) => h.trim().replace(/"/g, ""));
 
-      const emailIndex = headers.findIndex((h) => h.toLowerCase() === 'email');
-      const firstNameIndex = headers.findIndex((h) => h.toLowerCase().includes('first'));
-      const lastNameIndex = headers.findIndex((h) => h.toLowerCase().includes('last'));
+      const emailIndex = headers.findIndex((h) => h.toLowerCase() === "email");
+      const firstNameIndex = headers.findIndex((h) =>
+        h.toLowerCase().includes("first"),
+      );
+      const lastNameIndex = headers.findIndex((h) =>
+        h.toLowerCase().includes("last"),
+      );
 
       if (emailIndex === -1) {
-        alert('CSV must have an "email" column');
+        toast.error('CSV must have an "email" column');
         return;
       }
 
-      const subscribersToImport = lines.slice(1).map((line) => {
-        // Parse CSV line (handling quoted values)
-        const values: string[] = [];
-        let current = '';
-        let inQuotes = false;
-        for (const char of line) {
-          if (char === '"') {
-            inQuotes = !inQuotes;
-          } else if (char === ',' && !inQuotes) {
-            values.push(current.trim());
-            current = '';
-          } else {
-            current += char;
+      const subscribersToImport = lines
+        .slice(1)
+        .map((line) => {
+          // Parse CSV line (handling quoted values)
+          const values: string[] = [];
+          let current = "";
+          let inQuotes = false;
+          for (const char of line) {
+            if (char === '"') {
+              inQuotes = !inQuotes;
+            } else if (char === "," && !inQuotes) {
+              values.push(current.trim());
+              current = "";
+            } else {
+              current += char;
+            }
           }
-        }
-        values.push(current.trim());
+          values.push(current.trim());
 
-        return {
-          email: values[emailIndex]?.replace(/"/g, '') || '',
-          first_name: firstNameIndex >= 0 ? values[firstNameIndex]?.replace(/"/g, '') || null : null,
-          last_name: lastNameIndex >= 0 ? values[lastNameIndex]?.replace(/"/g, '') || null : null,
-          status: 'active' as const,
-          lists: [] as string[],
-          tags: [] as string[],
-          source: 'import',
-          source_detail: file.name,
-          ip_address: null,
-          user_agent: null,
-          referrer: null,
-          custom_fields: null,
-          metadata: null,
-          subscribed_at: new Date().toISOString(),
-          unsubscribed_at: null,
-          last_email_sent_at: null,
-          last_email_opened_at: null,
-          last_email_clicked_at: null,
-        };
-      }).filter((sub) => sub.email && sub.email.includes('@'));
+          return {
+            email: values[emailIndex]?.replace(/"/g, "") || "",
+            first_name:
+              firstNameIndex >= 0
+                ? values[firstNameIndex]?.replace(/"/g, "") || null
+                : null,
+            last_name:
+              lastNameIndex >= 0
+                ? values[lastNameIndex]?.replace(/"/g, "") || null
+                : null,
+            status: "active" as const,
+            lists: [] as string[],
+            tags: [] as string[],
+            source: "import",
+            source_detail: file.name,
+            ip_address: null,
+            user_agent: null,
+            referrer: null,
+            custom_fields: null,
+            metadata: null,
+            subscribed_at: new Date().toISOString(),
+            unsubscribed_at: null,
+            last_email_sent_at: null,
+            last_email_opened_at: null,
+            last_email_clicked_at: null,
+          };
+        })
+        .filter((sub) => sub.email && sub.email.includes("@"));
 
       if (subscribersToImport.length === 0) {
-        alert('No valid email addresses found in CSV');
+        toast.error("No valid email addresses found in CSV");
         return;
       }
 
       await bulkImportSubscribers(subscribersToImport, supabase);
-      alert(`Successfully imported ${subscribersToImport.length} subscribers`);
+      toast.success(
+        `Successfully imported ${subscribersToImport.length} subscribers`,
+      );
 
       // Refresh the list
       const data = await getEmailSubscribers({}, supabase);
       setSubscribers(data);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'MarketingSubscribers.handleImport',
-      });
-      alert('Failed to import subscribers. Please check the CSV format.');
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "MarketingSubscribers.handleImport",
+        },
+      );
+      toast.error("Failed to import subscribers. Please check the CSV format.");
     } finally {
       setIsImporting(false);
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };
@@ -194,7 +245,9 @@ const MarketingSubscribers = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Email Subscribers</h1>
+            <h1 className="text-3xl font-bold text-foreground">
+              Email Subscribers
+            </h1>
             <p className="text-muted-foreground mt-1">
               Manage your newsletter subscribers and email lists.
             </p>
@@ -214,9 +267,14 @@ const MarketingSubscribers = () => {
               disabled={isImporting}
             >
               <Upload className="w-4 h-4 mr-2" />
-              {isImporting ? 'Importing...' : 'Import'}
+              {isImporting ? "Importing..." : "Import"}
             </Button>
-            <Button variant="outline" size="sm" onClick={handleExport} disabled={subscribers.length === 0}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExport}
+              disabled={subscribers.length === 0}
+            >
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
@@ -244,7 +302,11 @@ const MarketingSubscribers = () => {
           <div className="flex gap-2">
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as EmailSubscriber['status'] | 'all')}
+              onChange={(e) =>
+                setStatusFilter(
+                  e.target.value as EmailSubscriber["status"] | "all",
+                )
+              }
               className="px-4 py-2 bg-card border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="all">All Status</option>
@@ -266,7 +328,7 @@ const MarketingSubscribers = () => {
               <div>
                 <p className="text-sm text-muted-foreground">Active</p>
                 <p className="text-2xl font-bold">
-                  {subscribers.filter(s => s.status === 'active').length}
+                  {subscribers.filter((s) => s.status === "active").length}
                 </p>
               </div>
             </div>
@@ -279,7 +341,10 @@ const MarketingSubscribers = () => {
               <div>
                 <p className="text-sm text-muted-foreground">Unsubscribed</p>
                 <p className="text-2xl font-bold">
-                  {subscribers.filter(s => s.status === 'unsubscribed').length}
+                  {
+                    subscribers.filter((s) => s.status === "unsubscribed")
+                      .length
+                  }
                 </p>
               </div>
             </div>
@@ -293,8 +358,14 @@ const MarketingSubscribers = () => {
                 <p className="text-sm text-muted-foreground">Avg. Open Rate</p>
                 <p className="text-2xl font-bold">
                   {subscribers.length > 0
-                    ? (subscribers.reduce((acc, s) => acc + parseFloat(getEngagementRate(s)), 0) / subscribers.length).toFixed(1)
-                    : '0'}%
+                    ? (
+                        subscribers.reduce(
+                          (acc, s) => acc + parseFloat(getEngagementRate(s)),
+                          0,
+                        ) / subscribers.length
+                      ).toFixed(1)
+                    : "0"}
+                  %
                 </p>
               </div>
             </div>
@@ -343,13 +414,19 @@ const MarketingSubscribers = () => {
               <tbody className="divide-y divide-border">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                    <td
+                      colSpan={6}
+                      className="px-4 py-8 text-center text-muted-foreground"
+                    >
                       Loading subscribers...
                     </td>
                   </tr>
                 ) : subscribers.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                    <td
+                      colSpan={6}
+                      className="px-4 py-8 text-center text-muted-foreground"
+                    >
                       No subscribers found.
                     </td>
                   </tr>
@@ -366,10 +443,12 @@ const MarketingSubscribers = () => {
                         <div>
                           <p className="font-medium text-foreground">
                             {subscriber.first_name || subscriber.last_name
-                              ? `${subscriber.first_name || ''} ${subscriber.last_name || ''}`.trim()
-                              : 'Anonymous'}
+                              ? `${subscriber.first_name || ""} ${subscriber.last_name || ""}`.trim()
+                              : "Anonymous"}
                           </p>
-                          <p className="text-sm text-muted-foreground">{subscriber.email}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {subscriber.email}
+                          </p>
                         </div>
                       </td>
                       <td className="px-4 py-3">
@@ -394,24 +473,27 @@ const MarketingSubscribers = () => {
                       </td>
                       <td className="px-4 py-3">
                         <div>
-                          <p className="text-sm font-medium">{getEngagementRate(subscriber)}%</p>
+                          <p className="text-sm font-medium">
+                            {getEngagementRate(subscriber)}%
+                          </p>
                           <p className="text-xs text-muted-foreground">
-                            {subscriber.total_emails_opened}/{subscriber.total_emails_sent} opened
+                            {subscriber.total_emails_opened}/
+                            {subscriber.total_emails_sent} opened
                           </p>
                         </div>
                       </td>
                       <td className="px-4 py-3">
                         <p className="text-sm text-muted-foreground">
-                          {new Date(subscriber.subscribed_at).toLocaleDateString()}
+                          {new Date(
+                            subscriber.subscribed_at,
+                          ).toLocaleDateString()}
                         </p>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          asChild
-                        >
-                          <Link to={`/admin/marketing/subscribers/${subscriber.id}`}>
+                        <Button variant="ghost" size="sm" asChild>
+                          <Link
+                            to={`/admin/marketing/subscribers/${subscriber.id}`}
+                          >
                             View
                           </Link>
                         </Button>

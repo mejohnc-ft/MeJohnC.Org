@@ -1,26 +1,27 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Save, Trash2, Eye, Code } from 'lucide-react';
-import { useAuthenticatedSupabase } from '@/lib/supabase';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import AdminLayout from '@/components/AdminLayout';
-import { useSEO } from '@/lib/seo';
-import { captureException } from '@/lib/sentry';
+import { useEffect, useState } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { ArrowLeft, Save, Trash2, Eye, Code } from "lucide-react";
+import { toast } from "sonner";
+import { useAuthenticatedSupabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import AdminLayout from "@/components/AdminLayout";
+import { useSEO } from "@/lib/seo";
+import { captureException } from "@/lib/sentry";
 import {
   getEmailTemplateById,
   createEmailTemplate,
   updateEmailTemplate,
   deleteEmailTemplate,
-} from '@/lib/marketing-queries';
-import type { EmailTemplate } from '@/lib/schemas';
+} from "@/lib/marketing-queries";
+import type { EmailTemplate } from "@/lib/schemas";
 
 const TemplateEditor = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const isNew = id === 'new';
+  const isNew = id === "new";
 
-  useSEO({ title: isNew ? 'New Template' : 'Edit Template', noIndex: true });
+  useSEO({ title: isNew ? "New Template" : "Edit Template", noIndex: true });
   const { supabase } = useAuthenticatedSupabase();
 
   const [isLoading, setIsLoading] = useState(!isNew);
@@ -29,15 +30,15 @@ const TemplateEditor = () => {
   const [template, setTemplate] = useState<EmailTemplate | null>(null);
 
   const [formData, setFormData] = useState({
-    name: '',
-    slug: '',
-    description: '',
-    template_type: 'newsletter' as EmailTemplate['template_type'],
-    subject_template: '',
-    preview_text_template: '',
-    html_content: '',
-    text_content: '',
-    thumbnail_url: '',
+    name: "",
+    slug: "",
+    description: "",
+    template_type: "newsletter" as EmailTemplate["template_type"],
+    subject_template: "",
+    preview_text_template: "",
+    html_content: "",
+    text_content: "",
+    thumbnail_url: "",
     is_active: true,
   });
 
@@ -55,20 +56,23 @@ const TemplateEditor = () => {
           setFormData({
             name: data.name,
             slug: data.slug,
-            description: data.description || '',
+            description: data.description || "",
             template_type: data.template_type,
-            subject_template: data.subject_template || '',
-            preview_text_template: data.preview_text_template || '',
+            subject_template: data.subject_template || "",
+            preview_text_template: data.preview_text_template || "",
             html_content: data.html_content,
-            text_content: data.text_content || '',
-            thumbnail_url: data.thumbnail_url || '',
+            text_content: data.text_content || "",
+            thumbnail_url: data.thumbnail_url || "",
             is_active: data.is_active,
           });
         }
       } catch (error) {
-        captureException(error instanceof Error ? error : new Error(String(error)), {
-          context: 'TemplateEditor.fetchTemplate',
-        });
+        captureException(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            context: "TemplateEditor.fetchTemplate",
+          },
+        );
       } finally {
         setIsLoading(false);
       }
@@ -80,8 +84,8 @@ const TemplateEditor = () => {
   const generateSlug = (name: string) => {
     return name
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '');
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
   };
 
   const handleNameChange = (name: string) => {
@@ -118,12 +122,15 @@ const TemplateEditor = () => {
       } else if (id) {
         await updateEmailTemplate(id, templateData, supabase);
       }
-      navigate('/admin/marketing/templates');
+      navigate("/admin/marketing/templates");
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'TemplateEditor.handleSubmit',
-      });
-      alert('Failed to save template. Please try again.');
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "TemplateEditor.handleSubmit",
+        },
+      );
+      toast.error("Failed to save template. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -131,27 +138,34 @@ const TemplateEditor = () => {
 
   const handleDelete = async () => {
     if (!supabase || !id || isNew) return;
-    if (!confirm('Are you sure you want to delete this template?')) return;
+    if (!confirm("Are you sure you want to delete this template?")) return;
 
     try {
       await deleteEmailTemplate(id, supabase);
-      navigate('/admin/marketing/templates');
+      navigate("/admin/marketing/templates");
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'TemplateEditor.handleDelete',
-      });
-      alert('Failed to delete template.');
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "TemplateEditor.handleDelete",
+        },
+      );
+      toast.error("Failed to delete template.");
     }
   };
 
-  const getTypeBadge = (type: EmailTemplate['template_type']) => {
+  const getTypeBadge = (type: EmailTemplate["template_type"]) => {
     const styles = {
-      newsletter: 'bg-blue-500/10 text-blue-500',
-      transactional: 'bg-green-500/10 text-green-500',
-      promotional: 'bg-purple-500/10 text-purple-500',
-      custom: 'bg-gray-500/10 text-gray-500',
+      newsletter: "bg-blue-500/10 text-blue-500",
+      transactional: "bg-green-500/10 text-green-500",
+      promotional: "bg-purple-500/10 text-purple-500",
+      custom: "bg-gray-500/10 text-gray-500",
     };
-    return <span className={`px-2 py-1 rounded text-xs font-medium ${styles[type]}`}>{type}</span>;
+    return (
+      <span className={`px-2 py-1 rounded text-xs font-medium ${styles[type]}`}>
+        {type}
+      </span>
+    );
   };
 
   if (isLoading) {
@@ -178,7 +192,7 @@ const TemplateEditor = () => {
             </Button>
             <div>
               <h1 className="text-2xl font-bold text-foreground">
-                {isNew ? 'New Template' : 'Edit Template'}
+                {isNew ? "New Template" : "Edit Template"}
               </h1>
               {!isNew && template && (
                 <div className="flex items-center gap-2 mt-1">
@@ -226,7 +240,9 @@ const TemplateEditor = () => {
                 <h2 className="text-lg font-semibold">Template Details</h2>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Name *</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Name *
+                  </label>
                   <Input
                     value={formData.name}
                     onChange={(e) => handleNameChange(e.target.value)}
@@ -236,20 +252,28 @@ const TemplateEditor = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Slug *</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Slug *
+                  </label>
                   <Input
                     value={formData.slug}
-                    onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, slug: e.target.value })
+                    }
                     required
                     placeholder="monthly-newsletter"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Description</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Description
+                  </label>
                   <textarea
                     value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
                     rows={3}
                     className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm"
                     placeholder="A brief description of this template..."
@@ -261,7 +285,11 @@ const TemplateEditor = () => {
                   <select
                     value={formData.template_type}
                     onChange={(e) =>
-                      setFormData({ ...formData, template_type: e.target.value as EmailTemplate['template_type'] })
+                      setFormData({
+                        ...formData,
+                        template_type: e.target
+                          .value as EmailTemplate["template_type"],
+                      })
                     }
                     className="w-full px-3 py-2 bg-background border border-border rounded-md"
                   >
@@ -273,10 +301,17 @@ const TemplateEditor = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Thumbnail URL</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Thumbnail URL
+                  </label>
                   <Input
                     value={formData.thumbnail_url}
-                    onChange={(e) => setFormData({ ...formData, thumbnail_url: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        thumbnail_url: e.target.value,
+                      })
+                    }
                     placeholder="https://..."
                   />
                 </div>
@@ -286,10 +321,14 @@ const TemplateEditor = () => {
                     type="checkbox"
                     id="is_active"
                     checked={formData.is_active}
-                    onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, is_active: e.target.checked })
+                    }
                     className="rounded border-border"
                   />
-                  <label htmlFor="is_active" className="text-sm">Active</label>
+                  <label htmlFor="is_active" className="text-sm">
+                    Active
+                  </label>
                 </div>
               </div>
 
@@ -297,22 +336,36 @@ const TemplateEditor = () => {
                 <h2 className="text-lg font-semibold">Default Values</h2>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Subject Template</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Subject Template
+                  </label>
                   <Input
                     value={formData.subject_template}
-                    onChange={(e) => setFormData({ ...formData, subject_template: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        subject_template: e.target.value,
+                      })
+                    }
                     placeholder="{{subject}}"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Use {'{{variable}}'} for dynamic content
+                    Use {"{{variable}}"} for dynamic content
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Preview Text</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Preview Text
+                  </label>
                   <Input
                     value={formData.preview_text_template}
-                    onChange={(e) => setFormData({ ...formData, preview_text_template: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        preview_text_template: e.target.value,
+                      })
+                    }
                     placeholder="Preview text shown in email clients..."
                   />
                 </div>
@@ -323,7 +376,7 @@ const TemplateEditor = () => {
             <div className="col-span-2 space-y-6">
               <div className="bg-card border border-border rounded-lg p-6 space-y-4">
                 <h2 className="text-lg font-semibold">
-                  {showPreview ? 'Preview' : 'HTML Content'}
+                  {showPreview ? "Preview" : "HTML Content"}
                 </h2>
 
                 {showPreview ? (
@@ -334,7 +387,9 @@ const TemplateEditor = () => {
                     <div className="p-4 bg-white min-h-[400px]">
                       <div
                         dangerouslySetInnerHTML={{
-                          __html: formData.html_content || '<p style="color: #999;">No HTML content yet</p>',
+                          __html:
+                            formData.html_content ||
+                            '<p style="color: #999;">No HTML content yet</p>',
                         }}
                       />
                     </div>
@@ -342,7 +397,9 @@ const TemplateEditor = () => {
                 ) : (
                   <textarea
                     value={formData.html_content}
-                    onChange={(e) => setFormData({ ...formData, html_content: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, html_content: e.target.value })
+                    }
                     rows={20}
                     className="w-full px-3 py-2 bg-background border border-border rounded-md font-mono text-sm"
                     placeholder="<!DOCTYPE html>
@@ -359,7 +416,9 @@ const TemplateEditor = () => {
                 <h2 className="text-lg font-semibold">Plain Text Content</h2>
                 <textarea
                   value={formData.text_content}
-                  onChange={(e) => setFormData({ ...formData, text_content: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, text_content: e.target.value })
+                  }
                   rows={8}
                   className="w-full px-3 py-2 bg-background border border-border rounded-md"
                   placeholder="Plain text version for email clients that don't support HTML..."
@@ -375,7 +434,7 @@ const TemplateEditor = () => {
             </Button>
             <Button type="submit" disabled={isSaving}>
               <Save className="w-4 h-4 mr-2" />
-              {isSaving ? 'Saving...' : 'Save Template'}
+              {isSaving ? "Saving..." : "Save Template"}
             </Button>
           </div>
         </form>

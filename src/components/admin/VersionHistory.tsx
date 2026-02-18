@@ -1,15 +1,22 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { History, RotateCcw, ChevronDown, ChevronUp, Clock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  History,
+  RotateCcw,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   getContentVersions,
   restoreVersion,
   compareVersions,
   type ContentVersion,
-} from '@/lib/audit';
-import { captureException } from '@/lib/sentry';
+} from "@/lib/audit";
+import { captureException } from "@/lib/sentry";
 
 interface VersionHistoryProps {
   tableName: string;
@@ -17,7 +24,11 @@ interface VersionHistoryProps {
   onRestore?: () => void;
 }
 
-export default function VersionHistory({ tableName, recordId, onRestore }: VersionHistoryProps) {
+export default function VersionHistory({
+  tableName,
+  recordId,
+  onRestore,
+}: VersionHistoryProps) {
   const [versions, setVersions] = useState<ContentVersion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
@@ -30,7 +41,9 @@ export default function VersionHistory({ tableName, recordId, onRestore }: Versi
         const data = await getContentVersions(tableName, recordId);
         setVersions(data);
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), { context: 'VersionHistory.fetchVersions' });
+        captureException(err instanceof Error ? err : new Error(String(err)), {
+          context: "VersionHistory.fetchVersions",
+        });
       } finally {
         setIsLoading(false);
       }
@@ -42,7 +55,11 @@ export default function VersionHistory({ tableName, recordId, onRestore }: Versi
   }, [tableName, recordId, isOpen]);
 
   const handleRestore = async (versionNumber: number) => {
-    if (!confirm(`Are you sure you want to restore version ${versionNumber}? This will overwrite current content.`)) {
+    if (
+      !confirm(
+        `Are you sure you want to restore version ${versionNumber}? This will overwrite current content.`,
+      )
+    ) {
       return;
     }
 
@@ -54,8 +71,10 @@ export default function VersionHistory({ tableName, recordId, onRestore }: Versi
       setVersions(data);
       onRestore?.();
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'VersionHistory.restore' });
-      alert('Failed to restore version');
+      captureException(err instanceof Error ? err : new Error(String(err)), {
+        context: "VersionHistory.restore",
+      });
+      toast.error("Failed to restore version");
     } finally {
       setIsRestoring(false);
     }
@@ -63,12 +82,12 @@ export default function VersionHistory({ tableName, recordId, onRestore }: Versi
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -94,14 +113,18 @@ export default function VersionHistory({ tableName, recordId, onRestore }: Versi
         <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
           {versions.length} versions
         </span>
-        {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        {isOpen ? (
+          <ChevronUp className="w-4 h-4" />
+        ) : (
+          <ChevronDown className="w-4 h-4" />
+        )}
       </button>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
+            animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
@@ -115,7 +138,8 @@ export default function VersionHistory({ tableName, recordId, onRestore }: Versi
                 <div className="space-y-3 max-h-80 overflow-y-auto">
                   {versions.map((version, index) => {
                     const changedFields = getChangedFields(version, index);
-                    const isExpanded = expandedVersion === version.version_number;
+                    const isExpanded =
+                      expandedVersion === version.version_number;
                     const isCurrent = index === 0;
 
                     return (
@@ -123,8 +147,8 @@ export default function VersionHistory({ tableName, recordId, onRestore }: Versi
                         key={version.id}
                         className={`p-3 rounded-lg border ${
                           isCurrent
-                            ? 'border-primary/50 bg-primary/5'
-                            : 'border-border hover:bg-muted/50'
+                            ? "border-primary/50 bg-primary/5"
+                            : "border-border hover:bg-muted/50"
                         } transition-colors`}
                       >
                         <div className="flex items-center justify-between">
@@ -147,7 +171,9 @@ export default function VersionHistory({ tableName, recordId, onRestore }: Versi
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleRestore(version.version_number)}
+                                onClick={() =>
+                                  handleRestore(version.version_number)
+                                }
                                 disabled={isRestoring}
                                 className="h-7 px-2 text-xs"
                               >
@@ -168,18 +194,22 @@ export default function VersionHistory({ tableName, recordId, onRestore }: Versi
                           <div className="mt-2">
                             <button
                               onClick={() =>
-                                setExpandedVersion(isExpanded ? null : version.version_number)
+                                setExpandedVersion(
+                                  isExpanded ? null : version.version_number,
+                                )
                               }
                               className="text-xs text-primary hover:underline"
                             >
-                              {isExpanded ? 'Hide changes' : `Show ${changedFields.length} changed fields`}
+                              {isExpanded
+                                ? "Hide changes"
+                                : `Show ${changedFields.length} changed fields`}
                             </button>
 
                             <AnimatePresence>
                               {isExpanded && (
                                 <motion.div
                                   initial={{ height: 0, opacity: 0 }}
-                                  animate={{ height: 'auto', opacity: 1 }}
+                                  animate={{ height: "auto", opacity: 1 }}
                                   exit={{ height: 0, opacity: 0 }}
                                   className="overflow-hidden"
                                 >
@@ -189,7 +219,7 @@ export default function VersionHistory({ tableName, recordId, onRestore }: Versi
                                         key={field}
                                         className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded"
                                       >
-                                        {field.replace(/_/g, ' ')}
+                                        {field.replace(/_/g, " ")}
                                       </div>
                                     ))}
                                   </div>

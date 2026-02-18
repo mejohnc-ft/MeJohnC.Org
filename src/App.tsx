@@ -1,74 +1,85 @@
-import { lazy, Suspense, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
-import { AnimatePresence, MotionConfig } from 'framer-motion';
-import { AuthProvider } from './lib/auth';
-import { ThemeProvider } from './lib/theme';
-import { KeyboardFocusProvider } from './lib/keyboard-focus';
-import { useReducedMotion } from './lib/reduced-motion';
-import { PWAProvider } from './lib/pwa';
-import { trackPageView } from './lib/analytics';
-import { SEOProvider } from './lib/seo';
-import Layout from './components/Layout';
-import ErrorBoundary from './components/ErrorBoundary';
-import { renderFeatureRoutes } from './components/FeatureRoutes';
-import { initializeModules } from './features';
+import { lazy, Suspense, useEffect } from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useLocation,
+  Navigate,
+} from "react-router-dom";
+import { AnimatePresence, MotionConfig } from "framer-motion";
+import { Toaster } from "sonner";
+import { AuthProvider } from "./lib/auth";
+import { ThemeProvider } from "./lib/theme";
+import { KeyboardFocusProvider } from "./lib/keyboard-focus";
+import { useReducedMotion } from "./lib/reduced-motion";
+import { PWAProvider } from "./lib/pwa";
+import { trackPageView } from "./lib/analytics";
+import { SEOProvider } from "./lib/seo";
+import Layout from "./components/Layout";
+import ErrorBoundary from "./components/ErrorBoundary";
+import { renderFeatureRoutes } from "./components/FeatureRoutes";
+import { initializeModules } from "./features";
 
 // Eager load critical pages for fast initial render
-import Home from './pages/Home';
+import Home from "./pages/Home";
 
 // Lazy load heavy pages for code splitting
-const Portfolio = lazy(() => import('./pages/Portfolio'));
-const About = lazy(() => import('./pages/About'));
-const AppDetail = lazy(() => import('./pages/AppDetail'));
-const AppSuite = lazy(() => import('./pages/AppSuite'));
-const BlogPost = lazy(() => import('./pages/BlogPost'));
-const TerritoriesProject = lazy(() => import('./pages/TerritoriesProject'));
+const Portfolio = lazy(() => import("./pages/Portfolio"));
+const About = lazy(() => import("./pages/About"));
+const AppDetail = lazy(() => import("./pages/AppDetail"));
+const AppSuite = lazy(() => import("./pages/AppSuite"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
+const TerritoriesProject = lazy(() => import("./pages/TerritoriesProject"));
 
 // Lazy load admin pages (rarely accessed)
-const AdminLogin = lazy(() => import('./pages/admin/Login'));
-const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
-const AdminSettings = lazy(() => import('./pages/admin/Settings'));
-const AdminBlogList = lazy(() => import('./pages/admin/blog/index'));
-const BlogEditor = lazy(() => import('./pages/admin/blog/editor'));
-const AdminAppsList = lazy(() => import('./pages/admin/apps/index'));
-const AppEditor = lazy(() => import('./pages/admin/apps/editor'));
-const SuiteEditor = lazy(() => import('./pages/admin/apps/suite-editor'));
-const AdminProjectsList = lazy(() => import('./pages/admin/projects/index'));
-const ProjectEditor = lazy(() => import('./pages/admin/projects/editor'));
-const AdminProfile = lazy(() => import('./pages/admin/Profile'));
+const AdminLogin = lazy(() => import("./pages/admin/Login"));
+const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
+const AdminSettings = lazy(() => import("./pages/admin/Settings"));
+const AdminBlogList = lazy(() => import("./pages/admin/blog/index"));
+const BlogEditor = lazy(() => import("./pages/admin/blog/editor"));
+const AdminAppsList = lazy(() => import("./pages/admin/apps/index"));
+const AppEditor = lazy(() => import("./pages/admin/apps/editor"));
+const SuiteEditor = lazy(() => import("./pages/admin/apps/suite-editor"));
+const AdminProjectsList = lazy(() => import("./pages/admin/projects/index"));
+const ProjectEditor = lazy(() => import("./pages/admin/projects/editor"));
+const AdminProfile = lazy(() => import("./pages/admin/Profile"));
 
 // AI Manager page
-const AdminAIManager = lazy(() => import('./pages/admin/ai-manager/index'));
+const AdminAIManager = lazy(() => import("./pages/admin/ai-manager/index"));
 
 // Bookmarks admin page
-const AdminBookmarks = lazy(() => import('./pages/admin/bookmarks/index'));
+const AdminBookmarks = lazy(() => import("./pages/admin/bookmarks/index"));
 
 // API Registry admin page
-const AdminApiRegistry = lazy(() => import('./pages/admin/ApiRegistry'));
+const AdminApiRegistry = lazy(() => import("./pages/admin/ApiRegistry"));
 
 // Prompt Library admin page
-const AdminPromptLibrary = lazy(() => import('./pages/admin/PromptLibrary'));
+const AdminPromptLibrary = lazy(() => import("./pages/admin/PromptLibrary"));
 
 // Command Center admin pages
-const AdminSkillsRegistry = lazy(() => import('./pages/admin/SkillsRegistry'));
-const AdminInfrastructureMap = lazy(() => import('./pages/admin/InfrastructureMap'));
-const AdminConfigVault = lazy(() => import('./pages/admin/ConfigVault'));
-const AdminRunbooks = lazy(() => import('./pages/admin/Runbooks'));
+const AdminSkillsRegistry = lazy(() => import("./pages/admin/SkillsRegistry"));
+const AdminInfrastructureMap = lazy(
+  () => import("./pages/admin/InfrastructureMap"),
+);
+const AdminConfigVault = lazy(() => import("./pages/admin/ConfigVault"));
+const AdminRunbooks = lazy(() => import("./pages/admin/Runbooks"));
 
 // Site Builder admin pages (will be migrated to feature module)
-const SiteBuilderIndex = lazy(() => import('./pages/admin/site-builder/index'));
-const SiteBuilderEditor = lazy(() => import('./pages/admin/site-builder/editor'));
+const SiteBuilderIndex = lazy(() => import("./pages/admin/site-builder/index"));
+const SiteBuilderEditor = lazy(
+  () => import("./pages/admin/site-builder/editor"),
+);
 
 // Desktop OS mode
-const DesktopShell = lazy(() => import('./components/desktop/DesktopShell'));
+const DesktopShell = lazy(() => import("./components/desktop/DesktopShell"));
 
 // Agent Platform admin pages
-const AdminAgentRegistry = lazy(() => import('./pages/admin/AgentRegistry'));
-const AdminWorkflows = lazy(() => import('./pages/admin/Workflows'));
-const AdminWorkflowEditor = lazy(() => import('./pages/admin/WorkflowEditor'));
-const AdminScheduler = lazy(() => import('./pages/admin/Scheduler'));
-const AdminIntegrationHub = lazy(() => import('./pages/admin/IntegrationHub'));
-const AdminAuditLog = lazy(() => import('./pages/admin/AuditLog'));
+const AdminAgentRegistry = lazy(() => import("./pages/admin/AgentRegistry"));
+const AdminWorkflows = lazy(() => import("./pages/admin/Workflows"));
+const AdminWorkflowEditor = lazy(() => import("./pages/admin/WorkflowEditor"));
+const AdminScheduler = lazy(() => import("./pages/admin/Scheduler"));
+const AdminIntegrationHub = lazy(() => import("./pages/admin/IntegrationHub"));
+const AdminAuditLog = lazy(() => import("./pages/admin/AuditLog"));
 
 // Note: These routes are now dynamically loaded from feature modules:
 // - Tasks (/admin/tasks/*) - from tasks module
@@ -80,24 +91,30 @@ const AdminAuditLog = lazy(() => import('./pages/admin/AuditLog'));
 // - NPS (/admin/nps/*) - from nps module
 
 // Marketing admin pages
-const AdminMarketing = lazy(() => import('./pages/admin/Marketing'));
-const AdminMarketingSubscribers = lazy(() => import('./pages/admin/MarketingSubscribers'));
-const AdminMarketingCampaigns = lazy(() => import('./pages/admin/MarketingCampaigns'));
-const AdminMarketingTemplates = lazy(() => import('./pages/admin/MarketingTemplates'));
-const AdminMarketingNPS = lazy(() => import('./pages/admin/MarketingNPS'));
-const SubscriberDetail = lazy(() => import('./pages/admin/SubscriberDetail'));
-const CampaignEditor = lazy(() => import('./pages/admin/CampaignEditor'));
-const TemplateEditor = lazy(() => import('./pages/admin/TemplateEditor'));
-const NPSSurveyDetail = lazy(() => import('./pages/admin/NPSSurveyDetail'));
+const AdminMarketing = lazy(() => import("./pages/admin/Marketing"));
+const AdminMarketingSubscribers = lazy(
+  () => import("./pages/admin/MarketingSubscribers"),
+);
+const AdminMarketingCampaigns = lazy(
+  () => import("./pages/admin/MarketingCampaigns"),
+);
+const AdminMarketingTemplates = lazy(
+  () => import("./pages/admin/MarketingTemplates"),
+);
+const AdminMarketingNPS = lazy(() => import("./pages/admin/MarketingNPS"));
+const SubscriberDetail = lazy(() => import("./pages/admin/SubscriberDetail"));
+const CampaignEditor = lazy(() => import("./pages/admin/CampaignEditor"));
+const TemplateEditor = lazy(() => import("./pages/admin/TemplateEditor"));
+const NPSSurveyDetail = lazy(() => import("./pages/admin/NPSSurveyDetail"));
 
 // Public bookmarks page
-const PublicBookmarks = lazy(() => import('./pages/Bookmarks'));
+const PublicBookmarks = lazy(() => import("./pages/Bookmarks"));
 
 // Public custom pages (site builder)
-const PublicPage = lazy(() => import('./pages/PublicPage'));
+const PublicPage = lazy(() => import("./pages/PublicPage"));
 
 // Public generative UI panels
-const PanelPage = lazy(() => import('./pages/PanelPage'));
+const PanelPage = lazy(() => import("./pages/PanelPage"));
 
 // Minimal loading fallback
 function PageLoader() {
@@ -128,9 +145,7 @@ function AdminErrorFallback() {
             />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold text-foreground mb-2">
-          Admin Error
-        </h1>
+        <h1 className="text-2xl font-bold text-foreground mb-2">Admin Error</h1>
         <p className="text-muted-foreground mb-6">
           Something went wrong in the admin panel. Your data is safe.
         </p>
@@ -173,9 +188,7 @@ function PublicErrorFallback() {
             />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold text-foreground mb-2">
-          Page Error
-        </h1>
+        <h1 className="text-2xl font-bold text-foreground mb-2">Page Error</h1>
         <p className="text-muted-foreground mb-6">
           This page encountered an error. Try refreshing or go back home.
         </p>
@@ -205,14 +218,14 @@ function RouteTracker() {
   useEffect(() => {
     // Get page title based on route
     const getPageTitle = (pathname: string): string => {
-      if (pathname === '/') return 'Home';
-      if (pathname === '/portfolio') return 'Portfolio';
-      if (pathname === '/about') return 'About';
-      if (pathname.startsWith('/blog/')) return 'Blog Post';
-      if (pathname.startsWith('/apps/suite/')) return 'App Suite';
-      if (pathname.startsWith('/apps/')) return 'App Detail';
-      if (pathname === '/projects/territories') return 'Territories';
-      return 'Page';
+      if (pathname === "/") return "Home";
+      if (pathname === "/portfolio") return "Portfolio";
+      if (pathname === "/about") return "About";
+      if (pathname.startsWith("/blog/")) return "Blog Post";
+      if (pathname.startsWith("/apps/suite/")) return "App Suite";
+      if (pathname.startsWith("/apps/")) return "App Detail";
+      if (pathname === "/projects/territories") return "Territories";
+      return "Page";
     };
 
     trackPageView(location.pathname, getPageTitle(location.pathname));
@@ -225,7 +238,7 @@ function AnimatedRoutes() {
   const location = useLocation();
 
   // Don't wrap PublicPage in AnimatePresence as it has its own Layout
-  if (location.pathname.startsWith('/p/')) {
+  if (location.pathname.startsWith("/p/")) {
     return (
       <Routes location={location}>
         <Route
@@ -241,7 +254,7 @@ function AnimatedRoutes() {
   }
 
   // Public generative UI panels
-  if (location.pathname.startsWith('/panel/')) {
+  if (location.pathname.startsWith("/panel/")) {
     return (
       <Routes location={location}>
         <Route
@@ -328,7 +341,10 @@ function AnimatedRoutes() {
         <Route path="/work" element={<Navigate to="/portfolio" replace />} />
         <Route path="/apps" element={<Navigate to="/portfolio" replace />} />
         <Route path="/contact" element={<Navigate to="/about" replace />} />
-        <Route path="/blog" element={<Navigate to="/portfolio?tab=content" replace />} />
+        <Route
+          path="/blog"
+          element={<Navigate to="/portfolio?tab=content" replace />}
+        />
       </Routes>
     </AnimatePresence>
   );
@@ -373,27 +389,60 @@ function AdminRoutes() {
           <Route path="/admin/prompts" element={<AdminPromptLibrary />} />
           {/* Command Center routes */}
           <Route path="/admin/skills" element={<AdminSkillsRegistry />} />
-          <Route path="/admin/infrastructure" element={<AdminInfrastructureMap />} />
+          <Route
+            path="/admin/infrastructure"
+            element={<AdminInfrastructureMap />}
+          />
           <Route path="/admin/configs" element={<AdminConfigVault />} />
           <Route path="/admin/runbooks" element={<AdminRunbooks />} />
           {/* Marketing routes (legacy - will be migrated to feature module) */}
           <Route path="/admin/marketing" element={<AdminMarketing />} />
-          <Route path="/admin/marketing/subscribers" element={<AdminMarketingSubscribers />} />
-          <Route path="/admin/marketing/subscribers/:id" element={<SubscriberDetail />} />
-          <Route path="/admin/marketing/campaigns" element={<AdminMarketingCampaigns />} />
-          <Route path="/admin/marketing/campaigns/:id" element={<CampaignEditor />} />
-          <Route path="/admin/marketing/templates" element={<AdminMarketingTemplates />} />
-          <Route path="/admin/marketing/templates/:id" element={<TemplateEditor />} />
-          <Route path="/admin/marketing/templates/:id/preview" element={<TemplateEditor />} />
+          <Route
+            path="/admin/marketing/subscribers"
+            element={<AdminMarketingSubscribers />}
+          />
+          <Route
+            path="/admin/marketing/subscribers/:id"
+            element={<SubscriberDetail />}
+          />
+          <Route
+            path="/admin/marketing/campaigns"
+            element={<AdminMarketingCampaigns />}
+          />
+          <Route
+            path="/admin/marketing/campaigns/:id"
+            element={<CampaignEditor />}
+          />
+          <Route
+            path="/admin/marketing/templates"
+            element={<AdminMarketingTemplates />}
+          />
+          <Route
+            path="/admin/marketing/templates/:id"
+            element={<TemplateEditor />}
+          />
+          <Route
+            path="/admin/marketing/templates/:id/preview"
+            element={<TemplateEditor />}
+          />
           <Route path="/admin/marketing/nps" element={<AdminMarketingNPS />} />
-          <Route path="/admin/marketing/nps/:id" element={<NPSSurveyDetail />} />
+          <Route
+            path="/admin/marketing/nps/:id"
+            element={<NPSSurveyDetail />}
+          />
           {/* Site Builder routes (legacy - will be migrated to feature module) */}
           <Route path="/admin/site-builder" element={<SiteBuilderIndex />} />
-          <Route path="/admin/site-builder/:pageId" element={<SiteBuilderEditor />} />
+          <Route
+            path="/admin/site-builder/:pageId"
+            element={<SiteBuilderEditor />}
+          />
           {/* Agent Platform routes */}
           <Route path="/admin/agents" element={<AdminAgentRegistry />} />
           <Route path="/admin/workflows" element={<AdminWorkflows />} />
-          <Route path="/admin/workflows/:id" element={<AdminWorkflowEditor />} />
+          <Route
+            path="/admin/workflows/:id"
+            element={<AdminWorkflowEditor />}
+          />
           <Route path="/admin/scheduler" element={<AdminScheduler />} />
           <Route path="/admin/integrations" element={<AdminIntegrationHub />} />
           <Route path="/admin/audit" element={<AdminAuditLog />} />
@@ -408,9 +457,9 @@ function AdminRoutes() {
 
 function AppContent() {
   const location = useLocation();
-  const isAdminRoute = location.pathname.startsWith('/admin');
-  const isCustomPage = location.pathname.startsWith('/p/');
-  const isPanelPage = location.pathname.startsWith('/panel/');
+  const isAdminRoute = location.pathname.startsWith("/admin");
+  const isCustomPage = location.pathname.startsWith("/p/");
+  const isPanelPage = location.pathname.startsWith("/panel/");
 
   // Don't track admin routes in analytics
   if (isAdminRoute) {
@@ -442,13 +491,19 @@ function App() {
 
   return (
     <BrowserRouter>
-      <MotionConfig reducedMotion={prefersReducedMotion ? 'always' : 'never'}>
+      <MotionConfig reducedMotion={prefersReducedMotion ? "always" : "never"}>
         <ThemeProvider>
           <KeyboardFocusProvider>
             <PWAProvider>
               <AuthProvider>
                 <SEOProvider>
                   <AppContent />
+                  <Toaster
+                    position="bottom-right"
+                    theme="dark"
+                    richColors
+                    closeButton
+                  />
                 </SEOProvider>
               </AuthProvider>
             </PWAProvider>

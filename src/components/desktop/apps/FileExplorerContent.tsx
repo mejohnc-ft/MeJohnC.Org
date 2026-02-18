@@ -1,4 +1,4 @@
-import { useCallback, useState, useRef, useEffect } from "react";
+import { useCallback, useState, useRef, useEffect, useMemo } from "react";
 import {
   Folder,
   FileText,
@@ -20,6 +20,7 @@ import type {
   FileSystemNode,
   FileExplorerViewMode,
 } from "@/lib/desktop-schemas";
+import { getFileSystemChildren } from "@/lib/desktop-queries";
 import type { ContextMenuItem } from "@/hooks/useContextMenu";
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -110,8 +111,9 @@ interface FileExplorerContentProps {
   error: string | null;
   isTrash: boolean;
   selectedIds: Set<string>;
-  onSelect: (id: string) => void;
+  onSelect: (id: string, event: React.MouseEvent) => void;
   onOpen: (node: FileSystemNode) => void;
+  onMove?: (nodeId: string, targetFolderId: string) => void;
   onContextMenu: (e: React.MouseEvent, items: ContextMenuItem[]) => void;
   getNodeMenuItems: (node: FileSystemNode) => ContextMenuItem[];
   renamingId: string | null;
@@ -128,6 +130,7 @@ export default function FileExplorerContent({
   selectedIds,
   onSelect,
   onOpen,
+  onMove,
   onContextMenu,
   getNodeMenuItems,
   renamingId,
@@ -165,6 +168,7 @@ export default function FileExplorerContent({
         selectedIds={selectedIds}
         onSelect={onSelect}
         onOpen={onOpen}
+        onMove={onMove}
         onContextMenu={onContextMenu}
         getNodeMenuItems={getNodeMenuItems}
         renamingId={renamingId}
@@ -180,6 +184,7 @@ export default function FileExplorerContent({
         selectedIds={selectedIds}
         onSelect={onSelect}
         onOpen={onOpen}
+        onMove={onMove}
         onContextMenu={onContextMenu}
         getNodeMenuItems={getNodeMenuItems}
         renamingId={renamingId}
@@ -194,6 +199,7 @@ export default function FileExplorerContent({
       selectedIds={selectedIds}
       onSelect={onSelect}
       onOpen={onOpen}
+      onMove={onMove}
       onContextMenu={onContextMenu}
       getNodeMenuItems={getNodeMenuItems}
       renamingId={renamingId}
@@ -210,8 +216,9 @@ export default function FileExplorerContent({
 interface ViewProps {
   items: FileSystemNode[];
   selectedIds: Set<string>;
-  onSelect: (id: string) => void;
+  onSelect: (id: string, event: React.MouseEvent) => void;
   onOpen: (node: FileSystemNode) => void;
+  onMove?: (nodeId: string, targetFolderId: string) => void;
   onContextMenu: (e: React.MouseEvent, items: ContextMenuItem[]) => void;
   getNodeMenuItems: (node: FileSystemNode) => ContextMenuItem[];
   renamingId: string | null;
@@ -224,24 +231,53 @@ function IconView({
   selectedIds,
   onSelect,
   onOpen,
+  onMove,
   onContextMenu,
   getNodeMenuItems,
   renamingId,
   onRenameConfirm,
   onRenameCancel,
 }: ViewProps) {
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+
   return (
     <div className="flex-1 p-4 overflow-auto">
       <div className="grid grid-cols-[repeat(auto-fill,minmax(80px,1fr))] gap-2">
         {items.map((node) => (
           <button
             key={node.id}
+            draggable={!renamingId}
+            onDragStart={(e) => {
+              e.dataTransfer.setData("text/plain", node.id);
+              e.dataTransfer.effectAllowed = "move";
+            }}
+            onDragOver={(e) => {
+              if (node.type === "folder") {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+                setDragOverId(node.id);
+              }
+            }}
+            onDragLeave={() => setDragOverId(null)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragOverId(null);
+              const draggedId = e.dataTransfer.getData("text/plain");
+              if (
+                draggedId &&
+                draggedId !== node.id &&
+                node.type === "folder"
+              ) {
+                onMove?.(draggedId, node.id);
+              }
+            }}
             className={`
               flex flex-col items-center gap-1 p-2 rounded-lg text-center
               transition-colors cursor-default
               ${selectedIds.has(node.id) ? "bg-primary/15 ring-1 ring-primary/30" : "hover:bg-muted/50"}
+              ${dragOverId === node.id ? "ring-2 ring-primary bg-primary/10" : ""}
             `}
-            onClick={() => onSelect(node.id)}
+            onClick={(e) => onSelect(node.id, e)}
             onDoubleClick={() => {
               if (renamingId !== node.id) onOpen(node);
             }}
@@ -278,12 +314,15 @@ function ListView({
   selectedIds,
   onSelect,
   onOpen,
+  onMove,
   onContextMenu,
   getNodeMenuItems,
   renamingId,
   onRenameConfirm,
   onRenameCancel,
 }: ViewProps) {
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+
   const formatDate = useCallback((dateStr: string) => {
     return new Date(dateStr).toLocaleDateString(undefined, {
       month: "short",
@@ -312,11 +351,37 @@ function ListView({
           {items.map((node) => (
             <tr
               key={node.id}
+              draggable={!renamingId}
+              onDragStart={(e) => {
+                e.dataTransfer.setData("text/plain", node.id);
+                e.dataTransfer.effectAllowed = "move";
+              }}
+              onDragOver={(e) => {
+                if (node.type === "folder") {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = "move";
+                  setDragOverId(node.id);
+                }
+              }}
+              onDragLeave={() => setDragOverId(null)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragOverId(null);
+                const draggedId = e.dataTransfer.getData("text/plain");
+                if (
+                  draggedId &&
+                  draggedId !== node.id &&
+                  node.type === "folder"
+                ) {
+                  onMove?.(draggedId, node.id);
+                }
+              }}
               className={`
                 border-b border-border/30 cursor-default transition-colors
                 ${selectedIds.has(node.id) ? "bg-primary/15" : "hover:bg-muted/30"}
+                ${dragOverId === node.id ? "ring-2 ring-primary bg-primary/10" : ""}
               `}
-              onClick={() => onSelect(node.id)}
+              onClick={(e) => onSelect(node.id, e)}
               onDoubleClick={() => {
                 if (renamingId !== node.id) onOpen(node);
               }}
@@ -354,12 +419,17 @@ function ListView({
 }
 
 // ============================================
-// COLUMN VIEW (simplified)
+// COLUMN VIEW (Finder-style multi-column)
 // ============================================
+
+interface ColumnData {
+  parentId: string;
+  items: FileSystemNode[];
+}
 
 function ColumnView({
   items,
-  selectedIds,
+  // selectedIds not used — ColumnView tracks selection internally via selectedPath
   onSelect,
   onOpen,
   onContextMenu,
@@ -368,17 +438,66 @@ function ColumnView({
   onRenameConfirm,
   onRenameCancel,
 }: ViewProps) {
-  return (
-    <div className="flex-1 flex overflow-x-auto">
-      <div className="min-w-[200px] max-w-[250px] border-r border-border overflow-y-auto">
-        {items.map((node) => (
+  const [columns, setColumns] = useState<ColumnData[]>([]);
+  const [selectedPath, setSelectedPath] = useState<string[]>([]);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // When a folder is clicked, load its children into the next column
+  const handleColumnSelect = useCallback(
+    async (node: FileSystemNode, columnIndex: number) => {
+      // Update parent selection state
+      onSelect(node.id, {
+        metaKey: false,
+        ctrlKey: false,
+        shiftKey: false,
+      } as React.MouseEvent);
+
+      // Trim columns after this level
+      const newPath = selectedPath.slice(0, columnIndex);
+      newPath.push(node.id);
+      setSelectedPath(newPath);
+
+      if (node.type === "folder") {
+        try {
+          const children = await getFileSystemChildren(node.id);
+          setColumns((prev) => {
+            const trimmed = prev.slice(0, columnIndex);
+            trimmed.push({ parentId: node.id, items: children });
+            return trimmed;
+          });
+          // Scroll to right
+          requestAnimationFrame(() => {
+            scrollRef.current?.scrollTo({
+              left: scrollRef.current.scrollWidth,
+              behavior: "smooth",
+            });
+          });
+        } catch {
+          // silently ignore
+        }
+      } else {
+        // Non-folder: trim sub-columns
+        setColumns((prev) => prev.slice(0, columnIndex));
+      }
+    },
+    [onSelect, selectedPath],
+  );
+
+  const renderColumn = (columnItems: FileSystemNode[], columnIndex: number) => (
+    <div
+      key={columnIndex}
+      className="min-w-[200px] max-w-[250px] shrink-0 border-r border-border overflow-y-auto"
+    >
+      {columnItems.map((node) => {
+        const isSelected = selectedPath.includes(node.id);
+        return (
           <button
             key={node.id}
             className={`
               w-full flex items-center gap-2 px-3 py-1.5 text-xs transition-colors
-              ${selectedIds.has(node.id) ? "bg-primary/15" : "hover:bg-muted/30"}
+              ${isSelected ? "bg-primary/15" : "hover:bg-muted/30"}
             `}
-            onClick={() => onSelect(node.id)}
+            onClick={() => handleColumnSelect(node, columnIndex)}
             onDoubleClick={() => {
               if (renamingId !== node.id) onOpen(node);
             }}
@@ -403,10 +522,53 @@ function ColumnView({
               </>
             )}
           </button>
-        ))}
-      </div>
-      <div className="flex-1 flex items-center justify-center text-xs text-muted-foreground">
-        Select an item to preview
+        );
+      })}
+      {columnItems.length === 0 && (
+        <div className="p-3 text-xs text-muted-foreground text-center">
+          Empty
+        </div>
+      )}
+    </div>
+  );
+
+  // The selected leaf node for preview
+  const selectedLeaf = useMemo(() => {
+    if (selectedPath.length === 0) return null;
+    const lastId = selectedPath[selectedPath.length - 1];
+    // Check all sources for the node
+    const allItems = [items, ...columns.map((c) => c.items)];
+    for (const list of allItems) {
+      const found = list.find((n) => n.id === lastId);
+      if (found && found.type !== "folder") return found;
+    }
+    return null;
+  }, [selectedPath, items, columns]);
+
+  return (
+    <div ref={scrollRef} className="flex-1 flex overflow-x-auto">
+      {/* First column: current directory items */}
+      {renderColumn(items, 0)}
+
+      {/* Subsequent columns from folder drill-downs */}
+      {columns.map((col, i) => renderColumn(col.items, i + 1))}
+
+      {/* Preview pane for the selected non-folder item */}
+      <div className="flex-1 min-w-[200px] flex items-center justify-center text-xs text-muted-foreground p-4">
+        {selectedLeaf ? (
+          <div className="text-center space-y-2">
+            <LargeNodeIcon node={selectedLeaf} />
+            <div className="font-medium text-foreground">
+              {selectedLeaf.name}
+            </div>
+            <div className="capitalize">{selectedLeaf.type}</div>
+            {selectedLeaf.target_type && (
+              <div>Target: {selectedLeaf.target_type}</div>
+            )}
+          </div>
+        ) : (
+          "Select an item to preview"
+        )}
       </div>
     </div>
   );
