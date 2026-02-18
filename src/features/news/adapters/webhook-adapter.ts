@@ -5,11 +5,11 @@
  * Useful for integrating with custom sources or third-party services.
  */
 
-import { type NewsArticle } from '@/lib/schemas';
-import { logger } from '@/lib/logger';
+import { type NewsArticle } from "@/lib/schemas";
+import { logger } from "@/lib/logger";
 
 /** Supported HMAC algorithms */
-export type HmacAlgorithm = 'SHA-256' | 'SHA-512';
+export type HmacAlgorithm = "SHA-256" | "SHA-512";
 
 /** Signature header format variations */
 export interface SignatureHeader {
@@ -71,15 +71,15 @@ export interface IWebhookAdapter {
   handleIncoming(
     payload: WebhookPayload,
     sourceId: string,
-    tenantId?: string
-  ): Promise<Omit<NewsArticle, 'id' | 'created_at' | 'updated_at'>>;
+    tenantId: string,
+  ): Promise<Omit<NewsArticle, "id" | "created_at" | "updated_at">>;
 
   /**
    * Validate webhook signature (HMAC) - async for Web Crypto API
    */
   validateSignature(
     payload: string | ArrayBuffer,
-    signatureHeader: string
+    signatureHeader: string,
   ): Promise<SignatureValidationResult>;
 
   /**
@@ -116,8 +116,8 @@ function timingSafeEqual(a: string, b: string): boolean {
  */
 function bufferToHex(buffer: ArrayBuffer): string {
   return Array.from(new Uint8Array(buffer))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 /**
@@ -128,7 +128,7 @@ export class WebhookAdapter implements IWebhookAdapter {
 
   constructor(config: WebhookConfig = {}) {
     this.config = {
-      algorithm: 'SHA-256',
+      algorithm: "SHA-256",
       requireSignature: false,
       ...config,
     };
@@ -140,11 +140,11 @@ export class WebhookAdapter implements IWebhookAdapter {
   async handleIncoming(
     payload: WebhookPayload,
     sourceId: string,
-    tenantId = '00000000-0000-0000-0000-000000000001'
-  ): Promise<Omit<NewsArticle, 'id' | 'created_at' | 'updated_at'>> {
+    tenantId: string,
+  ): Promise<Omit<NewsArticle, "id" | "created_at" | "updated_at">> {
     // Validate required fields
     if (!payload.external_id || !payload.title || !payload.url) {
-      throw new Error('Missing required fields: external_id, title, url');
+      throw new Error("Missing required fields: external_id, title, url");
     }
 
     return {
@@ -178,7 +178,7 @@ export class WebhookAdapter implements IWebhookAdapter {
    * - "abc123" (plain signature)
    */
   parseSignatureHeader(header: string): SignatureHeader | null {
-    if (!header || typeof header !== 'string') {
+    if (!header || typeof header !== "string") {
       return null;
     }
 
@@ -197,7 +197,7 @@ export class WebhookAdapter implements IWebhookAdapter {
     const stripeMatch = trimmed.match(/v1=([a-fA-F0-9]+)/);
     if (stripeMatch) {
       return {
-        algorithm: this.config.algorithm || 'SHA-256',
+        algorithm: this.config.algorithm || "SHA-256",
         signature: stripeMatch[1].toLowerCase(),
       };
     }
@@ -205,7 +205,7 @@ export class WebhookAdapter implements IWebhookAdapter {
     // Plain hex signature
     if (/^[a-fA-F0-9]+$/.test(trimmed)) {
       return {
-        algorithm: this.config.algorithm || 'SHA-256',
+        algorithm: this.config.algorithm || "SHA-256",
         signature: trimmed.toLowerCase(),
       };
     }
@@ -215,10 +215,10 @@ export class WebhookAdapter implements IWebhookAdapter {
       try {
         const decoded = atob(trimmed);
         const hex = Array.from(decoded)
-          .map((c) => c.charCodeAt(0).toString(16).padStart(2, '0'))
-          .join('');
+          .map((c) => c.charCodeAt(0).toString(16).padStart(2, "0"))
+          .join("");
         return {
-          algorithm: this.config.algorithm || 'SHA-256',
+          algorithm: this.config.algorithm || "SHA-256",
           signature: hex.toLowerCase(),
         };
       } catch {
@@ -235,13 +235,15 @@ export class WebhookAdapter implements IWebhookAdapter {
    */
   async validateSignature(
     payload: string | ArrayBuffer,
-    signatureHeader: string
+    signatureHeader: string,
   ): Promise<SignatureValidationResult> {
     // If no secret is configured
     if (!this.config.secret) {
       if (this.config.requireSignature) {
-        logger.warn('[WebhookAdapter] Signature required but no secret configured');
-        return { valid: false, error: 'No webhook secret configured' };
+        logger.warn(
+          "[WebhookAdapter] Signature required but no secret configured",
+        );
+        return { valid: false, error: "No webhook secret configured" };
       }
       return { valid: true };
     }
@@ -249,8 +251,10 @@ export class WebhookAdapter implements IWebhookAdapter {
     // If no signature provided
     if (!signatureHeader) {
       if (this.config.requireSignature) {
-        logger.warn('[WebhookAdapter] Signature validation failed: missing signature header');
-        return { valid: false, error: 'Missing signature header' };
+        logger.warn(
+          "[WebhookAdapter] Signature validation failed: missing signature header",
+        );
+        return { valid: false, error: "Missing signature header" };
       }
       return { valid: true };
     }
@@ -258,48 +262,57 @@ export class WebhookAdapter implements IWebhookAdapter {
     // Parse the signature header
     const parsed = this.parseSignatureHeader(signatureHeader);
     if (!parsed) {
-      logger.warn('[WebhookAdapter] Signature validation failed: invalid signature format', {
-        header: signatureHeader.substring(0, 20) + '...',
-      });
-      return { valid: false, error: 'Invalid signature format' };
+      logger.warn(
+        "[WebhookAdapter] Signature validation failed: invalid signature format",
+        {
+          header: signatureHeader.substring(0, 20) + "...",
+        },
+      );
+      return { valid: false, error: "Invalid signature format" };
     }
 
     try {
       // Convert payload to ArrayBuffer if it's a string
       const encoder = new TextEncoder();
-      const data = typeof payload === 'string' ? encoder.encode(payload) : payload;
+      const data =
+        typeof payload === "string" ? encoder.encode(payload) : payload;
 
       // Import the secret key
       const keyData = encoder.encode(this.config.secret);
       const cryptoKey = await crypto.subtle.importKey(
-        'raw',
+        "raw",
         keyData,
-        { name: 'HMAC', hash: parsed.algorithm },
+        { name: "HMAC", hash: parsed.algorithm },
         false,
-        ['sign']
+        ["sign"],
       );
 
       // Generate the expected signature
-      const signatureBuffer = await crypto.subtle.sign('HMAC', cryptoKey, data);
+      const signatureBuffer = await crypto.subtle.sign("HMAC", cryptoKey, data);
       const expectedSignature = bufferToHex(signatureBuffer);
 
       // Timing-safe comparison
       const isValid = timingSafeEqual(expectedSignature, parsed.signature);
 
       if (!isValid) {
-        logger.warn('[WebhookAdapter] Signature validation failed: signature mismatch', {
-          algorithm: parsed.algorithm,
-        });
-        return { valid: false, error: 'Signature mismatch' };
+        logger.warn(
+          "[WebhookAdapter] Signature validation failed: signature mismatch",
+          {
+            algorithm: parsed.algorithm,
+          },
+        );
+        return { valid: false, error: "Signature mismatch" };
       }
 
-      logger.info('[WebhookAdapter] Signature validated successfully', {
+      logger.info("[WebhookAdapter] Signature validated successfully", {
         algorithm: parsed.algorithm,
       });
       return { valid: true };
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('[WebhookAdapter] Signature validation error', { error: message });
+      const message = error instanceof Error ? error.message : "Unknown error";
+      logger.error("[WebhookAdapter] Signature validation error", {
+        error: message,
+      });
       return { valid: false, error: `Validation error: ${message}` };
     }
   }
@@ -315,9 +328,12 @@ export class WebhookAdapter implements IWebhookAdapter {
 
     const isAllowed = this.config.allowedIPs.includes(ip);
     if (!isAllowed) {
-      logger.warn('[WebhookAdapter] Origin validation failed: IP not in whitelist', {
-        ip,
-      });
+      logger.warn(
+        "[WebhookAdapter] Origin validation failed: IP not in whitelist",
+        {
+          ip,
+        },
+      );
     }
     return isAllowed;
   }
@@ -340,11 +356,11 @@ export async function validateWebhookRequest(
     payload: string | ArrayBuffer;
     signatureHeader?: string;
     ip?: string;
-  }
+  },
 ): Promise<SignatureValidationResult> {
   // Validate origin first (fast check)
   if (options.ip && !adapter.validateOrigin(options.ip)) {
-    return { valid: false, error: 'IP address not allowed' };
+    return { valid: false, error: "IP address not allowed" };
   }
 
   // Validate signature
@@ -360,14 +376,14 @@ export async function validateWebhookRequest(
  * Checks: X-Hub-Signature-256, X-Hub-Signature, X-Signature, X-Webhook-Signature, Stripe-Signature
  */
 export function extractSignatureHeader(
-  headers: Record<string, string | undefined>
+  headers: Record<string, string | undefined>,
 ): string | undefined {
   const headerNames = [
-    'x-hub-signature-256',
-    'x-hub-signature',
-    'x-signature',
-    'x-webhook-signature',
-    'stripe-signature',
+    "x-hub-signature-256",
+    "x-hub-signature",
+    "x-signature",
+    "x-webhook-signature",
+    "stripe-signature",
   ];
 
   // Normalize header names to lowercase for comparison

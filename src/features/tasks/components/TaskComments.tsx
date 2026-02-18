@@ -11,14 +11,14 @@ import {
   Lock,
 } from "lucide-react";
 import { format } from "date-fns";
-import { useAuthenticatedSupabase } from "@/lib/supabase";
+import { useTenantSupabase } from "@/lib/supabase";
 import {
   getTaskComments,
   createTaskComment,
   updateTaskComment,
   deleteTaskComment,
 } from "@/lib/task-queries";
-import { TaskComment, DEFAULT_TENANT_ID } from "@/lib/schemas";
+import { TaskComment } from "@/lib/schemas";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +28,7 @@ interface TaskCommentsProps {
 
 export function TaskComments({ taskId }: TaskCommentsProps) {
   const { user } = useUser();
-  const { supabase } = useAuthenticatedSupabase();
+  const { supabase, tenantId } = useTenantSupabase();
   const [comments, setComments] = useState<TaskComment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [newComment, setNewComment] = useState("");
@@ -59,13 +59,13 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
 
   async function handleAddComment(e: React.FormEvent) {
     e.preventDefault();
-    if (!supabase || !newComment.trim()) return;
+    if (!supabase || !tenantId || !newComment.trim()) return;
 
     setIsSubmitting(true);
     try {
       const comment = await createTaskComment(
         {
-          tenant_id: DEFAULT_TENANT_ID,
+          tenant_id: tenantId,
           task_id: taskId,
           comment: newComment.trim(),
           author: user?.fullName || user?.id || "Unknown",

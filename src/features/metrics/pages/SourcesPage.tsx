@@ -9,7 +9,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSEO } from "@/lib/seo";
-import { useAuthenticatedSupabase } from "@/lib/supabase";
+import { useTenantSupabase } from "@/lib/supabase";
 import AdminLayout from "@/components/AdminLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,6 @@ import { DataSourceConfig } from "../components/DataSourceConfig";
 import { SourceModal, type SourceFormData } from "../components/SourceModal";
 import { SourceDetailPanel } from "../components/SourceDetailPanel";
 import type { MetricsSource } from "../schemas";
-import { DEFAULT_TENANT_ID } from "@/lib/schemas";
 import {
   getMetricsSources,
   createMetricsSource,
@@ -28,7 +27,11 @@ import {
 
 export default function SourcesPage() {
   useSEO({ title: "Data Sources - Metrics", noIndex: true });
-  const { supabase } = useAuthenticatedSupabase();
+  const {
+    supabase,
+    tenantId,
+    isLoading: isTenantLoading,
+  } = useTenantSupabase();
 
   const [sources, setSources] = useState<MetricsSource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -83,7 +86,7 @@ export default function SourcesPage() {
       if (modalMode === "create") {
         await createMetricsSource(
           {
-            tenant_id: DEFAULT_TENANT_ID,
+            tenant_id: tenantId!,
             name: data.name,
             slug: data.slug,
             source_type: data.source_type,
@@ -137,7 +140,7 @@ export default function SourcesPage() {
     [supabase, loadSources],
   );
 
-  if (isLoading) {
+  if (isLoading || isTenantLoading || !tenantId) {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center min-h-[400px]">
