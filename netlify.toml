@@ -37,6 +37,12 @@
   to = "/.netlify/functions/stripe-webhook"
   status = 200
 
+# Stripe billing portal (Issue #302)
+[[redirects]]
+  from = "/api/stripe-portal"
+  to = "/.netlify/functions/stripe-portal"
+  status = 200
+
 # SPA redirect - let React Router handle all routes
 [[redirects]]
   from = "/*"
