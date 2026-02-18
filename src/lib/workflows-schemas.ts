@@ -1,10 +1,14 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 // Workflow Step Schemas
-export const WorkflowStepTypeSchema = z.enum(['agent_command', 'wait', 'condition']);
+export const WorkflowStepTypeSchema = z.enum([
+  "agent_command",
+  "wait",
+  "condition",
+]);
 export type WorkflowStepType = z.infer<typeof WorkflowStepTypeSchema>;
 
-export const WorkflowStepOnFailureSchema = z.enum(['continue', 'stop', 'skip']);
+export const WorkflowStepOnFailureSchema = z.enum(["continue", "stop", "skip"]);
 export type WorkflowStepOnFailure = z.infer<typeof WorkflowStepOnFailureSchema>;
 
 export const WorkflowStepConfigSchema = z.record(z.unknown());
@@ -15,7 +19,7 @@ export const WorkflowStepSchema = z.object({
   config: WorkflowStepConfigSchema,
   timeout_ms: z.number().int().min(0).default(30000),
   retries: z.number().int().min(0).max(10).default(0),
-  on_failure: WorkflowStepOnFailureSchema.default('stop'),
+  on_failure: WorkflowStepOnFailureSchema.default("stop"),
 });
 export type WorkflowStep = z.infer<typeof WorkflowStepSchema>;
 
@@ -26,7 +30,9 @@ export const AgentCommandStepConfigSchema = z.object({
   command: z.string(),
   params: z.record(z.unknown()).optional(),
 });
-export type AgentCommandStepConfig = z.infer<typeof AgentCommandStepConfigSchema>;
+export type AgentCommandStepConfig = z.infer<
+  typeof AgentCommandStepConfigSchema
+>;
 
 // Wait Step Config
 export const WaitStepConfigSchema = z.object({
@@ -43,15 +49,22 @@ export const ConditionStepConfigSchema = z.object({
 export type ConditionStepConfig = z.infer<typeof ConditionStepConfigSchema>;
 
 // Workflow Trigger Schemas
-export const WorkflowTriggerTypeSchema = z.enum(['manual', 'scheduled', 'webhook', 'event']);
+export const WorkflowTriggerTypeSchema = z.enum([
+  "manual",
+  "scheduled",
+  "webhook",
+  "event",
+]);
 export type WorkflowTriggerType = z.infer<typeof WorkflowTriggerTypeSchema>;
 
 // Scheduled Trigger Config
 export const ScheduledTriggerConfigSchema = z.object({
   cron: z.string(),
-  timezone: z.string().optional().default('UTC'),
+  timezone: z.string().optional().default("UTC"),
 });
-export type ScheduledTriggerConfig = z.infer<typeof ScheduledTriggerConfigSchema>;
+export type ScheduledTriggerConfig = z.infer<
+  typeof ScheduledTriggerConfigSchema
+>;
 
 // Webhook Trigger Config
 export const WebhookTriggerConfigSchema = z.object({
@@ -93,13 +106,19 @@ export const WorkflowSchema = z.object({
 export type Workflow = z.infer<typeof WorkflowSchema>;
 
 // Workflow Run Schemas
-export const WorkflowRunStatusSchema = z.enum(['pending', 'running', 'completed', 'failed', 'cancelled']);
+export const WorkflowRunStatusSchema = z.enum([
+  "pending",
+  "running",
+  "completed",
+  "failed",
+  "cancelled",
+]);
 export type WorkflowRunStatus = z.infer<typeof WorkflowRunStatusSchema>;
 
 export const WorkflowRunStepResultSchema = z.object({
   step_id: z.string().uuid(),
   step_type: WorkflowStepTypeSchema,
-  status: z.enum(['success', 'failed', 'skipped']),
+  status: z.enum(["success", "failed", "skipped"]),
   started_at: z.string(),
   completed_at: z.string().nullable(),
   result: z.record(z.unknown()).nullable(),
@@ -123,7 +142,10 @@ export type WorkflowRun = z.infer<typeof WorkflowRunSchema>;
 
 // Create/Update Workflow Schemas (for form validation)
 export const CreateWorkflowSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(255, 'Name must be less than 255 characters'),
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .max(255, "Name must be less than 255 characters"),
   description: z.string().optional().nullable(),
   trigger_type: WorkflowTriggerTypeSchema,
   trigger_config: z.record(z.unknown()).optional().nullable(),
@@ -153,14 +175,16 @@ export const WorkflowRunQueryOptionsSchema = z.object({
   limit: z.number().int().min(1).max(100).default(50),
   offset: z.number().int().min(0).default(0),
 });
-export type WorkflowRunQueryOptions = z.infer<typeof WorkflowRunQueryOptionsSchema>;
+export type WorkflowRunQueryOptions = z.infer<
+  typeof WorkflowRunQueryOptionsSchema
+>;
 
 // Agent List Item (for step builder dropdowns)
 export const AgentListItemSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
-  type: z.enum(['autonomous', 'supervised', 'tool']),
-  status: z.enum(['active', 'inactive', 'suspended']),
+  type: z.enum(["autonomous", "supervised", "tool"]),
+  status: z.enum(["active", "inactive", "suspended"]),
   capabilities: z.array(z.string()),
 });
 export type AgentListItem = z.infer<typeof AgentListItemSchema>;
@@ -171,7 +195,9 @@ export function parseWorkflowSteps(steps: unknown[]): WorkflowStep[] {
     try {
       return WorkflowStepSchema.parse(step);
     } catch (error) {
-      throw new Error(`Invalid step at index ${index}: ${error}`);
+      throw new Error(`Invalid step at index ${index}: ${error}`, {
+        cause: error,
+      });
     }
   });
 }
@@ -179,16 +205,16 @@ export function parseWorkflowSteps(steps: unknown[]): WorkflowStep[] {
 // Helper function to validate trigger config based on trigger type
 export function validateTriggerConfig(
   triggerType: WorkflowTriggerType,
-  config: unknown
+  config: unknown,
 ): WorkflowTriggerConfig {
   switch (triggerType) {
-    case 'scheduled':
+    case "scheduled":
       return ScheduledTriggerConfigSchema.parse(config);
-    case 'webhook':
+    case "webhook":
       return WebhookTriggerConfigSchema.parse(config);
-    case 'event':
+    case "event":
       return EventTriggerConfigSchema.parse(config);
-    case 'manual':
+    case "manual":
       return {}; // Manual triggers don't need config
     default:
       throw new Error(`Unknown trigger type: ${triggerType}`);
@@ -196,13 +222,15 @@ export function validateTriggerConfig(
 }
 
 // Helper to create a default workflow step
-export function createDefaultStep(type: WorkflowStepType = 'agent_command'): WorkflowStep {
+export function createDefaultStep(
+  type: WorkflowStepType = "agent_command",
+): WorkflowStep {
   const id = crypto.randomUUID();
 
   const defaultConfigs: Record<WorkflowStepType, WorkflowStepConfigSchema> = {
-    agent_command: { command: '', params: {} },
+    agent_command: { command: "", params: {} },
     wait: { duration_ms: 5000 },
-    condition: { expression: '' },
+    condition: { expression: "" },
   };
 
   return {
@@ -211,14 +239,14 @@ export function createDefaultStep(type: WorkflowStepType = 'agent_command'): Wor
     config: defaultConfigs[type],
     timeout_ms: 30000,
     retries: 0,
-    on_failure: 'stop',
+    on_failure: "stop",
   };
 }
 
 // Helper to create a default workflow
 export function createDefaultWorkflow(
   name: string,
-  triggerType: WorkflowTriggerType = 'manual'
+  triggerType: WorkflowTriggerType = "manual",
 ): CreateWorkflowInput {
   return {
     name,
