@@ -18,38 +18,40 @@ export type {
   FeatureRoute,
   FeatureMigrations,
   FeatureRegistry,
-} from './types';
+} from "./types";
 
 // Export registry utilities
-export { featureRegistry, createFeatureRegistry } from './types';
+export { featureRegistry, createFeatureRegistry } from "./types";
 
 // ============================================
 // FEATURE MODULES
 // ============================================
 
 // Import all feature modules
-import { taskModule } from './tasks';
-import { crmModule } from './crm/module';
-import { npsModule } from './nps/module';
-import { newsModule } from './news/module';
-import { metricsModule } from './metrics/module';
-import { styleGuideModule } from './style-guide/module';
-import { generativeUIModule } from './generative-ui/module';
+import { taskModule } from "./tasks";
+import { calendarModule } from "./calendar/module";
+import { crmModule } from "./crm/module";
+import { npsModule } from "./nps/module";
+import { newsModule } from "./news/module";
+import { metricsModule } from "./metrics/module";
+import { styleGuideModule } from "./style-guide/module";
+import { generativeUIModule } from "./generative-ui/module";
 
 // Re-export modules for direct access
-export { taskModule } from './tasks';
-export { crmModule } from './crm/module';
-export { npsModule } from './nps/module';
-export { newsModule } from './news/module';
-export { metricsModule } from './metrics/module';
-export { styleGuideModule } from './style-guide/module';
-export { generativeUIModule } from './generative-ui/module';
+export { taskModule } from "./tasks";
+export { calendarModule } from "./calendar/module";
+export { crmModule } from "./crm/module";
+export { npsModule } from "./nps/module";
+export { newsModule } from "./news/module";
+export { metricsModule } from "./metrics/module";
+export { styleGuideModule } from "./style-guide/module";
+export { generativeUIModule } from "./generative-ui/module";
 
 // ============================================
 // FEATURE REGISTRY
 // ============================================
 
-import type { FeatureModule } from './types';
+import type { FeatureModule } from "./types";
 
 /**
  * All available feature modules
@@ -58,6 +60,7 @@ import type { FeatureModule } from './types';
  */
 export const allFeatureModules: FeatureModule[] = [
   taskModule,
+  calendarModule,
   crmModule,
   npsModule,
   metricsModule,
@@ -73,18 +76,19 @@ export const allFeatureModules: FeatureModule[] = [
 /**
  * Feature flag storage key
  */
-const FEATURE_FLAGS_KEY = 'mejohnc_feature_flags';
+const FEATURE_FLAGS_KEY = "mejohnc_feature_flags";
 
 /**
  * Default feature flag states
  */
 const DEFAULT_FLAGS: Record<string, boolean> = {
   tasks: true,
+  calendar: true,
   crm: true,
   nps: true,
   metrics: true,
-  'style-guide': true,
-  'generative-ui': true,
+  "style-guide": true,
+  "generative-ui": true,
   news: true,
 };
 
@@ -92,7 +96,7 @@ const DEFAULT_FLAGS: Record<string, boolean> = {
  * Get current feature flags from localStorage
  */
 export function getFeatureFlags(): Record<string, boolean> {
-  if (typeof window === 'undefined') return DEFAULT_FLAGS;
+  if (typeof window === "undefined") return DEFAULT_FLAGS;
 
   try {
     const stored = localStorage.getItem(FEATURE_FLAGS_KEY);
@@ -110,7 +114,7 @@ export function getFeatureFlags(): Record<string, boolean> {
  * Set a feature flag
  */
 export function setFeatureFlag(featureName: string, enabled: boolean): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
 
   const flags = getFeatureFlags();
   flags[featureName] = enabled;
@@ -141,7 +145,7 @@ export function getEnabledModules(): FeatureModule[] {
 // ROUTE HELPERS
 // ============================================
 
-import type { FeatureRoute } from './types';
+import type { FeatureRoute } from "./types";
 
 /**
  * Get all routes from enabled feature modules
@@ -190,7 +194,10 @@ export async function initializeModules(): Promise<void> {
     }
   }
 
-  console.log(`[Features] Initialized ${modules.length} modules:`, modules.map((m) => m.name).join(', '));
+  console.log(
+    `[Features] Initialized ${modules.length} modules:`,
+    modules.map((m) => m.name).join(", "),
+  );
 }
 
 /**

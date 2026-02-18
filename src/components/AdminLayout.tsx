@@ -1,6 +1,6 @@
-import { ReactNode, useState, useEffect, useCallback, useMemo } from 'react';
-import { Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { ReactNode, useState, useEffect, useCallback, useMemo } from "react";
+import { Link, useLocation, useNavigate, Navigate } from "react-router-dom";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   LayoutDashboard,
   AppWindow,
@@ -34,13 +34,14 @@ import {
   Plug,
   FileSearch,
   Monitor,
-} from 'lucide-react';
-import { useAuth } from '@/lib/auth';
-import { UserButton } from '@clerk/clerk-react';
-import { Button } from '@/components/ui/button';
-import { ThemeToggleMinimal } from './ThemeToggle';
-import AdminSearch from './admin/AdminSearch';
-import { BREAKPOINTS, STORAGE_KEYS } from '@/lib/constants';
+  Calendar,
+} from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import { UserButton } from "@clerk/clerk-react";
+import { Button } from "@/components/ui/button";
+import { ThemeToggleMinimal } from "./ThemeToggle";
+import AdminSearch from "./admin/AdminSearch";
+import { BREAKPOINTS, STORAGE_KEYS } from "@/lib/constants";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -60,78 +61,83 @@ interface SidebarSection {
 
 // Pinned item always visible at top
 const pinnedItem: SidebarItem = {
-  label: 'Dashboard', path: '/admin', icon: LayoutDashboard,
+  label: "Dashboard",
+  path: "/admin",
+  icon: LayoutDashboard,
 };
 
 // Grouped sections (collapsible)
 const sidebarSections: SidebarSection[] = [
   {
-    id: 'content',
-    label: 'Content',
+    id: "content",
+    label: "Content",
     items: [
-      { label: 'Blog', path: '/admin/blog', icon: FileText },
-      { label: 'News', path: '/admin/news', icon: Newspaper },
-      { label: 'Bookmarks', path: '/admin/bookmarks', icon: Bookmark },
+      { label: "Blog", path: "/admin/blog", icon: FileText },
+      { label: "News", path: "/admin/news", icon: Newspaper },
+      { label: "Bookmarks", path: "/admin/bookmarks", icon: Bookmark },
     ],
   },
   {
-    id: 'ai',
-    label: 'AI Tools',
+    id: "ai",
+    label: "AI Tools",
     items: [
-      { label: 'AI Manager', path: '/admin/ai-manager', icon: Bot },
-      { label: 'Generative UI', path: '/admin/generative', icon: Sparkles },
-      { label: 'Prompts', path: '/admin/prompts', icon: BookText },
-      { label: 'Skills', path: '/admin/skills', icon: Wrench },
-      { label: 'Runbooks', path: '/admin/runbooks', icon: BookOpen },
+      { label: "AI Manager", path: "/admin/ai-manager", icon: Bot },
+      { label: "Generative UI", path: "/admin/generative", icon: Sparkles },
+      { label: "Prompts", path: "/admin/prompts", icon: BookText },
+      { label: "Skills", path: "/admin/skills", icon: Wrench },
+      { label: "Runbooks", path: "/admin/runbooks", icon: BookOpen },
     ],
   },
   {
-    id: 'management',
-    label: 'Management',
+    id: "management",
+    label: "Management",
     items: [
-      { label: 'Tasks', path: '/admin/tasks', icon: CheckSquare },
-      { label: 'CRM', path: '/admin/crm', icon: Users },
-      { label: 'Projects', path: '/admin/projects', icon: FolderKanban },
-      { label: 'Apps', path: '/admin/apps', icon: AppWindow },
-      { label: 'Metrics', path: '/admin/metrics', icon: BarChart3 },
+      { label: "Tasks", path: "/admin/tasks", icon: CheckSquare },
+      { label: "Calendar", path: "/admin/calendar", icon: Calendar },
+      { label: "CRM", path: "/admin/crm", icon: Users },
+      { label: "Projects", path: "/admin/projects", icon: FolderKanban },
+      { label: "Apps", path: "/admin/apps", icon: AppWindow },
+      { label: "Metrics", path: "/admin/metrics", icon: BarChart3 },
     ],
   },
   {
-    id: 'platform',
-    label: 'Platform',
+    id: "platform",
+    label: "Platform",
     items: [
-      { label: 'Infrastructure', path: '/admin/infrastructure', icon: Server },
-      { label: 'APIs', path: '/admin/apis', icon: Cable },
-      { label: 'Configs', path: '/admin/configs', icon: FileCode2 },
-      { label: 'Style Guide', path: '/admin/style', icon: Palette },
+      { label: "Infrastructure", path: "/admin/infrastructure", icon: Server },
+      { label: "APIs", path: "/admin/apis", icon: Cable },
+      { label: "Configs", path: "/admin/configs", icon: FileCode2 },
+      { label: "Style Guide", path: "/admin/style", icon: Palette },
     ],
   },
   {
-    id: 'agents',
-    label: 'Agent Platform',
+    id: "agents",
+    label: "Agent Platform",
     items: [
-      { label: 'Agents', path: '/admin/agents', icon: Bot },
-      { label: 'Workflows', path: '/admin/workflows', icon: GitBranch },
-      { label: 'Scheduler', path: '/admin/scheduler', icon: Clock },
-      { label: 'Integrations', path: '/admin/integrations', icon: Plug },
-      { label: 'Audit Log', path: '/admin/audit', icon: FileSearch },
+      { label: "Agents", path: "/admin/agents", icon: Bot },
+      { label: "Workflows", path: "/admin/workflows", icon: GitBranch },
+      { label: "Scheduler", path: "/admin/scheduler", icon: Clock },
+      { label: "Integrations", path: "/admin/integrations", icon: Plug },
+      { label: "Audit Log", path: "/admin/audit", icon: FileSearch },
     ],
   },
 ];
 
 // Pinned items at bottom (above footer)
 const accountItems: SidebarItem[] = [
-  { label: 'Profile', path: '/admin/profile', icon: User },
-  { label: 'Settings', path: '/admin/settings', icon: Settings },
+  { label: "Profile", path: "/admin/profile", icon: User },
+  { label: "Settings", path: "/admin/settings", icon: Settings },
 ];
 
 function loadSectionState(): Record<string, boolean> {
   try {
     const stored = localStorage.getItem(STORAGE_KEYS.SIDEBAR_SECTIONS);
     if (stored) return JSON.parse(stored);
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   // Default: all sections expanded
-  return Object.fromEntries(sidebarSections.map(s => [s.id, true]));
+  return Object.fromEntries(sidebarSections.map((s) => [s.id, true]));
 }
 
 function saveSectionState(state: Record<string, boolean>) {
@@ -142,7 +148,7 @@ const SIDEBAR_WIDTH = 256;
 
 // Spring config for smooth, snappy animations
 const springConfig = {
-  type: 'spring' as const,
+  type: "spring" as const,
   stiffness: 400,
   damping: 40,
 };
@@ -198,13 +204,18 @@ const reducedMobileVariants = {
 };
 
 // Reusable nav link component
-function NavLink({ item, location, onClick }: {
+function NavLink({
+  item,
+  location,
+  onClick,
+}: {
   item: SidebarItem;
   location: ReturnType<typeof useLocation>;
   onClick: () => void;
 }) {
-  const isActive = location.pathname === item.path ||
-    (item.path !== '/admin' && location.pathname.startsWith(item.path));
+  const isActive =
+    location.pathname === item.path ||
+    (item.path !== "/admin" && location.pathname.startsWith(item.path));
   const Icon = item.icon;
 
   return (
@@ -214,9 +225,10 @@ function NavLink({ item, location, onClick }: {
       className={`
         flex items-center gap-3 px-4 py-2 rounded-lg
         transition-colors duration-150 whitespace-nowrap
-        ${isActive
-          ? 'bg-primary/10 text-primary'
-          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+        ${
+          isActive
+            ? "bg-primary/10 text-primary"
+            : "text-muted-foreground hover:text-foreground hover:bg-muted"
         }
       `}
     >
@@ -230,8 +242,8 @@ function NavLink({ item, location, onClick }: {
 interface SidebarContentProps {
   location: ReturnType<typeof useLocation>;
   handleNavClick: () => void;
-  user: ReturnType<typeof useAuth>['user'];
-  signOut: ReturnType<typeof useAuth>['signOut'];
+  user: ReturnType<typeof useAuth>["user"];
+  signOut: ReturnType<typeof useAuth>["signOut"];
   expandedSections: Record<string, boolean>;
   toggleSection: (id: string) => void;
 }
@@ -263,18 +275,19 @@ const SidebarContent = ({
               aria-expanded={isExpanded}
             >
               <span>{section.label}</span>
-              {isExpanded
-                ? <ChevronDown className="w-3.5 h-3.5" />
-                : <ChevronRight className="w-3.5 h-3.5" />
-              }
+              {isExpanded ? (
+                <ChevronDown className="w-3.5 h-3.5" />
+              ) : (
+                <ChevronRight className="w-3.5 h-3.5" />
+              )}
             </button>
             <AnimatePresence initial={false}>
               {isExpanded && (
                 <motion.div
                   initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
+                  animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.15, ease: 'easeInOut' }}
+                  transition={{ duration: 0.15, ease: "easeInOut" }}
                   className="overflow-hidden"
                 >
                   <div className="space-y-0.5 pb-1">
@@ -299,7 +312,12 @@ const SidebarContent = ({
 
       {/* Account items */}
       {accountItems.map((item) => (
-        <NavLink key={item.path} item={item} location={location} onClick={handleNavClick} />
+        <NavLink
+          key={item.path}
+          item={item}
+          location={location}
+          onClick={handleNavClick}
+        />
       ))}
     </nav>
 
@@ -310,8 +328,8 @@ const SidebarContent = ({
         <UserButton
           appearance={{
             elements: {
-              avatarBox: 'w-7 h-7',
-            }
+              avatarBox: "w-7 h-7",
+            },
           }}
         />
         <span className="text-xs text-muted-foreground truncate whitespace-nowrap">
@@ -346,12 +364,12 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
   // Initialize sidebar state from localStorage or responsive default
   const [sidebarOpen, setSidebarOpen] = useState(() => {
-    if (typeof window === 'undefined') return true;
+    if (typeof window === "undefined") return true;
 
     // Check localStorage for user preference
     const stored = localStorage.getItem(STORAGE_KEYS.SIDEBAR_COLLAPSED);
     if (stored !== null) {
-      return stored !== 'true'; // stored is 'true' when collapsed
+      return stored !== "true"; // stored is 'true' when collapsed
     }
 
     // Default: open on desktop, closed on mobile
@@ -359,15 +377,18 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   });
 
   // Track if we're on mobile for behavior differences
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' && window.innerWidth < BREAKPOINTS.md
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== "undefined" && window.innerWidth < BREAKPOINTS.md,
   );
 
   // Persist sidebar state to localStorage
   const toggleSidebar = useCallback(() => {
     setSidebarOpen((prev) => {
       const newState = !prev;
-      localStorage.setItem(STORAGE_KEYS.SIDEBAR_COLLAPSED, (!newState).toString());
+      localStorage.setItem(
+        STORAGE_KEYS.SIDEBAR_COLLAPSED,
+        (!newState).toString(),
+      );
       return newState;
     });
   }, []);
@@ -386,7 +407,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         setIsMobile(nowMobile);
 
         // Only auto-adjust if crossing the breakpoint AND no user preference stored
-        const hasStoredPreference = localStorage.getItem(STORAGE_KEYS.SIDEBAR_COLLAPSED) !== null;
+        const hasStoredPreference =
+          localStorage.getItem(STORAGE_KEYS.SIDEBAR_COLLAPSED) !== null;
 
         if (wasMobile !== nowMobile && !hasStoredPreference) {
           // Crossing breakpoint without stored preference: apply responsive default
@@ -401,15 +423,16 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       }, 100);
     };
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
       clearTimeout(resizeTimeout);
     };
   }, [isMobile, sidebarOpen]);
 
   // Section collapse state
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(loadSectionState);
+  const [expandedSections, setExpandedSections] =
+    useState<Record<string, boolean>>(loadSectionState);
 
   const toggleSection = useCallback((id: string) => {
     setExpandedSections((prev) => {
@@ -423,7 +446,10 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const activeSectionId = useMemo(() => {
     for (const section of sidebarSections) {
       for (const item of section.items) {
-        if (location.pathname === item.path || location.pathname.startsWith(item.path)) {
+        if (
+          location.pathname === item.path ||
+          location.pathname.startsWith(item.path)
+        ) {
           return section.id;
         }
       }
@@ -469,8 +495,12 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   };
 
   // Select appropriate variants based on device and motion preference
-  const desktopVariants = prefersReducedMotion ? reducedDesktopVariants : desktopSidebarVariants;
-  const mobileVariants = prefersReducedMotion ? reducedMobileVariants : mobileSidebarVariants;
+  const desktopVariants = prefersReducedMotion
+    ? reducedDesktopVariants
+    : desktopSidebarVariants;
+  const mobileVariants = prefersReducedMotion
+    ? reducedMobileVariants
+    : mobileSidebarVariants;
 
   return (
     <div className="min-h-screen bg-background">
@@ -496,7 +526,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
               onClick={toggleSidebar}
               aria-expanded={sidebarOpen}
               aria-controls="admin-sidebar"
-              aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+              aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
               className="flex items-center gap-2 font-mono text-lg text-foreground hover:text-primary transition-colors"
             >
               <span className="md:hidden">
@@ -507,13 +537,15 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                 )}
               </span>
               <span className="hidden md:inline">jc_</span>
-              <span className="hidden md:inline text-muted-foreground">admin</span>
+              <span className="hidden md:inline text-muted-foreground">
+                admin
+              </span>
             </button>
           </div>
           <div className="flex items-center gap-3">
             <AdminSearch />
             <button
-              onClick={() => navigate('/admin/desktop')}
+              onClick={() => navigate("/admin/desktop")}
               className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               aria-label="Switch to Desktop Mode"
               title="Desktop Mode"
@@ -570,7 +602,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         <motion.aside
           id="admin-sidebar"
           initial={false}
-          animate={sidebarOpen ? 'open' : 'closed'}
+          animate={sidebarOpen ? "open" : "closed"}
           variants={desktopVariants}
           className="hidden md:flex sticky top-16 h-[calc(100vh-4rem)] bg-card border-r border-border flex-col flex-shrink-0 overflow-hidden will-change-[width]"
           aria-label="Admin navigation"
@@ -589,13 +621,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         </motion.aside>
 
         {/* Main content */}
-        <main
-          id="admin-main-content"
-          className="flex-1 min-w-0 overflow-auto"
-        >
-          <div className="p-8">
-            {children}
-          </div>
+        <main id="admin-main-content" className="flex-1 min-w-0 overflow-auto">
+          <div className="p-8">{children}</div>
         </main>
       </div>
     </div>
