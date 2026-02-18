@@ -13,6 +13,7 @@ import { ThemeProvider } from "./lib/theme";
 import { KeyboardFocusProvider } from "./lib/keyboard-focus";
 import { useReducedMotion } from "./lib/reduced-motion";
 import { PWAProvider } from "./lib/pwa";
+import { TenantProvider, useTenant } from "./lib/tenant";
 import { trackPageView } from "./lib/analytics";
 import { SEOProvider } from "./lib/seo";
 import Layout from "./components/Layout";
@@ -128,6 +129,60 @@ function PageLoader() {
       <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
     </div>
   );
+}
+
+// Gate that blocks rendering until tenant is resolved
+function TenantGate({ children }: { children: React.ReactNode }) {
+  const { status, error } = useTenant();
+
+  if (status === "loading") {
+    return <PageLoader />;
+  }
+
+  if (status === "not_found") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center">
+          <h1 className="text-2xl font-bold text-foreground mb-2">
+            Workspace Not Found
+          </h1>
+          <p className="text-muted-foreground mb-6">
+            The workspace you're looking for doesn't exist or is no longer
+            active.
+          </p>
+          <a
+            href="https://mejohnc.org"
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity"
+          >
+            Go to Main Site
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === "error") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center">
+          <h1 className="text-2xl font-bold text-foreground mb-2">
+            Connection Error
+          </h1>
+          <p className="text-muted-foreground mb-6">
+            {error || "Unable to connect to the workspace. Please try again."}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
 }
 
 // Route-specific error fallback for admin section
@@ -510,17 +565,21 @@ function App() {
         <ThemeProvider>
           <KeyboardFocusProvider>
             <PWAProvider>
-              <AuthProvider>
-                <SEOProvider>
-                  <AppContent />
-                  <Toaster
-                    position="bottom-right"
-                    theme="dark"
-                    richColors
-                    closeButton
-                  />
-                </SEOProvider>
-              </AuthProvider>
+              <TenantProvider>
+                <TenantGate>
+                  <AuthProvider>
+                    <SEOProvider>
+                      <AppContent />
+                      <Toaster
+                        position="bottom-right"
+                        theme="dark"
+                        richColors
+                        closeButton
+                      />
+                    </SEOProvider>
+                  </AuthProvider>
+                </TenantGate>
+              </TenantProvider>
             </PWAProvider>
           </KeyboardFocusProvider>
         </ThemeProvider>
