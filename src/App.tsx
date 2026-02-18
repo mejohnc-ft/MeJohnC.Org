@@ -70,6 +70,11 @@ const SiteBuilderEditor = lazy(
   () => import("./pages/admin/site-builder/editor"),
 );
 
+// Public NPS survey page
+const PublicSurveyPage = lazy(
+  () => import("./features/nps/pages/PublicSurveyPage"),
+);
+
 // Desktop OS mode
 const DesktopShell = lazy(() => import("./components/desktop/DesktopShell"));
 
@@ -333,6 +338,16 @@ function AnimatedRoutes() {
           element={
             <Suspense fallback={<PageLoader />}>
               <TerritoriesProject />
+            </Suspense>
+          }
+        />
+
+        {/* Public NPS survey */}
+        <Route
+          path="/survey/:surveyId"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <PublicSurveyPage />
             </Suspense>
           }
         />

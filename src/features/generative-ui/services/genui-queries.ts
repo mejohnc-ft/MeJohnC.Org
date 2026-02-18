@@ -4,8 +4,8 @@
  * Database operations for panels, templates, and generations.
  */
 
-import { supabase } from '@/lib/supabase';
-import type { GeneratedUI, GenerativePanel } from '../schemas';
+import { supabase } from "@/lib/supabase";
+import type { GeneratedUI, GenerativePanel } from "../schemas";
 
 // ============================================
 // TYPES
@@ -63,7 +63,7 @@ export interface GenerationRecord {
   model: string;
   tokens_used: number;
   generation_time_ms: number;
-  status: 'pending' | 'generating' | 'completed' | 'failed';
+  status: "pending" | "generating" | "completed" | "failed";
   error_message?: string;
   created_at: string;
 }
@@ -77,13 +77,13 @@ export interface GenerationRecord {
  */
 export async function getPanels(publishedOnly = false) {
   let query = supabase
-    .from('genui_panels')
-    .select('*')
-    .is('deleted_at', null)
-    .order('created_at', { ascending: false });
+    .from("genui_panels")
+    .select("*")
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false });
 
   if (publishedOnly) {
-    query = query.eq('is_published', true);
+    query = query.eq("is_published", true);
   }
 
   const { data, error } = await query;
@@ -97,10 +97,10 @@ export async function getPanels(publishedOnly = false) {
  */
 export async function getPanelById(id: string) {
   const { data, error } = await supabase
-    .from('genui_panels')
-    .select('*')
-    .eq('id', id)
-    .is('deleted_at', null)
+    .from("genui_panels")
+    .select("*")
+    .eq("id", id)
+    .is("deleted_at", null)
     .single();
 
   if (error) throw error;
@@ -112,17 +112,17 @@ export async function getPanelById(id: string) {
  */
 export async function getPanelBySlug(slug: string) {
   const { data, error } = await supabase
-    .from('genui_panels')
-    .select('*')
-    .eq('slug', slug)
-    .eq('is_published', true)
-    .is('deleted_at', null)
+    .from("genui_panels")
+    .select("*")
+    .eq("slug", slug)
+    .eq("is_published", true)
+    .is("deleted_at", null)
     .single();
 
   if (error) throw error;
 
   // Increment view count
-  await supabase.rpc('genui_increment_view_count', { panel_slug: slug });
+  await supabase.rpc("genui_increment_view_count", { panel_slug: slug });
 
   return data as GenerativePanel;
 }
@@ -132,7 +132,7 @@ export async function getPanelBySlug(slug: string) {
  */
 export async function createPanel(input: CreatePanelInput) {
   const { data, error } = await supabase
-    .from('genui_panels')
+    .from("genui_panels")
     .insert({
       name: input.name,
       slug: input.slug,
@@ -155,13 +155,15 @@ export async function updatePanel(id: string, input: UpdatePanelInput) {
   const updateData: Record<string, unknown> = { ...input };
 
   if (input.is_published !== undefined) {
-    updateData.published_at = input.is_published ? new Date().toISOString() : null;
+    updateData.published_at = input.is_published
+      ? new Date().toISOString()
+      : null;
   }
 
   const { data, error } = await supabase
-    .from('genui_panels')
+    .from("genui_panels")
     .update(updateData)
-    .eq('id', id)
+    .eq("id", id)
     .select()
     .single();
 
@@ -174,9 +176,9 @@ export async function updatePanel(id: string, input: UpdatePanelInput) {
  */
 export async function deletePanel(id: string) {
   const { error } = await supabase
-    .from('genui_panels')
+    .from("genui_panels")
     .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id);
+    .eq("id", id);
 
   if (error) throw error;
 }
@@ -223,10 +225,10 @@ export async function duplicatePanel(id: string, newName?: string) {
  */
 export async function getCatalog() {
   const { data, error } = await supabase
-    .from('genui_catalog')
-    .select('*')
-    .eq('is_active', true)
-    .order('sort_order', { ascending: true });
+    .from("genui_catalog")
+    .select("*")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true });
 
   if (error) throw error;
   return data as CatalogComponent[];
@@ -237,11 +239,11 @@ export async function getCatalog() {
  */
 export async function getCatalogByCategory(category: string) {
   const { data, error } = await supabase
-    .from('genui_catalog')
-    .select('*')
-    .eq('category', category)
-    .eq('is_active', true)
-    .order('sort_order', { ascending: true });
+    .from("genui_catalog")
+    .select("*")
+    .eq("category", category)
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true });
 
   if (error) throw error;
   return data as CatalogComponent[];
@@ -256,12 +258,12 @@ export async function getCatalogByCategory(category: string) {
  */
 export async function getTemplates(featuredOnly = false) {
   let query = supabase
-    .from('genui_templates')
-    .select('*')
-    .order('use_count', { ascending: false });
+    .from("genui_templates")
+    .select("*")
+    .order("use_count", { ascending: false });
 
   if (featuredOnly) {
-    query = query.eq('is_featured', true);
+    query = query.eq("is_featured", true);
   }
 
   const { data, error } = await query;
@@ -275,15 +277,15 @@ export async function getTemplates(featuredOnly = false) {
  */
 export async function getTemplateById(id: string) {
   const { data, error } = await supabase
-    .from('genui_templates')
-    .select('*')
-    .eq('id', id)
+    .from("genui_templates")
+    .select("*")
+    .eq("id", id)
     .single();
 
   if (error) throw error;
 
   // Increment use count
-  await supabase.rpc('genui_increment_template_use', { template_id: id });
+  await supabase.rpc("genui_increment_template_use", { template_id: id });
 
   return data as PanelTemplate;
 }
@@ -293,10 +295,10 @@ export async function getTemplateById(id: string) {
  */
 export async function getTemplatesByCategory(category: string) {
   const { data, error } = await supabase
-    .from('genui_templates')
-    .select('*')
-    .eq('category', category)
-    .order('use_count', { ascending: false });
+    .from("genui_templates")
+    .select("*")
+    .eq("category", category)
+    .order("use_count", { ascending: false });
 
   if (error) throw error;
   return data as PanelTemplate[];
@@ -317,21 +319,21 @@ export async function recordGeneration(input: {
   model?: string;
   tokens_used?: number;
   generation_time_ms?: number;
-  status?: 'pending' | 'generating' | 'completed' | 'failed';
+  status?: "pending" | "generating" | "completed" | "failed";
   error_message?: string;
   created_by?: string;
 }) {
   const { data, error } = await supabase
-    .from('genui_generations')
+    .from("genui_generations")
     .insert({
       panel_id: input.panel_id,
       prompt: input.prompt,
       context: input.context || {},
       generated_ui: input.generated_ui,
-      model: input.model || 'mock',
+      model: input.model || "mock",
       tokens_used: input.tokens_used || 0,
       generation_time_ms: input.generation_time_ms || 0,
-      status: input.status || 'completed',
+      status: input.status || "completed",
       error_message: input.error_message,
       created_by: input.created_by,
     })
@@ -347,9 +349,9 @@ export async function recordGeneration(input: {
  */
 export async function getGenerations(limit = 50) {
   const { data, error } = await supabase
-    .from('genui_generations')
-    .select('*')
-    .order('created_at', { ascending: false })
+    .from("genui_generations")
+    .select("*")
+    .order("created_at", { ascending: false })
     .limit(limit);
 
   if (error) throw error;
@@ -361,10 +363,10 @@ export async function getGenerations(limit = 50) {
  */
 export async function getPanelGenerations(panelId: string) {
   const { data, error } = await supabase
-    .from('genui_generations')
-    .select('*')
-    .eq('panel_id', panelId)
-    .order('created_at', { ascending: false });
+    .from("genui_generations")
+    .select("*")
+    .eq("panel_id", panelId)
+    .order("created_at", { ascending: false });
 
   if (error) throw error;
   return data as GenerationRecord[];
@@ -380,20 +382,19 @@ export async function getPanelGenerations(panelId: string) {
 export async function getStats() {
   const [panels, templates, generations] = await Promise.all([
     supabase
-      .from('genui_panels')
-      .select('id, is_published', { count: 'exact' })
-      .is('deleted_at', null),
+      .from("genui_panels")
+      .select("id, is_published", { count: "exact" })
+      .is("deleted_at", null),
+    supabase.from("genui_templates").select("id", { count: "exact" }),
     supabase
-      .from('genui_templates')
-      .select('id', { count: 'exact' }),
-    supabase
-      .from('genui_generations')
-      .select('id, tokens_used', { count: 'exact' })
-      .eq('status', 'completed'),
+      .from("genui_generations")
+      .select("id, tokens_used", { count: "exact" })
+      .eq("status", "completed"),
   ]);
 
-  const publishedCount = panels.data?.filter(p => p.is_published).length || 0;
-  const totalTokens = generations.data?.reduce((sum, g) => sum + (g.tokens_used || 0), 0) || 0;
+  const publishedCount = panels.data?.filter((p) => p.is_published).length || 0;
+  const totalTokens =
+    generations.data?.reduce((sum, g) => sum + (g.tokens_used || 0), 0) || 0;
 
   return {
     total_panels: panels.count || 0,
@@ -403,6 +404,100 @@ export async function getStats() {
     total_generations: generations.count || 0,
     total_tokens_used: totalTokens,
   };
+}
+
+// ============================================
+// DATA SOURCES
+// ============================================
+
+export interface DataSource {
+  id: string;
+  tenant_id: string;
+  name: string;
+  source_type: "metrics" | "supabase" | "api" | "static";
+  endpoint: string | null;
+  table_name: string | null;
+  api_key: string | null;
+  refresh_interval_minutes: number;
+  is_active: boolean;
+  last_fetched_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateDataSourceInput {
+  name: string;
+  source_type: DataSource["source_type"];
+  endpoint?: string;
+  table_name?: string;
+  api_key?: string;
+  refresh_interval_minutes?: number;
+  is_active?: boolean;
+}
+
+/**
+ * Get all data sources
+ */
+export async function getDataSources() {
+  const { data, error } = await supabase
+    .from("genui_data_sources")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data as DataSource[];
+}
+
+/**
+ * Create a data source
+ */
+export async function createDataSource(input: CreateDataSourceInput) {
+  const { data, error } = await supabase
+    .from("genui_data_sources")
+    .insert({
+      name: input.name,
+      source_type: input.source_type,
+      endpoint: input.endpoint || null,
+      table_name: input.table_name || null,
+      api_key: input.api_key || null,
+      refresh_interval_minutes: input.refresh_interval_minutes || 60,
+      is_active: input.is_active ?? true,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as DataSource;
+}
+
+/**
+ * Update a data source
+ */
+export async function updateDataSource(
+  id: string,
+  input: Partial<CreateDataSourceInput>,
+) {
+  const { data, error } = await supabase
+    .from("genui_data_sources")
+    .update(input)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as DataSource;
+}
+
+/**
+ * Delete a data source
+ */
+export async function deleteDataSource(id: string) {
+  const { error } = await supabase
+    .from("genui_data_sources")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw error;
 }
 
 // ============================================
@@ -431,6 +526,11 @@ export const genuiQueries = {
   recordGeneration,
   getGenerations,
   getPanelGenerations,
+  // Data Sources
+  getDataSources,
+  createDataSource,
+  updateDataSource,
+  deleteDataSource,
   // Stats
   getStats,
 };

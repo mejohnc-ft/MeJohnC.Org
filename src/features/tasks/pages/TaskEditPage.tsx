@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import AdminLayout from "@/components/AdminLayout";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
-import { TaskForm } from "../components";
+import { TaskForm, TaskComments, TaskReminders } from "../components";
 
 const TaskEditPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -115,19 +115,44 @@ const TaskEditPage = () => {
             <div className="text-muted-foreground">Loading...</div>
           </div>
         ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-card border border-border rounded-lg p-6"
-          >
-            <TaskForm
-              task={task}
-              categories={categories}
-              onSubmit={handleSubmit}
-              onCancel={handleCancel}
-            />
-          </motion.div>
+          <>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-card border border-border rounded-lg p-6"
+            >
+              <TaskForm
+                task={task}
+                categories={categories}
+                onSubmit={handleSubmit}
+                onCancel={handleCancel}
+              />
+            </motion.div>
+
+            {/* Comments & Reminders for existing tasks */}
+            {!isNew && id && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-card border border-border rounded-lg p-6"
+                >
+                  <TaskComments taskId={id} />
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="bg-card border border-border rounded-lg p-6"
+                >
+                  <TaskReminders taskId={id} />
+                </motion.div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </AdminLayout>

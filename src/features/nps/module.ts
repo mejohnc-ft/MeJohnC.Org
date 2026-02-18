@@ -11,7 +11,7 @@
  * @see https://github.com/mejohnc-ft/MeJohnC.Org/issues/111
  */
 
-import type { FeatureModule } from '@/features/types';
+import type { FeatureModule } from "@/features/types";
 
 /**
  * NPS feature module definition
@@ -24,61 +24,69 @@ import type { FeatureModule } from '@/features/types';
  * - CRM integration for score syncing
  */
 export const npsModule: FeatureModule = {
-  name: 'nps',
-  version: '1.0.0',
-  prefix: 'nps',
+  name: "nps",
+  version: "1.0.0",
+  prefix: "nps",
 
   frontendRoutes: [
     {
-      path: '/admin/nps',
-      component: () => import('./pages/AnalysisPage'),
-      title: 'NPS Overview',
-      icon: 'trending-up',
+      path: "/admin/nps",
+      component: () => import("./pages/AnalysisPage"),
+      title: "NPS Overview",
+      icon: "trending-up",
       showInNav: true,
-      permissions: ['nps:read'],
+      permissions: ["nps:read"],
     },
     {
-      path: '/admin/nps/surveys',
-      component: () => import('./pages/SurveysPage'),
-      title: 'Surveys',
-      icon: 'list',
+      path: "/admin/nps/surveys",
+      component: () => import("./pages/SurveysPage"),
+      title: "Surveys",
+      icon: "list",
       showInNav: true,
-      permissions: ['nps:read'],
+      permissions: ["nps:read"],
     },
     {
-      path: '/admin/nps/surveys/new',
-      component: () => import('./pages/SurveysPage'),
-      title: 'New Survey',
-      permissions: ['nps:write'],
+      path: "/admin/nps/surveys/new",
+      component: () => import("./pages/SurveysPage"),
+      title: "New Survey",
+      permissions: ["nps:write"],
     },
     {
-      path: '/admin/nps/surveys/:id',
-      component: () => import('./pages/SurveysPage'),
-      title: 'Survey Details',
-      permissions: ['nps:read'],
+      path: "/admin/nps/surveys/:id",
+      component: () => import("./pages/SurveysPage"),
+      title: "Survey Details",
+      permissions: ["nps:read"],
     },
     {
-      path: '/admin/nps/responses',
-      component: () => import('./pages/ResponsesPage'),
-      title: 'Responses',
-      icon: 'message-square',
+      path: "/admin/nps/responses",
+      component: () => import("./pages/ResponsesPage"),
+      title: "Responses",
+      icon: "message-square",
       showInNav: true,
-      permissions: ['nps:read'],
+      permissions: ["nps:read"],
     },
     {
-      path: '/admin/nps/analysis',
-      component: () => import('./pages/AnalysisPage'),
-      title: 'Analysis',
-      icon: 'bar-chart',
+      path: "/admin/nps/campaigns",
+      component: () => import("./pages/CampaignsPage"),
+      title: "Campaigns",
+      icon: "send",
       showInNav: true,
-      permissions: ['nps:read'],
+      permissions: ["nps:write"],
+    },
+    {
+      path: "/admin/nps/analysis",
+      component: () => import("./pages/AnalysisPage"),
+      title: "Analysis",
+      icon: "bar-chart",
+      showInNav: true,
+      permissions: ["nps:read"],
     },
   ],
 
   migrations: {
-    prefix: 'nps',
-    tables: ['nps_surveys', 'nps_responses', 'nps_campaigns', 'nps_analysis'],
-    directory: './migrations',
+    prefix: "nps",
+    tables: ["nps_surveys", "nps_responses", "nps_campaigns", "nps_analysis"],
+    directory: "./migrations",
   },
 
   services: {
@@ -86,13 +94,17 @@ export const npsModule: FeatureModule = {
   },
 
   async initialize() {
-    console.log('[NpsModule] Initializing NPS feature');
-    console.log('[NpsModule] AI tools: sentiment analysis, detractor prediction, follow-up suggestions');
-    console.log('[NpsModule] Adapters: email (SendGrid/Resend), SMS (Twilio), CRM sync');
+    console.log("[NpsModule] Initializing NPS feature");
+    console.log(
+      "[NpsModule] AI tools: sentiment analysis, detractor prediction, follow-up suggestions",
+    );
+    console.log(
+      "[NpsModule] Adapters: email (SendGrid/Resend), SMS (Twilio), CRM sync",
+    );
   },
 
   async shutdown() {
-    console.log('[NpsModule] Shutting down NPS feature');
+    console.log("[NpsModule] Shutting down NPS feature");
   },
 };
 
@@ -107,34 +119,34 @@ export const npsModule: FeatureModule = {
  */
 export const npsAgentTools = [
   {
-    name: 'nps_get_score',
-    description: 'Get the current NPS score for a survey or overall',
-    permission: 'nps:read',
+    name: "nps_get_score",
+    description: "Get the current NPS score for a survey or overall",
+    permission: "nps:read",
   },
   {
-    name: 'nps_list_detractors',
-    description: 'List recent detractors who need follow-up',
-    permission: 'nps:read',
+    name: "nps_list_detractors",
+    description: "List recent detractors who need follow-up",
+    permission: "nps:read",
   },
   {
-    name: 'nps_analyze_feedback',
-    description: 'Analyze sentiment and themes in NPS feedback using AI',
-    permission: 'nps:read',
+    name: "nps_analyze_feedback",
+    description: "Analyze sentiment and themes in NPS feedback using AI",
+    permission: "nps:read",
   },
   {
-    name: 'nps_send_survey',
-    description: 'Send an NPS survey to contacts via email or SMS',
-    permission: 'nps:write',
+    name: "nps_send_survey",
+    description: "Send an NPS survey to contacts via email or SMS",
+    permission: "nps:write",
   },
   {
-    name: 'nps_suggest_followup',
-    description: 'Get AI-generated follow-up suggestions for a response',
-    permission: 'nps:read',
+    name: "nps_suggest_followup",
+    description: "Get AI-generated follow-up suggestions for a response",
+    permission: "nps:read",
   },
   {
-    name: 'nps_predict_detractor',
-    description: 'Predict likelihood of a contact becoming a detractor',
-    permission: 'nps:read',
+    name: "nps_predict_detractor",
+    description: "Predict likelihood of a contact becoming a detractor",
+    permission: "nps:read",
   },
 ];
 
@@ -148,32 +160,32 @@ export const npsAgentTools = [
  */
 export const npsEvents = [
   {
-    name: 'nps.response.received',
-    description: 'Fired when a new NPS response is submitted',
+    name: "nps.response.received",
+    description: "Fired when a new NPS response is submitted",
     payload: {
-      surveyId: 'string',
-      responseId: 'string',
-      score: 'number',
-      category: 'promoter | passive | detractor',
+      surveyId: "string",
+      responseId: "string",
+      score: "number",
+      category: "promoter | passive | detractor",
     },
   },
   {
-    name: 'nps.score.changed',
-    description: 'Fired when a survey\'s NPS score is recalculated',
+    name: "nps.score.changed",
+    description: "Fired when a survey's NPS score is recalculated",
     payload: {
-      surveyId: 'string',
-      oldScore: 'number | null',
-      newScore: 'number',
+      surveyId: "string",
+      oldScore: "number | null",
+      newScore: "number",
     },
   },
   {
-    name: 'nps.detractor.flagged',
-    description: 'Fired when a detractor response requires attention',
+    name: "nps.detractor.flagged",
+    description: "Fired when a detractor response requires attention",
     payload: {
-      responseId: 'string',
-      contactId: 'string | null',
-      score: 'number',
-      feedback: 'string | null',
+      responseId: "string",
+      contactId: "string | null",
+      score: "number",
+      feedback: "string | null",
     },
   },
 ];

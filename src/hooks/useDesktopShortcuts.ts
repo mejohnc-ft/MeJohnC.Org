@@ -47,7 +47,6 @@ export function useDesktopShortcuts({
           break;
         }
         case "k":
-        case " ":
           e.preventDefault();
           if (isSpotlightOpen) closeSpotlight();
           else openSpotlight();
