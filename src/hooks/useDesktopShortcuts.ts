@@ -1,5 +1,5 @@
-import { useEffect, useCallback } from 'react';
-import type { WindowState } from './useWindowManager';
+import { useEffect, useCallback } from "react";
+import type { WindowState } from "./useWindowManager";
 
 interface UseDesktopShortcutsOptions {
   closeWindow: (id: string) => void;
@@ -25,38 +25,59 @@ export function useDesktopShortcuts({
   const handleModKey = useCallback(
     (e: KeyboardEvent) => {
       switch (e.key) {
-        case 'w':
+        case "w":
           e.preventDefault();
           if (focusedWindowId) closeWindow(focusedWindowId);
           break;
-        case 'm':
+        case "m":
           e.preventDefault();
           if (focusedWindowId) minimizeWindow(focusedWindowId);
           break;
-        case '`': {
+        case "`": {
           e.preventDefault();
           const nonMinimized = windows
-            .filter(w => !w.minimized)
+            .filter((w) => !w.minimized)
             .sort((a, b) => b.zIndex - a.zIndex);
           if (nonMinimized.length < 2) break;
-          const currentIdx = nonMinimized.findIndex(w => w.id === focusedWindowId);
+          const currentIdx = nonMinimized.findIndex(
+            (w) => w.id === focusedWindowId,
+          );
           const nextIdx = (currentIdx + 1) % nonMinimized.length;
           focusWindow(nonMinimized[nextIdx].id);
           break;
         }
-        case 'k':
-        case ' ':
+        case "k":
+        case " ":
           e.preventDefault();
           if (isSpotlightOpen) closeSpotlight();
           else openSpotlight();
           break;
       }
     },
-    [closeWindow, minimizeWindow, focusWindow, focusedWindowId, windows, openSpotlight, closeSpotlight, isSpotlightOpen]
+    [
+      closeWindow,
+      minimizeWindow,
+      focusWindow,
+      focusedWindowId,
+      windows,
+      openSpotlight,
+      closeSpotlight,
+      isSpotlightOpen,
+    ],
   );
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Skip global shortcuts when focus is inside input fields
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+
       const mod = e.metaKey || e.ctrlKey;
 
       if (mod) {
@@ -64,13 +85,13 @@ export function useDesktopShortcuts({
         return;
       }
 
-      if (e.key === 'Escape' && isSpotlightOpen) {
+      if (e.key === "Escape" && isSpotlightOpen) {
         e.preventDefault();
         closeSpotlight();
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [handleModKey, isSpotlightOpen, closeSpotlight]);
 }
