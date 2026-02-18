@@ -115,15 +115,18 @@ export default function DesktopIcon({
           Math.min(viewH - DOCK_HEIGHT - ICON_SIZE, newY),
         );
 
+        // GPU-accelerated drag via transform
         if (iconRef.current) {
-          iconRef.current.style.left = `${newX}px`;
-          iconRef.current.style.top = `${newY}px`;
+          const offsetX = newX - dragStartRef.current.startX;
+          const offsetY = newY - dragStartRef.current.startY;
+          iconRef.current.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
         }
       };
 
       const handleUp = (upEvent: PointerEvent) => {
         el.removeEventListener("pointermove", handleMove);
         el.removeEventListener("pointerup", handleUp);
+        el.removeEventListener("pointercancel", handleUp);
 
         if (isDraggingRef.current && dragStartRef.current) {
           const dx = upEvent.clientX - dragStartRef.current.px;
@@ -139,7 +142,16 @@ export default function DesktopIcon({
             Math.min(viewH - DOCK_HEIGHT - ICON_SIZE, newY),
           );
 
+          // Commit final position to left/top and clear transform
+          if (iconRef.current) {
+            iconRef.current.style.transform = "";
+            iconRef.current.style.left = `${newX}px`;
+            iconRef.current.style.top = `${newY}px`;
+          }
+
           onPositionChange?.(node.id, { x: newX, y: newY });
+        } else if (iconRef.current) {
+          iconRef.current.style.transform = "";
         }
 
         dragStartRef.current = null;
@@ -148,6 +160,7 @@ export default function DesktopIcon({
 
       el.addEventListener("pointermove", handleMove);
       el.addEventListener("pointerup", handleUp);
+      el.addEventListener("pointercancel", handleUp);
     },
     [node.id, position.x, position.y, onSelect, onPositionChange],
   );

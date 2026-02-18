@@ -5,28 +5,29 @@
  * Allows creating, editing, and configuring data sources.
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useSEO } from '@/lib/seo';
-import { useAuthenticatedSupabase } from '@/lib/supabase';
-import AdminLayout from '@/components/AdminLayout';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Plus, Database } from 'lucide-react';
-import { DataSourceConfig } from '../components/DataSourceConfig';
-import { SourceModal, type SourceFormData } from '../components/SourceModal';
-import { SourceDetailPanel } from '../components/SourceDetailPanel';
-import type { MetricsSource } from '../schemas';
+import { useState, useEffect, useCallback } from "react";
+import { useSEO } from "@/lib/seo";
+import { useAuthenticatedSupabase } from "@/lib/supabase";
+import AdminLayout from "@/components/AdminLayout";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Plus, Database } from "lucide-react";
+import { DataSourceConfig } from "../components/DataSourceConfig";
+import { SourceModal, type SourceFormData } from "../components/SourceModal";
+import { SourceDetailPanel } from "../components/SourceDetailPanel";
+import type { MetricsSource } from "../schemas";
+import { DEFAULT_TENANT_ID } from "@/lib/schemas";
 import {
   getMetricsSources,
   createMetricsSource,
   updateMetricsSource,
   deleteMetricsSource,
-} from '@/lib/metrics-queries';
+} from "@/lib/metrics-queries";
 
 export default function SourcesPage() {
-  useSEO({ title: 'Data Sources - Metrics', noIndex: true });
+  useSEO({ title: "Data Sources - Metrics", noIndex: true });
   const { supabase } = useAuthenticatedSupabase();
 
   const [sources, setSources] = useState<MetricsSource[]>([]);
@@ -35,8 +36,10 @@ export default function SourcesPage() {
   // State for modal and detail panel
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [selectedSource, setSelectedSource] = useState<MetricsSource | null>(null);
-  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+  const [selectedSource, setSelectedSource] = useState<MetricsSource | null>(
+    null,
+  );
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
 
   const loadSources = useCallback(async () => {
     if (!supabase) return;
@@ -45,7 +48,7 @@ export default function SourcesPage() {
       const data = await getMetricsSources({}, supabase);
       setSources(data);
     } catch (error) {
-      console.error('Failed to load sources:', error);
+      console.error("Failed to load sources:", error);
     } finally {
       setIsLoading(false);
     }
@@ -57,7 +60,7 @@ export default function SourcesPage() {
 
   const handleAddSource = useCallback(() => {
     setSelectedSource(null);
-    setModalMode('create');
+    setModalMode("create");
     setIsModalOpen(true);
   }, []);
 
@@ -68,7 +71,7 @@ export default function SourcesPage() {
 
   const handleEditSource = useCallback((source: MetricsSource) => {
     setSelectedSource(source);
-    setModalMode('edit');
+    setModalMode("edit");
     setIsDetailOpen(false);
     setIsModalOpen(true);
   }, []);
@@ -77,10 +80,10 @@ export default function SourcesPage() {
     async (data: SourceFormData) => {
       if (!supabase) return;
 
-      if (modalMode === 'create') {
+      if (modalMode === "create") {
         await createMetricsSource(
           {
-            tenant_id: '00000000-0000-0000-0000-000000000000',
+            tenant_id: DEFAULT_TENANT_ID,
             name: data.name,
             slug: data.slug,
             source_type: data.source_type,
@@ -88,12 +91,15 @@ export default function SourcesPage() {
             icon: null,
             color: data.color,
             endpoint_url: data.endpoint_url || null,
-            auth_type: data.auth_type === 'none' ? null : data.auth_type,
-            auth_config: Object.keys(data.auth_config).length > 0 ? data.auth_config : undefined,
+            auth_type: data.auth_type === "none" ? null : data.auth_type,
+            auth_config:
+              Object.keys(data.auth_config).length > 0
+                ? data.auth_config
+                : undefined,
             refresh_interval_minutes: data.refresh_interval_minutes,
             is_active: data.is_active,
           },
-          supabase
+          supabase,
         );
       } else if (selectedSource) {
         await updateMetricsSource(
@@ -105,18 +111,21 @@ export default function SourcesPage() {
             description: data.description || null,
             color: data.color,
             endpoint_url: data.endpoint_url || null,
-            auth_type: data.auth_type === 'none' ? null : data.auth_type,
-            auth_config: Object.keys(data.auth_config).length > 0 ? data.auth_config : undefined,
+            auth_type: data.auth_type === "none" ? null : data.auth_type,
+            auth_config:
+              Object.keys(data.auth_config).length > 0
+                ? data.auth_config
+                : undefined,
             refresh_interval_minutes: data.refresh_interval_minutes,
             is_active: data.is_active,
           },
-          supabase
+          supabase,
         );
       }
 
       await loadSources();
     },
-    [supabase, modalMode, selectedSource, loadSources]
+    [supabase, modalMode, selectedSource, loadSources],
   );
 
   const handleDeleteSource = useCallback(
@@ -125,7 +134,7 @@ export default function SourcesPage() {
       await deleteMetricsSource(source.id, supabase);
       await loadSources();
     },
-    [supabase, loadSources]
+    [supabase, loadSources],
   );
 
   if (isLoading) {
@@ -159,7 +168,9 @@ export default function SourcesPage() {
         {sources.length === 0 ? (
           <Card className="p-8 text-center">
             <Database className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">No Data Sources</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              No Data Sources
+            </h3>
             <p className="text-muted-foreground mb-4">
               Add your first data source to start collecting metrics.
             </p>

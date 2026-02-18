@@ -27,7 +27,7 @@ export default function MenuBar({ onToggleNotifications }: MenuBarProps) {
 
   // Clock
   useEffect(() => {
-    const interval = setInterval(() => setClock(formatTime()), 30_000);
+    const interval = setInterval(() => setClock(formatTime()), 1_000);
     return () => clearInterval(interval);
   }, []);
 

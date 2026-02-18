@@ -14,6 +14,7 @@ import type { DesktopWorkspace } from "@/lib/desktop-schemas";
 const SAVE_DEBOUNCE_MS = 2000;
 const DEFAULT_WALLPAPER =
   "linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 70%, #533483 100%)";
+const WINDOW_STATE_SCHEMA_VERSION = 1;
 
 /** Shape persisted for each window (no ephemeral id) */
 interface PersistedWindowState {
@@ -28,21 +29,49 @@ interface PersistedWindowState {
   preMaximize?: { x: number; y: number; width: number; height: number };
 }
 
-function serializeWindows(windows: WindowState[]): PersistedWindowState[] {
+interface PersistedWindowPayload {
+  schemaVersion: number;
+  windows: PersistedWindowState[];
+}
+
+function serializeWindows(windows: WindowState[]): PersistedWindowPayload {
   // Sort by zIndex so restore order preserves z-order
-  return [...windows]
-    .sort((a, b) => a.zIndex - b.zIndex)
-    .map((w) => ({
-      appId: w.appId,
-      title: w.title,
-      x: w.x,
-      y: w.y,
-      width: w.width,
-      height: w.height,
-      minimized: w.minimized,
-      maximized: w.maximized,
-      preMaximize: w.preMaximize,
-    }));
+  return {
+    schemaVersion: WINDOW_STATE_SCHEMA_VERSION,
+    windows: [...windows]
+      .sort((a, b) => a.zIndex - b.zIndex)
+      .map((w) => ({
+        appId: w.appId,
+        title: w.title,
+        x: w.x,
+        y: w.y,
+        width: w.width,
+        height: w.height,
+        minimized: w.minimized,
+        maximized: w.maximized,
+        preMaximize: w.preMaximize,
+      })),
+  };
+}
+
+/** Parse persisted window states, handling both legacy (raw array) and versioned formats */
+function parsePersistedWindows(raw: unknown): PersistedWindowState[] {
+  if (Array.isArray(raw)) {
+    // Legacy format: raw array (schemaVersion 0)
+    return raw as PersistedWindowState[];
+  }
+  if (
+    raw &&
+    typeof raw === "object" &&
+    "schemaVersion" in raw &&
+    "windows" in raw
+  ) {
+    // Versioned format
+    const payload = raw as PersistedWindowPayload;
+    // Future: add migration logic for newer schema versions here
+    return payload.windows;
+  }
+  return [];
 }
 
 let restoreCounter = 0;
@@ -123,13 +152,17 @@ export function useDesktopWorkspace({
           }
         }
 
-        // Restore window states
-        if (ws.window_states && ws.window_states.length > 0) {
-          const { windows, nextZIndex } = deserializeWindows(
-            ws.window_states as unknown as PersistedWindowState[],
-          );
-          if (windows.length > 0) {
-            restoreWindowState(windows, nextZIndex);
+        // Restore window states (handles both legacy array and versioned format)
+        if (
+          ws.window_states &&
+          (Array.isArray(ws.window_states) ? ws.window_states.length > 0 : true)
+        ) {
+          const parsed = parsePersistedWindows(ws.window_states);
+          if (parsed.length > 0) {
+            const { windows, nextZIndex } = deserializeWindows(parsed);
+            if (windows.length > 0) {
+              restoreWindowState(windows, nextZIndex);
+            }
           }
         }
 

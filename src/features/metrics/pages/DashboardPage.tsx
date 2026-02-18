@@ -6,28 +6,34 @@
  * Uses lazy loading for heavy chart components to reduce initial bundle size.
  */
 
-'use client';
+"use client";
 
-import { lazy, Suspense, useState, useCallback } from 'react';
-import { useSEO } from '@/lib/seo';
-import { useAuthenticatedSupabase } from '@/lib/supabase';
-import AdminLayout from '@/components/AdminLayout';
-import { Card } from '@/components/ui/card';
-import { SourceModal, type SourceFormData } from '../components/SourceModal';
-import { SourceDetailPanel } from '../components/SourceDetailPanel';
+import { lazy, Suspense, useState, useCallback } from "react";
+import { useSEO } from "@/lib/seo";
+import { useAuthenticatedSupabase } from "@/lib/supabase";
+import AdminLayout from "@/components/AdminLayout";
+import { Card } from "@/components/ui/card";
+import { SourceModal, type SourceFormData } from "../components/SourceModal";
+import { SourceDetailPanel } from "../components/SourceDetailPanel";
 import {
   createMetricsSource,
   updateMetricsSource,
   deleteMetricsSource,
-} from '@/lib/metrics-queries';
-import type { MetricsSource } from '@/lib/schemas';
+} from "@/lib/metrics-queries";
+import { DEFAULT_TENANT_ID, type MetricsSource } from "@/lib/schemas";
 
 // Lazy load heavy components with charts
 const MetricsDashboard = lazy(() =>
-  import('../components/MetricsDashboard').then((m) => ({ default: m.MetricsDashboard }))
+  import("../components/MetricsDashboard").then((m) => ({
+    default: m.MetricsDashboard,
+  })),
 );
-const GitHubMetricsCard = lazy(() => import('@/components/admin/metrics/GitHubMetricsCard'));
-const SupabaseStatsCard = lazy(() => import('@/components/admin/metrics/SupabaseStatsCard'));
+const GitHubMetricsCard = lazy(
+  () => import("@/components/admin/metrics/GitHubMetricsCard"),
+);
+const SupabaseStatsCard = lazy(
+  () => import("@/components/admin/metrics/SupabaseStatsCard"),
+);
 
 // Loading fallback for lazy components
 function ChartSkeleton() {
@@ -39,14 +45,16 @@ function ChartSkeleton() {
 }
 
 export default function DashboardPage() {
-  useSEO({ title: 'Metrics Dashboard', noIndex: true });
+  useSEO({ title: "Metrics Dashboard", noIndex: true });
   const { supabase } = useAuthenticatedSupabase();
 
   // State for modal and detail panel
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [selectedSource, setSelectedSource] = useState<MetricsSource | null>(null);
-  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+  const [selectedSource, setSelectedSource] = useState<MetricsSource | null>(
+    null,
+  );
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
 
   // Key to force re-render of MetricsDashboard after mutations
   const [refreshKey, setRefreshKey] = useState(0);
@@ -54,7 +62,7 @@ export default function DashboardPage() {
 
   const handleAddSource = useCallback(() => {
     setSelectedSource(null);
-    setModalMode('create');
+    setModalMode("create");
     setIsModalOpen(true);
   }, []);
 
@@ -65,7 +73,7 @@ export default function DashboardPage() {
 
   const handleEditSource = useCallback((source: MetricsSource) => {
     setSelectedSource(source);
-    setModalMode('edit');
+    setModalMode("edit");
     setIsDetailOpen(false);
     setIsModalOpen(true);
   }, []);
@@ -74,10 +82,10 @@ export default function DashboardPage() {
     async (data: SourceFormData) => {
       if (!supabase) return;
 
-      if (modalMode === 'create') {
+      if (modalMode === "create") {
         await createMetricsSource(
           {
-            tenant_id: '00000000-0000-0000-0000-000000000000',
+            tenant_id: DEFAULT_TENANT_ID,
             name: data.name,
             slug: data.slug,
             source_type: data.source_type,
@@ -85,12 +93,15 @@ export default function DashboardPage() {
             icon: null,
             color: data.color,
             endpoint_url: data.endpoint_url || null,
-            auth_type: data.auth_type === 'none' ? null : data.auth_type,
-            auth_config: Object.keys(data.auth_config).length > 0 ? data.auth_config : undefined,
+            auth_type: data.auth_type === "none" ? null : data.auth_type,
+            auth_config:
+              Object.keys(data.auth_config).length > 0
+                ? data.auth_config
+                : undefined,
             refresh_interval_minutes: data.refresh_interval_minutes,
             is_active: data.is_active,
           },
-          supabase
+          supabase,
         );
       } else if (selectedSource) {
         await updateMetricsSource(
@@ -102,18 +113,21 @@ export default function DashboardPage() {
             description: data.description || null,
             color: data.color,
             endpoint_url: data.endpoint_url || null,
-            auth_type: data.auth_type === 'none' ? null : data.auth_type,
-            auth_config: Object.keys(data.auth_config).length > 0 ? data.auth_config : undefined,
+            auth_type: data.auth_type === "none" ? null : data.auth_type,
+            auth_config:
+              Object.keys(data.auth_config).length > 0
+                ? data.auth_config
+                : undefined,
             refresh_interval_minutes: data.refresh_interval_minutes,
             is_active: data.is_active,
           },
-          supabase
+          supabase,
         );
       }
 
       refreshDashboard();
     },
-    [supabase, modalMode, selectedSource, refreshDashboard]
+    [supabase, modalMode, selectedSource, refreshDashboard],
   );
 
   const handleDeleteSource = useCallback(
@@ -122,7 +136,7 @@ export default function DashboardPage() {
       await deleteMetricsSource(source.id, supabase);
       refreshDashboard();
     },
-    [supabase, refreshDashboard]
+    [supabase, refreshDashboard],
   );
 
   return (
@@ -138,7 +152,9 @@ export default function DashboardPage() {
 
         {/* Live Integrations Section */}
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-foreground">Live Integrations</h2>
+          <h2 className="text-lg font-semibold text-foreground">
+            Live Integrations
+          </h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Supabase Stats */}
             <Suspense fallback={<ChartSkeleton />}>
@@ -147,7 +163,11 @@ export default function DashboardPage() {
 
             {/* GitHub Stats */}
             <Suspense fallback={<ChartSkeleton />}>
-              <GitHubMetricsCard owner="mejohnc-ft" repo="MeJohnC.Org" showChart={true} />
+              <GitHubMetricsCard
+                owner="mejohnc-ft"
+                repo="MeJohnC.Org"
+                showChart={true}
+              />
             </Suspense>
           </div>
         </div>
