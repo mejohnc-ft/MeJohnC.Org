@@ -239,7 +239,10 @@ Deno.serve(async (req) => {
         maxLength: 100,
         pattern: /^[a-z0-9][a-z0-9-]*[a-z0-9]$/,
       },
-      plan: { type: "string", enum: ["free", "starter", "pro", "enterprise"] },
+      plan: {
+        type: "string",
+        enum: ["free", "starter", "business", "professional", "enterprise"],
+      },
       admin_email: {
         type: "string",
         pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,

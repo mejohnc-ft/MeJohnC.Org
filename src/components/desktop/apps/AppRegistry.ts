@@ -1,4 +1,5 @@
 import { lazy, ComponentType } from "react";
+import { type PlanTier, planMeetsMinimum } from "@/lib/billing";
 
 export type AppCategory =
   | "content"
@@ -20,6 +21,7 @@ export interface DesktopApp {
   singleton: boolean;
   defaultDockPinned: boolean;
   route?: string; // Original admin route (for context)
+  minPlan?: PlanTier; // Minimum plan required (omit = free)
 }
 
 // Lazy component factories — reusing the same imports as App.tsx
@@ -52,6 +54,7 @@ const apps: DesktopApp[] = [
     singleton: true,
     defaultDockPinned: true,
     route: "/admin/blog",
+    minPlan: "starter",
   },
   {
     id: "news",
@@ -65,6 +68,7 @@ const apps: DesktopApp[] = [
     singleton: true,
     defaultDockPinned: false,
     route: "/admin/news",
+    minPlan: "starter",
   },
   {
     id: "bookmarks",
@@ -78,6 +82,7 @@ const apps: DesktopApp[] = [
     singleton: true,
     defaultDockPinned: false,
     route: "/admin/bookmarks",
+    minPlan: "starter",
   },
 
   // AI Tools
@@ -93,6 +98,7 @@ const apps: DesktopApp[] = [
     singleton: true,
     defaultDockPinned: true,
     route: "/admin/ai-manager",
+    minPlan: "business",
   },
   {
     id: "prompts",
@@ -106,6 +112,7 @@ const apps: DesktopApp[] = [
     singleton: true,
     defaultDockPinned: false,
     route: "/admin/prompts",
+    minPlan: "business",
   },
   {
     id: "skills",
@@ -119,6 +126,7 @@ const apps: DesktopApp[] = [
     singleton: true,
     defaultDockPinned: false,
     route: "/admin/skills",
+    minPlan: "business",
   },
   {
     id: "runbooks",
@@ -132,6 +140,7 @@ const apps: DesktopApp[] = [
     singleton: true,
     defaultDockPinned: false,
     route: "/admin/runbooks",
+    minPlan: "business",
   },
 
   // Management
@@ -147,6 +156,7 @@ const apps: DesktopApp[] = [
     singleton: true,
     defaultDockPinned: true,
     route: "/admin/tasks",
+    minPlan: "starter",
   },
   {
     id: "calendar",
@@ -160,6 +170,7 @@ const apps: DesktopApp[] = [
     singleton: true,
     defaultDockPinned: false,
     route: "/admin/calendar",
+    minPlan: "business",
   },
   {
     id: "crm",
@@ -173,6 +184,7 @@ const apps: DesktopApp[] = [
     singleton: true,
     defaultDockPinned: false,
     route: "/admin/crm",
+    minPlan: "business",
   },
   {
     id: "projects",
@@ -186,6 +198,7 @@ const apps: DesktopApp[] = [
     singleton: true,
     defaultDockPinned: false,
     route: "/admin/projects",
+    minPlan: "starter",
   },
   {
     id: "apps",
@@ -199,6 +212,7 @@ const apps: DesktopApp[] = [
     singleton: true,
     defaultDockPinned: false,
     route: "/admin/apps",
+    minPlan: "business",
   },
   {
     id: "metrics",
@@ -212,6 +226,7 @@ const apps: DesktopApp[] = [
     singleton: true,
     defaultDockPinned: false,
     route: "/admin/metrics",
+    minPlan: "business",
   },
 
   // Platform
@@ -227,6 +242,7 @@ const apps: DesktopApp[] = [
     singleton: true,
     defaultDockPinned: false,
     route: "/admin/infrastructure",
+    minPlan: "business",
   },
   {
     id: "apis",
@@ -240,6 +256,7 @@ const apps: DesktopApp[] = [
     singleton: true,
     defaultDockPinned: false,
     route: "/admin/apis",
+    minPlan: "business",
   },
   {
     id: "configs",
@@ -253,6 +270,7 @@ const apps: DesktopApp[] = [
     singleton: true,
     defaultDockPinned: false,
     route: "/admin/configs",
+    minPlan: "business",
   },
 
   // Agent Platform
@@ -268,6 +286,7 @@ const apps: DesktopApp[] = [
     singleton: true,
     defaultDockPinned: true,
     route: "/admin/agents",
+    minPlan: "business",
   },
   {
     id: "workflows",
@@ -281,6 +300,7 @@ const apps: DesktopApp[] = [
     singleton: true,
     defaultDockPinned: false,
     route: "/admin/workflows",
+    minPlan: "business",
   },
   {
     id: "scheduler",
@@ -294,6 +314,7 @@ const apps: DesktopApp[] = [
     singleton: true,
     defaultDockPinned: false,
     route: "/admin/scheduler",
+    minPlan: "business",
   },
   {
     id: "integrations",
@@ -307,6 +328,7 @@ const apps: DesktopApp[] = [
     singleton: true,
     defaultDockPinned: false,
     route: "/admin/integrations",
+    minPlan: "business",
   },
   {
     id: "audit",
@@ -320,6 +342,7 @@ const apps: DesktopApp[] = [
     singleton: true,
     defaultDockPinned: false,
     route: "/admin/audit",
+    minPlan: "professional",
   },
 
   // File System
@@ -408,6 +431,13 @@ export function getAppsByCategory(): Record<AppCategory, DesktopApp[]> {
     grouped[app.category].push(app);
   }
   return grouped;
+}
+
+/** Get apps available for a given plan tier */
+export function getAppsForPlan(plan: PlanTier): DesktopApp[] {
+  return apps.filter(
+    (app) => !app.minPlan || planMeetsMinimum(plan, app.minPlan),
+  );
 }
 
 /** Pre-memoized lazy components keyed by app ID */
