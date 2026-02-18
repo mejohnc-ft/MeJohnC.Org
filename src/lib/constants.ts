@@ -10,7 +10,7 @@ export const BREAKPOINTS = {
   md: 768,
   lg: 1024,
   xl: 1280,
-  '2xl': 1536,
+  "2xl": 1536,
 } as const;
 
 // File upload limits
@@ -35,31 +35,32 @@ export const ANIMATION = {
 } as const;
 
 // Storage
-export const STORAGE_BUCKET = 'mejohnc.org';
+export const STORAGE_BUCKET = "mejohnc.org";
 
 // localStorage keys (centralized to avoid magic strings)
 export const STORAGE_KEYS = {
-  SUPABASE_SETTINGS: 'supabase_settings',
-  ANALYTICS_SETTINGS: 'analytics_settings',
-  GHOST_SETTINGS: 'ghost_settings',
-  THEME: 'resume-site-theme',
-  PWA_DISMISSED: 'pwa-dismissed',
-  ANALYTICS_CONSENT: 'analytics_consent',
-  SIDEBAR_COLLAPSED: 'admin-sidebar-collapsed',
-  SIDEBAR_SECTIONS: 'admin-sidebar-sections',
-  DESKTOP_MODE: 'admin-desktop-mode',
+  SUPABASE_SETTINGS: "supabase_settings",
+  ANALYTICS_SETTINGS: "analytics_settings",
+  GHOST_SETTINGS: "ghost_settings",
+  THEME: "resume-site-theme",
+  PWA_DISMISSED: "pwa-dismissed",
+  ANALYTICS_CONSENT: "analytics_consent",
+  SIDEBAR_COLLAPSED: "admin-sidebar-collapsed",
+  SIDEBAR_SECTIONS: "admin-sidebar-sections",
+  DESKTOP_MODE: "admin-desktop-mode",
+  TENANT_DEV_OVERRIDE: "dev_tenant_slug",
 } as const;
 
 // Supabase/PostgreSQL error codes
 export const SUPABASE_ERROR_CODES = {
   // PostgREST errors
-  NOT_FOUND: 'PGRST116',
+  NOT_FOUND: "PGRST116",
   // PostgreSQL errors
-  UNIQUE_VIOLATION: '23505',
-  FOREIGN_KEY_VIOLATION: '23503',
-  CHECK_VIOLATION: '23514',
-  NOT_NULL_VIOLATION: '23502',
+  UNIQUE_VIOLATION: "23505",
+  FOREIGN_KEY_VIOLATION: "23503",
+  CHECK_VIOLATION: "23514",
+  NOT_NULL_VIOLATION: "23502",
   // Auth errors
-  INVALID_CREDENTIALS: 'invalid_credentials',
-  JWT_EXPIRED: 'jwt_expired',
+  INVALID_CREDENTIALS: "invalid_credentials",
+  JWT_EXPIRED: "jwt_expired",
 } as const;

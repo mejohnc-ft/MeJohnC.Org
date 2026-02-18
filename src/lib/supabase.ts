@@ -3,6 +3,7 @@ import { useSession, useOrganization } from "@clerk/clerk-react";
 import { useMemo, useCallback, useEffect, useRef } from "react";
 import { captureException } from "./sentry";
 import { STORAGE_KEYS } from "./constants";
+import { useTenant } from "./tenant";
 
 interface SupabaseSettings {
   url: string;
@@ -256,17 +257,19 @@ export function useTenantSupabase(): {
 } {
   const { session, isLoaded: sessionLoaded } = useSession();
   const { organization, isLoaded: orgLoaded } = useOrganization();
+  const { tenantId: contextTenantId, status: tenantStatus } = useTenant();
   const settings = getSupabaseSettings();
   const contextSetRef = useRef(false);
 
-  // Resolve tenant_id from Clerk Organization metadata
-  // The org's publicMetadata.tenant_id should be set during provisioning (#299)
-  const tenantId = useMemo(() => {
+  // Resolve tenant_id: subdomain context first (#300), then Clerk org metadata (#299)
+  const orgTenantId = useMemo(() => {
     if (!organization) return null;
     const tid = (organization.publicMetadata as Record<string, unknown>)
       ?.tenant_id;
     return typeof tid === "string" ? tid : null;
   }, [organization]);
+
+  const tenantId = contextTenantId ?? orgTenantId;
 
   const getToken = useCallback(async (): Promise<string | null> => {
     if (!session) return null;
@@ -318,7 +321,7 @@ export function useTenantSupabase(): {
 
   return {
     supabase,
-    isLoading: !sessionLoaded || !orgLoaded,
+    isLoading: !sessionLoaded || !orgLoaded || tenantStatus === "loading",
     tenantId,
   };
 }
