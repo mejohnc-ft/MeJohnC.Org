@@ -1837,3 +1837,55 @@ export const StepTemplateSchema = z.object({
   updated_at: z.string(),
 });
 export type StepTemplate = z.infer<typeof StepTemplateSchema>;
+
+// ============================================
+// CALENDAR SCHEMAS
+// ============================================
+
+export const CalendarEventColorSchema = z.enum([
+  "sky",
+  "blue",
+  "indigo",
+  "violet",
+  "purple",
+  "pink",
+  "rose",
+  "red",
+  "orange",
+  "amber",
+  "yellow",
+  "lime",
+  "green",
+  "emerald",
+  "teal",
+  "cyan",
+]);
+export type CalendarEventColor = z.infer<typeof CalendarEventColorSchema>;
+
+export const CalendarEventSchema = z.object({
+  id: z.string().uuid(),
+  tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
+  title: z.string(),
+  description: z.string().nullable(),
+  start_at: z.string(),
+  end_at: z.string().nullable(),
+  is_all_day: z.boolean(),
+  color: CalendarEventColorSchema,
+  location: z.string().nullable(),
+  tags: z.array(z.string()),
+  metadata: z.record(z.unknown()).nullable(),
+  created_by: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type CalendarEvent = z.infer<typeof CalendarEventSchema>;
+
+export const CalendarEventSourceSchema = z.enum([
+  "event",
+  "task",
+  "follow_up",
+  "blog",
+  "campaign",
+  "workflow",
+]);
+export type CalendarEventSource = z.infer<typeof CalendarEventSourceSchema>;
