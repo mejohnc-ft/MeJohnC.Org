@@ -4,6 +4,8 @@ import {
   useContext,
   useCallback,
   useMemo,
+  useState,
+  useEffect,
   ReactNode,
 } from "react";
 import { useWindowManager, WindowManagerState } from "@/hooks/useWindowManager";
@@ -16,6 +18,7 @@ const DOCK_HEIGHT = 64;
 
 interface WindowManagerContextType {
   state: WindowManagerState;
+  toastMessage: string | null;
   launchApp: (appId: string) => void;
   closeWindow: (id: string) => void;
   focusWindow: (id: string) => void;
@@ -63,6 +66,14 @@ export function WindowManagerProvider({
   children,
 }: WindowManagerProviderProps) {
   const wm = useWindowManager();
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Auto-dismiss toast after 3 seconds
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = setTimeout(() => setToastMessage(null), 3000);
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
 
   const workspace = useDesktopWorkspace({
     userId,
@@ -87,7 +98,9 @@ export function WindowManagerProvider({
       // Max window limit
       const openCount = wm.state.windows.filter((w) => !w.minimized).length;
       if (openCount >= MAX_OPEN_WINDOWS) {
-        // Could dispatch a notification here in Phase 5
+        setToastMessage(
+          "Maximum of 10 windows open. Close a window to open a new one.",
+        );
         return;
       }
 
@@ -149,6 +162,7 @@ export function WindowManagerProvider({
     <WindowManagerContext.Provider
       value={{
         state: wm.state,
+        toastMessage,
         launchApp,
         closeWindow: wm.closeWindow,
         focusWindow: wm.focusWindow,
