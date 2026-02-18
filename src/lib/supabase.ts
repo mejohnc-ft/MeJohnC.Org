@@ -1,8 +1,8 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { useSession } from '@clerk/clerk-react';
-import { useMemo, useCallback } from 'react';
-import { captureException } from './sentry';
-import { STORAGE_KEYS } from './constants';
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { useSession, useOrganization } from "@clerk/clerk-react";
+import { useMemo, useCallback, useEffect, useRef } from "react";
+import { captureException } from "./sentry";
+import { STORAGE_KEYS } from "./constants";
 
 interface SupabaseSettings {
   url: string;
@@ -42,8 +42,8 @@ interface SupabaseSettings {
 export function getSupabaseSettings(): SupabaseSettings {
   // Start with env variables (most stable for development)
   const envSettings: SupabaseSettings = {
-    url: import.meta.env.VITE_SUPABASE_URL || '',
-    anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+    url: import.meta.env.VITE_SUPABASE_URL || "",
+    anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || "",
   };
 
   // Only allow localStorage override in development (security: prevents XSS credential hijacking)
@@ -61,7 +61,9 @@ export function getSupabaseSettings(): SupabaseSettings {
         }
       }
     } catch (e) {
-      captureException(e instanceof Error ? e : new Error(String(e)), { context: 'Supabase.parseSettings' });
+      captureException(e instanceof Error ? e : new Error(String(e)), {
+        context: "Supabase.parseSettings",
+      });
     }
   }
 
@@ -72,12 +74,15 @@ export function getSupabaseSettings(): SupabaseSettings {
 // Save Supabase settings to localStorage (only if valid)
 // Note: Caller should refresh the page or call refreshSupabaseClient() to use new settings
 export function saveSupabaseSettings(settings: SupabaseSettings): void {
-  const url = settings.url?.trim() || '';
-  const anonKey = settings.anonKey?.trim() || '';
+  const url = settings.url?.trim() || "";
+  const anonKey = settings.anonKey?.trim() || "";
 
   // Only save if both values are present, otherwise clear
   if (url && anonKey) {
-    localStorage.setItem(STORAGE_KEYS.SUPABASE_SETTINGS, JSON.stringify({ url, anonKey }));
+    localStorage.setItem(
+      STORAGE_KEYS.SUPABASE_SETTINGS,
+      JSON.stringify({ url, anonKey }),
+    );
   } else {
     // Clear localStorage override so env vars take precedence
     localStorage.removeItem(STORAGE_KEYS.SUPABASE_SETTINGS);
@@ -91,7 +96,7 @@ export function clearSupabaseSettings(): void {
 
 // Internal mutable singleton - can be refreshed when settings change
 let _supabase: SupabaseClient | null = null;
-let _lastSettingsHash: string = '';
+let _lastSettingsHash: string = "";
 
 // Initialize singleton from current settings
 function initializeClient(): void {
@@ -104,9 +109,10 @@ function initializeClient(): void {
   }
 
   _lastSettingsHash = settingsHash;
-  _supabase = settings.url && settings.anonKey
-    ? createClient(settings.url, settings.anonKey)
-    : null;
+  _supabase =
+    settings.url && settings.anonKey
+      ? createClient(settings.url, settings.anonKey)
+      : null;
 }
 
 // Initialize on module load
@@ -122,7 +128,9 @@ export function refreshSupabaseClient(): SupabaseClient | null {
 // Throws if not configured - use this when Supabase is required
 export function getSupabase(): SupabaseClient {
   if (!_supabase) {
-    throw new Error('Supabase not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
+    throw new Error(
+      "Supabase not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.",
+    );
   }
   return _supabase;
 }
@@ -145,14 +153,19 @@ export function createSupabaseClient(): SupabaseClient | null {
 export function useSupabaseClient(): SupabaseClient | null {
   // Return the singleton client - don't create new ones on every render
   if (!_supabase) {
-    captureException(new Error('Supabase not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.'), { context: 'Supabase.init' });
+    captureException(
+      new Error(
+        "Supabase not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.",
+      ),
+      { context: "Supabase.init" },
+    );
   }
   return _supabase;
 }
 
 // Function to create authenticated client (for use outside React components)
 export async function createAuthenticatedClient(
-  getToken: () => Promise<string | null>
+  getToken: () => Promise<string | null>,
 ): Promise<SupabaseClient | null> {
   const currentSettings = getSupabaseSettings();
 
@@ -195,11 +208,11 @@ export function useAuthenticatedSupabase(): {
     try {
       // Get JWT with 'supabase' template from Clerk
       // This template should include the user's email for RLS checks
-      const token = await session.getToken({ template: 'supabase' });
+      const token = await session.getToken({ template: "supabase" });
       return token;
     } catch (err) {
       captureException(err instanceof Error ? err : new Error(String(err)), {
-        context: 'useAuthenticatedSupabase.getToken',
+        context: "useAuthenticatedSupabase.getToken",
       });
       return null;
     }
@@ -224,5 +237,88 @@ export function useAuthenticatedSupabase(): {
   return {
     supabase,
     isLoading: !isLoaded,
+  };
+}
+
+/**
+ * Hook to get a tenant-scoped authenticated Supabase client.
+ * Resolves the current Clerk Organization to a tenant_id and calls
+ * app.set_tenant_context() so RLS policies enforce tenant isolation.
+ *
+ * Issue: #295 - Wire app.set_tenant_context() into application layer
+ *
+ * @returns Object with tenant-scoped supabase client, loading state, and current tenantId
+ */
+export function useTenantSupabase(): {
+  supabase: SupabaseClient | null;
+  isLoading: boolean;
+  tenantId: string | null;
+} {
+  const { session, isLoaded: sessionLoaded } = useSession();
+  const { organization, isLoaded: orgLoaded } = useOrganization();
+  const settings = getSupabaseSettings();
+  const contextSetRef = useRef(false);
+
+  // Resolve tenant_id from Clerk Organization metadata
+  // The org's publicMetadata.tenant_id should be set during provisioning (#299)
+  const tenantId = useMemo(() => {
+    if (!organization) return null;
+    const tid = (organization.publicMetadata as Record<string, unknown>)
+      ?.tenant_id;
+    return typeof tid === "string" ? tid : null;
+  }, [organization]);
+
+  const getToken = useCallback(async (): Promise<string | null> => {
+    if (!session) return null;
+    try {
+      return await session.getToken({ template: "supabase" });
+    } catch (err) {
+      captureException(err instanceof Error ? err : new Error(String(err)), {
+        context: "useTenantSupabase.getToken",
+      });
+      return null;
+    }
+  }, [session]);
+
+  const supabase = useMemo(() => {
+    if (!settings.url || !settings.anonKey) return null;
+    return createClient(settings.url, settings.anonKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+        detectSessionInUrl: false,
+      },
+      accessToken: getToken,
+    });
+  }, [settings.url, settings.anonKey, getToken]);
+
+  // Set tenant context via RPC when we have a client and tenant_id
+  useEffect(() => {
+    if (!supabase || !tenantId || contextSetRef.current) return;
+
+    supabase
+      .rpc("set_tenant_context", { tenant_id: tenantId })
+      .then(({ error }) => {
+        if (error) {
+          captureException(
+            new Error(`set_tenant_context failed: ${error.message}`),
+            {
+              context: "useTenantSupabase.setContext",
+            },
+          );
+        } else {
+          contextSetRef.current = true;
+        }
+      });
+
+    return () => {
+      contextSetRef.current = false;
+    };
+  }, [supabase, tenantId]);
+
+  return {
+    supabase,
+    isLoading: !sessionLoaded || !orgLoaded,
+    tenantId,
   };
 }

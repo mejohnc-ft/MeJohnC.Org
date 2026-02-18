@@ -5,7 +5,7 @@
  * Provides methods for content generation, sentiment analysis, and predictions.
  */
 
-import { captureException } from '@/lib/sentry';
+import { captureException } from "@/lib/sentry";
 
 // ============================================
 // TYPES
@@ -31,7 +31,7 @@ export interface ContentSuggestion {
 }
 
 export interface SentimentAnalysis {
-  sentiment: 'positive' | 'negative' | 'neutral' | 'mixed';
+  sentiment: "positive" | "negative" | "neutral" | "mixed";
   score: number; // -1 to 1
   confidence: number; // 0 to 1
   themes: string[];
@@ -40,14 +40,14 @@ export interface SentimentAnalysis {
 
 export interface DetractorPrediction {
   riskScore: number; // 0 to 100
-  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  riskLevel: "low" | "medium" | "high" | "critical";
   factors: string[];
   recommendation: string;
 }
 
 export interface FollowUpSuggestion {
   action: string;
-  priority: 'low' | 'medium' | 'high';
+  priority: "low" | "medium" | "high";
   template?: string;
 }
 
@@ -55,11 +55,23 @@ export interface FollowUpSuggestion {
 // CONFIGURATION
 // ============================================
 
-const DEFAULT_MODEL = 'claude-3-5-sonnet-20241022';
+const DEFAULT_MODEL = "claude-3-5-sonnet-20241022";
 const DEFAULT_MAX_TOKENS = 1024;
 
-function getApiKey(): string | null {
-  return import.meta.env.VITE_ANTHROPIC_API_KEY || null;
+/**
+ * Get the auth token for server-side proxy requests.
+ * This is set by the calling code via setAuthTokenProvider().
+ */
+let _getAuthToken: (() => Promise<string | null>) | null = null;
+
+/**
+ * Set the auth token provider for AI proxy requests.
+ * Call this once from your auth setup with Clerk's getToken function.
+ */
+export function setAuthTokenProvider(
+  provider: () => Promise<string | null>,
+): void {
+  _getAuthToken = provider;
 }
 
 // ============================================
@@ -67,47 +79,48 @@ function getApiKey(): string | null {
 // ============================================
 
 /**
- * Make a request to the Anthropic Claude API
+ * Make a request to the Anthropic Claude API via server-side proxy.
+ * Issue #306: API key is kept server-side in ANTHROPIC_API_KEY env var.
+ * The client sends requests to /api/ai-proxy which forwards to Anthropic.
  */
 async function callClaudeAPI(
   userMessage: string,
-  options: AIRequestOptions = {}
+  options: AIRequestOptions = {},
 ): Promise<AIResponse<string>> {
   const startTime = Date.now();
-  const apiKey = getApiKey();
-
-  if (!apiKey) {
-    return {
-      success: false,
-      error: 'Anthropic API key not configured. Set VITE_ANTHROPIC_API_KEY.',
-      durationMs: Date.now() - startTime,
-    };
-  }
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    // Attach auth token for the proxy to verify
+    if (_getAuthToken) {
+      const token = await _getAuthToken();
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch("/api/ai-proxy", {
+      method: "POST",
+      headers,
       body: JSON.stringify({
         model: DEFAULT_MODEL,
         max_tokens: options.maxTokens || DEFAULT_MAX_TOKENS,
         temperature: options.temperature ?? 0.7,
         system: options.systemPrompt,
-        messages: [{ role: 'user', content: userMessage }],
+        messages: [{ role: "user", content: userMessage }],
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Claude API error ${response.status}: ${errorText}`);
+      throw new Error(`AI proxy error ${response.status}: ${errorText}`);
     }
 
     const data = await response.json();
-    const content = data.content[0]?.text || '';
+    const content = data.content[0]?.text || "";
 
     return {
       success: true,
@@ -116,12 +129,15 @@ async function callClaudeAPI(
       durationMs: Date.now() - startTime,
     };
   } catch (error) {
-    captureException(error instanceof Error ? error : new Error(String(error)), {
-      context: 'aiService.callClaudeAPI',
-    });
+    captureException(
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        context: "aiService.callClaudeAPI",
+      },
+    );
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
       durationMs: Date.now() - startTime,
     };
   }
@@ -167,13 +183,13 @@ Only output valid JSON, no additional text.`;
 export async function generateContentSuggestions(
   prompt: string,
   contentType: string,
-  context?: Record<string, unknown>
+  context?: Record<string, unknown>,
 ): Promise<AIResponse<ContentSuggestion[]>> {
-  const contextInfo = context ? `\nContext: ${JSON.stringify(context)}` : '';
+  const contextInfo = context ? `\nContext: ${JSON.stringify(context)}` : "";
 
   const result = await callClaudeAPI(
     `Generate ${contentType} content for: ${prompt}${contextInfo}`,
-    { systemPrompt: CONTENT_SYSTEM_PROMPT }
+    { systemPrompt: CONTENT_SYSTEM_PROMPT },
   );
 
   if (!result.success || !result.data) {
@@ -181,10 +197,10 @@ export async function generateContentSuggestions(
     return {
       success: true,
       data: [
-        { content: `${prompt} - Professional Version`, tone: 'Professional' },
-        { content: `${prompt} - Engaging Version`, tone: 'Engaging' },
-        { content: `${prompt} - Creative Version`, tone: 'Creative' },
-        { content: `${prompt} - Direct Version`, tone: 'Direct' },
+        { content: `${prompt} - Professional Version`, tone: "Professional" },
+        { content: `${prompt} - Engaging Version`, tone: "Engaging" },
+        { content: `${prompt} - Creative Version`, tone: "Creative" },
+        { content: `${prompt} - Direct Version`, tone: "Direct" },
       ],
       error: result.error,
       durationMs: result.durationMs,
@@ -197,12 +213,12 @@ export async function generateContentSuggestions(
     return {
       success: true,
       data: [
-        { content: `${prompt} - Professional Version`, tone: 'Professional' },
-        { content: `${prompt} - Engaging Version`, tone: 'Engaging' },
-        { content: `${prompt} - Creative Version`, tone: 'Creative' },
-        { content: `${prompt} - Direct Version`, tone: 'Direct' },
+        { content: `${prompt} - Professional Version`, tone: "Professional" },
+        { content: `${prompt} - Engaging Version`, tone: "Engaging" },
+        { content: `${prompt} - Creative Version`, tone: "Creative" },
+        { content: `${prompt} - Direct Version`, tone: "Direct" },
       ],
-      error: 'Failed to parse AI response',
+      error: "Failed to parse AI response",
       durationMs: result.durationMs,
     };
   }
@@ -234,11 +250,11 @@ Only output valid JSON, no additional text.`;
  * Analyze sentiment of customer feedback
  */
 export async function analyzeSentiment(
-  feedback: string
+  feedback: string,
 ): Promise<AIResponse<SentimentAnalysis>> {
   const result = await callClaudeAPI(
     `Analyze the sentiment of this customer feedback:\n\n"${feedback}"`,
-    { systemPrompt: SENTIMENT_SYSTEM_PROMPT, temperature: 0.3 }
+    { systemPrompt: SENTIMENT_SYSTEM_PROMPT, temperature: 0.3 },
   );
 
   if (!result.success || !result.data) {
@@ -246,11 +262,11 @@ export async function analyzeSentiment(
     return {
       success: false,
       data: {
-        sentiment: 'neutral',
+        sentiment: "neutral",
         score: 0,
         confidence: 0,
         themes: [],
-        summary: 'Unable to analyze sentiment',
+        summary: "Unable to analyze sentiment",
       },
       error: result.error,
       durationMs: result.durationMs,
@@ -263,13 +279,13 @@ export async function analyzeSentiment(
     return {
       success: false,
       data: {
-        sentiment: 'neutral',
+        sentiment: "neutral",
         score: 0,
         confidence: 0,
         themes: [],
-        summary: 'Failed to parse sentiment analysis',
+        summary: "Failed to parse sentiment analysis",
       },
-      error: 'Failed to parse AI response',
+      error: "Failed to parse AI response",
       durationMs: result.durationMs,
     };
   }
@@ -305,17 +321,15 @@ Only output valid JSON, no additional text.`;
 /**
  * Predict detractor risk for a customer
  */
-export async function predictDetractorRisk(
-  customerData: {
-    recentScores?: number[];
-    averageScore?: number;
-    feedback?: string[];
-    engagementLevel?: string;
-  }
-): Promise<AIResponse<DetractorPrediction>> {
+export async function predictDetractorRisk(customerData: {
+  recentScores?: number[];
+  averageScore?: number;
+  feedback?: string[];
+  engagementLevel?: string;
+}): Promise<AIResponse<DetractorPrediction>> {
   const result = await callClaudeAPI(
     `Analyze this customer data to predict detractor risk:\n\n${JSON.stringify(customerData, null, 2)}`,
-    { systemPrompt: DETRACTOR_SYSTEM_PROMPT, temperature: 0.3 }
+    { systemPrompt: DETRACTOR_SYSTEM_PROMPT, temperature: 0.3 },
   );
 
   if (!result.success || !result.data) {
@@ -324,9 +338,9 @@ export async function predictDetractorRisk(
       success: false,
       data: {
         riskScore: 25,
-        riskLevel: 'low',
-        factors: ['Insufficient data for analysis'],
-        recommendation: 'Continue monitoring customer engagement',
+        riskLevel: "low",
+        factors: ["Insufficient data for analysis"],
+        recommendation: "Continue monitoring customer engagement",
       },
       error: result.error,
       durationMs: result.durationMs,
@@ -340,11 +354,11 @@ export async function predictDetractorRisk(
       success: false,
       data: {
         riskScore: 25,
-        riskLevel: 'low',
-        factors: ['Analysis parsing failed'],
-        recommendation: 'Manually review customer history',
+        riskLevel: "low",
+        factors: ["Analysis parsing failed"],
+        recommendation: "Manually review customer history",
       },
-      error: 'Failed to parse AI response',
+      error: "Failed to parse AI response",
       durationMs: result.durationMs,
     };
   }
@@ -375,36 +389,41 @@ Only output valid JSON, no additional text.`;
 /**
  * Generate follow-up action suggestions for an NPS response
  */
-export async function generateFollowUpSuggestions(
-  responseData: {
-    score: number;
-    category: 'promoter' | 'passive' | 'detractor';
-    feedback?: string;
-    customerName?: string;
-  }
-): Promise<AIResponse<FollowUpSuggestion[]>> {
+export async function generateFollowUpSuggestions(responseData: {
+  score: number;
+  category: "promoter" | "passive" | "detractor";
+  feedback?: string;
+  customerName?: string;
+}): Promise<AIResponse<FollowUpSuggestion[]>> {
   const result = await callClaudeAPI(
     `Generate follow-up suggestions for this NPS response:\n\n${JSON.stringify(responseData, null, 2)}`,
-    { systemPrompt: FOLLOWUP_SYSTEM_PROMPT }
+    { systemPrompt: FOLLOWUP_SYSTEM_PROMPT },
   );
 
   if (!result.success || !result.data) {
     // Return default suggestions based on category
-    const defaultSuggestions: FollowUpSuggestion[] = responseData.category === 'detractor'
-      ? [
-          { action: 'Schedule a call to discuss concerns', priority: 'high' },
-          { action: 'Send personalized apology email', priority: 'high' },
-          { action: 'Create support ticket for follow-up', priority: 'medium' },
-        ]
-      : responseData.category === 'passive'
-      ? [
-          { action: 'Send improvement feedback request', priority: 'medium' },
-          { action: 'Offer product demo or training', priority: 'medium' },
-        ]
-      : [
-          { action: 'Request testimonial or review', priority: 'low' },
-          { action: 'Invite to referral program', priority: 'low' },
-        ];
+    const defaultSuggestions: FollowUpSuggestion[] =
+      responseData.category === "detractor"
+        ? [
+            { action: "Schedule a call to discuss concerns", priority: "high" },
+            { action: "Send personalized apology email", priority: "high" },
+            {
+              action: "Create support ticket for follow-up",
+              priority: "medium",
+            },
+          ]
+        : responseData.category === "passive"
+          ? [
+              {
+                action: "Send improvement feedback request",
+                priority: "medium",
+              },
+              { action: "Offer product demo or training", priority: "medium" },
+            ]
+          : [
+              { action: "Request testimonial or review", priority: "low" },
+              { action: "Invite to referral program", priority: "low" },
+            ];
 
     return {
       success: true,
@@ -419,7 +438,7 @@ export async function generateFollowUpSuggestions(
   if (!suggestions) {
     return {
       success: false,
-      error: 'Failed to parse AI response',
+      error: "Failed to parse AI response",
       durationMs: result.durationMs,
     };
   }
@@ -437,10 +456,12 @@ export async function generateFollowUpSuggestions(
 // ============================================
 
 /**
- * Check if AI service is configured
+ * Check if AI service is configured.
+ * Since the API key is now server-side, this always returns true.
+ * The proxy will return an error if ANTHROPIC_API_KEY is not set on the server.
  */
 export function isAIConfigured(): boolean {
-  return !!getApiKey();
+  return true;
 }
 
 /**

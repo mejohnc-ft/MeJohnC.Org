@@ -5,7 +5,7 @@
  * Supports both mock generation (for development) and real AI generation.
  */
 
-import type { GeneratedUI } from '../schemas';
+import type { GeneratedUI } from "../schemas";
 
 // ============================================
 // TYPES
@@ -84,84 +84,119 @@ RULES:
  */
 export async function generateMockUI(prompt: string): Promise<GeneratedUI> {
   // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 800 + Math.random() * 700));
+  await new Promise((resolve) =>
+    setTimeout(resolve, 800 + Math.random() * 700),
+  );
 
   const promptLower = prompt.toLowerCase();
   let result: GeneratedUI;
 
   // Dashboard with stats
-  if (promptLower.includes('dashboard') || promptLower.includes('kpi') || promptLower.includes('stats') || promptLower.includes('metrics')) {
+  if (
+    promptLower.includes("dashboard") ||
+    promptLower.includes("kpi") ||
+    promptLower.includes("stats") ||
+    promptLower.includes("metrics")
+  ) {
     result = {
-      title: 'Performance Dashboard',
-      description: 'Real-time metrics overview',
-      layout: 'stack',
-      theme: 'dark',
+      title: "Performance Dashboard",
+      description: "Real-time metrics overview",
+      layout: "stack",
+      theme: "dark",
       nodes: [
         {
-          id: 'stat-grid-1',
-          type: 'StatGrid',
+          id: "stat-grid-1",
+          type: "StatGrid",
           props: {
             columns: 4,
             stats: [
-              { value: '$52.4K', label: 'Revenue', color: 'green', trend: 'up', trendValue: '+12.5%' },
-              { value: '2,847', label: 'Active Users', color: 'blue', trend: 'up', trendValue: '+8.2%' },
-              { value: '1,234', label: 'Orders', color: 'orange', trend: 'up', trendValue: '+23.1%' },
-              { value: '94.2%', label: 'Conversion', color: 'red', trend: 'down', trendValue: '-2.4%' },
+              {
+                value: "$52.4K",
+                label: "Revenue",
+                color: "green",
+                trend: "up",
+                trendValue: "+12.5%",
+              },
+              {
+                value: "2,847",
+                label: "Active Users",
+                color: "blue",
+                trend: "up",
+                trendValue: "+8.2%",
+              },
+              {
+                value: "1,234",
+                label: "Orders",
+                color: "orange",
+                trend: "up",
+                trendValue: "+23.1%",
+              },
+              {
+                value: "94.2%",
+                label: "Conversion",
+                color: "red",
+                trend: "down",
+                trendValue: "-2.4%",
+              },
             ],
           },
         },
         {
-          id: 'chart-1',
-          type: 'MetricChart',
+          id: "chart-1",
+          type: "MetricChart",
           props: {
-            metricName: 'Revenue',
-            chartType: 'area',
-            timeRange: '7d',
-            color: 'green',
-            title: 'Revenue Trend',
+            metricName: "Revenue",
+            chartType: "area",
+            timeRange: "7d",
+            color: "green",
+            title: "Revenue Trend",
           },
         },
       ],
     };
   }
   // Command palette
-  else if (promptLower.includes('command') || promptLower.includes('palette') || promptLower.includes('operations')) {
+  else if (
+    promptLower.includes("command") ||
+    promptLower.includes("palette") ||
+    promptLower.includes("operations")
+  ) {
     result = {
-      title: 'Command Center',
-      description: 'Quick access to all operations',
-      layout: 'stack',
-      theme: 'dark',
+      title: "Command Center",
+      description: "Quick access to all operations",
+      layout: "stack",
+      theme: "dark",
       nodes: [
         {
-          id: 'cmd-palette-1',
-          type: 'CommandPalette',
+          id: "cmd-palette-1",
+          type: "CommandPalette",
           props: {
             groups: [
               {
-                title: 'Deployment',
-                icon: 'rocket',
+                title: "Deployment",
+                icon: "rocket",
                 commands: [
-                  { code: '/deploy', description: 'Deploy to production' },
-                  { code: '/rollback', description: 'Rollback last deploy' },
-                  { code: '/preview', description: 'Preview changes' },
+                  { code: "/deploy", description: "Deploy to production" },
+                  { code: "/rollback", description: "Rollback last deploy" },
+                  { code: "/preview", description: "Preview changes" },
                 ],
               },
               {
-                title: 'Database',
-                icon: 'database',
+                title: "Database",
+                icon: "database",
                 commands: [
-                  { code: '/migrate', description: 'Run migrations' },
-                  { code: '/backup', description: 'Create backup' },
-                  { code: '/restore', description: 'Restore from backup' },
+                  { code: "/migrate", description: "Run migrations" },
+                  { code: "/backup", description: "Create backup" },
+                  { code: "/restore", description: "Restore from backup" },
                 ],
               },
               {
-                title: 'Monitoring',
-                icon: 'chart',
+                title: "Monitoring",
+                icon: "chart",
                 commands: [
-                  { code: '/status', description: 'System status' },
-                  { code: '/logs', description: 'View logs' },
-                  { code: '/alerts', description: 'Configure alerts' },
+                  { code: "/status", description: "System status" },
+                  { code: "/logs", description: "View logs" },
+                  { code: "/alerts", description: "Configure alerts" },
                 ],
               },
             ],
@@ -171,51 +206,55 @@ export async function generateMockUI(prompt: string): Promise<GeneratedUI> {
     };
   }
   // Carousel/showcase
-  else if (promptLower.includes('carousel') || promptLower.includes('showcase') || promptLower.includes('product')) {
+  else if (
+    promptLower.includes("carousel") ||
+    promptLower.includes("showcase") ||
+    promptLower.includes("product")
+  ) {
     result = {
-      title: 'Product Features',
-      description: 'Explore what we offer',
-      layout: 'stack',
-      theme: 'dark',
+      title: "Product Features",
+      description: "Explore what we offer",
+      layout: "stack",
+      theme: "dark",
       nodes: [
         {
-          id: 'carousel-1',
-          type: 'Carousel3D',
+          id: "carousel-1",
+          type: "Carousel3D",
           props: {
             autoRotate: true,
             rotationSpeed: 5,
             cards: [
               {
-                icon: 'rocket',
-                title: 'Fast Deployment',
-                body: 'Deploy your applications in seconds with our streamlined CI/CD pipeline.',
-                statValue: '< 30s',
-                statLabel: 'Average deploy time',
-                color: 'green',
+                icon: "rocket",
+                title: "Fast Deployment",
+                body: "Deploy your applications in seconds with our streamlined CI/CD pipeline.",
+                statValue: "< 30s",
+                statLabel: "Average deploy time",
+                color: "green",
               },
               {
-                icon: 'shield',
-                title: 'Enterprise Security',
-                body: 'SOC 2 compliant infrastructure with end-to-end encryption.',
-                statValue: '99.99%',
-                statLabel: 'Uptime SLA',
-                color: 'blue',
+                icon: "shield",
+                title: "Enterprise Security",
+                body: "SOC 2 compliant infrastructure with end-to-end encryption.",
+                statValue: "99.99%",
+                statLabel: "Uptime SLA",
+                color: "blue",
               },
               {
-                icon: 'chart',
-                title: 'Real-time Analytics',
-                body: 'Monitor your applications with live metrics and custom dashboards.',
-                statValue: '10ms',
-                statLabel: 'Latency',
-                color: 'orange',
+                icon: "chart",
+                title: "Real-time Analytics",
+                body: "Monitor your applications with live metrics and custom dashboards.",
+                statValue: "10ms",
+                statLabel: "Latency",
+                color: "orange",
               },
               {
-                icon: 'users',
-                title: 'Team Collaboration',
-                body: 'Work together seamlessly with role-based access control.',
-                statValue: '∞',
-                statLabel: 'Team members',
-                color: 'green',
+                icon: "users",
+                title: "Team Collaboration",
+                body: "Work together seamlessly with role-based access control.",
+                statValue: "∞",
+                statLabel: "Team members",
+                color: "green",
               },
             ],
           },
@@ -224,16 +263,20 @@ export async function generateMockUI(prompt: string): Promise<GeneratedUI> {
     };
   }
   // Color palette
-  else if (promptLower.includes('color') || promptLower.includes('palette') || promptLower.includes('brand')) {
+  else if (
+    promptLower.includes("color") ||
+    promptLower.includes("palette") ||
+    promptLower.includes("brand")
+  ) {
     result = {
-      title: 'Brand Colors',
-      description: 'CentrexStyle official color palette',
-      layout: 'stack',
-      theme: 'dark',
+      title: "Brand Colors",
+      description: "CentrexStyle official color palette",
+      layout: "stack",
+      theme: "dark",
       nodes: [
         {
-          id: 'colors-1',
-          type: 'ColorPalette',
+          id: "colors-1",
+          type: "ColorPalette",
           props: {
             showValues: true,
             showUsage: true,
@@ -244,35 +287,52 @@ export async function generateMockUI(prompt: string): Promise<GeneratedUI> {
     };
   }
   // Hero/landing
-  else if (promptLower.includes('hero') || promptLower.includes('landing') || promptLower.includes('homepage')) {
+  else if (
+    promptLower.includes("hero") ||
+    promptLower.includes("landing") ||
+    promptLower.includes("homepage")
+  ) {
     result = {
-      title: 'Landing Page',
-      layout: 'stack',
-      theme: 'dark',
+      title: "Landing Page",
+      layout: "stack",
+      theme: "dark",
       nodes: [
         {
-          id: 'hero-1',
-          type: 'Hero',
+          id: "hero-1",
+          type: "Hero",
           props: {
-            headline: 'Build Faster, Ship Smarter',
-            subheadline: 'The modern platform for teams that move fast without breaking things.',
-            layout: 'centered',
-            ctaText: 'Get Started Free',
-            ctaLink: '/signup',
-            secondaryCtaText: 'View Demo',
-            secondaryCtaLink: '/demo',
+            headline: "Build Faster, Ship Smarter",
+            subheadline:
+              "The modern platform for teams that move fast without breaking things.",
+            layout: "centered",
+            ctaText: "Get Started Free",
+            ctaLink: "/signup",
+            secondaryCtaText: "View Demo",
+            secondaryCtaLink: "/demo",
           },
         },
         {
-          id: 'features-1',
-          type: 'Features',
+          id: "features-1",
+          type: "Features",
           props: {
-            layout: 'grid',
+            layout: "grid",
             columns: 3,
             items: [
-              { icon: 'Zap', title: 'Lightning Fast', description: 'Optimized for speed at every level of the stack.' },
-              { icon: 'Shield', title: 'Secure by Default', description: 'Enterprise-grade security built-in from day one.' },
-              { icon: 'Users', title: 'Team Ready', description: 'Collaborate with unlimited team members.' },
+              {
+                icon: "Zap",
+                title: "Lightning Fast",
+                description: "Optimized for speed at every level of the stack.",
+              },
+              {
+                icon: "Shield",
+                title: "Secure by Default",
+                description: "Enterprise-grade security built-in from day one.",
+              },
+              {
+                icon: "Users",
+                title: "Team Ready",
+                description: "Collaborate with unlimited team members.",
+              },
             ],
           },
         },
@@ -280,71 +340,79 @@ export async function generateMockUI(prompt: string): Promise<GeneratedUI> {
     };
   }
   // Table/data
-  else if (promptLower.includes('table') || promptLower.includes('data') || promptLower.includes('list')) {
+  else if (
+    promptLower.includes("table") ||
+    promptLower.includes("data") ||
+    promptLower.includes("list")
+  ) {
     result = {
-      title: 'Data Overview',
-      description: 'Recent activity and records',
-      layout: 'stack',
-      theme: 'dark',
+      title: "Data Overview",
+      description: "Recent activity and records",
+      layout: "stack",
+      theme: "dark",
       nodes: [
         {
-          id: 'stats-1',
-          type: 'StatGrid',
+          id: "stats-1",
+          type: "StatGrid",
           props: {
             columns: 3,
             stats: [
-              { value: '1,234', label: 'Total Records', color: 'green' },
-              { value: '89', label: 'New Today', color: 'blue' },
-              { value: '12', label: 'Pending', color: 'orange' },
+              { value: "1,234", label: "Total Records", color: "green" },
+              { value: "89", label: "New Today", color: "blue" },
+              { value: "12", label: "Pending", color: "orange" },
             ],
           },
         },
         {
-          id: 'table-1',
-          type: 'DataTable',
+          id: "table-1",
+          type: "DataTable",
           props: {
             columns: [
-              { key: 'id', label: 'ID', align: 'left' },
-              { key: 'name', label: 'Name', align: 'left' },
-              { key: 'status', label: 'Status', align: 'center' },
-              { key: 'date', label: 'Date', align: 'right' },
+              { key: "id", label: "ID", align: "left" },
+              { key: "name", label: "Name", align: "left" },
+              { key: "status", label: "Status", align: "center" },
+              { key: "date", label: "Date", align: "right" },
             ],
             limit: 10,
-            sortBy: 'date',
-            sortDirection: 'desc',
+            sortBy: "date",
+            sortDirection: "desc",
           },
         },
       ],
     };
   }
   // Chart focus
-  else if (promptLower.includes('chart') || promptLower.includes('graph') || promptLower.includes('trend')) {
+  else if (
+    promptLower.includes("chart") ||
+    promptLower.includes("graph") ||
+    promptLower.includes("trend")
+  ) {
     result = {
-      title: 'Analytics',
-      description: 'Performance over time',
-      layout: 'stack',
-      theme: 'dark',
+      title: "Analytics",
+      description: "Performance over time",
+      layout: "stack",
+      theme: "dark",
       nodes: [
         {
-          id: 'chart-line',
-          type: 'MetricChart',
+          id: "chart-line",
+          type: "MetricChart",
           props: {
-            metricName: 'Performance',
-            chartType: 'line',
-            timeRange: '7d',
-            color: 'green',
-            title: 'Weekly Performance',
+            metricName: "Performance",
+            chartType: "line",
+            timeRange: "7d",
+            color: "green",
+            title: "Weekly Performance",
           },
         },
         {
-          id: 'chart-bar',
-          type: 'MetricChart',
+          id: "chart-bar",
+          type: "MetricChart",
           props: {
-            metricName: 'Conversions',
-            chartType: 'bar',
-            timeRange: '30d',
-            color: 'blue',
-            title: 'Monthly Conversions',
+            metricName: "Conversions",
+            chartType: "bar",
+            timeRange: "30d",
+            color: "blue",
+            title: "Monthly Conversions",
           },
         },
       ],
@@ -353,30 +421,30 @@ export async function generateMockUI(prompt: string): Promise<GeneratedUI> {
   // Default: combined dashboard
   else {
     result = {
-      title: 'Generated Panel',
+      title: "Generated Panel",
       description: `Created from: "${prompt.slice(0, 50)}..."`,
-      layout: 'stack',
-      theme: 'dark',
+      layout: "stack",
+      theme: "dark",
       nodes: [
         {
-          id: 'stat-1',
-          type: 'StatCard',
+          id: "stat-1",
+          type: "StatCard",
           props: {
-            value: '42',
-            label: 'Generated Metric',
-            color: 'green',
-            trend: 'up',
-            trendValue: '+5%',
+            value: "42",
+            label: "Generated Metric",
+            color: "green",
+            trend: "up",
+            trendValue: "+5%",
           },
         },
         {
-          id: 'chart-1',
-          type: 'MetricChart',
+          id: "chart-1",
+          type: "MetricChart",
           props: {
-            metricName: 'Activity',
-            chartType: 'area',
-            timeRange: '7d',
-            color: 'green',
+            metricName: "Activity",
+            chartType: "area",
+            timeRange: "7d",
+            color: "green",
           },
         },
       ],
@@ -392,51 +460,37 @@ export async function generateMockUI(prompt: string): Promise<GeneratedUI> {
 // ============================================
 
 /**
- * Generate UI using Claude API
- *
- * Requires VITE_ANTHROPIC_API_KEY environment variable
+ * Generate UI using Claude API via server-side proxy.
+ * Issue #306: API key kept server-side in ANTHROPIC_API_KEY env var.
  */
 export async function generateWithClaude(
   prompt: string,
-  context?: GenerationContext
+  context?: GenerationContext,
 ): Promise<GenerationResult> {
   const startTime = Date.now();
-  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
-
-  if (!apiKey) {
-    console.warn('No Anthropic API key found, falling back to mock generation');
-    const ui = await generateMockUI(prompt);
-    return {
-      success: true,
-      ui,
-      generationTimeMs: Date.now() - startTime,
-    };
-  }
 
   try {
     // Build context-aware prompt
-    let contextPrompt = '';
+    let contextPrompt = "";
     if (context?.designTokens) {
-      contextPrompt += `\nAvailable brand colors: ${context.designTokens.colors.map(c => c.name).join(', ')}`;
+      contextPrompt += `\nAvailable brand colors: ${context.designTokens.colors.map((c) => c.name).join(", ")}`;
     }
     if (context?.availableDataSources?.length) {
-      contextPrompt += `\nAvailable data sources: ${context.availableDataSources.join(', ')}`;
+      contextPrompt += `\nAvailable data sources: ${context.availableDataSources.join(", ")}`;
     }
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
+    const response = await fetch("/api/ai-proxy", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: 'claude-3-sonnet-20240229',
+        model: "claude-3-5-sonnet-20241022",
         max_tokens: 4096,
         system: SYSTEM_PROMPT,
         messages: [
           {
-            role: 'user',
+            role: "user",
             content: `Generate a UI layout for the following request:
 
 ${prompt}
@@ -449,16 +503,16 @@ Return ONLY valid JSON, no markdown formatting.`,
     });
 
     if (!response.ok) {
-      throw new Error(`Claude API error: ${response.status}`);
+      throw new Error(`AI proxy error: ${response.status}`);
     }
 
     const data = await response.json();
-    const content = data.content[0]?.text || '';
+    const content = data.content[0]?.text || "";
 
     // Parse the JSON response
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      throw new Error('No valid JSON found in response');
+      throw new Error("No valid JSON found in response");
     }
 
     const ui = JSON.parse(jsonMatch[0]) as GeneratedUI;
@@ -471,14 +525,14 @@ Return ONLY valid JSON, no markdown formatting.`,
       generationTimeMs: Date.now() - startTime,
     };
   } catch (error) {
-    console.error('Claude generation failed:', error);
+    console.error("Claude generation failed:", error);
 
     // Fallback to mock generation
     const ui = await generateMockUI(prompt);
     return {
       success: true,
       ui,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
       generationTimeMs: Date.now() - startTime,
     };
   }
@@ -501,35 +555,23 @@ export interface StreamCallbacks {
 export async function generateWithStreaming(
   prompt: string,
   context?: GenerationContext,
-  callbacks?: StreamCallbacks
+  callbacks?: StreamCallbacks,
 ): Promise<GenerationResult> {
   callbacks?.onStart?.();
 
-  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
-
-  if (!apiKey) {
-    // Mock streaming with delay
-    const ui = await generateMockUI(prompt);
-    callbacks?.onComplete?.(ui);
-    return { success: true, ui };
-  }
-
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
+    const response = await fetch("/api/ai-proxy", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: 'claude-3-sonnet-20240229',
+        model: "claude-3-5-sonnet-20241022",
         max_tokens: 4096,
-        stream: true,
         system: SYSTEM_PROMPT,
         messages: [
           {
-            role: 'user',
+            role: "user",
             content: `Generate a UI layout for: ${prompt}\n\nReturn ONLY valid JSON.`,
           },
         ],
@@ -542,23 +584,25 @@ export async function generateWithStreaming(
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
-    let fullContent = '';
+    let fullContent = "";
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
 
       const chunk = decoder.decode(value);
-      const lines = chunk.split('\n').filter(line => line.startsWith('data: '));
+      const lines = chunk
+        .split("\n")
+        .filter((line) => line.startsWith("data: "));
 
       for (const line of lines) {
         const data = line.slice(6);
-        if (data === '[DONE]') continue;
+        if (data === "[DONE]") continue;
 
         try {
           const parsed = JSON.parse(data);
-          if (parsed.type === 'content_block_delta') {
-            const text = parsed.delta?.text || '';
+          if (parsed.type === "content_block_delta") {
+            const text = parsed.delta?.text || "";
             fullContent += text;
             callbacks?.onChunk?.(text);
           }
@@ -570,7 +614,7 @@ export async function generateWithStreaming(
 
     const jsonMatch = fullContent.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      throw new Error('No valid JSON in streamed response');
+      throw new Error("No valid JSON in streamed response");
     }
 
     const ui = JSON.parse(jsonMatch[0]) as GeneratedUI;

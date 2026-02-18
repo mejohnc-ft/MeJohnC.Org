@@ -20,6 +20,12 @@
   to = "/.netlify/functions/gateway"
   status = 200
 
+# AI proxy - keeps Anthropic API key server-side (Issue #306)
+[[redirects]]
+  from = "/api/ai-proxy"
+  to = "/.netlify/functions/ai-proxy"
+  status = 200
+
 # SPA redirect - let React Router handle all routes
 [[redirects]]
   from = "/*"
