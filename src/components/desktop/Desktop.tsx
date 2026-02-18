@@ -1,18 +1,18 @@
-import { useCallback, useState } from 'react';
-import { useWindowManagerContext, useWorkspaceContext } from './WindowManager';
-import Window from './Window';
-import DesktopIcon from './DesktopIcon';
-import ContextMenu from './ContextMenu';
-import { useContextMenu, type ContextMenuItem } from '@/hooks/useContextMenu';
-import { useFileSystem } from '@/hooks/useFileSystem';
-import { ROOT_FOLDERS, type FileSystemNode } from '@/lib/desktop-schemas';
-import { Loader2 } from 'lucide-react';
+import { useCallback, useState } from "react";
+import { useWindowManagerContext, useWorkspaceContext } from "./WindowManager";
+import Window from "./Window";
+import DesktopIcon from "./DesktopIcon";
+import ContextMenu from "./ContextMenu";
+import { useContextMenu, type ContextMenuItem } from "@/hooks/useContextMenu";
+import { useFileSystem } from "@/hooks/useFileSystem";
+import { ROOT_FOLDERS, type FileSystemNode } from "@/lib/desktop-schemas";
+import { Loader2 } from "lucide-react";
 
 export default function Desktop() {
   const { state, launchApp } = useWindowManagerContext();
   const workspace = useWorkspaceContext();
   const contextMenu = useContextMenu();
-  const fs = useFileSystem(ROOT_FOLDERS.DESKTOP);
+  const fs = useFileSystem(ROOT_FOLDERS.DESKTOP, workspace.userId);
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
 
   const handleDesktopClick = useCallback((e: React.MouseEvent) => {
@@ -21,35 +21,68 @@ export default function Desktop() {
     }
   }, []);
 
-  const handleDesktopContextMenu = useCallback((e: React.MouseEvent) => {
-    const items: ContextMenuItem[] = [
-      { id: 'new-folder', label: 'New Folder', onClick: () => fs.createFolder('New Folder') },
-      { id: 'sep1', label: '', separator: true },
-      { id: 'change-wallpaper', label: 'Change Wallpaper...', onClick: () => launchApp('wallpaper-picker') },
-      { id: 'sep2', label: '', separator: true },
-      { id: 'refresh', label: 'Refresh', shortcut: '⌘R', onClick: () => fs.refresh() },
-    ];
-    contextMenu.openMenu(e, items);
-  }, [contextMenu, fs, launchApp]);
+  const handleDesktopContextMenu = useCallback(
+    (e: React.MouseEvent) => {
+      const items: ContextMenuItem[] = [
+        {
+          id: "new-folder",
+          label: "New Folder",
+          onClick: () => fs.createFolder("New Folder"),
+        },
+        { id: "sep1", label: "", separator: true },
+        {
+          id: "change-wallpaper",
+          label: "Change Wallpaper...",
+          onClick: () => launchApp("wallpaper-picker"),
+        },
+        { id: "sep2", label: "", separator: true },
+        {
+          id: "refresh",
+          label: "Refresh",
+          shortcut: "⌘R",
+          onClick: () => fs.refresh(),
+        },
+      ];
+      contextMenu.openMenu(e, items);
+    },
+    [contextMenu, fs, launchApp],
+  );
 
-  const handleIconContextMenu = useCallback((e: React.MouseEvent, node: FileSystemNode) => {
-    const items: ContextMenuItem[] = [
-      { id: 'open', label: 'Open', onClick: () => handleOpenIcon(node) },
-      { id: 'sep1', label: '', separator: true },
-      { id: 'rename', label: 'Rename', onClick: () => { /* TODO */ } },
-      { id: 'sep2', label: '', separator: true },
-      { id: 'trash', label: 'Move to Trash', danger: true, onClick: () => fs.moveToTrash(node.id) },
-    ];
-    contextMenu.openMenu(e, items);
-  }, [contextMenu, fs]);
+  const handleIconContextMenu = useCallback(
+    (e: React.MouseEvent, node: FileSystemNode) => {
+      const items: ContextMenuItem[] = [
+        { id: "open", label: "Open", onClick: () => handleOpenIcon(node) },
+        { id: "sep1", label: "", separator: true },
+        {
+          id: "rename",
+          label: "Rename",
+          onClick: () => {
+            /* TODO */
+          },
+        },
+        { id: "sep2", label: "", separator: true },
+        {
+          id: "trash",
+          label: "Move to Trash",
+          danger: true,
+          onClick: () => fs.moveToTrash(node.id),
+        },
+      ];
+      contextMenu.openMenu(e, items);
+    },
+    [contextMenu, fs],
+  );
 
-  const handleOpenIcon = useCallback((node: FileSystemNode) => {
-    if (node.type === 'folder') {
-      launchApp('file-explorer');
-    } else if (node.app_id) {
-      launchApp(node.app_id);
-    }
-  }, [launchApp]);
+  const handleOpenIcon = useCallback(
+    (node: FileSystemNode) => {
+      if (node.type === "folder") {
+        launchApp("file-explorer");
+      } else if (node.target_type === "app" && node.target_id) {
+        launchApp(node.target_id);
+      }
+    },
+    [launchApp],
+  );
 
   const handleIconSelect = useCallback((id: string) => {
     setSelectedIconId(id);
@@ -74,7 +107,7 @@ export default function Desktop() {
       onContextMenu={handleDesktopContextMenu}
     >
       {/* Desktop Icons */}
-      {fs.children.map(node => (
+      {fs.children.map((node) => (
         <DesktopIcon
           key={node.id}
           node={node}
@@ -87,7 +120,7 @@ export default function Desktop() {
       ))}
 
       {/* Windows */}
-      {state.windows.map(win => (
+      {state.windows.map((win) => (
         <Window key={win.id} window={win} />
       ))}
 
