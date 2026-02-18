@@ -1,6 +1,5 @@
-import { useCallback, useRef } from 'react';
-
-const MENU_BAR_HEIGHT = 28;
+import { useCallback, useRef } from "react";
+import { MENU_BAR_HEIGHT } from "@/lib/desktop-constants";
 const TITLE_BAR_MIN_VISIBLE = 48;
 
 export interface DragCallbacks {
@@ -74,16 +73,17 @@ export function useWindowDrag({
         // GPU-accelerated movement via transform
         if (windowRef.current) {
           windowRef.current.style.transform = `translate(${newX}px, ${newY}px)`;
-          windowRef.current.style.left = '0';
-          windowRef.current.style.top = '0';
+          windowRef.current.style.left = "0";
+          windowRef.current.style.top = "0";
         }
 
         callbacks?.onDragMove?.(newX, newY);
       };
 
       const handleUp = (upEvent: PointerEvent) => {
-        el.removeEventListener('pointermove', handleMove);
-        el.removeEventListener('pointerup', handleUp);
+        el.removeEventListener("pointermove", handleMove);
+        el.removeEventListener("pointerup", handleUp);
+        el.removeEventListener("pointercancel", handleUp);
 
         if (!dragStartRef.current) return;
         const dx = upEvent.clientX - dragStartRef.current.px;
@@ -103,7 +103,7 @@ export function useWindowDrag({
 
         // Commit to DOM before state update
         if (windowRef.current) {
-          windowRef.current.style.transform = '';
+          windowRef.current.style.transform = "";
           windowRef.current.style.left = `${newX}px`;
           windowRef.current.style.top = `${newY}px`;
         }
@@ -114,10 +114,11 @@ export function useWindowDrag({
         isDraggingRef.current = false;
       };
 
-      el.addEventListener('pointermove', handleMove);
-      el.addEventListener('pointerup', handleUp);
+      el.addEventListener("pointermove", handleMove);
+      el.addEventListener("pointerup", handleUp);
+      el.addEventListener("pointercancel", handleUp);
     },
-    [windowRef, x, y, width, maximized, callbacks]
+    [windowRef, x, y, width, maximized, callbacks],
   );
 
   return { handleTitleBarPointerDown, isDraggingRef };

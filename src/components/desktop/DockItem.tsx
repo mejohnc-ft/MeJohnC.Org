@@ -1,17 +1,59 @@
-import { useCallback, useState, forwardRef } from 'react';
+import { useCallback, useState, forwardRef } from "react";
 import {
-  LayoutDashboard, FileText, Newspaper, Bookmark, Bot, BookText,
-  Wrench, BookOpen, CheckSquare, Users, FolderKanban, AppWindow,
-  BarChart3, Server, Cable, FileCode2, GitBranch, Clock, Plug,
-  FileSearch, Settings, User, Sparkles, Palette, FolderOpen,
-} from 'lucide-react';
-import type { DesktopApp } from './apps/AppRegistry';
+  LayoutDashboard,
+  FileText,
+  Newspaper,
+  Bookmark,
+  Bot,
+  BookText,
+  Wrench,
+  BookOpen,
+  CheckSquare,
+  Users,
+  FolderKanban,
+  AppWindow,
+  BarChart3,
+  Server,
+  Cable,
+  FileCode2,
+  GitBranch,
+  Clock,
+  Plug,
+  FileSearch,
+  Settings,
+  User,
+  Sparkles,
+  Palette,
+  FolderOpen,
+} from "lucide-react";
+import type { DesktopApp } from "./apps/AppRegistry";
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
-  LayoutDashboard, FileText, Newspaper, Bookmark, Bot, BookText,
-  Wrench, BookOpen, CheckSquare, Users, FolderKanban, AppWindow,
-  BarChart3, Server, Cable, FileCode2, GitBranch, Clock, Plug,
-  FileSearch, Settings, User, Sparkles, Palette, FolderOpen,
+  LayoutDashboard,
+  FileText,
+  Newspaper,
+  Bookmark,
+  Bot,
+  BookText,
+  Wrench,
+  BookOpen,
+  CheckSquare,
+  Users,
+  FolderKanban,
+  AppWindow,
+  BarChart3,
+  Server,
+  Cable,
+  FileCode2,
+  GitBranch,
+  Clock,
+  Plug,
+  FileSearch,
+  Settings,
+  User,
+  Sparkles,
+  Palette,
+  FolderOpen,
 };
 
 interface DockItemProps {
@@ -22,34 +64,38 @@ interface DockItemProps {
   onContextMenu?: (e: React.MouseEvent) => void;
 }
 
-const DockItem = forwardRef<HTMLButtonElement, DockItemProps>(
-  function DockItem({ app, isRunning, isFocused, onClick, onContextMenu }, ref) {
-    const [bouncing, setBouncing] = useState(false);
-    const Icon = ICON_MAP[app.icon];
+const DockItem = forwardRef<HTMLButtonElement, DockItemProps>(function DockItem(
+  { app, isRunning, isFocused, onClick, onContextMenu },
+  ref,
+) {
+  const [bouncing, setBouncing] = useState(false);
+  const Icon = ICON_MAP[app.icon];
 
-    const handleClick = useCallback(() => {
-      if (!isRunning) {
-        setBouncing(true);
-        setTimeout(() => setBouncing(false), 600);
-      }
-      onClick();
-    }, [isRunning, onClick]);
+  const handleClick = useCallback(() => {
+    if (!isRunning) {
+      setBouncing(true);
+      setTimeout(() => setBouncing(false), 600);
+    }
+    onClick();
+  }, [isRunning, onClick]);
 
-    return (
-      <button
-        ref={ref}
-        onClick={handleClick}
-        onContextMenu={onContextMenu}
-        className="relative flex flex-col items-center group"
-        role="button"
-        aria-pressed={isRunning}
-        aria-label={`${app.name}${isRunning ? ' (running)' : ''}`}
-      >
-        {/* Tooltip */}
-        <span className="absolute -top-8 px-2 py-0.5 bg-card border border-border rounded text-[10px] text-foreground font-medium opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-lg">
-          {app.name}
-        </span>
+  return (
+    <button
+      ref={ref}
+      onClick={handleClick}
+      onContextMenu={onContextMenu}
+      className="relative flex flex-col items-center group"
+      role="button"
+      aria-label={`${app.name}${isRunning ? ", running" : ""}`}
+      aria-current={isFocused || undefined}
+    >
+      {/* Tooltip */}
+      <span className="absolute bottom-full mb-2 px-2 py-0.5 bg-card border border-border rounded text-[10px] text-foreground font-medium opacity-0 group-hover:opacity-100 transition-opacity delay-300 pointer-events-none whitespace-nowrap shadow-lg">
+        {app.name}
+      </span>
 
+      {/* Bounce wrapper — separate from magnification transform */}
+      <div className={bouncing ? "animate-bounce" : ""}>
         {/* Icon container — transform set via ref by Dock magnification */}
         <div
           className={`
@@ -59,10 +105,9 @@ const DockItem = forwardRef<HTMLButtonElement, DockItemProps>(
             hover:bg-card hover:border-border
             active:scale-95
             transition-transform duration-150 ease-out
-            ${isFocused ? 'ring-1 ring-primary/50' : ''}
-            ${bouncing ? 'animate-bounce' : ''}
+            ${isFocused ? "ring-1 ring-primary/50" : ""}
           `}
-          style={{ transformOrigin: 'bottom center' }}
+          style={{ transformOrigin: "bottom center" }}
         >
           {Icon ? (
             <Icon className={`w-5 h-5 ${app.color}`} />
@@ -72,14 +117,14 @@ const DockItem = forwardRef<HTMLButtonElement, DockItemProps>(
             </span>
           )}
         </div>
+      </div>
 
-        {/* Running indicator dot */}
-        {isRunning && (
-          <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-foreground/70" />
-        )}
-      </button>
-    );
-  }
-);
+      {/* Running indicator dot */}
+      {isRunning && (
+        <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-foreground/70" />
+      )}
+    </button>
+  );
+});
 
 export default DockItem;

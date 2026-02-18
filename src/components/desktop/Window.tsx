@@ -304,6 +304,14 @@ export default function Window({ window: win }: WindowProps) {
         onAnimationComplete: () => setAnimPhase("hidden"),
       };
     }
+    if (animPhase === "minimizing" && !dockTarget) {
+      // Fallback: no dock target — scale down in place
+      return {
+        animate: { scale: 0.1, opacity: 0 },
+        transition: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
+        onAnimationComplete: () => setAnimPhase("hidden"),
+      };
+    }
     if (animPhase === "restoring" && dockTarget) {
       return {
         initial: {
@@ -317,6 +325,15 @@ export default function Window({ window: win }: WindowProps) {
           duration: 0.3,
           ease: [0.4, 0, 0.2, 1],
         },
+        onAnimationComplete: () => setAnimPhase("visible"),
+      };
+    }
+    if (animPhase === "restoring" && !dockTarget) {
+      // Fallback: no dock target — scale up in place
+      return {
+        initial: { scale: 0.1, opacity: 0 },
+        animate: { scale: 1, opacity: 1 },
+        transition: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
         onAnimationComplete: () => setAnimPhase("visible"),
       };
     }
@@ -378,9 +395,7 @@ export default function Window({ window: win }: WindowProps) {
             onClose={() => closeWindow(win.id)}
           >
             <Suspense fallback={<WindowLoader />}>
-              <div className="p-8">
-                <AppComponent />
-              </div>
+              <AppComponent />
             </Suspense>
           </WindowErrorBoundary>
         </div>

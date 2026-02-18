@@ -18,8 +18,7 @@ import {
 } from "lucide-react";
 import type { FileSystemNode } from "@/lib/desktop-schemas";
 
-const MENU_BAR_HEIGHT = 28;
-const DOCK_HEIGHT = 64;
+import { MENU_BAR_HEIGHT, DOCK_HEIGHT } from "@/lib/desktop-constants";
 const ICON_SIZE = 80; // total icon cell size
 
 const ICON_COMPONENTS: Record<
@@ -206,7 +205,7 @@ export default function DesktopIcon({
         absolute flex flex-col items-center justify-start gap-1 p-2
         rounded-lg cursor-default select-none touch-none
         focus:outline-none focus-visible:ring-2 focus-visible:ring-primary
-        ${isSelected ? "bg-primary/20 ring-1 ring-primary/40" : "hover:bg-white/5"}
+        ${isSelected ? "bg-primary/20 ring-1 ring-primary/40" : "hover:bg-black/5 dark:hover:bg-white/5"}
       `}
       style={{
         left: position.x,
@@ -227,7 +226,7 @@ export default function DesktopIcon({
       <Icon
         className={`w-8 h-8 ${node.color ?? "text-blue-400"} drop-shadow-md`}
       />
-      <span className="text-[10px] text-white text-center leading-tight line-clamp-2 drop-shadow-md font-medium">
+      <span className="text-[10px] text-white text-center leading-tight line-clamp-2 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] font-medium">
         {node.name}
       </span>
     </div>

@@ -6,15 +6,18 @@ import {
   useMemo,
   useState,
   useEffect,
+  useRef,
   ReactNode,
 } from "react";
 import { useWindowManager, WindowManagerState } from "@/hooks/useWindowManager";
 import { useDesktopWorkspace } from "@/hooks/useDesktopWorkspace";
 import { getApp } from "./apps/AppRegistry";
 
-const MAX_OPEN_WINDOWS = 10;
-const MENU_BAR_HEIGHT = 28;
-const DOCK_HEIGHT = 64;
+import {
+  MENU_BAR_HEIGHT,
+  DOCK_HEIGHT,
+  MAX_OPEN_WINDOWS,
+} from "@/lib/desktop-constants";
 
 interface WindowManagerContextType {
   state: WindowManagerState;
@@ -53,9 +56,6 @@ const WorkspaceContext = createContext<WorkspaceContextType | undefined>(
   undefined,
 );
 
-// Cascade offset for new windows
-let cascadeOffset = 0;
-
 interface WindowManagerProviderProps {
   userId: string;
   children: ReactNode;
@@ -66,6 +66,7 @@ export function WindowManagerProvider({
   children,
 }: WindowManagerProviderProps) {
   const wm = useWindowManager();
+  const cascadeOffset = useRef(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Auto-dismiss toast after 3 seconds
@@ -105,12 +106,17 @@ export function WindowManagerProvider({
       }
 
       // Cascade position for new windows
-      const baseX = 80 + (cascadeOffset % 8) * 30;
-      const baseY = MENU_BAR_HEIGHT + 40 + (cascadeOffset % 8) * 30;
-      cascadeOffset++;
+      const baseX = 80 + (cascadeOffset.current % 8) * 30;
+      const baseY = MENU_BAR_HEIGHT + 40 + (cascadeOffset.current % 8) * 30;
+      cascadeOffset.current++;
 
-      const { width, height } = app.defaultSize;
-      // Clamp to viewport
+      // Clamp size to viewport
+      const width = Math.min(app.defaultSize.width, window.innerWidth - 40);
+      const height = Math.min(
+        app.defaultSize.height,
+        window.innerHeight - MENU_BAR_HEIGHT - DOCK_HEIGHT - 40,
+      );
+      // Clamp position to viewport
       const maxX = Math.max(0, window.innerWidth - width);
       const maxY = Math.max(
         MENU_BAR_HEIGHT,

@@ -1,11 +1,19 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { getActiveWorkspace, createDefaultWorkspace, saveWorkspace } from '@/lib/desktop-queries';
-import { getApp, getDefaultDockApps } from '@/components/desktop/apps/AppRegistry';
-import type { WindowState } from './useWindowManager';
-import type { DesktopWorkspace } from '@/lib/desktop-schemas';
+import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  getActiveWorkspace,
+  createDefaultWorkspace,
+  saveWorkspace,
+} from "@/lib/desktop-queries";
+import {
+  getApp,
+  getDefaultDockApps,
+} from "@/components/desktop/apps/AppRegistry";
+import type { WindowState } from "./useWindowManager";
+import type { DesktopWorkspace } from "@/lib/desktop-schemas";
 
 const SAVE_DEBOUNCE_MS = 2000;
-const DEFAULT_WALLPAPER = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 70%, #533483 100%)';
+const DEFAULT_WALLPAPER =
+  "linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 70%, #533483 100%)";
 
 /** Shape persisted for each window (no ephemeral id) */
 interface PersistedWindowState {
@@ -21,27 +29,33 @@ interface PersistedWindowState {
 }
 
 function serializeWindows(windows: WindowState[]): PersistedWindowState[] {
-  return windows.map(w => ({
-    appId: w.appId,
-    title: w.title,
-    x: w.x,
-    y: w.y,
-    width: w.width,
-    height: w.height,
-    minimized: w.minimized,
-    maximized: w.maximized,
-    preMaximize: w.preMaximize,
-  }));
+  // Sort by zIndex so restore order preserves z-order
+  return [...windows]
+    .sort((a, b) => a.zIndex - b.zIndex)
+    .map((w) => ({
+      appId: w.appId,
+      title: w.title,
+      x: w.x,
+      y: w.y,
+      width: w.width,
+      height: w.height,
+      minimized: w.minimized,
+      maximized: w.maximized,
+      preMaximize: w.preMaximize,
+    }));
 }
 
 let restoreCounter = 0;
 
-function deserializeWindows(persisted: PersistedWindowState[]): { windows: WindowState[]; nextZIndex: number } {
+function deserializeWindows(persisted: PersistedWindowState[]): {
+  windows: WindowState[];
+  nextZIndex: number;
+} {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
 
   const windows: WindowState[] = persisted
-    .filter(w => getApp(w.appId)) // drop windows for unregistered apps
+    .filter((w) => getApp(w.appId)) // drop windows for unregistered apps
     .map((w, i) => ({
       ...w,
       id: `${w.appId}-r${++restoreCounter}-${Date.now()}`,
@@ -66,10 +80,16 @@ interface UseDesktopWorkspaceOptions {
   restoreWindowState: (windows: WindowState[], nextZIndex: number) => void;
 }
 
-export function useDesktopWorkspace({ userId, windowState, restoreWindowState }: UseDesktopWorkspaceOptions) {
+export function useDesktopWorkspace({
+  userId,
+  windowState,
+  restoreWindowState,
+}: UseDesktopWorkspaceOptions) {
   const [isLoading, setIsLoading] = useState(true);
   const [wallpaper, setWallpaper] = useState(DEFAULT_WALLPAPER);
-  const [dockItems, setDockItems] = useState<string[]>(() => getDefaultDockApps().map(a => a.id));
+  const [dockItems, setDockItems] = useState<string[]>(() =>
+    getDefaultDockApps().map((a) => a.id),
+  );
   const workspaceRef = useRef<DesktopWorkspace | null>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasRestoredRef = useRef(false);
@@ -96,7 +116,7 @@ export function useDesktopWorkspace({ userId, windowState, restoreWindowState }:
         // Restore dock items
         if (ws.dock_items && ws.dock_items.length > 0) {
           const appIds = (ws.dock_items as Array<{ appId?: string }>)
-            .map(item => item.appId)
+            .map((item) => item.appId)
             .filter((id): id is string => !!id && !!getApp(id));
           if (appIds.length > 0) {
             setDockItems(appIds);
@@ -106,7 +126,7 @@ export function useDesktopWorkspace({ userId, windowState, restoreWindowState }:
         // Restore window states
         if (ws.window_states && ws.window_states.length > 0) {
           const { windows, nextZIndex } = deserializeWindows(
-            ws.window_states as unknown as PersistedWindowState[]
+            ws.window_states as unknown as PersistedWindowState[],
           );
           if (windows.length > 0) {
             restoreWindowState(windows, nextZIndex);
@@ -115,18 +135,20 @@ export function useDesktopWorkspace({ userId, windowState, restoreWindowState }:
 
         hasRestoredRef.current = true;
       } catch (err) {
-        console.error('[useDesktopWorkspace] Failed to load workspace:', err);
+        console.error("[useDesktopWorkspace] Failed to load workspace:", err);
       } finally {
         if (!cancelled) setIsLoading(false);
       }
     }
 
     init();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [userId, restoreWindowState]);
 
   // Debounced save on window state changes
-  const prevWindowsRef = useRef<string>('');
+  const prevWindowsRef = useRef<string>("");
   useEffect(() => {
     if (!hasRestoredRef.current || !workspaceRef.current) return;
 
@@ -141,7 +163,9 @@ export function useDesktopWorkspace({ userId, windowState, restoreWindowState }:
       if (!ws) return;
       saveWorkspace(ws.id, {
         window_states: JSON.parse(serialized),
-      }).catch(err => console.error('[useDesktopWorkspace] Save window state failed:', err));
+      }).catch((err) =>
+        console.error("[useDesktopWorkspace] Save window state failed:", err),
+      );
     }, SAVE_DEBOUNCE_MS);
 
     return () => {
@@ -154,8 +178,9 @@ export function useDesktopWorkspace({ userId, windowState, restoreWindowState }:
     setWallpaper(newWallpaper);
     const ws = workspaceRef.current;
     if (!ws) return;
-    saveWorkspace(ws.id, { wallpaper: newWallpaper })
-      .catch(err => console.error('[useDesktopWorkspace] Save wallpaper failed:', err));
+    saveWorkspace(ws.id, { wallpaper: newWallpaper }).catch((err) =>
+      console.error("[useDesktopWorkspace] Save wallpaper failed:", err),
+    );
   }, []);
 
   // Immediate dock save
@@ -163,31 +188,42 @@ export function useDesktopWorkspace({ userId, windowState, restoreWindowState }:
     const ws = workspaceRef.current;
     if (!ws) return;
     saveWorkspace(ws.id, {
-      dock_items: items.map(appId => ({ appId })),
-    }).catch(err => console.error('[useDesktopWorkspace] Save dock items failed:', err));
+      dock_items: items.map((appId) => ({ appId })),
+    }).catch((err) =>
+      console.error("[useDesktopWorkspace] Save dock items failed:", err),
+    );
   }, []);
 
-  const pinApp = useCallback((appId: string) => {
-    setDockItems(prev => {
-      if (prev.includes(appId)) return prev;
-      const next = [...prev, appId];
-      saveDockItems(next);
-      return next;
-    });
-  }, [saveDockItems]);
+  const pinApp = useCallback(
+    (appId: string) => {
+      setDockItems((prev) => {
+        if (prev.includes(appId)) return prev;
+        const next = [...prev, appId];
+        saveDockItems(next);
+        return next;
+      });
+    },
+    [saveDockItems],
+  );
 
-  const unpinApp = useCallback((appId: string) => {
-    setDockItems(prev => {
-      const next = prev.filter(id => id !== appId);
-      saveDockItems(next);
-      return next;
-    });
-  }, [saveDockItems]);
+  const unpinApp = useCallback(
+    (appId: string) => {
+      setDockItems((prev) => {
+        const next = prev.filter((id) => id !== appId);
+        saveDockItems(next);
+        return next;
+      });
+    },
+    [saveDockItems],
+  );
 
-  const reorderDockItems = useCallback((items: string[]) => {
-    setDockItems(items);
-    saveDockItems(items);
-  }, [saveDockItems]);
+  const reorderDockItems = useCallback(
+    (items: string[]) => {
+      setDockItems(items);
+      saveDockItems(items);
+    },
+    [saveDockItems],
+  );
 
   // Cleanup timer on unmount
   useEffect(() => {

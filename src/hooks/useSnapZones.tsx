@@ -1,9 +1,12 @@
 import { useCallback, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-const SNAP_THRESHOLD = 12;
-const MENU_BAR_HEIGHT = 28;
-const DOCK_HEIGHT = 64;
+import { MENU_BAR_HEIGHT, DOCK_HEIGHT } from "@/lib/desktop-constants";
+
+const SNAP_THRESHOLD = Math.max(
+  12,
+  Math.round((12 * (window.devicePixelRatio ?? 1)) / 2),
+);
 
 export type SnapZone =
   | "left-half"
@@ -136,7 +139,7 @@ export function SnapPreview({ zone }: { zone: SnapZone }) {
         zIndex: 9999,
         pointerEvents: "none",
       }}
-      className="bg-blue-500/20 border-2 border-blue-500/40 rounded-lg transition-all duration-150"
+      className="bg-blue-500/20 border-2 border-blue-500/40 rounded-lg transition-opacity duration-100"
     />,
     document.body,
   );

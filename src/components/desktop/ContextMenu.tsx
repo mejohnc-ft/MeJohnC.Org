@@ -27,14 +27,9 @@ export default function ContextMenu({
   const [focusedIndex, setFocusedIndex] = useState<number>(() =>
     actionableIndices.length > 0 ? actionableIndices[0] : -1,
   );
+  const [positioned, setPositioned] = useState(false);
 
-  // Auto-focus the menu on mount
-  useEffect(() => {
-    menuRef.current?.focus();
-  }, []);
-
-  // Viewport clamping
-  const clampedPosition = useRef(position);
+  // Viewport clamping + focus on mount (render offscreen first to measure, then clamp)
   useEffect(() => {
     if (!menuRef.current) return;
     const rect = menuRef.current.getBoundingClientRect();
@@ -45,9 +40,10 @@ export default function ContextMenu({
     if (y + rect.height > viewH) y = viewH - rect.height - 4;
     if (x < 0) x = 4;
     if (y < 0) y = 4;
-    clampedPosition.current = { x, y };
     menuRef.current.style.left = `${x}px`;
     menuRef.current.style.top = `${y}px`;
+    setPositioned(true);
+    menuRef.current.focus();
   }, [position]);
 
   // Close on outside click
@@ -123,8 +119,9 @@ export default function ContextMenu({
       className="fixed min-w-[180px] bg-card/95 backdrop-blur-md border border-border rounded-lg shadow-xl py-1 outline-none"
       style={{
         zIndex: 55,
-        left: position.x,
-        top: position.y,
+        left: positioned ? undefined : -9999,
+        top: positioned ? undefined : -9999,
+        visibility: positioned ? "visible" : "hidden",
       }}
       role="menu"
       tabIndex={-1}

@@ -1,8 +1,7 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef } from "react";
+import { MENU_BAR_HEIGHT } from "@/lib/desktop-constants";
 
-const MENU_BAR_HEIGHT = 28;
-
-export type ResizeEdge = 'n' | 'e' | 's' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
+export type ResizeEdge = "n" | "e" | "s" | "w" | "ne" | "nw" | "se" | "sw";
 
 export interface ResizeCallbacks {
   onResizeEnd: (x: number, y: number, width: number, height: number) => void;
@@ -38,10 +37,10 @@ function calcResize(
 ) {
   let { x: newX, y: newY, w: newW, h: newH } = start;
 
-  const hasEast = edge === 'e' || edge === 'ne' || edge === 'se';
-  const hasWest = edge === 'w' || edge === 'nw' || edge === 'sw';
-  const hasSouth = edge === 's' || edge === 'se' || edge === 'sw';
-  const hasNorth = edge === 'n' || edge === 'ne' || edge === 'nw';
+  const hasEast = edge === "e" || edge === "ne" || edge === "se";
+  const hasWest = edge === "w" || edge === "nw" || edge === "sw";
+  const hasSouth = edge === "s" || edge === "se" || edge === "sw";
+  const hasNorth = edge === "n" || edge === "ne" || edge === "nw";
 
   if (hasEast) newW = Math.max(minW, start.w + dx);
   if (hasWest) {
@@ -103,16 +102,17 @@ export function useWindowResize({
         );
         if (windowRef.current) {
           windowRef.current.style.transform = `translate(${r.x}px, ${r.y}px)`;
-          windowRef.current.style.left = '0';
-          windowRef.current.style.top = '0';
+          windowRef.current.style.left = "0";
+          windowRef.current.style.top = "0";
           windowRef.current.style.width = `${r.w}px`;
           windowRef.current.style.height = `${r.h}px`;
         }
       };
 
       const handleUp = (upEvent: PointerEvent) => {
-        el.removeEventListener('pointermove', handleMove);
-        el.removeEventListener('pointerup', handleUp);
+        el.removeEventListener("pointermove", handleMove);
+        el.removeEventListener("pointerup", handleUp);
+        el.removeEventListener("pointercancel", handleUp);
         resizingRef.current = false;
 
         const r = calcResize(
@@ -124,7 +124,7 @@ export function useWindowResize({
           minHeight,
         );
         if (windowRef.current) {
-          windowRef.current.style.transform = '';
+          windowRef.current.style.transform = "";
           windowRef.current.style.left = `${r.x}px`;
           windowRef.current.style.top = `${r.y}px`;
           windowRef.current.style.width = `${r.w}px`;
@@ -133,10 +133,11 @@ export function useWindowResize({
         callbacks.onResizeEnd(r.x, r.y, r.w, r.h);
       };
 
-      el.addEventListener('pointermove', handleMove);
-      el.addEventListener('pointerup', handleUp);
+      el.addEventListener("pointermove", handleMove);
+      el.addEventListener("pointerup", handleUp);
+      el.addEventListener("pointercancel", handleUp);
     },
-    [windowRef, x, y, width, height, minWidth, minHeight, maximized, callbacks]
+    [windowRef, x, y, width, height, minWidth, minHeight, maximized, callbacks],
   );
 
   return { handleResizePointerDown, resizingRef };
@@ -153,14 +154,44 @@ export function ResizeHandles({
   if (maximized) return null;
 
   const edges: { edge: ResizeEdge; style: React.CSSProperties }[] = [
-    { edge: 'n', style: { top: -2, left: 8, right: 8, height: 4, cursor: 'n-resize' } },
-    { edge: 's', style: { bottom: -2, left: 8, right: 8, height: 4, cursor: 's-resize' } },
-    { edge: 'e', style: { top: 8, right: -2, bottom: 8, width: 4, cursor: 'e-resize' } },
-    { edge: 'w', style: { top: 8, left: -2, bottom: 8, width: 4, cursor: 'w-resize' } },
-    { edge: 'nw', style: { top: -4, left: -4, width: 8, height: 8, cursor: 'nw-resize' } },
-    { edge: 'ne', style: { top: -4, right: -4, width: 8, height: 8, cursor: 'ne-resize' } },
-    { edge: 'sw', style: { bottom: -4, left: -4, width: 8, height: 8, cursor: 'sw-resize' } },
-    { edge: 'se', style: { bottom: -4, right: -4, width: 8, height: 8, cursor: 'se-resize' } },
+    {
+      edge: "n",
+      style: { top: -2, left: 8, right: 8, height: 4, cursor: "n-resize" },
+    },
+    {
+      edge: "s",
+      style: { bottom: -2, left: 8, right: 8, height: 4, cursor: "s-resize" },
+    },
+    {
+      edge: "e",
+      style: { top: 8, right: -2, bottom: 8, width: 4, cursor: "e-resize" },
+    },
+    {
+      edge: "w",
+      style: { top: 8, left: -2, bottom: 8, width: 4, cursor: "w-resize" },
+    },
+    {
+      edge: "nw",
+      style: { top: -4, left: -4, width: 8, height: 8, cursor: "nw-resize" },
+    },
+    {
+      edge: "ne",
+      style: { top: -4, right: -4, width: 8, height: 8, cursor: "ne-resize" },
+    },
+    {
+      edge: "sw",
+      style: { bottom: -4, left: -4, width: 8, height: 8, cursor: "sw-resize" },
+    },
+    {
+      edge: "se",
+      style: {
+        bottom: -4,
+        right: -4,
+        width: 8,
+        height: 8,
+        cursor: "se-resize",
+      },
+    },
   ];
 
   return (
@@ -168,7 +199,7 @@ export function ResizeHandles({
       {edges.map(({ edge, style }) => (
         <div
           key={edge}
-          style={{ position: 'absolute', zIndex: 1, ...style }}
+          style={{ position: "absolute", zIndex: 1, ...style }}
           onPointerDown={(e) => onPointerDown(edge, e)}
         />
       ))}

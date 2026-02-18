@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { UserButton } from '@clerk/clerk-react';
-import { Bell } from 'lucide-react';
-import { ThemeToggleMinimal } from '@/components/ThemeToggle';
-import { useAuth } from '@/lib/auth';
-import { useWindowManagerContext } from './WindowManager';
-import { getApp } from './apps/AppRegistry';
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { UserButton } from "@clerk/clerk-react";
+import { Bell } from "lucide-react";
+import { ThemeToggleMinimal } from "@/components/ThemeToggle";
+import { useAuth } from "@/lib/auth";
+import { useWindowManagerContext } from "./WindowManager";
+import { getApp } from "./apps/AppRegistry";
 
 interface MenuBarProps {
   onToggleNotifications?: () => void;
@@ -20,7 +20,9 @@ export default function MenuBar({ onToggleNotifications }: MenuBarProps) {
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Find focused app name
-  const focusedWindow = state.windows.find(w => w.id === state.focusedWindowId);
+  const focusedWindow = state.windows.find(
+    (w) => w.id === state.focusedWindowId,
+  );
   const focusedApp = focusedWindow ? getApp(focusedWindow.appId) : null;
 
   // Clock
@@ -37,8 +39,8 @@ export default function MenuBar({ onToggleNotifications }: MenuBarProps) {
         setMenuOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
   }, [menuOpen]);
 
   return (
@@ -54,16 +56,21 @@ export default function MenuBar({ onToggleNotifications }: MenuBarProps) {
             onClick={() => setMenuOpen(!menuOpen)}
             className="font-mono text-xs font-bold text-foreground hover:text-primary transition-colors"
             role="menuitem"
-            aria-haspopup="true"
+            aria-haspopup="menu"
             aria-expanded={menuOpen}
           >
             jc_
           </button>
 
           {menuOpen && (
-            <div className="absolute top-full left-0 mt-1 w-48 bg-card border border-border rounded-lg shadow-xl py-1 z-[60]">
+            <div
+              className="absolute top-full left-0 mt-1 w-48 bg-card border border-border rounded-lg shadow-xl py-1 z-[60]"
+              role="menu"
+            >
               <button
-                onClick={() => { setMenuOpen(false); }}
+                onClick={() => {
+                  setMenuOpen(false);
+                }}
                 className="w-full text-left px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 role="menuitem"
               >
@@ -71,14 +78,20 @@ export default function MenuBar({ onToggleNotifications }: MenuBarProps) {
               </button>
               <div className="border-t border-border my-1" />
               <button
-                onClick={() => { setMenuOpen(false); navigate('/admin'); }}
+                onClick={() => {
+                  setMenuOpen(false);
+                  navigate("/admin");
+                }}
                 className="w-full text-left px-3 py-1.5 text-xs text-foreground hover:bg-muted transition-colors"
                 role="menuitem"
               >
                 Switch to Classic Mode
               </button>
               <button
-                onClick={() => { setMenuOpen(false); window.open('/', '_blank'); }}
+                onClick={() => {
+                  setMenuOpen(false);
+                  window.open("/", "_blank");
+                }}
                 className="w-full text-left px-3 py-1.5 text-xs text-foreground hover:bg-muted transition-colors"
                 role="menuitem"
               >
@@ -86,7 +99,10 @@ export default function MenuBar({ onToggleNotifications }: MenuBarProps) {
               </button>
               <div className="border-t border-border my-1" />
               <button
-                onClick={() => { setMenuOpen(false); signOut(); }}
+                onClick={() => {
+                  setMenuOpen(false);
+                  signOut();
+                }}
                 className="w-full text-left px-3 py-1.5 text-xs text-red-500 hover:bg-muted transition-colors"
                 role="menuitem"
               >
@@ -122,8 +138,8 @@ export default function MenuBar({ onToggleNotifications }: MenuBarProps) {
         <UserButton
           appearance={{
             elements: {
-              avatarBox: 'w-5 h-5',
-            }
+              avatarBox: "w-5 h-5",
+            },
           }}
         />
       </div>
@@ -132,5 +148,8 @@ export default function MenuBar({ onToggleNotifications }: MenuBarProps) {
 }
 
 function formatTime(): string {
-  return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return new Date().toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }

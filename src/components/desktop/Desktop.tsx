@@ -54,14 +54,6 @@ export default function Desktop() {
         { id: "open", label: "Open", onClick: () => handleOpenIcon(node) },
         { id: "sep1", label: "", separator: true },
         {
-          id: "rename",
-          label: "Rename",
-          onClick: () => {
-            /* TODO */
-          },
-        },
-        { id: "sep2", label: "", separator: true },
-        {
           id: "trash",
           label: "Move to Trash",
           danger: true,
