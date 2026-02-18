@@ -219,6 +219,22 @@ export default function Window({ window: win }: WindowProps) {
     callbacks: resizeCallbacks,
   });
 
+  // Move focus into the window when it becomes the focused window
+  useEffect(() => {
+    if (!isFocused || !windowRef.current) return;
+    // If focus is already inside this window, don't steal it
+    if (windowRef.current.contains(document.activeElement)) return;
+    // Focus the first interactive element, or the window itself
+    const focusable = windowRef.current.querySelector<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+    if (focusable) {
+      focusable.focus();
+    } else {
+      windowRef.current.focus();
+    }
+  }, [isFocused]);
+
   const handlePointerDown = useCallback(() => {
     if (!isFocused) {
       focusWindow(win.id);
@@ -324,8 +340,10 @@ export default function Window({ window: win }: WindowProps) {
         {...motionAnimProps}
         role="dialog"
         aria-label={win.title}
+        aria-modal={isFocused}
+        tabIndex={-1}
         className={`
-          absolute flex flex-col rounded-lg overflow-visible
+          absolute flex flex-col rounded-lg overflow-visible outline-none
           ${isFocused ? "shadow-2xl ring-1 ring-border" : "shadow-lg ring-1 ring-border/50"}
         `}
         style={{
