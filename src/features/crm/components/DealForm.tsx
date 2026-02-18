@@ -7,7 +7,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuthenticatedSupabase } from "@/lib/supabase";
+import { useTenantSupabase } from "@/lib/supabase";
 import { getContacts } from "@/lib/crm-queries";
 import { getPipelines, getPipelineStages } from "@/lib/crm-queries";
 import type { Contact, Pipeline, PipelineStage, Deal } from "../schemas";
@@ -42,7 +42,7 @@ export function DealForm({
   onCancel,
   isEditing = false,
 }: DealFormProps) {
-  const { supabase } = useAuthenticatedSupabase();
+  const { supabase, tenantId } = useTenantSupabase();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [pipelines, setPipelines] = useState<Pipeline[]>([]);
   const [stages, setStages] = useState<PipelineStage[]>([]);
@@ -132,8 +132,7 @@ export function DealForm({
           : null,
         notes: formData.notes || null,
         lost_reason: initialData?.lost_reason ?? null,
-        tenant_id:
-          initialData?.tenant_id ?? "00000000-0000-0000-0000-000000000001",
+        tenant_id: initialData?.tenant_id ?? tenantId!,
       });
     } finally {
       setIsSaving(false);

@@ -11,17 +11,20 @@ import { Rss, Loader2 } from "lucide-react";
 import AdminLayout from "@/components/AdminLayout";
 import { SourceManager } from "../components/SourceManager";
 import { NewsServiceSupabase } from "@/services/news";
-import { useAuthenticatedSupabase } from "@/lib/supabase";
+import { useTenantSupabase } from "@/lib/supabase";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
 import { type NewsSource, type NewsCategory } from "../schemas";
-import { DEFAULT_TENANT_ID } from "@/lib/schemas";
 
 const newsService = new NewsServiceSupabase();
 
 export default function SourcesPage() {
   useSEO({ title: "News Sources", noIndex: true });
-  const { supabase } = useAuthenticatedSupabase();
+  const {
+    supabase,
+    tenantId,
+    isLoading: isTenantLoading,
+  } = useTenantSupabase();
 
   const [sources, setSources] = useState<NewsSource[]>([]);
   const [categories, setCategories] = useState<NewsCategory[]>([]);
@@ -66,7 +69,7 @@ export default function SourcesPage() {
           is_active: data.is_active ?? true,
           icon_url: null,
           order_index: sources.length,
-          tenant_id: DEFAULT_TENANT_ID,
+          tenant_id: tenantId!,
         },
       );
       setSources((prev) => [...prev, created]);
@@ -120,7 +123,7 @@ export default function SourcesPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isTenantLoading || !tenantId) {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center h-64">

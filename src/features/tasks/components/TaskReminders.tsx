@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Bell, Plus, Trash2, CheckCircle2, Clock } from "lucide-react";
 import { format } from "date-fns";
-import { useAuthenticatedSupabase } from "@/lib/supabase";
+import { useTenantSupabase } from "@/lib/supabase";
 import {
   getTaskReminders,
   createTaskReminder,
   deleteTaskReminder,
 } from "@/lib/task-queries";
-import { TaskReminder, DEFAULT_TENANT_ID } from "@/lib/schemas";
+import { TaskReminder } from "@/lib/schemas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -18,7 +18,7 @@ interface TaskRemindersProps {
 }
 
 export function TaskReminders({ taskId }: TaskRemindersProps) {
-  const { supabase } = useAuthenticatedSupabase();
+  const { supabase, tenantId } = useTenantSupabase();
   const [reminders, setReminders] = useState<TaskReminder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -51,7 +51,7 @@ export function TaskReminders({ taskId }: TaskRemindersProps) {
 
   async function handleAddReminder(e: React.FormEvent) {
     e.preventDefault();
-    if (!supabase || !reminderDate) return;
+    if (!supabase || !tenantId || !reminderDate) return;
 
     setIsSubmitting(true);
     try {
@@ -60,7 +60,7 @@ export function TaskReminders({ taskId }: TaskRemindersProps) {
       ).toISOString();
       const reminder = await createTaskReminder(
         {
-          tenant_id: DEFAULT_TENANT_ID,
+          tenant_id: tenantId,
           task_id: taskId,
           reminder_at: reminderAt,
           reminder_type: reminderType,

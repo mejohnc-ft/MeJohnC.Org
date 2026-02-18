@@ -5,7 +5,7 @@
  * Handles XML parsing, field extraction, and data normalization.
  */
 
-import { type NewsArticle, DEFAULT_TENANT_ID } from "@/lib/schemas";
+import { type NewsArticle } from "@/lib/schemas";
 
 export interface RssFeedItem {
   guid?: string;
@@ -232,7 +232,7 @@ export class RssAdapter {
   convertToArticles(
     feedItems: RssFeedItem[],
     sourceId: string,
-    tenantId: string = DEFAULT_TENANT_ID,
+    tenantId: string,
   ): Omit<NewsArticle, "id" | "created_at" | "updated_at">[] {
     return feedItems.map((item) => ({
       tenant_id: tenantId,

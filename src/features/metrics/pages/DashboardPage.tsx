@@ -10,7 +10,7 @@
 
 import { lazy, Suspense, useState, useCallback } from "react";
 import { useSEO } from "@/lib/seo";
-import { useAuthenticatedSupabase } from "@/lib/supabase";
+import { useTenantSupabase } from "@/lib/supabase";
 import AdminLayout from "@/components/AdminLayout";
 import { Card } from "@/components/ui/card";
 import { SourceModal, type SourceFormData } from "../components/SourceModal";
@@ -20,7 +20,7 @@ import {
   updateMetricsSource,
   deleteMetricsSource,
 } from "@/lib/metrics-queries";
-import { DEFAULT_TENANT_ID, type MetricsSource } from "@/lib/schemas";
+import type { MetricsSource } from "@/lib/schemas";
 
 // Lazy load heavy components with charts
 const MetricsDashboard = lazy(() =>
@@ -46,7 +46,7 @@ function ChartSkeleton() {
 
 export default function DashboardPage() {
   useSEO({ title: "Metrics Dashboard", noIndex: true });
-  const { supabase } = useAuthenticatedSupabase();
+  const { supabase, tenantId } = useTenantSupabase();
 
   // State for modal and detail panel
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -85,7 +85,7 @@ export default function DashboardPage() {
       if (modalMode === "create") {
         await createMetricsSource(
           {
-            tenant_id: DEFAULT_TENANT_ID,
+            tenant_id: tenantId!,
             name: data.name,
             slug: data.slug,
             source_type: data.source_type,

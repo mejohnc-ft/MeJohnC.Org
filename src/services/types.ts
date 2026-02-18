@@ -6,15 +6,15 @@
  * enabling future extraction of features as standalone products.
  */
 
-import { SupabaseClient } from '@supabase/supabase-js';
-import { DEFAULT_TENANT_ID } from '@/lib/schemas';
+import { SupabaseClient } from "@supabase/supabase-js";
+import { DEFAULT_TENANT_ID } from "@/lib/schemas";
 
 /**
  * Service mode determines the underlying implementation.
  * - 'supabase': Direct Supabase client access (current)
  * - 'api': REST API access (future, for standalone apps)
  */
-export type ServiceMode = 'supabase' | 'api';
+export type ServiceMode = "supabase" | "api";
 
 /**
  * Context passed to all service operations.
@@ -61,7 +61,21 @@ export interface BaseService {
 
 /**
  * Helper to get tenant ID from context, with default fallback.
+ * @deprecated Use getTenantIdStrict() instead — default fallback bypasses tenant isolation (#297)
  */
 export function getTenantId(ctx: ServiceContext): string {
   return ctx.tenantId ?? DEFAULT_TENANT_ID;
+}
+
+/**
+ * Strict helper to get tenant ID from context.
+ * Throws if tenantId is missing — ensures callers always provide explicit tenant context.
+ */
+export function getTenantIdStrict(ctx: ServiceContext): string {
+  if (!ctx.tenantId) {
+    throw new Error(
+      "tenantId is required but was not provided in ServiceContext",
+    );
+  }
+  return ctx.tenantId;
 }

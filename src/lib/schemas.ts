@@ -1,15 +1,24 @@
-import { z } from 'zod';
-import { captureException } from './sentry';
+import { z } from "zod";
+import { captureException } from "./sentry";
 
 // ============================================
 // TENANT SCHEMAS (Multi-tenant support)
 // ============================================
 
-// Default tenant ID for standalone mode
-export const DEFAULT_TENANT_ID = '00000000-0000-0000-0000-000000000001';
+/**
+ * Default tenant ID for standalone mode.
+ * @deprecated Do not use for new code — pass tenantId from useTenantSupabase() or ServiceContext instead (#297).
+ * Retained only for Zod schema .default() calls.
+ */
+export const DEFAULT_TENANT_ID = "00000000-0000-0000-0000-000000000001";
 
 // Tenant Types
-export const TenantTypeSchema = z.enum(['platform', 'organization', 'account', 'user']);
+export const TenantTypeSchema = z.enum([
+  "platform",
+  "organization",
+  "account",
+  "user",
+]);
 export type TenantType = z.infer<typeof TenantTypeSchema>;
 
 // Tenant Schema
@@ -47,7 +56,12 @@ export const AppSuiteSchema = z.object({
 export type AppSuite = z.infer<typeof AppSuiteSchema>;
 
 // Apps
-export const AppStatusSchema = z.enum(['planned', 'in_development', 'available', 'archived']);
+export const AppStatusSchema = z.enum([
+  "planned",
+  "in_development",
+  "available",
+  "archived",
+]);
 export const AppSchema = z.object({
   id: z.string().uuid(),
   tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
@@ -76,7 +90,7 @@ export const AppWithSuiteSchema = AppSchema.extend({
 export type AppWithSuite = z.infer<typeof AppWithSuiteSchema>;
 
 // Blog Posts
-export const BlogPostStatusSchema = z.enum(['draft', 'published', 'scheduled']);
+export const BlogPostStatusSchema = z.enum(["draft", "published", "scheduled"]);
 export const BlogPostSchema = z.object({
   id: z.string().uuid(),
   tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
@@ -110,7 +124,7 @@ export const SiteContentSchema = z.object({
 export type SiteContent = z.infer<typeof SiteContentSchema>;
 
 // Projects
-export const ProjectStatusSchema = z.enum(['draft', 'published', 'scheduled']);
+export const ProjectStatusSchema = z.enum(["draft", "published", "scheduled"]);
 export const ProjectSchema = z.object({
   id: z.string().uuid(),
   tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
@@ -133,7 +147,13 @@ export const ProjectSchema = z.object({
 export type Project = z.infer<typeof ProjectSchema>;
 
 // Contact Links
-export const ContactIconSchema = z.enum(['email', 'linkedin', 'github', 'twitter', 'calendar']);
+export const ContactIconSchema = z.enum([
+  "email",
+  "linkedin",
+  "github",
+  "twitter",
+  "calendar",
+]);
 export const ContactLinkSchema = z.object({
   id: z.string().uuid(),
   tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
@@ -155,8 +175,14 @@ export const WorkHistoryEntrySchema = z.object({
   title: z.string(),
   company: z.string(),
   period: z.string(),
-  highlights: z.array(z.string()).nullable().transform(v => v ?? []),
-  tech: z.array(z.string()).nullable().transform(v => v ?? []),
+  highlights: z
+    .array(z.string())
+    .nullable()
+    .transform((v) => v ?? []),
+  tech: z
+    .array(z.string())
+    .nullable()
+    .transform((v) => v ?? []),
   order_index: z.number(),
   created_at: z.string(),
   updated_at: z.string(),
@@ -178,7 +204,7 @@ export const CaseStudySchema = z.object({
 export type CaseStudy = z.infer<typeof CaseStudySchema>;
 
 // Timelines
-export const TimelineChartTypeSchema = z.enum(['growth', 'linear', 'decline']);
+export const TimelineChartTypeSchema = z.enum(["growth", "linear", "decline"]);
 export const TimelineSchema = z.object({
   id: z.string().uuid(),
   tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
@@ -217,7 +243,7 @@ export type TimelineWithEntries = z.infer<typeof TimelineWithEntriesSchema>;
 export function parseResponse<T>(
   schema: z.ZodSchema<T>,
   data: unknown,
-  context: string
+  context: string,
 ): T {
   const result = schema.safeParse(data);
   if (!result.success) {
@@ -234,15 +260,18 @@ export function parseResponse<T>(
 export function parseArrayResponse<T>(
   schema: z.ZodSchema<T>,
   data: unknown,
-  context: string
+  context: string,
 ): T[] {
   const arraySchema = z.array(schema);
   const result = arraySchema.safeParse(data);
   if (!result.success) {
-    captureException(new Error(`Array schema validation failed for ${context}`), {
-      context,
-      errors: result.error.errors,
-    });
+    captureException(
+      new Error(`Array schema validation failed for ${context}`),
+      {
+        context,
+        errors: result.error.errors,
+      },
+    );
     throw new Error(`Invalid response format from ${context}`);
   }
   return result.data;
@@ -253,7 +282,14 @@ export function parseArrayResponse<T>(
 // ============================================
 
 // News Categories
-export const NewsCategoryColorSchema = z.enum(['blue', 'green', 'purple', 'orange', 'red', 'yellow']);
+export const NewsCategoryColorSchema = z.enum([
+  "blue",
+  "green",
+  "purple",
+  "orange",
+  "red",
+  "yellow",
+]);
 export const NewsCategorySchema = z.object({
   id: z.string().uuid(),
   tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
@@ -268,7 +304,7 @@ export const NewsCategorySchema = z.object({
 export type NewsCategory = z.infer<typeof NewsCategorySchema>;
 
 // News Sources
-export const NewsSourceTypeSchema = z.enum(['rss', 'api']);
+export const NewsSourceTypeSchema = z.enum(["rss", "api"]);
 export const NewsSourceSchema = z.object({
   id: z.string().uuid(),
   tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
@@ -292,7 +328,9 @@ export type NewsSource = z.infer<typeof NewsSourceSchema>;
 export const NewsSourceWithCategorySchema = NewsSourceSchema.extend({
   category: NewsCategorySchema.nullable(),
 });
-export type NewsSourceWithCategory = z.infer<typeof NewsSourceWithCategorySchema>;
+export type NewsSourceWithCategory = z.infer<
+  typeof NewsSourceWithCategorySchema
+>;
 
 // News Articles
 export const NewsArticleSchema = z.object({
@@ -304,7 +342,7 @@ export const NewsArticleSchema = z.object({
   description: z.string().nullable(),
   content: z.string().nullable(),
   url: z.string(),
-  source_url: z.string().nullable(),  // The source's own article page (for link-blogs)
+  source_url: z.string().nullable(), // The source's own article page (for link-blogs)
   image_url: z.string().nullable(),
   author: z.string().nullable(),
   published_at: z.string().nullable(),
@@ -329,7 +367,12 @@ export const NewsArticleWithSourceSchema = NewsArticleSchema.extend({
 export type NewsArticleWithSource = z.infer<typeof NewsArticleWithSourceSchema>;
 
 // News Filters
-export const NewsFilterTypeSchema = z.enum(['include_keyword', 'exclude_keyword', 'include_topic', 'exclude_source']);
+export const NewsFilterTypeSchema = z.enum([
+  "include_keyword",
+  "exclude_keyword",
+  "include_topic",
+  "exclude_source",
+]);
 export const NewsFilterSchema = z.object({
   id: z.string().uuid(),
   tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
@@ -342,11 +385,17 @@ export const NewsFilterSchema = z.object({
 export type NewsFilter = z.infer<typeof NewsFilterSchema>;
 
 // News Dashboard Tabs
-export const NewsDashboardTabTypeSchema = z.enum(['filter', 'category', 'source', 'saved_search', 'custom']);
+export const NewsDashboardTabTypeSchema = z.enum([
+  "filter",
+  "category",
+  "source",
+  "saved_search",
+  "custom",
+]);
 
 // Tab config schemas for different tab types
 export const TabConfigFilterSchema = z.object({
-  filter: z.enum(['all', 'unread', 'bookmarked', 'curated', 'archived']),
+  filter: z.enum(["all", "unread", "bookmarked", "curated", "archived"]),
 });
 
 export const TabConfigCategorySchema = z.object({
@@ -415,8 +464,15 @@ export type NewsStats = z.infer<typeof NewsStatsSchema>;
 // ============================================
 
 // Agent Commands (input queue)
-export const AgentCommandTypeSchema = z.enum(['chat', 'task', 'cancel']);
-export const AgentCommandStatusSchema = z.enum(['pending', 'received', 'processing', 'completed', 'failed', 'cancelled']);
+export const AgentCommandTypeSchema = z.enum(["chat", "task", "cancel"]);
+export const AgentCommandStatusSchema = z.enum([
+  "pending",
+  "received",
+  "processing",
+  "completed",
+  "failed",
+  "cancelled",
+]);
 export const AgentCommandSchema = z.object({
   id: z.string().uuid(),
   tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
@@ -434,7 +490,15 @@ export const AgentCommandSchema = z.object({
 export type AgentCommand = z.infer<typeof AgentCommandSchema>;
 
 // Agent Responses (output stream)
-export const AgentResponseTypeSchema = z.enum(['message', 'tool_use', 'tool_result', 'progress', 'error', 'complete', 'confirmation_request']);
+export const AgentResponseTypeSchema = z.enum([
+  "message",
+  "tool_use",
+  "tool_result",
+  "progress",
+  "error",
+  "complete",
+  "confirmation_request",
+]);
 export const AgentResponseSchema = z.object({
   id: z.string().uuid(),
   tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
@@ -452,8 +516,14 @@ export const AgentResponseSchema = z.object({
 export type AgentResponse = z.infer<typeof AgentResponseSchema>;
 
 // Agent Tasks
-export const AgentTaskTypeSchema = z.enum(['scheduled', 'triggered', 'manual']);
-export const AgentTaskStatusSchema = z.enum(['active', 'paused', 'completed', 'failed', 'disabled']);
+export const AgentTaskTypeSchema = z.enum(["scheduled", "triggered", "manual"]);
+export const AgentTaskStatusSchema = z.enum([
+  "active",
+  "paused",
+  "completed",
+  "failed",
+  "disabled",
+]);
 export const AgentTaskSchema = z.object({
   id: z.string().uuid(),
   tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
@@ -475,7 +545,12 @@ export const AgentTaskSchema = z.object({
 export type AgentTask = z.infer<typeof AgentTaskSchema>;
 
 // Agent Task Runs
-export const AgentTaskRunStatusSchema = z.enum(['running', 'completed', 'failed', 'cancelled']);
+export const AgentTaskRunStatusSchema = z.enum([
+  "running",
+  "completed",
+  "failed",
+  "cancelled",
+]);
 export const AgentTaskRunSchema = z.object({
   id: z.string().uuid(),
   tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
@@ -519,7 +594,12 @@ export const AgentConfigSchema = z.object({
 export type AgentConfig = z.infer<typeof AgentConfigSchema>;
 
 // Agent Confirmations
-export const AgentConfirmationStatusSchema = z.enum(['pending', 'approved', 'rejected', 'expired']);
+export const AgentConfirmationStatusSchema = z.enum([
+  "pending",
+  "approved",
+  "rejected",
+  "expired",
+]);
 export const AgentConfirmationSchema = z.object({
   id: z.string().uuid(),
   tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
@@ -540,10 +620,18 @@ export type AgentConfirmation = z.infer<typeof AgentConfirmationSchema>;
 // ============================================
 
 // Platform Agent Types
-export const PlatformAgentTypeSchema = z.enum(['autonomous', 'supervised', 'tool']);
+export const PlatformAgentTypeSchema = z.enum([
+  "autonomous",
+  "supervised",
+  "tool",
+]);
 export type PlatformAgentType = z.infer<typeof PlatformAgentTypeSchema>;
 
-export const PlatformAgentStatusSchema = z.enum(['active', 'inactive', 'suspended']);
+export const PlatformAgentStatusSchema = z.enum([
+  "active",
+  "inactive",
+  "suspended",
+]);
 export type PlatformAgentStatus = z.infer<typeof PlatformAgentStatusSchema>;
 
 export const AgentPlatformSchema = z.object({
@@ -551,7 +639,10 @@ export const AgentPlatformSchema = z.object({
   name: z.string(),
   type: PlatformAgentTypeSchema,
   status: PlatformAgentStatusSchema,
-  capabilities: z.array(z.string()).nullable().transform(v => v ?? []),
+  capabilities: z
+    .array(z.string())
+    .nullable()
+    .transform((v) => v ?? []),
   api_key_prefix: z.string().nullable(),
   health_status: z.string().nullable(),
   rate_limit_rpm: z.number().nullable(),
@@ -563,7 +654,12 @@ export const AgentPlatformSchema = z.object({
 export type AgentPlatform = z.infer<typeof AgentPlatformSchema>;
 
 // Workflow Types
-export const WorkflowTriggerTypeSchema = z.enum(['manual', 'scheduled', 'webhook', 'event']);
+export const WorkflowTriggerTypeSchema = z.enum([
+  "manual",
+  "scheduled",
+  "webhook",
+  "event",
+]);
 export type WorkflowTriggerType = z.infer<typeof WorkflowTriggerTypeSchema>;
 
 export const WorkflowSchema = z.object({
@@ -572,7 +668,10 @@ export const WorkflowSchema = z.object({
   description: z.string().nullable(),
   trigger_type: WorkflowTriggerTypeSchema,
   trigger_config: z.record(z.unknown()).nullable(),
-  steps: z.array(z.record(z.unknown())).nullable().transform(v => v ?? []),
+  steps: z
+    .array(z.record(z.unknown()))
+    .nullable()
+    .transform((v) => v ?? []),
   is_active: z.boolean(),
   created_by: z.string().nullable(),
   created_at: z.string(),
@@ -581,7 +680,13 @@ export const WorkflowSchema = z.object({
 export type Workflow = z.infer<typeof WorkflowSchema>;
 
 // Workflow Run Types
-export const WorkflowRunStatusSchema = z.enum(['pending', 'running', 'completed', 'failed', 'cancelled']);
+export const WorkflowRunStatusSchema = z.enum([
+  "pending",
+  "running",
+  "completed",
+  "failed",
+  "cancelled",
+]);
 export type WorkflowRunStatus = z.infer<typeof WorkflowRunStatusSchema>;
 
 export const WorkflowRunSchema = z.object({
@@ -590,7 +695,10 @@ export const WorkflowRunSchema = z.object({
   status: WorkflowRunStatusSchema,
   trigger_type: z.string().nullable(),
   trigger_data: z.record(z.unknown()).nullable(),
-  step_results: z.array(z.record(z.unknown())).nullable().transform(v => v ?? []),
+  step_results: z
+    .array(z.record(z.unknown()))
+    .nullable()
+    .transform((v) => v ?? []),
   error: z.string().nullable(),
   started_at: z.string().nullable(),
   completed_at: z.string().nullable(),
@@ -599,10 +707,17 @@ export const WorkflowRunSchema = z.object({
 export type WorkflowRun = z.infer<typeof WorkflowRunSchema>;
 
 // Integration Types
-export const IntegrationServiceTypeSchema = z.enum(['oauth2', 'api_key', 'webhook', 'custom']);
-export type IntegrationServiceType = z.infer<typeof IntegrationServiceTypeSchema>;
+export const IntegrationServiceTypeSchema = z.enum([
+  "oauth2",
+  "api_key",
+  "webhook",
+  "custom",
+]);
+export type IntegrationServiceType = z.infer<
+  typeof IntegrationServiceTypeSchema
+>;
 
-export const IntegrationStatusSchema = z.enum(['active', 'inactive', 'error']);
+export const IntegrationStatusSchema = z.enum(["active", "inactive", "error"]);
 export type IntegrationStatus = z.infer<typeof IntegrationStatusSchema>;
 
 export const IntegrationSchema = z.object({
@@ -623,14 +738,22 @@ export type Integration = z.infer<typeof IntegrationSchema>;
 export const AgentIntegrationSchema = z.object({
   agent_id: z.string().uuid(),
   integration_id: z.string().uuid(),
-  granted_scopes: z.array(z.string()).nullable().transform(v => v ?? []),
+  granted_scopes: z
+    .array(z.string())
+    .nullable()
+    .transform((v) => v ?? []),
   granted_at: z.string(),
   granted_by: z.string().nullable(),
 });
 export type AgentIntegration = z.infer<typeof AgentIntegrationSchema>;
 
 // Audit Log Entry (Phase 1 partitioned table)
-export const AuditLogActorTypeSchema = z.enum(['user', 'agent', 'system', 'scheduler']);
+export const AuditLogActorTypeSchema = z.enum([
+  "user",
+  "agent",
+  "system",
+  "scheduler",
+]);
 export type AuditLogActorType = z.infer<typeof AuditLogActorTypeSchema>;
 
 export const AuditLogEntrySchema = z.object({
@@ -665,7 +788,13 @@ export type ScheduledWorkflowRun = z.infer<typeof ScheduledWorkflowRunSchema>;
 // ============================================
 
 // Bookmarks
-export const BookmarkSourceSchema = z.enum(['twitter', 'pocket', 'raindrop', 'manual', 'other']);
+export const BookmarkSourceSchema = z.enum([
+  "twitter",
+  "pocket",
+  "raindrop",
+  "manual",
+  "other",
+]);
 export const BookmarkSchema = z.object({
   id: z.string().uuid(),
   tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
@@ -726,10 +855,18 @@ export const BookmarkCollectionItemSchema = z.object({
   notes: z.string().nullable(),
   added_at: z.string(),
 });
-export type BookmarkCollectionItem = z.infer<typeof BookmarkCollectionItemSchema>;
+export type BookmarkCollectionItem = z.infer<
+  typeof BookmarkCollectionItemSchema
+>;
 
 // Bookmark Import Jobs
-export const BookmarkImportJobStatusSchema = z.enum(['pending', 'processing', 'completed', 'failed', 'partial']);
+export const BookmarkImportJobStatusSchema = z.enum([
+  "pending",
+  "processing",
+  "completed",
+  "failed",
+  "partial",
+]);
 export const BookmarkImportJobSchema = z.object({
   id: z.string().uuid(),
   tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
@@ -766,8 +903,16 @@ export type BookmarkCategory = z.infer<typeof BookmarkCategorySchema>;
 // ============================================
 
 // Contact Types
-export const ContactTypeSchema = z.enum(['lead', 'prospect', 'client', 'partner', 'vendor', 'personal', 'other']);
-export const ContactStatusSchema = z.enum(['active', 'inactive', 'archived']);
+export const ContactTypeSchema = z.enum([
+  "lead",
+  "prospect",
+  "client",
+  "partner",
+  "vendor",
+  "personal",
+  "other",
+]);
+export const ContactStatusSchema = z.enum(["active", "inactive", "archived"]);
 
 // Contacts
 export const ContactSchema = z.object({
@@ -807,15 +952,21 @@ export type Contact = z.infer<typeof ContactSchema>;
 
 // Interaction Types
 export const InteractionTypeSchema = z.enum([
-  'email_sent', 'email_received',
-  'call_outbound', 'call_inbound',
-  'meeting', 'video_call',
-  'message', 'linkedin_message',
-  'note', 'task_completed',
-  'website_visit', 'form_submission',
-  'other'
+  "email_sent",
+  "email_received",
+  "call_outbound",
+  "call_inbound",
+  "meeting",
+  "video_call",
+  "message",
+  "linkedin_message",
+  "note",
+  "task_completed",
+  "website_visit",
+  "form_submission",
+  "other",
 ]);
-export const SentimentSchema = z.enum(['positive', 'neutral', 'negative']);
+export const SentimentSchema = z.enum(["positive", "neutral", "negative"]);
 
 // Interactions
 export const InteractionSchema = z.object({
@@ -829,11 +980,13 @@ export const InteractionSchema = z.object({
   outcome: z.string().nullable(),
   sentiment: SentimentSchema.nullable(),
   related_url: z.string().nullable(),
-  attachments: z.array(z.object({
-    name: z.string(),
-    url: z.string(),
-    type: z.string().optional(),
-  })),
+  attachments: z.array(
+    z.object({
+      name: z.string(),
+      url: z.string(),
+      type: z.string().optional(),
+    }),
+  ),
   occurred_at: z.string(),
   created_at: z.string(),
   created_by: z.string().nullable(),
@@ -841,9 +994,26 @@ export const InteractionSchema = z.object({
 export type Interaction = z.infer<typeof InteractionSchema>;
 
 // Follow-up Types
-export const FollowUpTypeSchema = z.enum(['reminder', 'call', 'email', 'meeting', 'task', 'review']);
-export const FollowUpStatusSchema = z.enum(['pending', 'completed', 'skipped', 'snoozed']);
-export const FollowUpPrioritySchema = z.enum(['low', 'normal', 'high', 'urgent']);
+export const FollowUpTypeSchema = z.enum([
+  "reminder",
+  "call",
+  "email",
+  "meeting",
+  "task",
+  "review",
+]);
+export const FollowUpStatusSchema = z.enum([
+  "pending",
+  "completed",
+  "skipped",
+  "snoozed",
+]);
+export const FollowUpPrioritySchema = z.enum([
+  "low",
+  "normal",
+  "high",
+  "urgent",
+]);
 
 // Follow-ups
 export const FollowUpSchema = z.object({
@@ -875,7 +1045,7 @@ export const ContactListSchema = z.object({
   name: z.string(),
   slug: z.string(),
   description: z.string().nullable(),
-  list_type: z.enum(['static', 'smart']),
+  list_type: z.enum(["static", "smart"]),
   smart_filter: z.record(z.unknown()).nullable(),
   color: z.string(),
   icon: z.string().nullable(),
@@ -913,7 +1083,7 @@ export const PipelineStageSchema = z.object({
 export type PipelineStage = z.infer<typeof PipelineStageSchema>;
 
 // Deals
-export const DealStatusSchema = z.enum(['open', 'won', 'lost']);
+export const DealStatusSchema = z.enum(["open", "won", "lost"]);
 export const DealSchema = z.object({
   id: z.string().uuid(),
   tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
@@ -953,8 +1123,19 @@ export type CRMStats = z.infer<typeof CRMStatsSchema>;
 // ============================================
 
 // Metrics Source Types
-export const MetricsSourceTypeSchema = z.enum(['github', 'analytics', 'supabase', 'webhook', 'custom']);
-export const MetricsAuthTypeSchema = z.enum(['none', 'api_key', 'oauth', 'bearer']);
+export const MetricsSourceTypeSchema = z.enum([
+  "github",
+  "analytics",
+  "supabase",
+  "webhook",
+  "custom",
+]);
+export const MetricsAuthTypeSchema = z.enum([
+  "none",
+  "api_key",
+  "oauth",
+  "bearer",
+]);
 
 export const MetricsSourceSchema = z.object({
   id: z.string().uuid(),
@@ -982,7 +1163,12 @@ export const MetricsSourceSchema = z.object({
 export type MetricsSource = z.infer<typeof MetricsSourceSchema>;
 
 // Metrics Data Types
-export const MetricsDataTypeSchema = z.enum(['counter', 'gauge', 'histogram', 'summary']);
+export const MetricsDataTypeSchema = z.enum([
+  "counter",
+  "gauge",
+  "histogram",
+  "summary",
+]);
 
 export const MetricsDataSchema = z.object({
   id: z.string().uuid(),
@@ -1001,7 +1187,7 @@ export type MetricsData = z.infer<typeof MetricsDataSchema>;
 // Dashboard Widget Types
 export const DashboardWidgetSchema = z.object({
   id: z.string(),
-  type: z.enum(['line', 'bar', 'area', 'stat', 'table']),
+  type: z.enum(["line", "bar", "area", "stat", "table"]),
   title: z.string(),
   source_id: z.string().uuid().nullable(),
   metric_name: z.string().nullable(),
@@ -1061,13 +1247,29 @@ export type MetricsStats = z.infer<typeof MetricsStatsSchema>;
 
 // Component Types
 export const SiteBuilderComponentTypeSchema = z.enum([
-  'hero', 'features', 'testimonials', 'cta', 'text', 'image',
-  'video', 'spacer', 'divider', 'grid', 'columns', 'accordion',
-  'tabs', 'gallery', 'stats', 'team', 'pricing', 'faq', 'contact'
+  "hero",
+  "features",
+  "testimonials",
+  "cta",
+  "text",
+  "image",
+  "video",
+  "spacer",
+  "divider",
+  "grid",
+  "columns",
+  "accordion",
+  "tabs",
+  "gallery",
+  "stats",
+  "team",
+  "pricing",
+  "faq",
+  "contact",
 ]);
 
 // Page Status
-export const SiteBuilderPageStatusSchema = z.enum(['draft', 'published']);
+export const SiteBuilderPageStatusSchema = z.enum(["draft", "published"]);
 
 // Site Builder Page
 export const SiteBuilderPageSchema = z.object({
@@ -1101,7 +1303,9 @@ export const SiteBuilderPageVersionSchema = z.object({
   created_by: z.string(),
   created_at: z.string(),
 });
-export type SiteBuilderPageVersion = z.infer<typeof SiteBuilderPageVersionSchema>;
+export type SiteBuilderPageVersion = z.infer<
+  typeof SiteBuilderPageVersionSchema
+>;
 
 // Page Component
 export const SiteBuilderPageComponentSchema = z.object({
@@ -1115,7 +1319,9 @@ export const SiteBuilderPageComponentSchema = z.object({
   created_at: z.string(),
   updated_at: z.string(),
 });
-export type SiteBuilderPageComponent = z.infer<typeof SiteBuilderPageComponentSchema>;
+export type SiteBuilderPageComponent = z.infer<
+  typeof SiteBuilderPageComponentSchema
+>;
 
 // Component Template
 export const SiteBuilderComponentTemplateSchema = z.object({
@@ -1132,13 +1338,19 @@ export const SiteBuilderComponentTemplateSchema = z.object({
   created_at: z.string(),
   updated_at: z.string(),
 });
-export type SiteBuilderComponentTemplate = z.infer<typeof SiteBuilderComponentTemplateSchema>;
+export type SiteBuilderComponentTemplate = z.infer<
+  typeof SiteBuilderComponentTemplateSchema
+>;
 
 // Page with Components (for editor)
-export const SiteBuilderPageWithComponentsSchema = SiteBuilderPageSchema.extend({
-  components: z.array(SiteBuilderPageComponentSchema),
-});
-export type SiteBuilderPageWithComponents = z.infer<typeof SiteBuilderPageWithComponentsSchema>;
+export const SiteBuilderPageWithComponentsSchema = SiteBuilderPageSchema.extend(
+  {
+    components: z.array(SiteBuilderPageComponentSchema),
+  },
+);
+export type SiteBuilderPageWithComponents = z.infer<
+  typeof SiteBuilderPageWithComponentsSchema
+>;
 
 // ============================================
 // TASK SYSTEM SCHEMAS
@@ -1160,8 +1372,14 @@ export const TaskCategorySchema = z.object({
 export type TaskCategory = z.infer<typeof TaskCategorySchema>;
 
 // Tasks
-export const TaskStatusSchema = z.enum(['todo', 'in_progress', 'review', 'done', 'cancelled']);
-export const TaskPrioritySchema = z.enum(['low', 'medium', 'high', 'urgent']);
+export const TaskStatusSchema = z.enum([
+  "todo",
+  "in_progress",
+  "review",
+  "done",
+  "cancelled",
+]);
+export const TaskPrioritySchema = z.enum(["low", "medium", "high", "urgent"]);
 
 export const TaskSchema = z.object({
   id: z.string().uuid(),
@@ -1210,7 +1428,7 @@ export const TaskCommentSchema = z.object({
 export type TaskComment = z.infer<typeof TaskCommentSchema>;
 
 // Task Reminders
-export const TaskReminderTypeSchema = z.enum(['email', 'notification', 'both']);
+export const TaskReminderTypeSchema = z.enum(["email", "notification", "both"]);
 export const TaskReminderSchema = z.object({
   id: z.string().uuid(),
   tenant_id: z.string().uuid().default(DEFAULT_TENANT_ID),
@@ -1241,7 +1459,12 @@ export type TaskStats = z.infer<typeof TaskStatsSchema>;
 // ============================================
 
 // Email Subscriber Status
-export const EmailSubscriberStatusSchema = z.enum(['active', 'unsubscribed', 'bounced', 'complained']);
+export const EmailSubscriberStatusSchema = z.enum([
+  "active",
+  "unsubscribed",
+  "bounced",
+  "complained",
+]);
 
 // Email Subscribers
 export const EmailSubscriberSchema = z.object({
@@ -1289,7 +1512,14 @@ export const EmailListSchema = z.object({
 export type EmailList = z.infer<typeof EmailListSchema>;
 
 // Email Campaign Status
-export const EmailCampaignStatusSchema = z.enum(['draft', 'scheduled', 'sending', 'sent', 'paused', 'cancelled']);
+export const EmailCampaignStatusSchema = z.enum([
+  "draft",
+  "scheduled",
+  "sending",
+  "sent",
+  "paused",
+  "cancelled",
+]);
 
 // Email Campaigns
 export const EmailCampaignSchema = z.object({
@@ -1325,7 +1555,12 @@ export const EmailCampaignSchema = z.object({
 export type EmailCampaign = z.infer<typeof EmailCampaignSchema>;
 
 // Email Template Types
-export const EmailTemplateTypeSchema = z.enum(['newsletter', 'transactional', 'promotional', 'custom']);
+export const EmailTemplateTypeSchema = z.enum([
+  "newsletter",
+  "transactional",
+  "promotional",
+  "custom",
+]);
 
 // Email Templates
 export const EmailTemplateSchema = z.object({
@@ -1351,7 +1586,15 @@ export const EmailTemplateSchema = z.object({
 export type EmailTemplate = z.infer<typeof EmailTemplateSchema>;
 
 // Email Event Types
-export const EmailEventTypeSchema = z.enum(['sent', 'delivered', 'opened', 'clicked', 'bounced', 'complained', 'unsubscribed']);
+export const EmailEventTypeSchema = z.enum([
+  "sent",
+  "delivered",
+  "opened",
+  "clicked",
+  "bounced",
+  "complained",
+  "unsubscribed",
+]);
 
 // Email Events
 export const EmailEventSchema = z.object({
@@ -1374,7 +1617,12 @@ export const EmailEventSchema = z.object({
 export type EmailEvent = z.infer<typeof EmailEventSchema>;
 
 // NPS Survey Status
-export const NPSSurveyStatusSchema = z.enum(['draft', 'active', 'paused', 'closed']);
+export const NPSSurveyStatusSchema = z.enum([
+  "draft",
+  "active",
+  "paused",
+  "closed",
+]);
 
 // NPS Surveys
 export const NPSSurveySchema = z.object({
@@ -1399,7 +1647,7 @@ export const NPSSurveySchema = z.object({
 export type NPSSurvey = z.infer<typeof NPSSurveySchema>;
 
 // NPS Response Category
-export const NPSCategorySchema = z.enum(['promoter', 'passive', 'detractor']);
+export const NPSCategorySchema = z.enum(["promoter", "passive", "detractor"]);
 
 // NPS Responses
 export const NPSResponseSchema = z.object({
@@ -1420,8 +1668,19 @@ export const NPSResponseSchema = z.object({
 export type NPSResponse = z.infer<typeof NPSResponseSchema>;
 
 // Content Suggestion Types
-export const ContentSuggestionTypeSchema = z.enum(['email_subject', 'email_body', 'social_post', 'blog_title', 'landing_page_copy']);
-export const ContentSuggestionStatusSchema = z.enum(['pending', 'approved', 'rejected', 'used']);
+export const ContentSuggestionTypeSchema = z.enum([
+  "email_subject",
+  "email_body",
+  "social_post",
+  "blog_title",
+  "landing_page_copy",
+]);
+export const ContentSuggestionStatusSchema = z.enum([
+  "pending",
+  "approved",
+  "rejected",
+  "used",
+]);
 
 // Content Suggestions
 export const ContentSuggestionSchema = z.object({
@@ -1481,7 +1740,9 @@ export type AgentSkill = z.infer<typeof AgentSkillSchema>;
 export const AgentSkillWithCapabilitySchema = AgentSkillSchema.extend({
   capability_definitions: CapabilityDefinitionSchema.nullable(),
 });
-export type AgentSkillWithCapability = z.infer<typeof AgentSkillWithCapabilitySchema>;
+export type AgentSkillWithCapability = z.infer<
+  typeof AgentSkillWithCapabilitySchema
+>;
 
 // Event Types
 export const EventTypeSchema = z.object({
@@ -1496,7 +1757,11 @@ export const EventTypeSchema = z.object({
 export type EventType = z.infer<typeof EventTypeSchema>;
 
 // Event Subscriptions
-export const EventSubscriberTypeSchema = z.enum(['workflow', 'agent', 'webhook']);
+export const EventSubscriberTypeSchema = z.enum([
+  "workflow",
+  "agent",
+  "webhook",
+]);
 export type EventSubscriberType = z.infer<typeof EventSubscriberTypeSchema>;
 
 export const EventSubscriptionSchema = z.object({
@@ -1512,7 +1777,13 @@ export const EventSubscriptionSchema = z.object({
 export type EventSubscription = z.infer<typeof EventSubscriptionSchema>;
 
 // Events
-export const EventSourceTypeSchema = z.enum(['agent', 'workflow', 'system', 'webhook', 'user']);
+export const EventSourceTypeSchema = z.enum([
+  "agent",
+  "workflow",
+  "system",
+  "webhook",
+  "user",
+]);
 export type EventSourceType = z.infer<typeof EventSourceTypeSchema>;
 
 export const EventSchema = z.object({
@@ -1550,11 +1821,16 @@ export const StepTemplateSchema = z.object({
   name: z.string(),
   description: z.string().nullable(),
   category: z.string(),
-  step_type: z.enum(['agent_command', 'wait', 'condition', 'integration_action']),
+  step_type: z.enum([
+    "agent_command",
+    "wait",
+    "condition",
+    "integration_action",
+  ]),
   config: z.record(z.unknown()),
   timeout_ms: z.number(),
   retries: z.number(),
-  on_failure: z.enum(['continue', 'stop', 'skip']),
+  on_failure: z.enum(["continue", "stop", "skip"]),
   integration_action_id: z.string().uuid().nullable(),
   is_active: z.boolean(),
   created_at: z.string(),

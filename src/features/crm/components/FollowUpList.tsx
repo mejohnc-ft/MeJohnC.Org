@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useAuthenticatedSupabase } from "@/lib/supabase";
+import { useTenantSupabase } from "@/lib/supabase";
 import { createTask } from "@/lib/task-queries";
 import { toast } from "sonner";
 import type { FollowUp } from "../schemas";
@@ -38,10 +38,10 @@ export function FollowUpList({
   contactName,
 }: FollowUpListProps) {
   const navigate = useNavigate();
-  const { supabase } = useAuthenticatedSupabase();
+  const { supabase, tenantId } = useTenantSupabase();
 
   const handleCreateTask = async (followUp: FollowUp) => {
-    if (!supabase) return;
+    if (!supabase || !tenantId) return;
     try {
       const task = await createTask(
         {
@@ -71,7 +71,7 @@ export function FollowUpList({
           parent_task_id: null,
           created_by: "system",
           created_by_email: "system",
-          tenant_id: "00000000-0000-0000-0000-000000000001",
+          tenant_id: tenantId,
         },
         supabase,
       );
