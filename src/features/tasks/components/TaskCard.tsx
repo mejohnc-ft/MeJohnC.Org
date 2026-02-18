@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import {
   Calendar,
   AlertCircle,
@@ -7,12 +7,12 @@ import {
   Tag,
   User,
   Trash2,
-  Edit
-} from 'lucide-react';
-import { TaskWithCategory } from '@/lib/schemas';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { format, isPast, isToday, isTomorrow } from 'date-fns';
+  Edit,
+} from "lucide-react";
+import { TaskWithCategory } from "@/lib/schemas";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { format, isPast, isToday, isTomorrow } from "date-fns";
 
 interface TaskCardProps {
   task: TaskWithCategory;
@@ -22,18 +22,21 @@ interface TaskCardProps {
 }
 
 const priorityColors = {
-  low: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400',
-  medium: 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-400',
-  high: 'text-orange-600 bg-orange-100 dark:bg-orange-900/30 dark:text-orange-400',
-  urgent: 'text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400',
+  low: "text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400",
+  medium:
+    "text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-400",
+  high: "text-orange-600 bg-orange-100 dark:bg-orange-900/30 dark:text-orange-400",
+  urgent: "text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400",
 };
 
 const statusColors = {
-  todo: 'text-gray-600 bg-gray-100 dark:bg-gray-800 dark:text-gray-400',
-  in_progress: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400',
-  review: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400',
-  done: 'text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400',
-  cancelled: 'text-gray-600 bg-gray-100 dark:bg-gray-800 dark:text-gray-400',
+  todo: "text-gray-600 bg-gray-100 dark:bg-gray-800 dark:text-gray-400",
+  in_progress:
+    "text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400",
+  review:
+    "text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400",
+  done: "text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400",
+  cancelled: "text-gray-600 bg-gray-100 dark:bg-gray-800 dark:text-gray-400",
 };
 
 function getDueDateDisplay(dueDate: string | null) {
@@ -42,15 +45,15 @@ function getDueDateDisplay(dueDate: string | null) {
   const date = new Date(dueDate);
   const isPastDue = isPast(date) && !isToday(date);
 
-  let displayText = '';
+  let displayText: string;
   if (isToday(date)) {
-    displayText = 'Due today';
+    displayText = "Due today";
   } else if (isTomorrow(date)) {
-    displayText = 'Due tomorrow';
+    displayText = "Due tomorrow";
   } else if (isPastDue) {
-    displayText = `Overdue ${format(date, 'MMM d')}`;
+    displayText = `Overdue ${format(date, "MMM d")}`;
   } else {
-    displayText = `Due ${format(date, 'MMM d')}`;
+    displayText = `Due ${format(date, "MMM d")}`;
   }
 
   return {
@@ -59,15 +62,20 @@ function getDueDateDisplay(dueDate: string | null) {
   };
 }
 
-export function TaskCard({ task, onDelete, onEdit, isDragging }: TaskCardProps) {
+export function TaskCard({
+  task,
+  onDelete,
+  onEdit,
+  isDragging,
+}: TaskCardProps) {
   const dueDateInfo = getDueDateDisplay(task.due_date);
 
   return (
     <div
       className={cn(
-        'group bg-card border border-border rounded-lg p-4 hover:shadow-md transition-all',
-        isDragging && 'opacity-50 rotate-2',
-        task.is_overdue && 'border-red-500/50'
+        "group bg-card border border-border rounded-lg p-4 hover:shadow-md transition-all",
+        isDragging && "opacity-50 rotate-2",
+        task.is_overdue && "border-red-500/50",
       )}
     >
       {/* Header */}
@@ -82,13 +90,20 @@ export function TaskCard({ task, onDelete, onEdit, isDragging }: TaskCardProps) 
           {task.category && (
             <div className="flex items-center gap-1 mt-1">
               <Tag className="w-3 h-3 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">{task.category.name}</span>
+              <span className="text-xs text-muted-foreground">
+                {task.category.name}
+              </span>
             </div>
           )}
         </div>
 
         {/* Priority Badge */}
-        <span className={cn('text-xs font-medium px-2 py-1 rounded-full whitespace-nowrap', priorityColors[task.priority])}>
+        <span
+          className={cn(
+            "text-xs font-medium px-2 py-1 rounded-full whitespace-nowrap",
+            priorityColors[task.priority],
+          )}
+        >
           {task.priority}
         </span>
       </div>
@@ -104,10 +119,13 @@ export function TaskCard({ task, onDelete, onEdit, isDragging }: TaskCardProps) 
       <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mb-3">
         {/* Due Date */}
         {dueDateInfo && (
-          <div className={cn(
-            'flex items-center gap-1',
-            dueDateInfo.isPastDue && 'text-red-600 dark:text-red-400 font-medium'
-          )}>
+          <div
+            className={cn(
+              "flex items-center gap-1",
+              dueDateInfo.isPastDue &&
+                "text-red-600 dark:text-red-400 font-medium",
+            )}
+          >
             {dueDateInfo.isPastDue ? (
               <AlertCircle className="w-3 h-3" />
             ) : (
@@ -126,18 +144,20 @@ export function TaskCard({ task, onDelete, onEdit, isDragging }: TaskCardProps) 
         )}
 
         {/* Completed */}
-        {task.status === 'done' && task.completed_at && (
+        {task.status === "done" && task.completed_at && (
           <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
             <CheckCircle2 className="w-3 h-3" />
-            <span>Completed {format(new Date(task.completed_at), 'MMM d')}</span>
+            <span>
+              Completed {format(new Date(task.completed_at), "MMM d")}
+            </span>
           </div>
         )}
 
         {/* Created */}
-        {task.status !== 'done' && (
+        {task.status !== "done" && (
           <div className="flex items-center gap-1">
             <Clock className="w-3 h-3" />
-            <span>Created {format(new Date(task.created_at), 'MMM d')}</span>
+            <span>Created {format(new Date(task.created_at), "MMM d")}</span>
           </div>
         )}
       </div>
@@ -179,8 +199,13 @@ export function TaskCard({ task, onDelete, onEdit, isDragging }: TaskCardProps) 
           </Button>
         </div>
 
-        <span className={cn('text-xs font-medium px-2 py-1 rounded-full', statusColors[task.status])}>
-          {task.status.replace('_', ' ')}
+        <span
+          className={cn(
+            "text-xs font-medium px-2 py-1 rounded-full",
+            statusColors[task.status],
+          )}
+        >
+          {task.status.replace("_", " ")}
         </span>
       </div>
     </div>
