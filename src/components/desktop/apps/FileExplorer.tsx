@@ -1,16 +1,22 @@
-import { useState, useCallback, useMemo } from 'react';
-import { useFileSystem } from '@/hooks/useFileSystem';
-import { useContextMenu, type ContextMenuItem } from '@/hooks/useContextMenu';
-import ContextMenu from '@/components/desktop/ContextMenu';
-import FileExplorerToolbar from './FileExplorerToolbar';
-import FileExplorerSidebar from './FileExplorerSidebar';
-import FileExplorerContent from './FileExplorerContent';
-import { ROOT_FOLDERS, type FileSystemNode, type FileExplorerViewMode } from '@/lib/desktop-schemas';
+import { useState, useCallback, useMemo } from "react";
+import { useFileSystem } from "@/hooks/useFileSystem";
+import { useContextMenu, type ContextMenuItem } from "@/hooks/useContextMenu";
+import ContextMenu from "@/components/desktop/ContextMenu";
+import FileExplorerToolbar from "./FileExplorerToolbar";
+import FileExplorerSidebar from "./FileExplorerSidebar";
+import FileExplorerContent from "./FileExplorerContent";
+import {
+  ROOT_FOLDERS,
+  type FileSystemNode,
+  type FileExplorerViewMode,
+} from "@/lib/desktop-schemas";
+import { useWorkspaceContext } from "@/components/desktop/WindowManager";
 
 export default function FileExplorer() {
-  const fs = useFileSystem(ROOT_FOLDERS.DESKTOP);
+  const workspace = useWorkspaceContext();
+  const fs = useFileSystem(ROOT_FOLDERS.DESKTOP, workspace.userId);
   const contextMenu = useContextMenu();
-  const [viewMode, setViewMode] = useState<FileExplorerViewMode>('icons');
+  const [viewMode, setViewMode] = useState<FileExplorerViewMode>("icons");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const isTrash = fs.currentParentId === ROOT_FOLDERS.TRASH;
@@ -19,92 +25,144 @@ export default function FileExplorer() {
     setSelectedIds(new Set([id]));
   }, []);
 
-  const handleOpen = useCallback((node: FileSystemNode) => {
-    if (node.type === 'folder') {
-      fs.navigateTo(node.id);
-      setSelectedIds(new Set());
-    }
-    // For shortcuts/files, a future phase can open the target
-  }, [fs]);
+  const handleOpen = useCallback(
+    (node: FileSystemNode) => {
+      if (node.type === "folder") {
+        fs.navigateTo(node.id);
+        setSelectedIds(new Set());
+      }
+      // For shortcuts/files, a future phase can open the target
+    },
+    [fs],
+  );
 
-  const handleSidebarNavigate = useCallback((folderId: string | null) => {
-    if (folderId) {
-      fs.navigateTo(folderId);
-    } else {
-      fs.navigateToRoot();
-    }
-    setSelectedIds(new Set());
-  }, [fs]);
+  const handleSidebarNavigate = useCallback(
+    (folderId: string | null) => {
+      if (folderId) {
+        fs.navigateTo(folderId);
+      } else {
+        fs.navigateToRoot();
+      }
+      setSelectedIds(new Set());
+    },
+    [fs],
+  );
 
   const handleNewFolder = useCallback(async () => {
-    const name = prompt('Folder name:');
+    const name = prompt("Folder name:");
     if (name?.trim()) {
       await fs.createFolder(name.trim());
     }
   }, [fs]);
 
   const handleNewShortcut = useCallback(async () => {
-    const name = prompt('Shortcut name:');
+    const name = prompt("Shortcut name:");
     if (name?.trim()) {
-      await fs.createFile(name.trim(), 'url', '', 'Link');
+      await fs.createFile(name.trim(), "url", "", "Link");
     }
   }, [fs]);
 
-  const getNodeMenuItems = useCallback((node: FileSystemNode): ContextMenuItem[] => {
-    if (isTrash) {
-      return [
-        { id: 'restore', label: 'Put Back', onClick: () => fs.restoreFromTrash(node.id) },
-        { id: 'sep1', label: '', separator: true },
-        { id: 'delete-permanent', label: 'Delete Permanently', danger: true, onClick: () => fs.permanentlyDelete(node.id) },
+  const getNodeMenuItems = useCallback(
+    (node: FileSystemNode): ContextMenuItem[] => {
+      if (isTrash) {
+        return [
+          {
+            id: "restore",
+            label: "Put Back",
+            onClick: () => fs.restoreFromTrash(node.id),
+          },
+          { id: "sep1", label: "", separator: true },
+          {
+            id: "delete-permanent",
+            label: "Delete Permanently",
+            danger: true,
+            onClick: () => fs.permanentlyDelete(node.id),
+          },
+        ];
+      }
+
+      const items: ContextMenuItem[] = [
+        { id: "open", label: "Open", onClick: () => handleOpen(node) },
       ];
-    }
 
-    const items: ContextMenuItem[] = [
-      { id: 'open', label: 'Open', onClick: () => handleOpen(node) },
-    ];
+      if (node.type === "folder") {
+        items.push({
+          id: "open-new",
+          label: "Open in New Window",
+          disabled: true,
+        });
+      }
 
-    if (node.type === 'folder') {
-      items.push({ id: 'open-new', label: 'Open in New Window', disabled: true });
-    }
-
-    items.push(
-      { id: 'sep1', label: '', separator: true },
-      { id: 'rename', label: 'Rename', onClick: async () => {
-        const newName = prompt('New name:', node.name);
-        if (newName?.trim() && newName.trim() !== node.name) {
-          await fs.rename(node.id, newName.trim());
-        }
-      }},
-      { id: 'sep2', label: '', separator: true },
-      { id: 'trash', label: 'Move to Trash', shortcut: '⌘⌫', danger: true, onClick: () => fs.moveToTrash(node.id) },
-    );
-
-    return items;
-  }, [isTrash, fs, handleOpen]);
-
-  const handleContentContextMenu = useCallback((e: React.MouseEvent, items: ContextMenuItem[]) => {
-    contextMenu.openMenu(e, items);
-  }, [contextMenu]);
-
-  const handleBackgroundContextMenu = useCallback((e: React.MouseEvent) => {
-    // Only trigger on the content area background
-    if (e.target !== e.currentTarget) return;
-    e.preventDefault();
-
-    const items: ContextMenuItem[] = [
-      { id: 'new-folder', label: 'New Folder', shortcut: '⇧⌘N', onClick: handleNewFolder },
-      { id: 'new-shortcut', label: 'New Shortcut', onClick: handleNewShortcut },
-    ];
-
-    if (isTrash) {
       items.push(
-        { id: 'sep1', label: '', separator: true },
-        { id: 'empty-trash', label: 'Empty Trash', danger: true, onClick: () => fs.emptyTrash() },
+        { id: "sep1", label: "", separator: true },
+        {
+          id: "rename",
+          label: "Rename",
+          onClick: async () => {
+            const newName = prompt("New name:", node.name);
+            if (newName?.trim() && newName.trim() !== node.name) {
+              await fs.rename(node.id, newName.trim());
+            }
+          },
+        },
+        { id: "sep2", label: "", separator: true },
+        {
+          id: "trash",
+          label: "Move to Trash",
+          shortcut: "⌘⌫",
+          danger: true,
+          onClick: () => fs.moveToTrash(node.id),
+        },
       );
-    }
 
-    contextMenu.openMenu(e, items);
-  }, [isTrash, handleNewFolder, handleNewShortcut, fs, contextMenu]);
+      return items;
+    },
+    [isTrash, fs, handleOpen],
+  );
+
+  const handleContentContextMenu = useCallback(
+    (e: React.MouseEvent, items: ContextMenuItem[]) => {
+      contextMenu.openMenu(e, items);
+    },
+    [contextMenu],
+  );
+
+  const handleBackgroundContextMenu = useCallback(
+    (e: React.MouseEvent) => {
+      // Only trigger on the content area background
+      if (e.target !== e.currentTarget) return;
+      e.preventDefault();
+
+      const items: ContextMenuItem[] = [
+        {
+          id: "new-folder",
+          label: "New Folder",
+          shortcut: "⇧⌘N",
+          onClick: handleNewFolder,
+        },
+        {
+          id: "new-shortcut",
+          label: "New Shortcut",
+          onClick: handleNewShortcut,
+        },
+      ];
+
+      if (isTrash) {
+        items.push(
+          { id: "sep1", label: "", separator: true },
+          {
+            id: "empty-trash",
+            label: "Empty Trash",
+            danger: true,
+            onClick: () => fs.emptyTrash(),
+          },
+        );
+      }
+
+      contextMenu.openMenu(e, items);
+    },
+    [isTrash, handleNewFolder, handleNewShortcut, fs, contextMenu],
+  );
 
   // Count trashed items for sidebar badge
   const trashCount = useMemo(() => {
