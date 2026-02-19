@@ -52,7 +52,7 @@ BEGIN
 
   -- Merge into existing settings
   UPDATE app.tenants
-  SET settings = settings || v_patch,
+  SET settings = COALESCE(settings, '{}') || v_patch,
       updated_at = now()
   WHERE id = v_tenant_id
   RETURNING settings INTO v_merged;
