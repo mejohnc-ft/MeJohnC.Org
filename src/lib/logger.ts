@@ -8,10 +8,10 @@
  * - Context preservation across async operations
  */
 
-import * as Sentry from '@sentry/react';
+import * as Sentry from "@sentry/react";
 
 // Log levels
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+export type LogLevel = "debug" | "info" | "warn" | "error";
 
 // Log entry structure
 export interface LogEntry {
@@ -50,18 +50,19 @@ export function generateCorrelationId(): string {
 // Get correlation ID from request headers or generate new one
 export function getCorrelationId(headers?: Headers): string {
   if (headers) {
-    const existing = headers.get('x-correlation-id') || headers.get('x-request-id');
+    const existing =
+      headers.get("x-correlation-id") || headers.get("x-request-id");
     if (existing) return existing;
   }
   return generateCorrelationId();
 }
 
 // Session storage key for session ID
-const SESSION_ID_KEY = 'mejohnc_session_id';
+const SESSION_ID_KEY = "bos_session_id";
 
 // Get or create session-scoped IDs (client-side)
 function getSessionId(): string {
-  if (typeof sessionStorage === 'undefined') return '';
+  if (typeof sessionStorage === "undefined") return "";
 
   let sessionId = sessionStorage.getItem(SESSION_ID_KEY);
   if (!sessionId) {
@@ -74,7 +75,7 @@ function getSessionId(): string {
 // Logger class
 class Logger {
   private context: LoggerContext = {};
-  private minLevel: LogLevel = import.meta.env.DEV ? 'debug' : 'info';
+  private minLevel: LogLevel = import.meta.env.DEV ? "debug" : "info";
 
   private levelPriority: Record<LogLevel, number> = {
     debug: 0,
@@ -85,7 +86,7 @@ class Logger {
 
   constructor() {
     // Initialize session ID on client
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       this.context.sessionId = getSessionId();
     }
   }
@@ -101,7 +102,7 @@ class Logger {
       Sentry.setUser({ id: context.userId });
     }
     if (context.correlationId) {
-      Sentry.setTag('correlationId', context.correlationId);
+      Sentry.setTag("correlationId", context.correlationId);
     }
   }
 
@@ -120,7 +121,7 @@ class Logger {
   startCorrelation(correlationId?: string): string {
     const id = correlationId || generateCorrelationId();
     this.context.correlationId = id;
-    Sentry.setTag('correlationId', id);
+    Sentry.setTag("correlationId", id);
     return id;
   }
 
@@ -131,7 +132,7 @@ class Logger {
     level: LogLevel,
     message: string,
     metadata?: Record<string, unknown>,
-    error?: Error
+    error?: Error,
   ): LogEntry {
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
@@ -173,10 +174,10 @@ class Logger {
       const output = JSON.stringify(entry);
 
       switch (entry.level) {
-        case 'error':
+        case "error":
           console.error(output);
           break;
-        case 'warn':
+        case "warn":
           console.warn(output);
           break;
         default:
@@ -184,7 +185,7 @@ class Logger {
       }
 
       // Send errors to Sentry
-      if (entry.level === 'error' && entry.error) {
+      if (entry.level === "error" && entry.error) {
         Sentry.captureException(new Error(entry.error.message), {
           extra: {
             ...entry.metadata,
@@ -195,42 +196,50 @@ class Logger {
     } else {
       // In development, use readable format
       const prefix = `[${entry.level.toUpperCase()}]`;
-      const correlation = entry.correlationId ? `[${entry.correlationId.slice(0, 8)}]` : '';
-      const component = entry.component ? `[${entry.component}]` : '';
+      const correlation = entry.correlationId
+        ? `[${entry.correlationId.slice(0, 8)}]`
+        : "";
+      const component = entry.component ? `[${entry.component}]` : "";
 
-      const parts = [prefix, correlation, component, entry.message].filter(Boolean);
+      const parts = [prefix, correlation, component, entry.message].filter(
+        Boolean,
+      );
 
       switch (entry.level) {
-        case 'error':
-          console.error(...parts, entry.metadata || '', entry.error || '');
+        case "error":
+          console.error(...parts, entry.metadata || "", entry.error || "");
           break;
-        case 'warn':
-          console.warn(...parts, entry.metadata || '');
+        case "warn":
+          console.warn(...parts, entry.metadata || "");
           break;
-        case 'debug':
-          console.debug(...parts, entry.metadata || '');
+        case "debug":
+          console.debug(...parts, entry.metadata || "");
           break;
         default:
-          console.log(...parts, entry.metadata || '');
+          console.log(...parts, entry.metadata || "");
       }
     }
   }
 
   // Log methods
   debug(message: string, metadata?: Record<string, unknown>): void {
-    this.output(this.formatEntry('debug', message, metadata));
+    this.output(this.formatEntry("debug", message, metadata));
   }
 
   info(message: string, metadata?: Record<string, unknown>): void {
-    this.output(this.formatEntry('info', message, metadata));
+    this.output(this.formatEntry("info", message, metadata));
   }
 
   warn(message: string, metadata?: Record<string, unknown>): void {
-    this.output(this.formatEntry('warn', message, metadata));
+    this.output(this.formatEntry("warn", message, metadata));
   }
 
-  error(message: string, error?: Error, metadata?: Record<string, unknown>): void {
-    this.output(this.formatEntry('error', message, metadata, error));
+  error(
+    message: string,
+    error?: Error,
+    metadata?: Record<string, unknown>,
+  ): void {
+    this.output(this.formatEntry("error", message, metadata, error));
   }
 
   /**
@@ -239,7 +248,7 @@ class Logger {
   async time<T>(
     action: string,
     fn: () => Promise<T>,
-    metadata?: Record<string, unknown>
+    metadata?: Record<string, unknown>,
   ): Promise<T> {
     const start = performance.now();
     this.debug(`Starting: ${action}`, metadata);
@@ -251,7 +260,10 @@ class Logger {
       return result;
     } catch (error) {
       const duration = Math.round(performance.now() - start);
-      this.error(`Failed: ${action}`, error as Error, { ...metadata, duration });
+      this.error(`Failed: ${action}`, error as Error, {
+        ...metadata,
+        duration,
+      });
       throw error;
     }
   }
@@ -276,11 +288,17 @@ export { Logger };
 
 // Convenience exports
 export const log = {
-  debug: (message: string, metadata?: Record<string, unknown>) => logger.debug(message, metadata),
-  info: (message: string, metadata?: Record<string, unknown>) => logger.info(message, metadata),
-  warn: (message: string, metadata?: Record<string, unknown>) => logger.warn(message, metadata),
+  debug: (message: string, metadata?: Record<string, unknown>) =>
+    logger.debug(message, metadata),
+  info: (message: string, metadata?: Record<string, unknown>) =>
+    logger.info(message, metadata),
+  warn: (message: string, metadata?: Record<string, unknown>) =>
+    logger.warn(message, metadata),
   error: (message: string, error?: Error, metadata?: Record<string, unknown>) =>
     logger.error(message, error, metadata),
-  time: <T>(action: string, fn: () => Promise<T>, metadata?: Record<string, unknown>) =>
-    logger.time(action, fn, metadata),
+  time: <T>(
+    action: string,
+    fn: () => Promise<T>,
+    metadata?: Record<string, unknown>,
+  ) => logger.time(action, fn, metadata),
 };

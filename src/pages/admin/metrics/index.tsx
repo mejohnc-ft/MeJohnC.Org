@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useCallback } from "react";
+import { motion } from "framer-motion";
 import {
   BarChart3,
   Database,
@@ -10,17 +10,17 @@ import {
   TrendingUp,
   Clock,
   AlertCircle,
-} from 'lucide-react';
-import { useAuthenticatedSupabase } from '@/lib/supabase';
-import AdminLayout from '@/components/AdminLayout';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+} from "lucide-react";
+import { useAuthenticatedSupabase } from "@/lib/supabase";
+import AdminLayout from "@/components/AdminLayout";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { MetricsAreaChart, MetricsStatCard } from "@/components/admin/charts";
 import {
-  MetricsAreaChart,
-  MetricsStatCard,
-} from '@/components/admin/charts';
-import { GitHubMetricsCard, SupabaseStatsCard } from '@/components/admin/metrics';
+  GitHubMetricsCard,
+  SupabaseStatsCard,
+} from "@/components/admin/metrics";
 import {
   getMetricsSources,
   getMetricsStats,
@@ -31,28 +31,28 @@ import {
   type MetricsStats,
   type MetricsData,
   type TimeRange,
-} from '@/lib/metrics-queries';
-import { useSEO } from '@/lib/seo';
-import { captureException } from '@/lib/sentry';
-import { ANIMATION } from '@/lib/constants';
+} from "@/lib/metrics-queries";
+import { useSEO } from "@/lib/seo";
+import { captureException } from "@/lib/sentry";
+import { ANIMATION } from "@/lib/constants";
 
 const TIME_RANGES: { label: string; value: TimeRange }[] = [
-  { label: '1H', value: '1h' },
-  { label: '24H', value: '24h' },
-  { label: '7D', value: '7d' },
-  { label: '30D', value: '30d' },
-  { label: '90D', value: '90d' },
-  { label: '1Y', value: '1y' },
+  { label: "1H", value: "1h" },
+  { label: "24H", value: "24h" },
+  { label: "7D", value: "7d" },
+  { label: "30D", value: "30d" },
+  { label: "90D", value: "90d" },
+  { label: "1Y", value: "1y" },
 ];
 
 export default function AdminMetrics() {
-  useSEO({ title: 'Metrics Dashboard', noIndex: true });
+  useSEO({ title: "Metrics Dashboard", noIndex: true });
   const { supabase } = useAuthenticatedSupabase();
 
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState<MetricsStats | null>(null);
   const [sources, setSources] = useState<MetricsSource[]>([]);
-  const [selectedRange, setSelectedRange] = useState<TimeRange>('7d');
+  const [selectedRange, setSelectedRange] = useState<TimeRange>("7d");
   const [metricsData, setMetricsData] = useState<MetricsData[]>([]);
   const [metricNames, setMetricNames] = useState<string[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -66,7 +66,10 @@ export default function AdminMetrics() {
       const [statsData, sourcesData, dataPoints, names] = await Promise.all([
         getMetricsStats(supabase),
         getMetricsSources({ isActive: true }, supabase),
-        getMetricsData({ startDate: start, endDate: end, limit: 1000 }, supabase),
+        getMetricsData(
+          { startDate: start, endDate: end, limit: 1000 },
+          supabase,
+        ),
         getDistinctMetricNames(undefined, supabase),
       ]);
 
@@ -75,9 +78,12 @@ export default function AdminMetrics() {
       setMetricsData(dataPoints);
       setMetricNames(names);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'AdminMetrics.loadData',
-      });
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "AdminMetrics.loadData",
+        },
+      );
     } finally {
       setIsLoading(false);
     }
@@ -95,11 +101,11 @@ export default function AdminMetrics() {
 
   const getSourceIcon = (sourceType: string) => {
     switch (sourceType) {
-      case 'github':
+      case "github":
         return Github;
-      case 'analytics':
+      case "analytics":
         return TrendingUp;
-      case 'supabase':
+      case "supabase":
         return Database;
       default:
         return Activity;
@@ -108,16 +114,16 @@ export default function AdminMetrics() {
 
   const getSourceColor = (sourceType: string) => {
     switch (sourceType) {
-      case 'github':
-        return 'text-purple-500';
-      case 'analytics':
-        return 'text-blue-500';
-      case 'supabase':
-        return 'text-green-500';
-      case 'webhook':
-        return 'text-orange-500';
+      case "github":
+        return "text-purple-500";
+      case "analytics":
+        return "text-blue-500";
+      case "supabase":
+        return "text-green-500";
+      case "webhook":
+        return "text-orange-500";
       default:
-        return 'text-gray-500';
+        return "text-gray-500";
     }
   };
 
@@ -134,7 +140,7 @@ export default function AdminMetrics() {
       acc[name] = chartData.filter((d) => d.name === name);
       return acc;
     },
-    {} as Record<string, typeof chartData>
+    {} as Record<string, typeof chartData>,
   );
 
   if (isLoading) {
@@ -153,14 +159,22 @@ export default function AdminMetrics() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Metrics Dashboard</h1>
+            <h1 className="text-2xl font-bold text-foreground">
+              Metrics Dashboard
+            </h1>
             <p className="text-muted-foreground mt-1">
               Monitor your site performance and external data sources
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={handleRefresh} disabled={isRefreshing}>
-              <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <Button
+              variant="outline"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+            >
+              <RefreshCw
+                className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
+              />
               Refresh
             </Button>
             <Button>
@@ -191,7 +205,9 @@ export default function AdminMetrics() {
             value={stats?.total_data_points ?? 0}
             icon={BarChart3}
             iconColor="text-purple-500"
-            formatValue={(v) => (typeof v === 'number' ? v.toLocaleString() : v)}
+            formatValue={(v) =>
+              typeof v === "number" ? v.toLocaleString() : v
+            }
             showTrend={false}
           />
           <MetricsStatCard
@@ -214,7 +230,7 @@ export default function AdminMetrics() {
               {TIME_RANGES.map((range) => (
                 <Button
                   key={range.value}
-                  variant={selectedRange === range.value ? 'default' : 'ghost'}
+                  variant={selectedRange === range.value ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setSelectedRange(range.value)}
                   className="h-7 px-3"
@@ -228,11 +244,15 @@ export default function AdminMetrics() {
 
         {/* Data Sources List */}
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-foreground">Data Sources</h2>
+          <h2 className="text-lg font-semibold text-foreground">
+            Data Sources
+          </h2>
           {sources.length === 0 ? (
             <Card className="p-8 text-center">
               <Database className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">No Data Sources</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                No Data Sources
+              </h3>
               <p className="text-muted-foreground mb-4">
                 Add your first data source to start collecting metrics.
               </p>
@@ -254,20 +274,28 @@ export default function AdminMetrics() {
                   >
                     <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
                       <div className="flex items-start justify-between mb-3">
-                        <div className={`p-2 rounded-lg bg-muted ${getSourceColor(source.source_type)}`}>
+                        <div
+                          className={`p-2 rounded-lg bg-muted ${getSourceColor(source.source_type)}`}
+                        >
                           <Icon className="w-5 h-5" />
                         </div>
-                        <Badge variant={source.is_active ? 'default' : 'secondary'}>
-                          {source.is_active ? 'Active' : 'Inactive'}
+                        <Badge
+                          variant={source.is_active ? "default" : "secondary"}
+                        >
+                          {source.is_active ? "Active" : "Inactive"}
                         </Badge>
                       </div>
-                      <h3 className="font-semibold text-foreground">{source.name}</h3>
-                      <p className="text-sm text-muted-foreground mt-1">{source.description || 'No description'}</p>
+                      <h3 className="font-semibold text-foreground">
+                        {source.name}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {source.description || "No description"}
+                      </p>
                       <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
                         <div className="text-xs text-muted-foreground">
                           {source.last_refresh_at
                             ? `Last sync: ${new Date(source.last_refresh_at).toLocaleString()}`
-                            : 'Never synced'}
+                            : "Never synced"}
                         </div>
                         {source.error_count > 0 && (
                           <div className="flex items-center gap-1 text-xs text-red-500">
@@ -287,14 +315,18 @@ export default function AdminMetrics() {
         {/* Charts Section */}
         {metricsData.length > 0 && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-foreground">Metrics Overview</h2>
+            <h2 className="text-lg font-semibold text-foreground">
+              Metrics Overview
+            </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {metricNames.slice(0, 4).map((metricName) => {
                 const data = dataByMetric[metricName] || [];
                 return (
                   <MetricsAreaChart
                     key={metricName}
-                    title={metricName.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                    title={metricName
+                      .replace(/_/g, " ")
+                      .replace(/\b\w/g, (l) => l.toUpperCase())}
                     data={data}
                     dataKey="value"
                     color="hsl(var(--primary))"
@@ -308,15 +340,17 @@ export default function AdminMetrics() {
 
         {/* Live Integrations */}
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-foreground">Live Integrations</h2>
+          <h2 className="text-lg font-semibold text-foreground">
+            Live Integrations
+          </h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Supabase Stats */}
             <SupabaseStatsCard showChart={true} />
 
             {/* GitHub Stats */}
             <GitHubMetricsCard
-              owner="mejohnc-ft"
-              repo="MeJohnC.Org"
+              owner={import.meta.env.VITE_GITHUB_OWNER || ""}
+              repo={import.meta.env.VITE_GITHUB_REPO || ""}
               showChart={true}
             />
           </div>
@@ -326,9 +360,12 @@ export default function AdminMetrics() {
         {metricsData.length === 0 && sources.length > 0 && (
           <Card className="p-8 text-center">
             <BarChart3 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">No Data Yet</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              No Data Yet
+            </h3>
             <p className="text-muted-foreground">
-              Your data sources are configured but haven&apos;t collected any data yet.
+              Your data sources are configured but haven&apos;t collected any
+              data yet.
               <br />
               Data will appear here after the first sync.
             </p>

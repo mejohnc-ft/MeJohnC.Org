@@ -76,7 +76,7 @@ export const allFeatureModules: FeatureModule[] = [
 /**
  * Feature flag storage key
  */
-const FEATURE_FLAGS_KEY = "mejohnc_feature_flags";
+const FEATURE_FLAGS_KEY = "bos_feature_flags";
 
 /**
  * Default feature flag states

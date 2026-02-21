@@ -42,7 +42,9 @@ export class RssAdapter {
 
   constructor(config: RssAdapterConfig = {}) {
     this.config = {
-      userAgent: config.userAgent || "MeJohnC.Org NewsBot/1.0",
+      userAgent:
+        config.userAgent ||
+        `${import.meta.env.VITE_PLATFORM_NAME || "BusinessOS"} NewsBot/1.0`,
       timeout: config.timeout || 30000,
     };
   }

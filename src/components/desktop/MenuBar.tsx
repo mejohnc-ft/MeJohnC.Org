@@ -74,7 +74,7 @@ export default function MenuBar({ onToggleNotifications }: MenuBarProps) {
                 className="w-full text-left px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 role="menuitem"
               >
-                About mejohnc.org
+                About this workspace
               </button>
               <div className="border-t border-border my-1" />
               <button

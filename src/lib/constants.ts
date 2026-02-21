@@ -35,7 +35,7 @@ export const ANIMATION = {
 } as const;
 
 // Storage
-export const STORAGE_BUCKET = "mejohnc.org";
+export const STORAGE_BUCKET = import.meta.env.VITE_STORAGE_BUCKET || "uploads";
 
 // localStorage keys (centralized to avoid magic strings)
 export const STORAGE_KEYS = {

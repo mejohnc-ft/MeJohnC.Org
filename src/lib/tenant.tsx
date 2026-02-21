@@ -8,6 +8,11 @@ import {
 } from "react";
 import { createSupabaseClient } from "./supabase";
 import { STORAGE_KEYS } from "./constants";
+import {
+  applyTenantTheme,
+  clearTenantTheme,
+  extractBranding,
+} from "./tenant-theme";
 
 // --- Types ---
 
@@ -37,7 +42,7 @@ interface TenantContextValue {
 }
 
 const DEFAULT_TENANT_ID = "00000000-0000-0000-0000-000000000001";
-const BASE_DOMAIN = import.meta.env.VITE_BASE_DOMAIN || "mejohnc.org";
+const BASE_DOMAIN = import.meta.env.VITE_BASE_DOMAIN || "businessos.app";
 const RESERVED_SUBDOMAINS = new Set(["www", "app", ""]);
 
 // --- Context ---
@@ -153,6 +158,15 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, [refreshKey]);
+
+  // Apply tenant branding when resolved, clear when unmounted
+  useEffect(() => {
+    if (status === "resolved" && tenant) {
+      const branding = extractBranding(tenant.settings);
+      if (branding) applyTenantTheme(branding);
+    }
+    return () => clearTenantTheme();
+  }, [status, tenant]);
 
   const tenantId =
     status === "resolved"

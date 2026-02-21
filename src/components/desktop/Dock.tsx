@@ -1,6 +1,6 @@
 import { useMemo, useCallback, useRef, useEffect } from "react";
 import { useWindowManagerContext, useWorkspaceContext } from "./WindowManager";
-import { getApp, appRegistry, getAppsForPlan } from "./apps/AppRegistry";
+import { getApp, appRegistry, getAppsForTenant } from "./apps/AppRegistry";
 import DockItem from "./DockItem";
 import ContextMenu from "./ContextMenu";
 import { useContextMenu, type ContextMenuItem } from "@/hooks/useContextMenu";
@@ -10,6 +10,7 @@ import {
   registerDockIconPosition,
   unregisterDockIconPosition,
 } from "@/lib/dock-icon-positions";
+import { useTenant } from "@/lib/tenant";
 import {
   DndContext,
   closestCenter,
@@ -36,7 +37,13 @@ export default function Dock() {
   const contextMenu = useContextMenu();
   const prefersReducedMotion = useReducedMotion();
   const { plan } = useBilling();
-  const planApps = useMemo(() => getAppsForPlan(plan), [plan]);
+  const { tenant } = useTenant();
+  const enabledAppIds = (tenant?.settings as Record<string, unknown>)
+    ?.enabled_apps as string[] | undefined;
+  const planApps = useMemo(
+    () => getAppsForTenant(plan, enabledAppIds),
+    [plan, enabledAppIds],
+  );
   const planAppIds = useMemo(
     () => new Set(planApps.map((a) => a.id)),
     [planApps],

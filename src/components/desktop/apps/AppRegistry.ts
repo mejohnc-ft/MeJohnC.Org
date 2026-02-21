@@ -440,6 +440,50 @@ export function getAppsForPlan(plan: PlanTier): DesktopApp[] {
   );
 }
 
+/**
+ * Get apps available for a tenant, considering both plan tier and
+ * the tenant's enabled_apps whitelist from settings.
+ *
+ * If enabledAppIds is null/undefined, all plan-eligible apps are returned.
+ * System-category apps (settings, profile, file-explorer, wallpaper) are
+ * never filtered out by the tenant whitelist.
+ */
+export function getAppsForTenant(
+  plan: PlanTier,
+  enabledAppIds?: string[] | null,
+): DesktopApp[] {
+  const planApps = getAppsForPlan(plan);
+  if (!enabledAppIds) return planApps;
+
+  const enabledSet = new Set(enabledAppIds);
+  return planApps.filter(
+    (app) => app.category === "system" || enabledSet.has(app.id),
+  );
+}
+
+/** Check if an app is locked (available in plan but disabled by tenant) */
+export function isAppLocked(
+  appId: string,
+  plan: PlanTier,
+  enabledAppIds?: string[] | null,
+): boolean {
+  const app = getApp(appId);
+  if (!app) return true;
+
+  // Not in plan
+  if (app.minPlan && !planMeetsMinimum(plan, app.minPlan)) return true;
+
+  // In plan but disabled by tenant
+  if (
+    enabledAppIds &&
+    app.category !== "system" &&
+    !enabledAppIds.includes(appId)
+  )
+    return true;
+
+  return false;
+}
+
 /** Pre-memoized lazy components keyed by app ID */
 const lazyComponentCache = new Map<string, ReturnType<typeof lazy>>();
 

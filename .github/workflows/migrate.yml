@@ -25,22 +25,36 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
-      # TODO: Remove this step after first successful run — it's a one-time cleanup
-      - name: Repair migration history
+      # One-time repair: mark old subdirectory migrations as applied under
+      # their new timestamped names (they already ran via --include-all).
+      # Also reverts the old non-timestamped migration names.
+      # TODO: Remove this step after first successful run on main.
+      - name: Repair migration history (one-time consolidation)
         run: |
+          # Revoke old flat-numbered and old timestamped migrations
           supabase migration repair --status reverted \
             001 002 003 004 005 006 \
             20240601000001 20240601000002 20240601000003 \
             20240601000004 20240601000005 20240601000006 \
             20240601000007 20240601000008 20240601000009 \
-            20240601000010 20240601000011 20240601000012
-          supabase migration repair --status applied 20240101000000
+            20240601000010 20240601000011 20240601000012 \
+            2>/dev/null || true
+
+          # Mark the consolidated feature module migrations as already applied
+          # (their SQL was already executed from the subdirectory paths)
+          supabase migration repair --status applied \
+            20240101000000 20250101000000 \
+            20250601000001 20250601000002 20250601000003 \
+            20250601000004 20250601000005 20250601000006 \
+            20250601000007 20250601000008 20250601000009 \
+            20250601000010 20250601000011 \
+            2>/dev/null || true
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
 
       - name: Push migrations
-        run: supabase db push --include-all
+        run: supabase db push
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}

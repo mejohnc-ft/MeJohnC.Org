@@ -164,8 +164,8 @@ export default function DashboardPage() {
             {/* GitHub Stats */}
             <Suspense fallback={<ChartSkeleton />}>
               <GitHubMetricsCard
-                owner="mejohnc-ft"
-                repo="MeJohnC.Org"
+                owner={import.meta.env.VITE_GITHUB_OWNER || ""}
+                repo={import.meta.env.VITE_GITHUB_REPO || ""}
                 showChart={true}
               />
             </Suspense>

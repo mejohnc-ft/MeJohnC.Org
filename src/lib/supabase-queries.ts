@@ -20,34 +20,34 @@
  * - metrics-queries.ts: Metrics sources, dashboards, widgets
  */
 
-import { SupabaseClient } from '@supabase/supabase-js';
-import { getSupabase } from './supabase';
-import { STORAGE_BUCKET } from './constants';
+import { SupabaseClient } from "@supabase/supabase-js";
+import { getSupabase } from "./supabase";
+import { STORAGE_BUCKET } from "./constants";
 
 // ============================================
 // RE-EXPORTS FROM DOMAIN-SPECIFIC MODULES
 // ============================================
 
 // News domain
-export * from './news-queries';
+export * from "./news-queries";
 
 // Agent domain
-export * from './agent-queries';
+export * from "./agent-queries";
 
 // App domain
-export * from './app-queries';
+export * from "./app-queries";
 
 // Blog domain
-export * from './blog-queries';
+export * from "./blog-queries";
 
 // Project domain
-export * from './project-queries';
+export * from "./project-queries";
 
 // Site content domain (Site Content, Contact Links, Work History, Case Studies, Timelines)
-export * from './site-content-queries';
+export * from "./site-content-queries";
 
 // Re-export from markdown.ts to avoid duplication
-export { calculateReadingTime } from './markdown';
+export { calculateReadingTime } from "./markdown";
 
 // ============================================
 // SHARED UTILITIES
@@ -57,34 +57,58 @@ export { calculateReadingTime } from './markdown';
 export function generateSlug(text: string): string {
   return text
     .toLowerCase()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
     .trim();
 }
 
 // Storage helpers
-export async function uploadFile(file: File, path: string, client: SupabaseClient = getSupabase()) {
+
+/**
+ * Build a tenant-prefixed storage path.
+ * If tenantId is provided, the path becomes `{tenantId}/{path}`.
+ * This isolates tenant uploads within a shared bucket.
+ */
+function tenantPath(path: string, tenantId?: string | null): string {
+  if (!tenantId) return path;
+  // Avoid double-prefixing
+  if (path.startsWith(`${tenantId}/`)) return path;
+  return `${tenantId}/${path}`;
+}
+
+export async function uploadFile(
+  file: File,
+  path: string,
+  client: SupabaseClient = getSupabase(),
+  tenantId?: string | null,
+) {
+  const fullPath = tenantPath(path, tenantId);
   const { data, error } = await client.storage
     .from(STORAGE_BUCKET)
-    .upload(path, file, {
-      cacheControl: '3600',
+    .upload(fullPath, file, {
+      cacheControl: "3600",
       upsert: false,
     });
 
   if (error) throw error;
 
-  const { data: { publicUrl } } = client.storage
-    .from(STORAGE_BUCKET)
-    .getPublicUrl(data.path);
+  const {
+    data: { publicUrl },
+  } = client.storage.from(STORAGE_BUCKET).getPublicUrl(data.path);
 
   return publicUrl;
 }
 
-export async function deleteFile(path: string, client: SupabaseClient = getSupabase()) {
+export async function deleteFile(
+  path: string,
+  client: SupabaseClient = getSupabase(),
+  tenantId?: string | null,
+) {
+  const fullPath = tenantPath(path, tenantId);
   const { error } = await client.storage
     .from(STORAGE_BUCKET)
-    .remove([path]);
+    .remove([fullPath]);
 
   if (error) throw error;
 }
