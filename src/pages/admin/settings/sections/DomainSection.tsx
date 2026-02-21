@@ -27,12 +27,12 @@ const DomainSection = () => {
               {subdomain || "—"}
             </span>
             <span className="px-3 py-2 text-sm font-mono text-muted-foreground">
-              .mejohnc.org
+              .{import.meta.env.VITE_BASE_DOMAIN || "businessos.app"}
             </span>
           </div>
           {subdomain && (
             <a
-              href={`https://${subdomain}.mejohnc.org`}
+              href={`https://${subdomain}.${import.meta.env.VITE_BASE_DOMAIN || "businessos.app"}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-muted-foreground hover:text-foreground transition-colors"

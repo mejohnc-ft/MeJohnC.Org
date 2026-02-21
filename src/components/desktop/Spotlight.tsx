@@ -34,8 +34,9 @@ import {
 } from "lucide-react";
 import { useReducedMotion } from "@/lib/reduced-motion";
 import { useWindowManagerContext } from "./WindowManager";
-import { getAppsForPlan } from "./apps/AppRegistry";
+import { getAppsForTenant } from "./apps/AppRegistry";
 import { useBilling } from "@/hooks/useBilling";
+import { useTenant } from "@/lib/tenant";
 import { searchFileSystem } from "@/lib/desktop-queries";
 import { getBlogPosts, getProjects } from "@/lib/supabase-queries";
 import { captureException } from "@/lib/sentry";
@@ -109,7 +110,13 @@ export default function Spotlight({ isOpen, onClose }: SpotlightProps) {
   const { launchApp } = useWindowManagerContext();
   const prefersReducedMotion = useReducedMotion();
   const { plan } = useBilling();
-  const planApps = useMemo(() => getAppsForPlan(plan), [plan]);
+  const { tenant } = useTenant();
+  const enabledAppIds = (tenant?.settings as Record<string, unknown>)
+    ?.enabled_apps as string[] | undefined;
+  const planApps = useMemo(
+    () => getAppsForTenant(plan, enabledAppIds),
+    [plan, enabledAppIds],
+  );
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SpotlightResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);

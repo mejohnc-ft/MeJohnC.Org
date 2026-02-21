@@ -8,7 +8,7 @@
  * - A/B testing support
  */
 
-import { supabase } from './supabase';
+import { supabase } from "./supabase";
 
 /**
  * Feature flag configuration
@@ -27,7 +27,7 @@ export interface FeatureFlag {
   /** Specific user IDs to always disable for */
   disabledUsers?: string[];
   /** Environment restrictions */
-  environments?: ('development' | 'staging' | 'production')[];
+  environments?: ("development" | "staging" | "production")[];
   /** Expiration date for temporary flags */
   expiresAt?: string;
   /** Metadata for tracking */
@@ -40,6 +40,7 @@ export interface FeatureFlag {
 export interface EvaluationContext {
   userId?: string;
   userEmail?: string;
+  tenantId?: string;
   environment?: string;
   attributes?: Record<string, unknown>;
 }
@@ -50,88 +51,88 @@ export interface EvaluationContext {
  */
 const DEFAULT_FLAGS: Record<string, FeatureFlag> = {
   // UI Features
-  'ui.dark-mode': {
-    name: 'ui.dark-mode',
-    description: 'Enable dark mode toggle',
+  "ui.dark-mode": {
+    name: "ui.dark-mode",
+    description: "Enable dark mode toggle",
     enabled: true,
   },
-  'ui.new-dashboard': {
-    name: 'ui.new-dashboard',
-    description: 'New admin dashboard design',
+  "ui.new-dashboard": {
+    name: "ui.new-dashboard",
+    description: "New admin dashboard design",
     enabled: false,
     rolloutPercentage: 10,
-    environments: ['development', 'staging'],
+    environments: ["development", "staging"],
   },
 
   // API Features
-  'api.v2': {
-    name: 'api.v2',
-    description: 'Enable API v2 endpoints',
+  "api.v2": {
+    name: "api.v2",
+    description: "Enable API v2 endpoints",
     enabled: false,
-    environments: ['development'],
+    environments: ["development"],
   },
-  'api.rate-limiting': {
-    name: 'api.rate-limiting',
-    description: 'Enable API rate limiting',
+  "api.rate-limiting": {
+    name: "api.rate-limiting",
+    description: "Enable API rate limiting",
     enabled: true,
   },
 
   // Marketing Features
-  'marketing.email-campaigns': {
-    name: 'marketing.email-campaigns',
-    description: 'Email campaign functionality',
+  "marketing.email-campaigns": {
+    name: "marketing.email-campaigns",
+    description: "Email campaign functionality",
     enabled: true,
   },
-  'marketing.nps-surveys': {
-    name: 'marketing.nps-surveys',
-    description: 'NPS survey functionality',
+  "marketing.nps-surveys": {
+    name: "marketing.nps-surveys",
+    description: "NPS survey functionality",
     enabled: true,
   },
 
   // Site Builder Features
-  'site-builder.ai-content': {
-    name: 'site-builder.ai-content',
-    description: 'AI-powered content generation',
+  "site-builder.ai-content": {
+    name: "site-builder.ai-content",
+    description: "AI-powered content generation",
     enabled: false,
     rolloutPercentage: 25,
   },
-  'site-builder.version-history': {
-    name: 'site-builder.version-history',
-    description: 'Page version history and rollback',
+  "site-builder.version-history": {
+    name: "site-builder.version-history",
+    description: "Page version history and rollback",
     enabled: true,
   },
 
   // Task System Features
-  'tasks.kanban-view': {
-    name: 'tasks.kanban-view',
-    description: 'Kanban board view for tasks',
+  "tasks.kanban-view": {
+    name: "tasks.kanban-view",
+    description: "Kanban board view for tasks",
     enabled: true,
   },
-  'tasks.reminders': {
-    name: 'tasks.reminders',
-    description: 'Task reminder notifications',
+  "tasks.reminders": {
+    name: "tasks.reminders",
+    description: "Task reminder notifications",
     enabled: false,
-    environments: ['development', 'staging'],
+    environments: ["development", "staging"],
   },
 
   // Infrastructure Features
-  'infra.structured-logging': {
-    name: 'infra.structured-logging',
-    description: 'Enable structured JSON logging',
+  "infra.structured-logging": {
+    name: "infra.structured-logging",
+    description: "Enable structured JSON logging",
     enabled: true,
   },
-  'infra.circuit-breaker': {
-    name: 'infra.circuit-breaker',
-    description: 'Enable circuit breaker for external calls',
+  "infra.circuit-breaker": {
+    name: "infra.circuit-breaker",
+    description: "Enable circuit breaker for external calls",
     enabled: true,
   },
 
   // Desktop OS Mode
-  'desktop.os-mode': {
-    name: 'desktop.os-mode',
-    description: 'macOS-inspired desktop mode for admin panel',
+  "desktop.os-mode": {
+    name: "desktop.os-mode",
+    description: "macOS-inspired desktop mode for admin panel",
     enabled: false,
-    environments: ['development', 'staging'],
+    environments: ["development", "staging"],
   },
 };
 
@@ -142,7 +143,7 @@ function hashString(str: string): number {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32-bit integer
   }
   return Math.abs(hash);
@@ -159,12 +160,12 @@ function getUserBucket(userId: string, flagName: string): number {
 /**
  * Get current environment
  */
-function getCurrentEnvironment(): 'development' | 'staging' | 'production' {
-  if (typeof import.meta !== 'undefined') {
-    if (import.meta.env.DEV) return 'development';
-    if (import.meta.env.MODE === 'staging') return 'staging';
+function getCurrentEnvironment(): "development" | "staging" | "production" {
+  if (typeof import.meta !== "undefined") {
+    if (import.meta.env.DEV) return "development";
+    if (import.meta.env.MODE === "staging") return "staging";
   }
-  return 'production';
+  return "production";
 }
 
 /**
@@ -174,6 +175,7 @@ class FeatureFlagManager {
   private flags: Map<string, FeatureFlag> = new Map();
   private overrides: Map<string, boolean> = new Map();
   private initialized = false;
+  private tenantId: string | null = null;
 
   constructor() {
     // Load default flags
@@ -182,17 +184,34 @@ class FeatureFlagManager {
     }
   }
 
+  /** Storage key namespaced by tenant */
+  private get overrideStorageKey(): string {
+    return this.tenantId
+      ? `${this.tenantId}_feature_flag_overrides`
+      : "feature_flag_overrides";
+  }
+
   /**
-   * Initialize flags from database
+   * Initialize flags from database, scoped to a tenant.
+   * @param tenantId - If provided, only loads flags for this tenant (plus global flags).
    */
-  async initialize(): Promise<void> {
-    if (this.initialized) return;
+  async initialize(tenantId?: string | null): Promise<void> {
+    if (this.initialized && this.tenantId === (tenantId ?? null)) return;
+
+    this.tenantId = tenantId ?? null;
 
     try {
-      const { data, error } = await supabase
-        .from('feature_flags')
-        .select('*')
-        .eq('is_active', true);
+      let query = supabase
+        .from("feature_flags")
+        .select("*")
+        .eq("is_active", true);
+
+      // Scope to tenant: load global flags (no tenant_id) + tenant-specific flags
+      if (this.tenantId) {
+        query = query.or(`tenant_id.is.null,tenant_id.eq.${this.tenantId}`);
+      }
+
+      const { data, error } = await query;
 
       if (!error && data) {
         for (const row of data) {
@@ -211,12 +230,17 @@ class FeatureFlagManager {
       }
     } catch {
       // Silently fail - use default flags
-      console.warn('[FeatureFlags] Failed to load from database, using defaults');
+      console.warn(
+        "[FeatureFlags] Failed to load from database, using defaults",
+      );
     }
 
     // Load local overrides from localStorage (development only)
-    if (typeof localStorage !== 'undefined' && getCurrentEnvironment() === 'development') {
-      const stored = localStorage.getItem('feature_flag_overrides');
+    if (
+      typeof localStorage !== "undefined" &&
+      getCurrentEnvironment() === "development"
+    ) {
+      const stored = localStorage.getItem(this.overrideStorageKey);
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
@@ -254,7 +278,11 @@ class FeatureFlagManager {
     // Check environment
     if (flag.environments && flag.environments.length > 0) {
       const currentEnv = context?.environment || getCurrentEnvironment();
-      if (!flag.environments.includes(currentEnv as 'development' | 'staging' | 'production')) {
+      if (
+        !flag.environments.includes(
+          currentEnv as "development" | "staging" | "production",
+        )
+      ) {
         return false;
       }
     }
@@ -299,15 +327,7 @@ class FeatureFlagManager {
    */
   setOverride(flagName: string, enabled: boolean): void {
     this.overrides.set(flagName, enabled);
-
-    // Persist to localStorage
-    if (typeof localStorage !== 'undefined') {
-      const overrides: Record<string, boolean> = {};
-      this.overrides.forEach((value, key) => {
-        overrides[key] = value;
-      });
-      localStorage.setItem('feature_flag_overrides', JSON.stringify(overrides));
-    }
+    this.persistOverrides();
   }
 
   /**
@@ -315,14 +335,7 @@ class FeatureFlagManager {
    */
   clearOverride(flagName: string): void {
     this.overrides.delete(flagName);
-
-    if (typeof localStorage !== 'undefined') {
-      const overrides: Record<string, boolean> = {};
-      this.overrides.forEach((value, key) => {
-        overrides[key] = value;
-      });
-      localStorage.setItem('feature_flag_overrides', JSON.stringify(overrides));
-    }
+    this.persistOverrides();
   }
 
   /**
@@ -330,8 +343,18 @@ class FeatureFlagManager {
    */
   clearAllOverrides(): void {
     this.overrides.clear();
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem('feature_flag_overrides');
+    if (typeof localStorage !== "undefined") {
+      localStorage.removeItem(this.overrideStorageKey);
+    }
+  }
+
+  private persistOverrides(): void {
+    if (typeof localStorage !== "undefined") {
+      const overrides: Record<string, boolean> = {};
+      this.overrides.forEach((value, key) => {
+        overrides[key] = value;
+      });
+      localStorage.setItem(this.overrideStorageKey, JSON.stringify(overrides));
     }
   }
 }
@@ -345,7 +368,7 @@ export const featureFlags = new FeatureFlagManager();
  */
 export function isFeatureEnabled(
   flagName: string,
-  context?: EvaluationContext
+  context?: EvaluationContext,
 ): boolean {
   return featureFlags.isEnabled(flagName, context);
 }
@@ -363,7 +386,7 @@ export async function initFeatureFlags(): Promise<void> {
 export function getFeatureValue<T>(
   flagName: string,
   defaultValue: T,
-  context?: EvaluationContext
+  context?: EvaluationContext,
 ): T {
   const flag = featureFlags.getFlag(flagName);
   if (!flag) return defaultValue;

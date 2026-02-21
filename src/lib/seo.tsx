@@ -1,8 +1,14 @@
 /* eslint-disable react-refresh/only-export-components */
-import { useEffect, useState, createContext, useContext, ReactNode } from 'react';
-import { useSupabaseClient } from './supabase';
-import { getSiteContent } from './supabase-queries';
-import { captureException } from './sentry';
+import {
+  useEffect,
+  useState,
+  createContext,
+  useContext,
+  ReactNode,
+} from "react";
+import { useSupabaseClient } from "./supabase";
+import { getSiteContent } from "./supabase-queries";
+import { captureException } from "./sentry";
 
 // SEO Settings interface (matches Settings page)
 interface SEOSettings {
@@ -18,14 +24,16 @@ interface SEOSettings {
 
 // Default fallback values
 const DEFAULT_SEO: SEOSettings = {
-  siteName: 'Jonathan Christensen',
-  siteUrl: 'https://mejohnc.org',
-  defaultDescription: 'AI Automation Engineer specializing in agentic systems, automation pipelines, and AI-powered workflows.',
-  ogImage: '/og-image.png',
-  twitterHandle: '',
-  linkedinUrl: 'https://linkedin.com/in/mejohnc',
-  githubUrl: 'https://github.com/mejohnc-ft',
-  location: { city: 'San Diego', state: 'CA', country: 'USA' },
+  siteName: import.meta.env.VITE_PLATFORM_NAME || "Business OS",
+  siteUrl: import.meta.env.VITE_SITE_URL || "https://businessos.app",
+  defaultDescription:
+    import.meta.env.VITE_SITE_DESCRIPTION ||
+    "Your website and business tools in one platform.",
+  ogImage: "/og-image.png",
+  twitterHandle: import.meta.env.VITE_TWITTER_HANDLE || "",
+  linkedinUrl: import.meta.env.VITE_LINKEDIN_URL || "",
+  githubUrl: import.meta.env.VITE_GITHUB_URL || "",
+  location: { city: "", state: "", country: "" },
 };
 
 // Global cache for SEO settings (avoids refetching on every page)
@@ -37,7 +45,9 @@ const SEOContext = createContext<SEOSettings>(DEFAULT_SEO);
 
 export function SEOProvider({ children }: { children: ReactNode }) {
   const supabase = useSupabaseClient();
-  const [settings, setSettings] = useState<SEOSettings>(cachedSEO || DEFAULT_SEO);
+  const [settings, setSettings] = useState<SEOSettings>(
+    cachedSEO || DEFAULT_SEO,
+  );
 
   useEffect(() => {
     async function loadSettings() {
@@ -57,7 +67,7 @@ export function SEOProvider({ children }: { children: ReactNode }) {
       // Fetch from database
       cachePromise = (async () => {
         try {
-          const data = await getSiteContent('seo', supabase);
+          const data = await getSiteContent("seo", supabase);
           if (data?.content) {
             const parsed = JSON.parse(data.content);
             const merged = { ...DEFAULT_SEO, ...parsed };
@@ -65,7 +75,10 @@ export function SEOProvider({ children }: { children: ReactNode }) {
             return merged;
           }
         } catch (err) {
-          captureException(err instanceof Error ? err : new Error(String(err)), { context: 'SEO.loadSettings' });
+          captureException(
+            err instanceof Error ? err : new Error(String(err)),
+            { context: "SEO.loadSettings" },
+          );
         }
         cachedSEO = DEFAULT_SEO;
         return DEFAULT_SEO;
@@ -78,11 +91,7 @@ export function SEOProvider({ children }: { children: ReactNode }) {
     loadSettings();
   }, [supabase]);
 
-  return (
-    <SEOContext.Provider value={settings}>
-      {children}
-    </SEOContext.Provider>
-  );
+  return <SEOContext.Provider value={settings}>{children}</SEOContext.Provider>;
 }
 
 export function useSEOSettings() {
@@ -100,7 +109,7 @@ interface SEOProps {
   description?: string;
   image?: string;
   url?: string;
-  type?: 'website' | 'article' | 'profile';
+  type?: "website" | "article" | "profile";
   publishedTime?: string;
   modifiedTime?: string;
   author?: string;
@@ -112,7 +121,7 @@ export function useSEO({
   description,
   image,
   url,
-  type = 'website',
+  type = "website",
   publishedTime,
   modifiedTime,
   author,
@@ -123,7 +132,7 @@ export function useSEO({
   const BASE_URL = settings.siteUrl;
   const DEFAULT_TITLE = `${settings.siteName} - AI Automation Engineer`;
   const DEFAULT_DESCRIPTION = settings.defaultDescription;
-  const DEFAULT_IMAGE = settings.ogImage.startsWith('http')
+  const DEFAULT_IMAGE = settings.ogImage.startsWith("http")
     ? settings.ogImage
     : `${BASE_URL}${settings.ogImage}`;
 
@@ -132,7 +141,9 @@ export function useSEO({
     const fullDescription = description || DEFAULT_DESCRIPTION;
     const fullUrl = url ? `${BASE_URL}${url}` : BASE_URL;
     const fullImage = image
-      ? (image.startsWith('http') ? image : `${BASE_URL}${image}`)
+      ? image.startsWith("http")
+        ? image
+        : `${BASE_URL}${image}`
       : DEFAULT_IMAGE;
     const authorName = author || settings.siteName;
 
@@ -141,15 +152,15 @@ export function useSEO({
 
     // Helper to set or create meta tag
     const setMeta = (
-      attribute: 'name' | 'property',
+      attribute: "name" | "property",
       key: string,
-      content: string
+      content: string,
     ) => {
       let meta = document.querySelector(
-        `meta[${attribute}="${key}"]`
+        `meta[${attribute}="${key}"]`,
       ) as HTMLMetaElement | null;
       if (!meta) {
-        meta = document.createElement('meta');
+        meta = document.createElement("meta");
         meta.setAttribute(attribute, key);
         document.head.appendChild(meta);
       }
@@ -157,50 +168,50 @@ export function useSEO({
     };
 
     // Basic meta tags
-    setMeta('name', 'description', fullDescription);
+    setMeta("name", "description", fullDescription);
     if (noIndex) {
-      setMeta('name', 'robots', 'noindex, nofollow');
+      setMeta("name", "robots", "noindex, nofollow");
     }
 
     // Open Graph tags
-    setMeta('property', 'og:title', fullTitle);
-    setMeta('property', 'og:description', fullDescription);
-    setMeta('property', 'og:image', fullImage);
-    setMeta('property', 'og:url', fullUrl);
-    setMeta('property', 'og:type', type);
-    setMeta('property', 'og:site_name', settings.siteName);
-    setMeta('property', 'og:locale', 'en_US');
+    setMeta("property", "og:title", fullTitle);
+    setMeta("property", "og:description", fullDescription);
+    setMeta("property", "og:image", fullImage);
+    setMeta("property", "og:url", fullUrl);
+    setMeta("property", "og:type", type);
+    setMeta("property", "og:site_name", settings.siteName);
+    setMeta("property", "og:locale", "en_US");
 
     // Twitter Card tags
-    setMeta('name', 'twitter:card', 'summary_large_image');
-    setMeta('name', 'twitter:title', fullTitle);
-    setMeta('name', 'twitter:description', fullDescription);
-    setMeta('name', 'twitter:image', fullImage);
+    setMeta("name", "twitter:card", "summary_large_image");
+    setMeta("name", "twitter:title", fullTitle);
+    setMeta("name", "twitter:description", fullDescription);
+    setMeta("name", "twitter:image", fullImage);
     if (settings.twitterHandle) {
-      setMeta('name', 'twitter:site', settings.twitterHandle);
-      setMeta('name', 'twitter:creator', settings.twitterHandle);
+      setMeta("name", "twitter:site", settings.twitterHandle);
+      setMeta("name", "twitter:creator", settings.twitterHandle);
     }
 
     // Article-specific tags
-    if (type === 'article') {
+    if (type === "article") {
       if (publishedTime) {
-        setMeta('property', 'article:published_time', publishedTime);
+        setMeta("property", "article:published_time", publishedTime);
       }
       if (modifiedTime) {
-        setMeta('property', 'article:modified_time', modifiedTime);
+        setMeta("property", "article:modified_time", modifiedTime);
       }
       if (authorName) {
-        setMeta('property', 'article:author', authorName);
+        setMeta("property", "article:author", authorName);
       }
     }
 
     // Canonical URL
     let canonical = document.querySelector(
-      'link[rel="canonical"]'
+      'link[rel="canonical"]',
     ) as HTMLLinkElement | null;
     if (!canonical) {
-      canonical = document.createElement('link');
-      canonical.rel = 'canonical';
+      canonical = document.createElement("link");
+      canonical.rel = "canonical";
       document.head.appendChild(canonical);
     }
     canonical.href = fullUrl;
@@ -227,7 +238,7 @@ export function useSEO({
 
 // JSON-LD structured data types
 interface PersonSchema {
-  type: 'Person';
+  type: "Person";
   name: string;
   jobTitle?: string;
   url?: string;
@@ -242,7 +253,7 @@ interface PersonSchema {
 }
 
 interface ArticleSchema {
-  type: 'Article';
+  type: "Article";
   headline: string;
   description?: string;
   image?: string;
@@ -253,18 +264,22 @@ interface ArticleSchema {
 }
 
 interface WebsiteSchema {
-  type: 'Website';
+  type: "Website";
   name: string;
   url: string;
   description?: string;
 }
 
 interface BreadcrumbSchema {
-  type: 'BreadcrumbList';
+  type: "BreadcrumbList";
   items: { name: string; url: string }[];
 }
 
-type SchemaData = PersonSchema | ArticleSchema | WebsiteSchema | BreadcrumbSchema;
+type SchemaData =
+  | PersonSchema
+  | ArticleSchema
+  | WebsiteSchema
+  | BreadcrumbSchema;
 
 export function useJsonLd(schema: SchemaData | SchemaData[]) {
   const settings = useSEOSettings();
@@ -272,7 +287,7 @@ export function useJsonLd(schema: SchemaData | SchemaData[]) {
 
   useEffect(() => {
     const schemas = Array.isArray(schema) ? schema : [schema];
-    const scriptId = 'json-ld-schema';
+    const scriptId = "json-ld-schema";
 
     // Remove existing script
     const existing = document.getElementById(scriptId);
@@ -282,10 +297,10 @@ export function useJsonLd(schema: SchemaData | SchemaData[]) {
 
     const jsonLdData = schemas.map((s) => {
       switch (s.type) {
-        case 'Person':
+        case "Person":
           return {
-            '@context': 'https://schema.org',
-            '@type': 'Person',
+            "@context": "https://schema.org",
+            "@type": "Person",
             name: s.name,
             jobTitle: s.jobTitle,
             url: s.url || BASE_URL,
@@ -294,7 +309,7 @@ export function useJsonLd(schema: SchemaData | SchemaData[]) {
             email: s.email,
             address: s.address
               ? {
-                  '@type': 'PostalAddress',
+                  "@type": "PostalAddress",
                   addressLocality: s.address.locality,
                   addressRegion: s.address.region,
                   addressCountry: s.address.country,
@@ -302,47 +317,47 @@ export function useJsonLd(schema: SchemaData | SchemaData[]) {
               : undefined,
           };
 
-        case 'Article':
+        case "Article":
           return {
-            '@context': 'https://schema.org',
-            '@type': 'Article',
+            "@context": "https://schema.org",
+            "@type": "Article",
             headline: s.headline,
             description: s.description,
             image: s.image,
             datePublished: s.datePublished,
             dateModified: s.dateModified,
             author: {
-              '@type': 'Person',
+              "@type": "Person",
               name: s.author || settings.siteName,
             },
             publisher: {
-              '@type': 'Person',
+              "@type": "Person",
               name: settings.siteName,
             },
             mainEntityOfPage: {
-              '@type': 'WebPage',
-              '@id': s.url || BASE_URL,
+              "@type": "WebPage",
+              "@id": s.url || BASE_URL,
             },
           };
 
-        case 'Website':
+        case "Website":
           return {
-            '@context': 'https://schema.org',
-            '@type': 'WebSite',
+            "@context": "https://schema.org",
+            "@type": "WebSite",
             name: s.name,
             url: s.url,
             description: s.description,
           };
 
-        case 'BreadcrumbList':
+        case "BreadcrumbList":
           return {
-            '@context': 'https://schema.org',
-            '@type': 'BreadcrumbList',
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
             itemListElement: s.items.map((item, index) => ({
-              '@type': 'ListItem',
+              "@type": "ListItem",
               position: index + 1,
               name: item.name,
-              item: item.url.startsWith('http')
+              item: item.url.startsWith("http")
                 ? item.url
                 : `${BASE_URL}${item.url}`,
             })),
@@ -351,11 +366,11 @@ export function useJsonLd(schema: SchemaData | SchemaData[]) {
     });
 
     // Create and insert script
-    const script = document.createElement('script');
+    const script = document.createElement("script");
     script.id = scriptId;
-    script.type = 'application/ld+json';
+    script.type = "application/ld+json";
     script.textContent = JSON.stringify(
-      jsonLdData.length === 1 ? jsonLdData[0] : jsonLdData
+      jsonLdData.length === 1 ? jsonLdData[0] : jsonLdData,
     );
     document.head.appendChild(script);
 
@@ -378,15 +393,17 @@ export function usePersonSchema(): PersonSchema {
   if (settings.linkedinUrl) sameAs.push(settings.linkedinUrl);
   if (settings.githubUrl) sameAs.push(settings.githubUrl);
   if (settings.twitterHandle) {
-    sameAs.push(`https://twitter.com/${settings.twitterHandle.replace('@', '')}`);
+    sameAs.push(
+      `https://twitter.com/${settings.twitterHandle.replace("@", "")}`,
+    );
   }
 
   return {
-    type: 'Person',
+    type: "Person",
     name: settings.siteName,
-    jobTitle: 'AI Automation Engineer',
+    jobTitle: "AI Automation Engineer",
     url: settings.siteUrl,
-    image: settings.ogImage.startsWith('http')
+    image: settings.ogImage.startsWith("http")
       ? settings.ogImage
       : `${settings.siteUrl}${settings.ogImage}`,
     sameAs,
@@ -403,7 +420,7 @@ export function useWebsiteSchema(): WebsiteSchema {
   const settings = useSEOSettings();
 
   return {
-    type: 'Website',
+    type: "Website",
     name: settings.siteName,
     url: settings.siteUrl,
     description: settings.defaultDescription,
@@ -412,9 +429,9 @@ export function useWebsiteSchema(): WebsiteSchema {
 
 // Legacy exports for backwards compatibility (static versions)
 export const personSchema: PersonSchema = {
-  type: 'Person',
+  type: "Person",
   name: DEFAULT_SEO.siteName,
-  jobTitle: 'AI Automation Engineer',
+  jobTitle: "AI Automation Engineer",
   url: DEFAULT_SEO.siteUrl,
   image: `${DEFAULT_SEO.siteUrl}${DEFAULT_SEO.ogImage}`,
   sameAs: [DEFAULT_SEO.linkedinUrl, DEFAULT_SEO.githubUrl].filter(Boolean),
@@ -426,7 +443,7 @@ export const personSchema: PersonSchema = {
 };
 
 export const websiteSchema: WebsiteSchema = {
-  type: 'Website',
+  type: "Website",
   name: DEFAULT_SEO.siteName,
   url: DEFAULT_SEO.siteUrl,
   description: DEFAULT_SEO.defaultDescription,

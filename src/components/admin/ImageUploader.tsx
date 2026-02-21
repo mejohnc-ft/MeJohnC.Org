@@ -1,33 +1,35 @@
-import { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, Link as LinkIcon, Loader2, Image } from 'lucide-react';
-import { uploadFile } from '@/lib/supabase-queries';
-import { captureException } from '@/lib/sentry';
-import { Button } from '@/components/ui/button';
+import { useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Upload, X, Link as LinkIcon, Loader2, Image } from "lucide-react";
+import { uploadFile } from "@/lib/supabase-queries";
+import { captureException } from "@/lib/sentry";
+import { Button } from "@/components/ui/button";
+import { useTenant } from "@/lib/tenant";
 
 interface ImageUploaderProps {
   value: string;
   onChange: (value: string) => void;
   folder?: string;
-  aspectRatio?: 'square' | 'video' | 'auto';
+  aspectRatio?: "square" | "video" | "auto";
 }
 
 const ImageUploader = ({
   value,
   onChange,
-  folder = 'images',
-  aspectRatio = 'auto',
+  folder = "images",
+  aspectRatio = "auto",
 }: ImageUploaderProps) => {
+  const { tenantId } = useTenant();
   const [isUploading, setIsUploading] = useState(false);
   const [showUrlInput, setShowUrlInput] = useState(false);
-  const [urlValue, setUrlValue] = useState('');
+  const [urlValue, setUrlValue] = useState("");
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const aspectClasses = {
-    square: 'aspect-square',
-    video: 'aspect-video',
-    auto: 'min-h-[200px]',
+    square: "aspect-square",
+    video: "aspect-video",
+    auto: "min-h-[200px]",
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,14 +37,14 @@ const ImageUploader = ({
     if (!file) return;
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setError('Please select an image file');
+    if (!file.type.startsWith("image/")) {
+      setError("Please select an image file");
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setError('Image must be less than 5MB');
+      setError("Image must be less than 5MB");
       return;
     }
 
@@ -51,11 +53,13 @@ const ImageUploader = ({
 
     try {
       const path = `${folder}/${Date.now()}-${file.name}`;
-      const url = await uploadFile(file, path);
+      const url = await uploadFile(file, path, undefined, tenantId);
       onChange(url);
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'ImageUploader.upload' });
-      setError('Failed to upload image');
+      captureException(err instanceof Error ? err : new Error(String(err)), {
+        context: "ImageUploader.upload",
+      });
+      setError("Failed to upload image");
     } finally {
       setIsUploading(false);
     }
@@ -64,13 +68,13 @@ const ImageUploader = ({
   const handleUrlSubmit = () => {
     if (urlValue.trim()) {
       onChange(urlValue.trim());
-      setUrlValue('');
+      setUrlValue("");
       setShowUrlInput(false);
     }
   };
 
   const handleRemove = () => {
-    onChange('');
+    onChange("");
   };
 
   return (
@@ -115,7 +119,7 @@ const ImageUploader = ({
                   onChange={(e) => setUrlValue(e.target.value)}
                   placeholder="https://example.com/image.jpg"
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  onKeyDown={(e) => e.key === 'Enter' && handleUrlSubmit()}
+                  onKeyDown={(e) => e.key === "Enter" && handleUrlSubmit()}
                 />
                 <div className="flex gap-2">
                   <Button
@@ -167,9 +171,7 @@ const ImageUploader = ({
         )}
       </AnimatePresence>
 
-      {error && (
-        <p className="text-sm text-red-500">{error}</p>
-      )}
+      {error && <p className="text-sm text-red-500">{error}</p>}
 
       <input
         ref={inputRef}

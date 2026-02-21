@@ -7,9 +7,9 @@
  * - RESEND_API_KEY or SENDGRID_API_KEY
  */
 
-import { captureException } from './sentry';
+import { captureException } from "./sentry";
 
-export type EmailProvider = 'resend' | 'sendgrid' | 'console';
+export type EmailProvider = "resend" | "sendgrid" | "console";
 
 export interface EmailOptions {
   to: string | string[];
@@ -45,22 +45,24 @@ class EmailService {
   constructor() {
     this.provider = this.getProvider();
     this.apiKey = this.getApiKey();
-    this.fromEmail = import.meta.env.VITE_EMAIL_FROM || 'noreply@mejohnc.org';
+    this.fromEmail =
+      import.meta.env.VITE_EMAIL_FROM || "noreply@businessos.app";
   }
 
   private getProvider(): EmailProvider {
-    const provider = import.meta.env.VITE_EMAIL_PROVIDER?.toLowerCase() || 'console';
-    if (provider === 'resend' || provider === 'sendgrid') {
+    const provider =
+      import.meta.env.VITE_EMAIL_PROVIDER?.toLowerCase() || "console";
+    if (provider === "resend" || provider === "sendgrid") {
       return provider;
     }
-    return 'console';
+    return "console";
   }
 
   private getApiKey(): string | null {
-    if (this.provider === 'resend') {
+    if (this.provider === "resend") {
       return import.meta.env.VITE_RESEND_API_KEY || null;
     }
-    if (this.provider === 'sendgrid') {
+    if (this.provider === "sendgrid") {
       return import.meta.env.VITE_SENDGRID_API_KEY || null;
     }
     return null;
@@ -74,21 +76,24 @@ class EmailService {
 
     try {
       switch (this.provider) {
-        case 'resend':
+        case "resend":
           return await this.sendViaResend({ ...options, from });
-        case 'sendgrid':
+        case "sendgrid":
           return await this.sendViaSendGrid({ ...options, from });
-        case 'console':
+        case "console":
         default:
           return this.sendToConsole({ ...options, from });
       }
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'EmailService.send',
-        provider: this.provider,
-      });
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "EmailService.send",
+          provider: this.provider,
+        },
+      );
       return {
-        id: '',
+        id: "",
         provider: this.provider,
         success: false,
         error: error instanceof Error ? error.message : String(error),
@@ -100,16 +105,18 @@ class EmailService {
    * Send via Resend
    * https://resend.com/docs/api-reference/emails/send-email
    */
-  private async sendViaResend(options: EmailOptions & { from: string }): Promise<EmailResponse> {
+  private async sendViaResend(
+    options: EmailOptions & { from: string },
+  ): Promise<EmailResponse> {
     if (!this.apiKey) {
-      throw new Error('Resend API key not configured');
+      throw new Error("Resend API key not configured");
     }
 
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.apiKey}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         from: options.from,
@@ -129,12 +136,12 @@ class EmailService {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || 'Failed to send email via Resend');
+      throw new Error(data.message || "Failed to send email via Resend");
     }
 
     return {
       id: data.id,
-      provider: 'resend',
+      provider: "resend",
       success: true,
     };
   }
@@ -143,33 +150,45 @@ class EmailService {
    * Send via SendGrid
    * https://docs.sendgrid.com/api-reference/mail-send/mail-send
    */
-  private async sendViaSendGrid(options: EmailOptions & { from: string }): Promise<EmailResponse> {
+  private async sendViaSendGrid(
+    options: EmailOptions & { from: string },
+  ): Promise<EmailResponse> {
     if (!this.apiKey) {
-      throw new Error('SendGrid API key not configured');
+      throw new Error("SendGrid API key not configured");
     }
 
     const toArray = Array.isArray(options.to) ? options.to : [options.to];
 
-    const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
-      method: 'POST',
+    const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.apiKey}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         personalizations: [
           {
-            to: toArray.map(email => ({ email })),
-            cc: options.cc ? (Array.isArray(options.cc) ? options.cc : [options.cc]).map(email => ({ email })) : undefined,
-            bcc: options.bcc ? (Array.isArray(options.bcc) ? options.bcc : [options.bcc]).map(email => ({ email })) : undefined,
+            to: toArray.map((email) => ({ email })),
+            cc: options.cc
+              ? (Array.isArray(options.cc) ? options.cc : [options.cc]).map(
+                  (email) => ({ email }),
+                )
+              : undefined,
+            bcc: options.bcc
+              ? (Array.isArray(options.bcc) ? options.bcc : [options.bcc]).map(
+                  (email) => ({ email }),
+                )
+              : undefined,
           },
         ],
         from: { email: options.from },
         reply_to: options.replyTo ? { email: options.replyTo } : undefined,
         subject: options.subject,
         content: [
-          { type: 'text/html', value: options.html },
-          ...(options.text ? [{ type: 'text/plain', value: options.text }] : []),
+          { type: "text/html", value: options.html },
+          ...(options.text
+            ? [{ type: "text/plain", value: options.text }]
+            : []),
         ],
         attachments: options.attachments,
         headers: options.headers,
@@ -179,15 +198,17 @@ class EmailService {
 
     if (!response.ok) {
       const data = await response.json();
-      throw new Error(data.errors?.[0]?.message || 'Failed to send email via SendGrid');
+      throw new Error(
+        data.errors?.[0]?.message || "Failed to send email via SendGrid",
+      );
     }
 
     // SendGrid returns 202 with X-Message-Id header
-    const messageId = response.headers.get('X-Message-Id') || '';
+    const messageId = response.headers.get("X-Message-Id") || "";
 
     return {
       id: messageId,
-      provider: 'sendgrid',
+      provider: "sendgrid",
       success: true,
     };
   }
@@ -195,22 +216,24 @@ class EmailService {
   /**
    * Log email to console (development mode)
    */
-  private sendToConsole(options: EmailOptions & { from: string }): EmailResponse {
-    console.log('=== Email (Console Mode) ===');
-    console.log('From:', options.from);
-    console.log('To:', options.to);
-    console.log('Subject:', options.subject);
-    console.log('--- HTML Content ---');
+  private sendToConsole(
+    options: EmailOptions & { from: string },
+  ): EmailResponse {
+    console.log("=== Email (Console Mode) ===");
+    console.log("From:", options.from);
+    console.log("To:", options.to);
+    console.log("Subject:", options.subject);
+    console.log("--- HTML Content ---");
     console.log(options.html);
     if (options.text) {
-      console.log('--- Text Content ---');
+      console.log("--- Text Content ---");
       console.log(options.text);
     }
-    console.log('===========================');
+    console.log("===========================");
 
     return {
       id: `console-${Date.now()}`,
-      provider: 'console',
+      provider: "console",
       success: true,
     };
   }
@@ -226,19 +249,24 @@ class EmailService {
     templateId: string,
     to: string | string[],
     variables: Record<string, string>,
-    options?: Partial<EmailOptions>
+    options?: Partial<EmailOptions>,
   ): Promise<EmailResponse> {
     // This would fetch the template from the database and render it
     // For now, this is a placeholder - log params to satisfy linter
-    console.debug('sendFromTemplate called with:', { templateId, to, variables, options });
-    throw new Error('Template rendering not implemented yet');
+    console.debug("sendFromTemplate called with:", {
+      templateId,
+      to,
+      variables,
+      options,
+    });
+    throw new Error("Template rendering not implemented yet");
   }
 
   /**
    * Verify email provider configuration
    */
   async verify(): Promise<boolean> {
-    if (this.provider === 'console') {
+    if (this.provider === "console") {
       return true;
     }
 
@@ -249,21 +277,21 @@ class EmailService {
 
     try {
       // Simple verification - try to send to a test endpoint or verify API key
-      if (this.provider === 'resend') {
+      if (this.provider === "resend") {
         // Resend has an API keys endpoint for verification
-        const response = await fetch('https://api.resend.com/api-keys', {
+        const response = await fetch("https://api.resend.com/api-keys", {
           headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
+            Authorization: `Bearer ${this.apiKey}`,
           },
         });
         return response.ok;
       }
 
-      if (this.provider === 'sendgrid') {
+      if (this.provider === "sendgrid") {
         // SendGrid has a scopes endpoint for verification
-        const response = await fetch('https://api.sendgrid.com/v3/scopes', {
+        const response = await fetch("https://api.sendgrid.com/v3/scopes", {
           headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
+            Authorization: `Bearer ${this.apiKey}`,
           },
         });
         return response.ok;
@@ -271,9 +299,12 @@ class EmailService {
 
       return false;
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'EmailService.verify',
-      });
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "EmailService.verify",
+        },
+      );
       return false;
     }
   }
@@ -284,7 +315,7 @@ class EmailService {
   getProviderInfo() {
     return {
       provider: this.provider,
-      configured: this.provider === 'console' || !!this.apiKey,
+      configured: this.provider === "console" || !!this.apiKey,
       fromEmail: this.fromEmail,
     };
   }
@@ -294,11 +325,14 @@ class EmailService {
 export const emailService = new EmailService();
 
 // Helper functions for common email types
-export async function sendWelcomeEmail(to: string, firstName?: string): Promise<EmailResponse> {
-  const name = firstName || 'there';
+export async function sendWelcomeEmail(
+  to: string,
+  firstName?: string,
+): Promise<EmailResponse> {
+  const name = firstName || "there";
   return emailService.send({
     to,
-    subject: 'Welcome to MeJohnC.Org!',
+    subject: `Welcome to ${import.meta.env.VITE_PLATFORM_NAME || "Business OS"}!`,
     html: `
       <h1>Welcome ${name}!</h1>
       <p>Thanks for subscribing to our newsletter.</p>
@@ -309,10 +343,12 @@ export async function sendWelcomeEmail(to: string, firstName?: string): Promise<
   });
 }
 
-export async function sendUnsubscribeConfirmation(to: string): Promise<EmailResponse> {
+export async function sendUnsubscribeConfirmation(
+  to: string,
+): Promise<EmailResponse> {
   return emailService.send({
     to,
-    subject: 'Unsubscribe Confirmation',
+    subject: "Unsubscribe Confirmation",
     html: `
       <h1>You've been unsubscribed</h1>
       <p>We're sorry to see you go. You've been removed from our mailing list.</p>
@@ -325,7 +361,7 @@ export async function sendUnsubscribeConfirmation(to: string): Promise<EmailResp
 export async function sendTestEmail(to: string): Promise<EmailResponse> {
   return emailService.send({
     to,
-    subject: 'Test Email from MeJohnC.Org',
+    subject: `Test Email from ${import.meta.env.VITE_PLATFORM_NAME || "Business OS"}`,
     html: `
       <h1>Test Email</h1>
       <p>This is a test email from the marketing system.</p>

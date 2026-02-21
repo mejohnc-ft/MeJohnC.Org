@@ -151,7 +151,7 @@ function TenantGate({ children }: { children: React.ReactNode }) {
             active.
           </p>
           <a
-            href="https://mejohnc.org"
+            href={import.meta.env.VITE_SITE_URL || "/"}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity"
           >
             Go to Main Site

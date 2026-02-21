@@ -14,9 +14,9 @@
  */
 
 // CSRF token storage
-const CSRF_TOKEN_KEY = 'mejohnc_csrf_token';
-const CSRF_HEADER = 'X-CSRF-Token';
-const CUSTOM_HEADER = 'X-Requested-With';
+const CSRF_TOKEN_KEY = "bos_csrf_token";
+const CSRF_HEADER = "X-CSRF-Token";
+const CUSTOM_HEADER = "X-Requested-With";
 
 /**
  * Generate a cryptographically secure random token
@@ -24,14 +24,16 @@ const CUSTOM_HEADER = 'X-Requested-With';
 export function generateToken(): string {
   const array = new Uint8Array(32);
   crypto.getRandomValues(array);
-  return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join(
+    "",
+  );
 }
 
 /**
  * Get or create CSRF token for the session
  */
 export function getToken(): string {
-  if (typeof sessionStorage === 'undefined') {
+  if (typeof sessionStorage === "undefined") {
     return generateToken();
   }
 
@@ -47,7 +49,7 @@ export function getToken(): string {
  * Clear the CSRF token (e.g., on logout)
  */
 export function clearToken(): void {
-  if (typeof sessionStorage !== 'undefined') {
+  if (typeof sessionStorage !== "undefined") {
     sessionStorage.removeItem(CSRF_TOKEN_KEY);
   }
 }
@@ -58,7 +60,7 @@ export function clearToken(): void {
 export function getCsrfHeaders(): Record<string, string> {
   return {
     [CSRF_HEADER]: getToken(),
-    [CUSTOM_HEADER]: 'XMLHttpRequest',
+    [CUSTOM_HEADER]: "XMLHttpRequest",
   };
 }
 
@@ -67,7 +69,7 @@ export function getCsrfHeaders(): Record<string, string> {
  */
 export function validateOrigin(
   origin: string | null,
-  allowedOrigins: string[]
+  allowedOrigins: string[],
 ): boolean {
   if (!origin) return false;
 
@@ -87,7 +89,7 @@ export function validateOrigin(
  */
 export function validateReferer(
   referer: string | null,
-  allowedOrigins: string[]
+  allowedOrigins: string[],
 ): boolean {
   if (!referer) return false;
 
@@ -106,13 +108,16 @@ export function validateReferer(
  * Check if request has the custom header (simple CSRF check for AJAX)
  */
 export function hasCustomHeader(headers: Headers): boolean {
-  return headers.get(CUSTOM_HEADER) === 'XMLHttpRequest';
+  return headers.get(CUSTOM_HEADER) === "XMLHttpRequest";
 }
 
 /**
  * Validate CSRF token from header against session token
  */
-export function validateToken(headerToken: string | null, sessionToken: string): boolean {
+export function validateToken(
+  headerToken: string | null,
+  sessionToken: string,
+): boolean {
   if (!headerToken || !sessionToken) return false;
 
   // Constant-time comparison to prevent timing attacks
@@ -143,31 +148,39 @@ export interface CsrfConfig {
  * Create a CSRF validator function
  */
 export function createCsrfValidator(config: CsrfConfig) {
-  const protectedMethods = config.protectedMethods || ['POST', 'PUT', 'PATCH', 'DELETE'];
+  const protectedMethods = config.protectedMethods || [
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+  ];
 
-  return function validateCsrf(req: Request): { valid: boolean; error?: string } {
+  return function validateCsrf(req: Request): {
+    valid: boolean;
+    error?: string;
+  } {
     // Skip for safe methods
     if (!protectedMethods.includes(req.method)) {
       return { valid: true };
     }
 
     // Validate Origin header
-    const origin = req.headers.get('origin');
+    const origin = req.headers.get("origin");
     if (origin && !validateOrigin(origin, config.allowedOrigins)) {
-      return { valid: false, error: 'Invalid origin' };
+      return { valid: false, error: "Invalid origin" };
     }
 
     // If no Origin, validate Referer
     if (!origin) {
-      const referer = req.headers.get('referer');
+      const referer = req.headers.get("referer");
       if (referer && !validateReferer(referer, config.allowedOrigins)) {
-        return { valid: false, error: 'Invalid referer' };
+        return { valid: false, error: "Invalid referer" };
       }
     }
 
     // Check custom header if required
     if (config.requireCustomHeader && !hasCustomHeader(req.headers)) {
-      return { valid: false, error: 'Missing X-Requested-With header' };
+      return { valid: false, error: "Missing X-Requested-With header" };
     }
 
     return { valid: true };
@@ -177,15 +190,43 @@ export function createCsrfValidator(config: CsrfConfig) {
 /**
  * Default CSRF validator for the app
  */
+/**
+ * Build allowed origins dynamically from env vars and current location.
+ */
+function getAllowedOrigins(): string[] {
+  const origins: string[] = [];
+
+  // Platform origin from env
+  const siteUrl = import.meta.env.VITE_SITE_URL;
+  if (siteUrl) origins.push(siteUrl);
+
+  // Extra CORS origins from env (comma-separated)
+  const extra = import.meta.env.VITE_CORS_ORIGINS;
+  if (extra) {
+    for (const o of extra.split(",")) {
+      const trimmed = o.trim();
+      if (trimmed) origins.push(trimmed);
+    }
+  }
+
+  // Current origin (covers tenant subdomains)
+  if (typeof window !== "undefined") {
+    origins.push(window.location.origin);
+  }
+
+  // Localhost for development
+  if (
+    typeof window !== "undefined" &&
+    window.location.hostname === "localhost"
+  ) {
+    origins.push("http://localhost:5173", "http://localhost:3000");
+  }
+
+  return [...new Set(origins)];
+}
+
 export const defaultCsrfValidator = createCsrfValidator({
-  allowedOrigins: [
-    'https://mejohnc.org',
-    'https://www.mejohnc.org',
-    // Add localhost for development
-    ...(typeof window !== 'undefined' && window.location.hostname === 'localhost'
-      ? ['http://localhost:5173', 'http://localhost:3000']
-      : []),
-  ],
+  allowedOrigins: getAllowedOrigins(),
   requireCustomHeader: true,
 });
 
@@ -193,12 +234,15 @@ export const defaultCsrfValidator = createCsrfValidator({
  * Higher-order function to wrap fetch with CSRF headers
  */
 export function createCsrfFetch(baseFetch: typeof fetch = fetch) {
-  return function csrfFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  return function csrfFetch(
+    input: RequestInfo | URL,
+    init?: RequestInit,
+  ): Promise<Response> {
     const headers = new Headers(init?.headers);
 
     // Add CSRF headers for state-changing methods
-    const method = init?.method?.toUpperCase() || 'GET';
-    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+    const method = init?.method?.toUpperCase() || "GET";
+    if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
       const csrfHeaders = getCsrfHeaders();
       for (const [key, value] of Object.entries(csrfHeaders)) {
         headers.set(key, value);

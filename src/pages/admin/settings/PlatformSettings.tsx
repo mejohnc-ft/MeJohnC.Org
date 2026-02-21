@@ -48,15 +48,16 @@ interface SEOSettings {
 }
 
 const defaultSEO: SEOSettings = {
-  siteName: "Jonathan Christensen",
-  siteUrl: "https://mejohnc.org",
+  siteName: import.meta.env.VITE_PLATFORM_NAME || "Business OS",
+  siteUrl: import.meta.env.VITE_SITE_URL || "https://businessos.app",
   defaultDescription:
-    "AI Automation Engineer specializing in agentic systems, automation pipelines, and AI-powered workflows.",
+    import.meta.env.VITE_SITE_DESCRIPTION ||
+    "Your website and business tools in one platform.",
   ogImage: "/og-image.png",
-  twitterHandle: "",
-  linkedinUrl: "https://linkedin.com/in/mejohnc",
-  githubUrl: "https://github.com/mejohnc-ft",
-  location: { city: "San Diego", state: "CA", country: "USA" },
+  twitterHandle: import.meta.env.VITE_TWITTER_HANDLE || "",
+  linkedinUrl: import.meta.env.VITE_LINKEDIN_URL || "",
+  githubUrl: import.meta.env.VITE_GITHUB_URL || "",
+  location: { city: "", state: "", country: "" },
 };
 
 // Tech stack data
