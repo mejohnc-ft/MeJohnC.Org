@@ -10,12 +10,12 @@
  * @see https://github.com/mejohnc-ft/MeJohnC.Org/issues/104
  */
 
-import type { ReactNode } from 'react';
+import type { ReactNode } from "react";
 
 /**
  * Authentication modes supported by the app
  */
-export type AuthMode = 'clerk' | 'platform' | 'disabled';
+export type AuthMode = "clerk" | "platform" | "disabled";
 
 /**
  * User information normalized across all auth adapters
@@ -28,6 +28,7 @@ export interface AuthUser {
   fullName: string | null;
   imageUrl: string | null;
   metadata?: Record<string, unknown>;
+  orgRole?: string | null;
 }
 
 /**

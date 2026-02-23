@@ -11,31 +11,37 @@
 /**
  * Available roles in the system
  */
-export type Role = 'admin' | 'editor' | 'author' | 'viewer' | 'guest';
+export type Role = "admin" | "editor" | "author" | "viewer" | "guest";
 
 /**
  * Resources that can be protected
  */
 export type Resource =
-  | 'apps'
-  | 'projects'
-  | 'blog_posts'
-  | 'site_content'
-  | 'contacts'
-  | 'bookmarks'
-  | 'news'
-  | 'metrics'
-  | 'tasks'
-  | 'marketing'
-  | 'site_builder'
-  | 'users'
-  | 'settings'
-  | 'audit_logs';
+  | "apps"
+  | "projects"
+  | "blog_posts"
+  | "site_content"
+  | "contacts"
+  | "bookmarks"
+  | "news"
+  | "metrics"
+  | "tasks"
+  | "marketing"
+  | "site_builder"
+  | "users"
+  | "settings"
+  | "audit_logs";
 
 /**
  * Actions that can be performed on resources
  */
-export type Action = 'create' | 'read' | 'update' | 'delete' | 'publish' | 'manage';
+export type Action =
+  | "create"
+  | "read"
+  | "update"
+  | "delete"
+  | "publish"
+  | "manage";
 
 /**
  * Permission definition
@@ -61,87 +67,135 @@ export interface RoleDefinition {
  */
 export const ROLE_DEFINITIONS: Record<Role, RoleDefinition> = {
   admin: {
-    name: 'admin',
-    displayName: 'Administrator',
-    description: 'Full access to all resources and settings',
+    name: "admin",
+    displayName: "Administrator",
+    description: "Full access to all resources and settings",
     permissions: [
-      { resource: 'apps', actions: ['create', 'read', 'update', 'delete', 'publish', 'manage'] },
-      { resource: 'projects', actions: ['create', 'read', 'update', 'delete', 'publish', 'manage'] },
-      { resource: 'blog_posts', actions: ['create', 'read', 'update', 'delete', 'publish', 'manage'] },
-      { resource: 'site_content', actions: ['create', 'read', 'update', 'delete', 'publish', 'manage'] },
-      { resource: 'contacts', actions: ['create', 'read', 'update', 'delete', 'manage'] },
-      { resource: 'bookmarks', actions: ['create', 'read', 'update', 'delete', 'manage'] },
-      { resource: 'news', actions: ['create', 'read', 'update', 'delete', 'manage'] },
-      { resource: 'metrics', actions: ['read', 'manage'] },
-      { resource: 'tasks', actions: ['create', 'read', 'update', 'delete', 'manage'] },
-      { resource: 'marketing', actions: ['create', 'read', 'update', 'delete', 'publish', 'manage'] },
-      { resource: 'site_builder', actions: ['create', 'read', 'update', 'delete', 'publish', 'manage'] },
-      { resource: 'users', actions: ['create', 'read', 'update', 'delete', 'manage'] },
-      { resource: 'settings', actions: ['read', 'update', 'manage'] },
-      { resource: 'audit_logs', actions: ['read'] },
+      {
+        resource: "apps",
+        actions: ["create", "read", "update", "delete", "publish", "manage"],
+      },
+      {
+        resource: "projects",
+        actions: ["create", "read", "update", "delete", "publish", "manage"],
+      },
+      {
+        resource: "blog_posts",
+        actions: ["create", "read", "update", "delete", "publish", "manage"],
+      },
+      {
+        resource: "site_content",
+        actions: ["create", "read", "update", "delete", "publish", "manage"],
+      },
+      {
+        resource: "contacts",
+        actions: ["create", "read", "update", "delete", "manage"],
+      },
+      {
+        resource: "bookmarks",
+        actions: ["create", "read", "update", "delete", "manage"],
+      },
+      {
+        resource: "news",
+        actions: ["create", "read", "update", "delete", "manage"],
+      },
+      { resource: "metrics", actions: ["read", "manage"] },
+      {
+        resource: "tasks",
+        actions: ["create", "read", "update", "delete", "manage"],
+      },
+      {
+        resource: "marketing",
+        actions: ["create", "read", "update", "delete", "publish", "manage"],
+      },
+      {
+        resource: "site_builder",
+        actions: ["create", "read", "update", "delete", "publish", "manage"],
+      },
+      {
+        resource: "users",
+        actions: ["create", "read", "update", "delete", "manage"],
+      },
+      { resource: "settings", actions: ["read", "update", "manage"] },
+      { resource: "audit_logs", actions: ["read"] },
     ],
   },
 
   editor: {
-    name: 'editor',
-    displayName: 'Editor',
-    description: 'Can edit and publish content',
+    name: "editor",
+    displayName: "Editor",
+    description: "Can edit and publish content",
     permissions: [
-      { resource: 'apps', actions: ['create', 'read', 'update', 'publish'] },
-      { resource: 'projects', actions: ['create', 'read', 'update', 'publish'] },
-      { resource: 'blog_posts', actions: ['create', 'read', 'update', 'publish'] },
-      { resource: 'site_content', actions: ['read', 'update', 'publish'] },
-      { resource: 'contacts', actions: ['create', 'read', 'update'] },
-      { resource: 'bookmarks', actions: ['create', 'read', 'update', 'delete'] },
-      { resource: 'news', actions: ['create', 'read', 'update'] },
-      { resource: 'metrics', actions: ['read'] },
-      { resource: 'tasks', actions: ['create', 'read', 'update'] },
-      { resource: 'marketing', actions: ['create', 'read', 'update', 'publish'] },
-      { resource: 'site_builder', actions: ['create', 'read', 'update', 'publish'] },
+      { resource: "apps", actions: ["create", "read", "update", "publish"] },
+      {
+        resource: "projects",
+        actions: ["create", "read", "update", "publish"],
+      },
+      {
+        resource: "blog_posts",
+        actions: ["create", "read", "update", "publish"],
+      },
+      { resource: "site_content", actions: ["read", "update", "publish"] },
+      { resource: "contacts", actions: ["create", "read", "update"] },
+      {
+        resource: "bookmarks",
+        actions: ["create", "read", "update", "delete"],
+      },
+      { resource: "news", actions: ["create", "read", "update"] },
+      { resource: "metrics", actions: ["read"] },
+      { resource: "tasks", actions: ["create", "read", "update"] },
+      {
+        resource: "marketing",
+        actions: ["create", "read", "update", "publish"],
+      },
+      {
+        resource: "site_builder",
+        actions: ["create", "read", "update", "publish"],
+      },
     ],
   },
 
   author: {
-    name: 'author',
-    displayName: 'Author',
-    description: 'Can create and edit own content',
+    name: "author",
+    displayName: "Author",
+    description: "Can create and edit own content",
     permissions: [
-      { resource: 'apps', actions: ['create', 'read', 'update'] },
-      { resource: 'projects', actions: ['create', 'read', 'update'] },
-      { resource: 'blog_posts', actions: ['create', 'read', 'update'] },
-      { resource: 'site_content', actions: ['read'] },
-      { resource: 'contacts', actions: ['read'] },
-      { resource: 'bookmarks', actions: ['create', 'read', 'update'] },
-      { resource: 'news', actions: ['read'] },
-      { resource: 'tasks', actions: ['create', 'read', 'update'] },
+      { resource: "apps", actions: ["create", "read", "update"] },
+      { resource: "projects", actions: ["create", "read", "update"] },
+      { resource: "blog_posts", actions: ["create", "read", "update"] },
+      { resource: "site_content", actions: ["read"] },
+      { resource: "contacts", actions: ["read"] },
+      { resource: "bookmarks", actions: ["create", "read", "update"] },
+      { resource: "news", actions: ["read"] },
+      { resource: "tasks", actions: ["create", "read", "update"] },
     ],
   },
 
   viewer: {
-    name: 'viewer',
-    displayName: 'Viewer',
-    description: 'Read-only access to content',
+    name: "viewer",
+    displayName: "Viewer",
+    description: "Read-only access to content",
     permissions: [
-      { resource: 'apps', actions: ['read'] },
-      { resource: 'projects', actions: ['read'] },
-      { resource: 'blog_posts', actions: ['read'] },
-      { resource: 'site_content', actions: ['read'] },
-      { resource: 'bookmarks', actions: ['read'] },
-      { resource: 'news', actions: ['read'] },
-      { resource: 'metrics', actions: ['read'] },
-      { resource: 'tasks', actions: ['read'] },
+      { resource: "apps", actions: ["read"] },
+      { resource: "projects", actions: ["read"] },
+      { resource: "blog_posts", actions: ["read"] },
+      { resource: "site_content", actions: ["read"] },
+      { resource: "bookmarks", actions: ["read"] },
+      { resource: "news", actions: ["read"] },
+      { resource: "metrics", actions: ["read"] },
+      { resource: "tasks", actions: ["read"] },
     ],
   },
 
   guest: {
-    name: 'guest',
-    displayName: 'Guest',
-    description: 'Limited public access',
+    name: "guest",
+    displayName: "Guest",
+    description: "Limited public access",
     permissions: [
-      { resource: 'apps', actions: ['read'] },
-      { resource: 'projects', actions: ['read'] },
-      { resource: 'blog_posts', actions: ['read'] },
-      { resource: 'site_content', actions: ['read'] },
+      { resource: "apps", actions: ["read"] },
+      { resource: "projects", actions: ["read"] },
+      { resource: "blog_posts", actions: ["read"] },
+      { resource: "site_content", actions: ["read"] },
     ],
   },
 };
@@ -152,7 +206,7 @@ export const ROLE_DEFINITIONS: Record<Role, RoleDefinition> = {
 export function hasPermission(
   role: Role | Role[],
   resource: Resource,
-  action: Action
+  action: Action,
 ): boolean {
   const roles = Array.isArray(role) ? role : [role];
 
@@ -160,7 +214,9 @@ export function hasPermission(
     const definition = ROLE_DEFINITIONS[r];
     if (!definition) continue;
 
-    const resourcePermission = definition.permissions.find((p) => p.resource === resource);
+    const resourcePermission = definition.permissions.find(
+      (p) => p.resource === resource,
+    );
     if (resourcePermission?.actions.includes(action)) {
       return true;
     }
@@ -199,21 +255,24 @@ export function getRolePermissions(role: Role): Permission[] {
  * Check if a role can access a specific admin route
  */
 export function canAccessRoute(role: Role | Role[], route: string): boolean {
-  const routePermissions: Record<string, { resource: Resource; action: Action }> = {
-    '/admin': { resource: 'site_content', action: 'read' },
-    '/admin/apps': { resource: 'apps', action: 'read' },
-    '/admin/projects': { resource: 'projects', action: 'read' },
-    '/admin/blog': { resource: 'blog_posts', action: 'read' },
-    '/admin/contacts': { resource: 'contacts', action: 'read' },
-    '/admin/bookmarks': { resource: 'bookmarks', action: 'read' },
-    '/admin/news': { resource: 'news', action: 'read' },
-    '/admin/metrics': { resource: 'metrics', action: 'read' },
-    '/admin/tasks': { resource: 'tasks', action: 'read' },
-    '/admin/marketing': { resource: 'marketing', action: 'read' },
-    '/admin/site-builder': { resource: 'site_builder', action: 'read' },
-    '/admin/users': { resource: 'users', action: 'read' },
-    '/admin/settings': { resource: 'settings', action: 'read' },
-    '/admin/audit': { resource: 'audit_logs', action: 'read' },
+  const routePermissions: Record<
+    string,
+    { resource: Resource; action: Action }
+  > = {
+    "/admin": { resource: "site_content", action: "read" },
+    "/admin/apps": { resource: "apps", action: "read" },
+    "/admin/projects": { resource: "projects", action: "read" },
+    "/admin/blog": { resource: "blog_posts", action: "read" },
+    "/admin/contacts": { resource: "contacts", action: "read" },
+    "/admin/bookmarks": { resource: "bookmarks", action: "read" },
+    "/admin/news": { resource: "news", action: "read" },
+    "/admin/metrics": { resource: "metrics", action: "read" },
+    "/admin/tasks": { resource: "tasks", action: "read" },
+    "/admin/marketing": { resource: "marketing", action: "read" },
+    "/admin/site-builder": { resource: "site_builder", action: "read" },
+    "/admin/users": { resource: "users", action: "read" },
+    "/admin/settings": { resource: "settings", action: "read" },
+    "/admin/audit": { resource: "audit_logs", action: "read" },
   };
 
   // Find matching route (handles nested routes)
@@ -228,7 +287,7 @@ export function canAccessRoute(role: Role | Role[], route: string): boolean {
 
   if (!matchedRoute) {
     // Unknown route - default to allowing authenticated users
-    return role !== 'guest';
+    return role !== "guest";
   }
 
   const { resource, action } = routePermissions[matchedRoute];
@@ -236,18 +295,49 @@ export function canAccessRoute(role: Role | Role[], route: string): boolean {
 }
 
 /**
- * Get user's role from Clerk metadata
+ * Map Clerk organization role keys to app roles
  */
-export function getUserRole(user: { publicMetadata?: { role?: string } } | null): Role {
-  if (!user) return 'guest';
+const CLERK_ORG_ROLE_MAP: Record<string, Role> = {
+  "org:admin": "admin",
+  "org:editor": "editor",
+  "org:author": "author",
+  "org:viewer": "viewer",
+  "org:member": "viewer",
+};
 
-  const role = user.publicMetadata?.role as Role;
-  if (role && ROLE_DEFINITIONS[role]) {
-    return role;
+/**
+ * Get user's role from org membership (preferred) or Clerk metadata (fallback)
+ *
+ * Resolution priority:
+ * 1. orgRole (mapped from Clerk org membership) — per-org permissions
+ * 2. publicMetadata.role / metadata.role — legacy single-org fallback
+ * 3. 'viewer' default for authenticated users
+ */
+export function getUserRole(
+  user: {
+    publicMetadata?: { role?: string };
+    metadata?: Record<string, unknown>;
+    orgRole?: string | null;
+  } | null,
+): Role {
+  if (!user) return "guest";
+
+  // 1. Org membership role (multi-tenant)
+  if (user.orgRole) {
+    const mapped = CLERK_ORG_ROLE_MAP[user.orgRole];
+    if (mapped) return mapped;
   }
 
-  // Default authenticated users to viewer
-  return 'viewer';
+  // 2. Legacy metadata role (single-org fallback)
+  const metaRole = (user.publicMetadata?.role ?? user.metadata?.role) as
+    | Role
+    | undefined;
+  if (metaRole && ROLE_DEFINITIONS[metaRole]) {
+    return metaRole;
+  }
+
+  // 3. Default authenticated users to viewer
+  return "viewer";
 }
 
 /**
@@ -264,14 +354,16 @@ export interface PermissionCheckResult {
 export function checkPermission(
   role: Role | Role[],
   resource: Resource,
-  action: Action
+  action: Action,
 ): PermissionCheckResult {
   if (hasPermission(role, resource, action)) {
     return { allowed: true };
   }
 
   const roles = Array.isArray(role) ? role : [role];
-  const roleNames = roles.map((r) => ROLE_DEFINITIONS[r]?.displayName || r).join(', ');
+  const roleNames = roles
+    .map((r) => ROLE_DEFINITIONS[r]?.displayName || r)
+    .join(", ");
 
   return {
     allowed: false,
@@ -290,11 +382,11 @@ export function createPermissionGuard(resource: Resource, action: Action) {
 
 // Pre-built permission guards for common checks
 export const guards = {
-  canManageUsers: createPermissionGuard('users', 'manage'),
-  canManageSettings: createPermissionGuard('settings', 'manage'),
-  canPublishContent: createPermissionGuard('blog_posts', 'publish'),
-  canViewMetrics: createPermissionGuard('metrics', 'read'),
-  canManageMarketing: createPermissionGuard('marketing', 'manage'),
-  canEditSiteBuilder: createPermissionGuard('site_builder', 'update'),
-  canViewAuditLogs: createPermissionGuard('audit_logs', 'read'),
+  canManageUsers: createPermissionGuard("users", "manage"),
+  canManageSettings: createPermissionGuard("settings", "manage"),
+  canPublishContent: createPermissionGuard("blog_posts", "publish"),
+  canViewMetrics: createPermissionGuard("metrics", "read"),
+  canManageMarketing: createPermissionGuard("marketing", "manage"),
+  canEditSiteBuilder: createPermissionGuard("site_builder", "update"),
+  canViewAuditLogs: createPermissionGuard("audit_logs", "read"),
 };

@@ -10,7 +10,7 @@
 
 /* eslint-disable react-refresh/only-export-components */
 
-import { createContext, useContext, type ReactNode } from 'react';
+import { createContext, useContext, type ReactNode } from "react";
 import {
   ClerkProvider,
   SignedIn,
@@ -18,13 +18,17 @@ import {
   useUser,
   useClerk,
   useAuth as useClerkAuth,
-} from '@clerk/clerk-react';
-import type { AuthAdapter, AuthContextType, AuthUser } from './types';
+  useOrganization,
+} from "@clerk/clerk-react";
+import type { AuthAdapter, AuthContextType, AuthUser } from "./types";
 
 /**
  * Convert Clerk user to normalized AuthUser
  */
-function clerkUserToAuthUser(user: ReturnType<typeof useUser>['user']): AuthUser | null {
+function clerkUserToAuthUser(
+  user: ReturnType<typeof useUser>["user"],
+  orgRole?: string | null,
+): AuthUser | null {
   if (!user) return null;
 
   return {
@@ -35,6 +39,7 @@ function clerkUserToAuthUser(user: ReturnType<typeof useUser>['user']): AuthUser
     fullName: user.fullName,
     imageUrl: user.imageUrl,
     metadata: user.publicMetadata,
+    orgRole: orgRole ?? null,
   };
 }
 
@@ -50,9 +55,10 @@ function useClerkAuthBridge(): AuthContextType {
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
   const { isSignedIn, getToken } = useClerkAuth();
+  const { membership } = useOrganization();
 
   return {
-    user: clerkUserToAuthUser(user),
+    user: clerkUserToAuthUser(user, membership?.role ?? null),
     isSignedIn: isSignedIn ?? false,
     isLoaded,
     signOut: async () => {
@@ -70,7 +76,11 @@ function useClerkAuthBridge(): AuthContextType {
 function ClerkAuthContextProvider({ children }: { children: ReactNode }) {
   const auth = useClerkAuthBridge();
 
-  return <ClerkAuthContext.Provider value={auth}>{children}</ClerkAuthContext.Provider>;
+  return (
+    <ClerkAuthContext.Provider value={auth}>
+      {children}
+    </ClerkAuthContext.Provider>
+  );
 }
 
 /**
@@ -85,9 +95,12 @@ export function createClerkAdapter(publishableKey: string): AuthAdapter {
       return (
         <div className="min-h-screen bg-background flex items-center justify-center p-6">
           <div className="text-center max-w-md">
-            <h2 className="text-xl font-bold text-foreground mb-4">Clerk Not Configured</h2>
+            <h2 className="text-xl font-bold text-foreground mb-4">
+              Clerk Not Configured
+            </h2>
             <p className="text-muted-foreground mb-4">
-              Add your Clerk publishable key to <code className="text-primary">.env</code>:
+              Add your Clerk publishable key to{" "}
+              <code className="text-primary">.env</code>:
             </p>
             <pre className="bg-card border border-border rounded p-4 text-left text-sm overflow-x-auto">
               VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
@@ -114,13 +127,13 @@ export function createClerkAdapter(publishableKey: string): AuthAdapter {
   function useAuth(): AuthContextType {
     const context = useContext(ClerkAuthContext);
     if (context === undefined) {
-      throw new Error('useAuth must be used within ClerkAuthProvider');
+      throw new Error("useAuth must be used within ClerkAuthProvider");
     }
     return context;
   }
 
   return {
-    mode: 'clerk',
+    mode: "clerk",
     Provider: ClerkAuthProvider,
     useAuth,
     SignedIn,

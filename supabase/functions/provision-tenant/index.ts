@@ -32,6 +32,92 @@ const corsHeaders = {
 };
 
 /**
+ * Look up a Clerk user by email address.
+ * Returns the Clerk user_id or null if not found.
+ */
+async function lookupClerkUserByEmail(
+  email: string,
+  clerkSecretKey: string,
+  logger: Logger,
+): Promise<string | null> {
+  try {
+    const url = `https://api.clerk.com/v1/users?email_address=${encodeURIComponent(email)}`;
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${clerkSecretKey}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      logger.warn("Clerk user lookup failed", {
+        status: response.status,
+        error: errorBody,
+      });
+      return null;
+    }
+
+    const users = await response.json();
+    if (Array.isArray(users) && users.length > 0) {
+      return users[0].id;
+    }
+
+    logger.warn("No Clerk user found for email", { email });
+    return null;
+  } catch (error) {
+    logger.warn("Clerk user lookup error", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  }
+}
+
+/**
+ * Add a user as a member of a Clerk Organization.
+ * Non-fatal: logs warning on failure.
+ */
+async function addOrgMembership(
+  orgId: string,
+  userId: string,
+  role: string,
+  clerkSecretKey: string,
+  logger: Logger,
+): Promise<boolean> {
+  try {
+    const response = await fetch(
+      `https://api.clerk.com/v1/organizations/${orgId}/memberships`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${clerkSecretKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ user_id: userId, role }),
+      },
+    );
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      logger.warn("Clerk org membership creation failed", {
+        status: response.status,
+        error: errorBody,
+        orgId,
+        userId,
+      });
+      return false;
+    }
+
+    logger.info("Clerk org membership created", { orgId, userId, role });
+    return true;
+  } catch (error) {
+    logger.warn("Clerk org membership error", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return false;
+  }
+}
+
+/**
  * Create a Clerk Organization via REST API.
  * Sets publicMetadata.tenant_id so the frontend can resolve it.
  */
@@ -54,7 +140,6 @@ async function createClerkOrganization(
         name,
         slug,
         public_metadata: { tenant_id: tenantId },
-        ...(adminEmail ? { created_by: adminEmail } : {}),
       }),
     });
 
@@ -342,6 +427,31 @@ Deno.serve(async (req) => {
 
       if (clerkResult) {
         clerkOrgId = clerkResult.clerk_org_id;
+
+        // Add the admin user as org:admin member
+        if (adminEmail) {
+          const clerkUserId = await lookupClerkUserByEmail(
+            adminEmail,
+            clerkSecretKey,
+            logger,
+          );
+          if (clerkUserId) {
+            await addOrgMembership(
+              clerkOrgId,
+              clerkUserId,
+              "org:admin",
+              clerkSecretKey,
+              logger,
+            );
+          } else {
+            logger.warn(
+              "Could not add org membership — admin user not found in Clerk",
+              {
+                email: adminEmail,
+              },
+            );
+          }
+        }
       } else {
         // Mark tenant as clerk_failed so it can be retried
         await supabase
