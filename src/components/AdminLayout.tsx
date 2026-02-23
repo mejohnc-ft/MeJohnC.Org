@@ -37,7 +37,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import { UserButton } from "@clerk/clerk-react";
+import { UserButton, OrganizationSwitcher } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggleMinimal } from "./ThemeToggle";
 import AdminSearch from "./admin/AdminSearch";
@@ -323,6 +323,20 @@ const SidebarContent = ({
 
     {/* Footer */}
     <div className="px-3 py-3 border-t border-border space-y-1 flex-shrink-0">
+      {/* Organization Switcher */}
+      <div className="px-4 py-2">
+        <OrganizationSwitcher
+          hidePersonal={true}
+          appearance={{
+            elements: {
+              rootBox: "w-full",
+              organizationSwitcherTrigger:
+                "w-full justify-between text-sm text-muted-foreground hover:text-foreground",
+            },
+          }}
+        />
+      </div>
+
       {/* User info with Clerk UserButton */}
       <div className="flex items-center gap-3 px-4 py-2">
         <UserButton
@@ -333,7 +347,7 @@ const SidebarContent = ({
           }}
         />
         <span className="text-xs text-muted-foreground truncate whitespace-nowrap">
-          {user?.primaryEmailAddress?.emailAddress}
+          {user?.email}
         </span>
       </div>
 

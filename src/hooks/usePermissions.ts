@@ -4,8 +4,8 @@
  * Provides hooks to check permissions in React components
  */
 
-import { useUser } from '@clerk/clerk-react';
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback } from "react";
+import { useAuth } from "../lib/auth";
 import {
   Role,
   Resource,
@@ -16,16 +16,16 @@ import {
   checkPermission,
   PermissionCheckResult,
   ROLE_DEFINITIONS,
-} from '../lib/rbac';
+} from "../lib/rbac";
 
 /**
  * Hook to get the current user's role
  */
 export function useRole(): Role {
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded } = useAuth();
 
   return useMemo(() => {
-    if (!isLoaded) return 'guest';
+    if (!isLoaded) return "guest";
     return getUserRole(user);
   }, [user, isLoaded]);
 }
@@ -35,20 +35,26 @@ export function useRole(): Role {
  */
 export function usePermission(resource: Resource, action: Action): boolean {
   const role = useRole();
-  return useMemo(() => hasPermission(role, resource, action), [role, resource, action]);
+  return useMemo(
+    () => hasPermission(role, resource, action),
+    [role, resource, action],
+  );
 }
 
 /**
  * Hook to check multiple permissions at once
  */
 export function usePermissions(
-  checks: Array<{ resource: Resource; action: Action }>
+  checks: Array<{ resource: Resource; action: Action }>,
 ): boolean[] {
   const role = useRole();
 
   return useMemo(
-    () => checks.map(({ resource, action }) => hasPermission(role, resource, action)),
-    [role, checks]
+    () =>
+      checks.map(({ resource, action }) =>
+        hasPermission(role, resource, action),
+      ),
+    [role, checks],
   );
 }
 
@@ -62,7 +68,7 @@ export function usePermissionChecker() {
     (resource: Resource, action: Action): PermissionCheckResult => {
       return checkPermission(role, resource, action);
     },
-    [role]
+    [role],
   );
 }
 
@@ -85,7 +91,7 @@ export function useRoleInfo() {
     return {
       role,
       displayName: definition?.displayName || role,
-      description: definition?.description || '',
+      description: definition?.description || "",
       permissions: definition?.permissions || [],
     };
   }, [role]);
@@ -96,42 +102,42 @@ export function useRoleInfo() {
  */
 export function useIsAdmin(): boolean {
   const role = useRole();
-  return role === 'admin';
+  return role === "admin";
 }
 
 /**
  * Hook for checking if user can edit content
  */
 export function useCanEdit(resource: Resource): boolean {
-  return usePermission(resource, 'update');
+  return usePermission(resource, "update");
 }
 
 /**
  * Hook for checking if user can delete content
  */
 export function useCanDelete(resource: Resource): boolean {
-  return usePermission(resource, 'delete');
+  return usePermission(resource, "delete");
 }
 
 /**
  * Hook for checking if user can create content
  */
 export function useCanCreate(resource: Resource): boolean {
-  return usePermission(resource, 'create');
+  return usePermission(resource, "create");
 }
 
 /**
  * Hook for checking if user can publish content
  */
 export function useCanPublish(resource: Resource): boolean {
-  return usePermission(resource, 'publish');
+  return usePermission(resource, "publish");
 }
 
 /**
  * Hook for checking if user can manage a resource
  */
 export function useCanManage(resource: Resource): boolean {
-  return usePermission(resource, 'manage');
+  return usePermission(resource, "manage");
 }
 
 /**
@@ -142,13 +148,13 @@ export function useResourcePermissions(resource: Resource) {
 
   return useMemo(
     () => ({
-      canCreate: hasPermission(role, resource, 'create'),
-      canRead: hasPermission(role, resource, 'read'),
-      canUpdate: hasPermission(role, resource, 'update'),
-      canDelete: hasPermission(role, resource, 'delete'),
-      canPublish: hasPermission(role, resource, 'publish'),
-      canManage: hasPermission(role, resource, 'manage'),
+      canCreate: hasPermission(role, resource, "create"),
+      canRead: hasPermission(role, resource, "read"),
+      canUpdate: hasPermission(role, resource, "update"),
+      canDelete: hasPermission(role, resource, "delete"),
+      canPublish: hasPermission(role, resource, "publish"),
+      canManage: hasPermission(role, resource, "manage"),
     }),
-    [role, resource]
+    [role, resource],
   );
 }
