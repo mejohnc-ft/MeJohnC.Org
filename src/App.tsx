@@ -116,6 +116,9 @@ const NPSSurveyDetail = lazy(() => import("./pages/admin/NPSSurveyDetail"));
 // Public bookmarks page
 const PublicBookmarks = lazy(() => import("./pages/Bookmarks"));
 
+// Public recovery tracker
+const RecoveryTracker = lazy(() => import("./pages/RecoveryTracker"));
+
 // Public custom pages (site builder)
 const PublicPage = lazy(() => import("./pages/PublicPage"));
 
@@ -387,6 +390,16 @@ function AnimatedRoutes() {
           }
         />
 
+        {/* Recovery Tracker (standalone full-page app) */}
+        <Route
+          path="/recovery-tracker"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <RecoveryTracker />
+            </Suspense>
+          }
+        />
+
         {/* Territories Design System Explorer */}
         <Route
           path="/projects/territories"
@@ -530,14 +543,15 @@ function AppContent() {
   const isAdminRoute = location.pathname.startsWith("/admin");
   const isCustomPage = location.pathname.startsWith("/p/");
   const isPanelPage = location.pathname.startsWith("/panel/");
+  const isRecoveryTracker = location.pathname === "/recovery-tracker";
 
   // Don't track admin routes in analytics
   if (isAdminRoute) {
     return <AdminRoutes />;
   }
 
-  // Custom pages (site builder) and panels don't need the default Layout
-  if (isCustomPage || isPanelPage) {
+  // Custom pages, panels, and standalone apps don't need the default Layout
+  if (isCustomPage || isPanelPage || isRecoveryTracker) {
     return (
       <ErrorBoundary fallback={<PublicErrorFallback />}>
         <RouteTracker />
