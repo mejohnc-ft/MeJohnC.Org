@@ -7,7 +7,9 @@ import {
 import {
   getApp,
   getDefaultDockApps,
+  isAppLocked,
 } from "@/components/desktop/apps/AppRegistry";
+import type { PlanTier } from "@/lib/billing";
 import type { WindowState } from "./useWindowManager";
 import type { DesktopWorkspace } from "@/lib/desktop-schemas";
 
@@ -76,7 +78,11 @@ function parsePersistedWindows(raw: unknown): PersistedWindowState[] {
 
 let restoreCounter = 0;
 
-function deserializeWindows(persisted: PersistedWindowState[]): {
+function deserializeWindows(
+  persisted: PersistedWindowState[],
+  plan?: PlanTier,
+  enabledAppIds?: string[] | null,
+): {
   windows: WindowState[];
   nextZIndex: number;
 } {
@@ -85,6 +91,7 @@ function deserializeWindows(persisted: PersistedWindowState[]): {
 
   const windows: WindowState[] = persisted
     .filter((w) => getApp(w.appId)) // drop windows for unregistered apps
+    .filter((w) => !plan || !isAppLocked(w.appId, plan, enabledAppIds)) // drop windows for locked apps
     .map((w, i) => ({
       ...w,
       id: `${w.appId}-r${++restoreCounter}-${Date.now()}`,
@@ -107,12 +114,16 @@ interface UseDesktopWorkspaceOptions {
   userId: string;
   windowState: { windows: WindowState[] };
   restoreWindowState: (windows: WindowState[], nextZIndex: number) => void;
+  plan?: PlanTier;
+  enabledAppIds?: string[] | null;
 }
 
 export function useDesktopWorkspace({
   userId,
   windowState,
   restoreWindowState,
+  plan,
+  enabledAppIds,
 }: UseDesktopWorkspaceOptions) {
   const [isLoading, setIsLoading] = useState(true);
   const [wallpaper, setWallpaper] = useState(DEFAULT_WALLPAPER);
@@ -159,7 +170,11 @@ export function useDesktopWorkspace({
         ) {
           const parsed = parsePersistedWindows(ws.window_states);
           if (parsed.length > 0) {
-            const { windows, nextZIndex } = deserializeWindows(parsed);
+            const { windows, nextZIndex } = deserializeWindows(
+              parsed,
+              plan,
+              enabledAppIds,
+            );
             if (windows.length > 0) {
               restoreWindowState(windows, nextZIndex);
             }

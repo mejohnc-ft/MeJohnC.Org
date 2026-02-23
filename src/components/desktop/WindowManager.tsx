@@ -11,7 +11,9 @@ import {
 } from "react";
 import { useWindowManager, WindowManagerState } from "@/hooks/useWindowManager";
 import { useDesktopWorkspace } from "@/hooks/useDesktopWorkspace";
-import { getApp } from "./apps/AppRegistry";
+import { getApp, isAppLocked } from "./apps/AppRegistry";
+import { useBilling } from "@/hooks/useBilling";
+import { useTenant } from "@/lib/tenant";
 
 import {
   MENU_BAR_HEIGHT,
@@ -68,6 +70,10 @@ export function WindowManagerProvider({
   const wm = useWindowManager();
   const cascadeOffset = useRef(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const { plan } = useBilling();
+  const { tenant } = useTenant();
+  const enabledAppIds = (tenant?.settings as Record<string, unknown>)
+    ?.enabled_apps as string[] | undefined;
 
   // Auto-dismiss toast after 3 seconds
   useEffect(() => {
@@ -80,12 +86,20 @@ export function WindowManagerProvider({
     userId,
     windowState: wm.state,
     restoreWindowState: wm.restoreState,
+    plan,
+    enabledAppIds,
   });
 
   const launchApp = useCallback(
     (appId: string) => {
       const app = getApp(appId);
       if (!app) return;
+
+      // Plan/whitelist permission check
+      if (isAppLocked(appId, plan, enabledAppIds)) {
+        setToastMessage(`${app.name} is not available on your current plan.`);
+        return;
+      }
 
       // Singleton enforcement: focus existing if already open
       if (app.singleton) {
@@ -127,7 +141,7 @@ export function WindowManagerProvider({
 
       wm.openWindow(appId, app.name, x, y, width, height);
     },
-    [wm],
+    [wm, plan, enabledAppIds],
   );
 
   const maximizeWindow = useCallback(
