@@ -8,6 +8,8 @@
  * @see https://github.com/mejohnc-ft/MeJohnC.Org/issues/303
  */
 
+import { hexToHslString } from "./color-utils";
+
 export interface TenantBranding {
   /** Display name for the tenant (used in document title, etc.) */
   name?: string;
@@ -37,20 +39,28 @@ export interface TenantBranding {
 export function applyTenantTheme(branding: TenantBranding): void {
   const root = document.documentElement;
 
-  // Color overrides (HSL values without the hsl() wrapper)
+  // Color overrides (HSL values without the hsl() wrapper).
+  // Admin may store hex (#6366f1) — convert to HSL space-separated format.
   if (branding.primary_color) {
-    root.style.setProperty("--primary", branding.primary_color);
-    root.style.setProperty("--accent", branding.primary_color);
-    root.style.setProperty("--ring", branding.primary_color);
+    const hsl = hexToHslString(branding.primary_color);
+    root.style.setProperty("--primary", hsl);
+    root.style.setProperty("--accent", hsl);
+    root.style.setProperty("--ring", hsl);
   }
   if (branding.accent_color) {
-    root.style.setProperty("--accent", branding.accent_color);
+    root.style.setProperty("--accent", hexToHslString(branding.accent_color));
   }
   if (branding.background_color) {
-    root.style.setProperty("--background", branding.background_color);
+    root.style.setProperty(
+      "--background",
+      hexToHslString(branding.background_color),
+    );
   }
   if (branding.foreground_color) {
-    root.style.setProperty("--foreground", branding.foreground_color);
+    root.style.setProperty(
+      "--foreground",
+      hexToHslString(branding.foreground_color),
+    );
   }
   if (branding.border_radius) {
     root.style.setProperty("--radius", branding.border_radius);
