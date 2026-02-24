@@ -23,11 +23,11 @@ This runbook covers database operations for MeJohnC.Org, using Supabase (Postgre
 
 ### Required Access
 
-| Resource | Access Level | How to Obtain |
-|----------|--------------|---------------|
-| Supabase Dashboard | Editor or Admin | Project invitation |
-| Supabase CLI | Service role key | Dashboard > Settings > API |
-| Database Direct Access | postgres role | Dashboard > Database > Connection |
+| Resource               | Access Level     | How to Obtain                     |
+| ---------------------- | ---------------- | --------------------------------- |
+| Supabase Dashboard     | Editor or Admin  | Project invitation                |
+| Supabase CLI           | Service role key | Dashboard > Settings > API        |
+| Database Direct Access | postgres role    | Dashboard > Database > Connection |
 
 ### Required Tools
 
@@ -152,6 +152,7 @@ ORDER BY pg_total_relation_size(relid) DESC;
 ### Automated Backups (Supabase)
 
 Supabase automatically handles:
+
 - **Point-in-time Recovery**: Last 7 days (Pro plan)
 - **Daily Backups**: Retained per plan tier
 
@@ -199,10 +200,10 @@ psql -d test_db < backup_20250120.sql
 
 ### Backup Schedule Recommendation
 
-| Backup Type | Frequency | Retention |
-|-------------|-----------|-----------|
-| Full Backup | Daily | 30 days |
-| Schema Backup | Weekly | 90 days |
+| Backup Type   | Frequency             | Retention      |
+| ------------- | --------------------- | -------------- |
+| Full Backup   | Daily                 | 30 days        |
+| Schema Backup | Weekly                | 90 days        |
 | Pre-Migration | Before each migration | Until verified |
 
 ---
@@ -213,106 +214,60 @@ psql -d test_db < backup_20250120.sql
 
 ```
 supabase/
-├── migrations/
-│   ├── 001_agent_and_bookmarks.sql
-│   ├── 002_metrics.sql
-│   ├── 003_marketing.sql
-│   ├── 003_site_builder.sql
-│   ├── 003_task_system.sql
-│   └── COMBINED_PHASE3_MIGRATION.sql
-├── schema.sql           # Core schema
-├── news-schema.sql      # News system
-├── agent-schema.sql     # AI agent
-├── bookmarks-schema.sql # Bookmarks
-└── crm-schema.sql       # CRM system
+├── migrations/                              # Timestamped migrations (canonical)
+│   ├── 20240101000000_foundation.sql        # Consolidated pre-2026 schema
+│   ├── 20250101000000_ensure_app_schema.sql
+│   ├── 20250601000001_bookmarks.sql
+│   ├── 20250601000002_tasks.sql
+│   ├── ...                                  # ~20 total migration files
+│   └── 20260221100002_fix_session_upsert.sql
+├── functions/                               # Edge functions (Deno)
+│   └── _shared/
+└── _archived_migrations/                    # Historical reference only
 ```
+
+All schema is defined in timestamped migration files. There are no standalone schema files — everything lives in `migrations/`.
 
 ### Creating a New Migration
 
 ```bash
-# Create migration file
 supabase migration new add_new_feature
-
-# This creates: supabase/migrations/YYYYMMDDHHMMSS_add_new_feature.sql
+# Creates: supabase/migrations/YYYYMMDDHHMMSS_add_new_feature.sql
 ```
 
-### Writing Migration SQL
+### Applying Migrations
 
-```sql
--- Up migration (in migration file)
--- Add new table
-CREATE TABLE IF NOT EXISTS new_feature (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- Enable RLS
-ALTER TABLE new_feature ENABLE ROW LEVEL SECURITY;
-
--- Add policies
-CREATE POLICY "Public can view" ON new_feature
-  FOR SELECT USING (true);
-
-CREATE POLICY "Admins can modify" ON new_feature
-  FOR ALL USING (is_admin());
-```
-
-### Testing Migration Locally
+Migrations are applied automatically via CI on push to `main`:
 
 ```bash
-# Reset local database with migrations
-supabase db reset
-
-# Check migration status
-supabase migration list
+# CI runs: supabase db push
+# This applies any unapplied migrations in timestamp order
 ```
 
-### Applying Migration to Production
-
-#### Pre-Migration Steps
-
-1. [ ] Backup production database
-2. [ ] Test migration in staging
-3. [ ] Review migration SQL
-4. [ ] Schedule maintenance window (if needed)
-5. [ ] Notify stakeholders
-
-#### Execute Migration
+For manual application or fresh provisioning:
 
 ```bash
-# Push migrations to production
-supabase db push --project-ref $SUPABASE_PROJECT_REF
-
-# Or execute via Supabase Dashboard SQL Editor
-# Copy migration SQL and execute
+supabase link --project-ref $SUPABASE_PROJECT_REF
+supabase db push
 ```
 
-#### Post-Migration Steps
-
-1. [ ] Verify tables/columns created
-2. [ ] Test application functionality
-3. [ ] Monitor for errors
-4. [ ] Update documentation
-
-### Rollback Procedures
-
-```sql
--- Create rollback script before migration
--- Example: rollback_add_new_feature.sql
-
--- Drop policies
-DROP POLICY IF EXISTS "Public can view" ON new_feature;
-DROP POLICY IF EXISTS "Admins can modify" ON new_feature;
-
--- Drop table
-DROP TABLE IF EXISTS new_feature;
-```
+### Testing Locally
 
 ```bash
-# Execute rollback via CLI or Dashboard SQL Editor
-psql $DATABASE_URL < rollback_add_new_feature.sql
+supabase db reset      # Reset and apply all migrations
+supabase migration list  # Check migration status
 ```
+
+### Rollback
+
+```bash
+# Mark migration as reverted
+supabase migration repair --status reverted YYYYMMDDHHMMSS
+
+# Then manually reverse changes via SQL Editor
+```
+
+See [Database Migrations](../devops/database-migrations.md) for full migration strategy, templates, and rollback procedures.
 
 ---
 
@@ -418,13 +373,13 @@ WHERE status = 'archived'
 
 ### Maintenance Schedule
 
-| Task | Frequency | Window |
-|------|-----------|--------|
-| ANALYZE | Daily (automatic) | - |
-| VACUUM | Daily (automatic) | - |
-| Manual VACUUM | Weekly | Low traffic hours |
-| Audit log cleanup | Monthly | Sunday 2 AM |
-| Index maintenance | Quarterly | Maintenance window |
+| Task              | Frequency         | Window             |
+| ----------------- | ----------------- | ------------------ |
+| ANALYZE           | Daily (automatic) | -                  |
+| VACUUM            | Daily (automatic) | -                  |
+| Manual VACUUM     | Weekly            | Low traffic hours  |
+| Audit log cleanup | Monthly           | Sunday 2 AM        |
+| Index maintenance | Quarterly         | Maintenance window |
 
 ---
 
@@ -468,6 +423,7 @@ For Supabase Pro plans:
 ### Data Corruption Recovery
 
 1. **Identify affected data**
+
    ```sql
    -- Check for null values in required fields
    SELECT * FROM apps WHERE name IS NULL OR slug IS NULL;
@@ -535,11 +491,11 @@ See [SECRETS_MANAGEMENT.md](../SECRETS_MANAGEMENT.md) for key rotation procedure
 
 ### Primary Contacts
 
-| Role | Name | Contact | Availability |
-|------|------|---------|--------------|
-| Database Admin | [NAME] | [EMAIL] | [HOURS] |
-| Backend Lead | [NAME] | [EMAIL] | [HOURS] |
-| On-Call Engineer | [NAME] | [PHONE] | 24/7 |
+| Role             | Name   | Contact | Availability |
+| ---------------- | ------ | ------- | ------------ |
+| Database Admin   | [NAME] | [EMAIL] | [HOURS]      |
+| Backend Lead     | [NAME] | [EMAIL] | [HOURS]      |
+| On-Call Engineer | [NAME] | [PHONE] | 24/7         |
 
 ### Escalation Path
 
@@ -549,10 +505,10 @@ See [SECRETS_MANAGEMENT.md](../SECRETS_MANAGEMENT.md) for key rotation procedure
 
 ### External Support
 
-| Service | Support URL | Status Page |
-|---------|-------------|-------------|
-| Supabase | supabase.com/support | status.supabase.com |
-| PostgreSQL | postgresql.org/docs | - |
+| Service    | Support URL          | Status Page         |
+| ---------- | -------------------- | ------------------- |
+| Supabase   | supabase.com/support | status.supabase.com |
+| PostgreSQL | postgresql.org/docs  | -                   |
 
 ---
 
@@ -588,4 +544,4 @@ GROUP BY state, usename;
 - [SECRETS_MANAGEMENT.md](../SECRETS_MANAGEMENT.md) - Database credentials
 - [deployment-runbook.md](./deployment-runbook.md) - Deployment procedures
 - [incident-response.md](./incident-response.md) - Incident handling
-- [supabase/schema.sql](../../supabase/schema.sql) - Core database schema
+- [supabase/migrations/](../../supabase/migrations/) - Timestamped database migrations

@@ -31,15 +31,16 @@ We chose **Supabase** as the backend-as-a-service platform with the following ar
 
 ### Database Schema Organization
 
-Schemas are organized into logical groups across multiple SQL files:
+The database schema is defined entirely through timestamped migration files in `supabase/migrations/`. The foundation migration (`20240101000000_foundation.sql`) consolidates all pre-2026 schema, and subsequent feature migrations add domain-specific tables:
 
-| File | Tables | Purpose |
-|------|--------|---------|
-| `schema.sql` | `apps`, `app_suites`, `blog_posts`, `projects`, `site_content`, `contact_links`, `work_history`, `case_studies`, `timelines`, `timeline_entries`, `admin_users` | Core portfolio content |
-| `news-schema.sql` | `news_sources`, `news_articles`, `news_categories`, `news_filters` | News aggregation |
-| `bookmarks-schema.sql` | `bookmarks`, `bookmark_tags`, `bookmark_folders` | Bookmark management |
-| `agent-schema.sql` | `agent_commands`, `agent_responses`, `agent_tasks`, `agent_sessions` | AI agent system |
-| `crm-schema.sql` | CRM-related tables | Contact relationship management |
+| Migration          | Tables                                                                                                                                                                               | Purpose                         |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------- |
+| `foundation.sql`   | `apps`, `app_suites`, `blog_posts`, `projects`, `site_content`, `contact_links`, `work_history`, `case_studies`, `timelines`, `timeline_entries`, `admin_users`, `news_*`, `agent_*` | Consolidated base schema        |
+| `bookmarks.sql`    | `bookmarks`, `bookmark_tags`, `bookmark_folders`                                                                                                                                     | Bookmark management             |
+| `tasks.sql`        | `task_categories`, `tasks`, `task_comments`, `task_reminders`                                                                                                                        | Task management                 |
+| `crm.sql`          | CRM-related tables                                                                                                                                                                   | Contact relationship management |
+| `marketing.sql`    | `email_*`, `nps_*`                                                                                                                                                                   | Marketing and email campaigns   |
+| `site_builder.sql` | `sb_pages`, `sb_page_versions`, `sb_page_components`, `sb_component_templates`                                                                                                       | Visual page builder             |
 
 ### Data Access Patterns
 
@@ -79,6 +80,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 ### Edge Functions (Supabase Functions)
 
 Located in `supabase/functions/`:
+
 - Deno runtime for server-side logic
 - Shared utilities in `_shared/` directory
 - Used for operations requiring server-side secrets
@@ -86,6 +88,7 @@ Located in `supabase/functions/`:
 ### Indexing Strategy
 
 Performance-critical columns are indexed:
+
 - All `slug` columns (unique lookups)
 - `status` columns (filtered queries)
 - `order_index` columns (sorted lists)
@@ -127,6 +130,7 @@ Performance-critical columns are indexed:
 ### Alternative 1: Firebase/Firestore
 
 Firebase was considered for its real-time capabilities:
+
 - NoSQL document model is less suitable for relational portfolio data
 - Firebase Auth would be another auth provider to manage
 - PostgreSQL's query capabilities are more powerful
@@ -134,6 +138,7 @@ Firebase was considered for its real-time capabilities:
 ### Alternative 2: PlanetScale (MySQL)
 
 PlanetScale was considered for its branching workflow:
+
 - No built-in RLS (would require application-level security)
 - Lacks real-time subscriptions
 - MySQL has fewer features than PostgreSQL
@@ -141,6 +146,7 @@ PlanetScale was considered for its branching workflow:
 ### Alternative 3: Self-Hosted PostgreSQL
 
 Running PostgreSQL on a VPS:
+
 - Requires DevOps expertise for maintenance, backups, scaling
 - No built-in real-time or auth integration
 - Higher operational burden for a personal project
@@ -148,6 +154,7 @@ Running PostgreSQL on a VPS:
 ### Alternative 4: Prisma ORM
 
 Using Prisma for database access:
+
 - Adds build complexity and bundle size
 - Supabase's query builder is sufficient for this project's needs
 - RLS provides security that Prisma would need middleware to replicate
@@ -156,6 +163,6 @@ Using Prisma for database access:
 
 - [Supabase Documentation](https://supabase.com/docs)
 - [PostgreSQL Row Level Security](https://www.postgresql.org/docs/current/ddl-rowsecurity.html)
-- `supabase/schema.sql` - Core database schema
+- `supabase/migrations/` - Timestamped database migrations
 - `src/lib/supabase.ts` - Client configuration
 - `src/lib/supabase-queries.ts` - Main query functions

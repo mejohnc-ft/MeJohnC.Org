@@ -24,13 +24,13 @@ This document defines the horizontal scaling strategy for MeJohnC.Org, a serverl
 
 MeJohnC.Org follows a **serverless-first, managed-services** architecture that inherently supports horizontal scaling through its technology choices:
 
-| Principle | Implementation |
-|-----------|----------------|
-| Stateless frontend | React SPA distributed via Netlify CDN |
-| Managed database | Supabase (PostgreSQL with connection pooling) |
-| Edge computing | Netlify Edge Functions for rate limiting |
-| Managed authentication | Clerk handles all auth infrastructure |
-| No server management | Zero traditional server capacity planning |
+| Principle              | Implementation                                |
+| ---------------------- | --------------------------------------------- |
+| Stateless frontend     | React SPA distributed via Netlify CDN         |
+| Managed database       | Supabase (PostgreSQL with connection pooling) |
+| Edge computing         | Netlify Edge Functions for rate limiting      |
+| Managed authentication | Clerk handles all auth infrastructure         |
+| No server management   | Zero traditional server capacity planning     |
 
 ### Scaling Model
 
@@ -88,14 +88,15 @@ Build Output:
 
 **Scaling Characteristics:**
 
-| Aspect | Current State | Scaling Behavior |
-|--------|---------------|------------------|
-| Asset delivery | Global CDN | Automatic geo-distribution |
-| Request handling | Edge servers | Auto-scales with traffic |
-| Cache strategy | Immutable hashed assets | 1-year cache, instant invalidation |
-| Build process | Netlify CI/CD | Parallelized builds |
+| Aspect           | Current State           | Scaling Behavior                   |
+| ---------------- | ----------------------- | ---------------------------------- |
+| Asset delivery   | Global CDN              | Automatic geo-distribution         |
+| Request handling | Edge servers            | Auto-scales with traffic           |
+| Cache strategy   | Immutable hashed assets | 1-year cache, instant invalidation |
+| Build process    | Netlify CI/CD           | Parallelized builds                |
 
 **Current Configuration (`netlify.toml`):**
+
 ```toml
 [build]
   command = "npm run build"
@@ -113,21 +114,21 @@ Build Output:
 
 Supabase provides a managed PostgreSQL instance with:
 
-| Feature | Configuration | Scaling Impact |
-|---------|---------------|----------------|
-| Connection pooling | PgBouncer (Transaction mode) | Supports 10,000+ concurrent connections |
-| Row Level Security | `is_admin()` function | Adds ~1-2ms per query |
-| Real-time subscriptions | WebSocket connections | Limited by plan tier |
-| Edge Functions | Deno runtime | Cold starts ~50ms |
+| Feature                 | Configuration                | Scaling Impact                          |
+| ----------------------- | ---------------------------- | --------------------------------------- |
+| Connection pooling      | PgBouncer (Transaction mode) | Supports 10,000+ concurrent connections |
+| Row Level Security      | `is_admin()` function        | Adds ~1-2ms per query                   |
+| Real-time subscriptions | WebSocket connections        | Limited by plan tier                    |
+| Edge Functions          | Deno runtime                 | Cold starts ~50ms                       |
 
 **Current Database Schema Organization:**
-- Core portfolio content (`schema.sql`)
-- News aggregation (`news-schema.sql`)
-- Bookmark management (`bookmarks-schema.sql`)
-- AI agent system (`agent-schema.sql`)
-- CRM and marketing tables
+
+- All schema defined in timestamped migrations under `supabase/migrations/`
+- Foundation migration consolidates core portfolio, news, agent, and bookmark tables
+- Feature migrations add CRM, marketing, tasks, site builder, and more
 
 **Connection Pattern:**
+
 ```typescript
 // Singleton client for public reads
 export function getSupabase(): SupabaseClient {
@@ -145,12 +146,14 @@ export function useAuthenticatedSupabase() {
 **Status:** Fully managed, auto-scaling
 
 Clerk handles:
+
 - User authentication and session management
 - JWT generation (including Supabase template)
 - Social login providers (Google, GitHub)
 - MFA and security features
 
 **Integration Point:**
+
 ```typescript
 // JWT Template for Supabase RLS
 {
@@ -170,20 +173,20 @@ Clerk handles:
 
 ```typescript
 // netlify/edge-functions/rate-limit.ts
-const WINDOW_MS = 60000  // 1 minute window
-const MAX_REQUESTS = 60   // 60 requests per IP
+const WINDOW_MS = 60000; // 1 minute window
+const MAX_REQUESTS = 60; // 60 requests per IP
 
 // In-memory store (per edge location)
-const store = new Map<string, RateLimitEntry>()
+const store = new Map<string, RateLimitEntry>();
 ```
 
 **Limits by Plan:**
 
-| Plan | Invocations/month | Execution time | Memory |
-|------|-------------------|----------------|--------|
-| Free | 1 million | 50ms (soft) | 128MB |
-| Pro | 2 million | 50ms (soft) | 128MB |
-| Enterprise | Unlimited | Negotiable | 128MB+ |
+| Plan       | Invocations/month | Execution time | Memory |
+| ---------- | ----------------- | -------------- | ------ |
+| Free       | 1 million         | 50ms (soft)    | 128MB  |
+| Pro        | 2 million         | 50ms (soft)    | 128MB  |
+| Enterprise | Unlimited         | Negotiable     | 128MB+ |
 
 **Scaling Considerations:**
 
@@ -193,9 +196,10 @@ const store = new Map<string, RateLimitEntry>()
    - Mitigation: Accept this trade-off or implement distributed rate limiting via Supabase
 
 2. **Cold start optimization:**
+
    ```typescript
    // Current: Minimal dependencies
-   import type { Config, Context } from 'https://edge.netlify.com'
+   import type { Config, Context } from "https://edge.netlify.com";
    // No heavy imports = fast cold starts (~5ms)
    ```
 
@@ -226,25 +230,27 @@ Client Requests
 
 **Limits by Plan:**
 
-| Plan | Direct Connections | Pooler Connections | Database Size |
-|------|-------------------|-------------------|---------------|
-| Free | 60 | 200 | 500MB |
-| Pro | 60 | 400 | 8GB |
-| Team | 100 | 1,500 | 16GB |
-| Enterprise | Custom | 10,000+ | Unlimited |
+| Plan       | Direct Connections | Pooler Connections | Database Size |
+| ---------- | ------------------ | ------------------ | ------------- |
+| Free       | 60                 | 200                | 500MB         |
+| Pro        | 60                 | 400                | 8GB           |
+| Team       | 100                | 1,500              | 16GB          |
+| Enterprise | Custom             | 10,000+            | Unlimited     |
 
 **Best Practices for Scaling:**
 
 1. **Always use pooler connection string for application:**
+
    ```typescript
    // Use ?pgbouncer=true for serverless contexts
-   const connectionString = `${SUPABASE_URL}?pgbouncer=true`
+   const connectionString = `${SUPABASE_URL}?pgbouncer=true`;
    ```
 
 2. **Connection lifecycle management:**
+
    ```typescript
    // Good: Singleton pattern (already implemented)
-   const supabase = createSupabaseClient() // One per request context
+   const supabase = createSupabaseClient(); // One per request context
 
    // Bad: New client per query
    ```
@@ -280,18 +286,19 @@ Client Requests
    - Enable replica (adds ~$25/month on Pro)
 
 2. **Route queries appropriately:**
+
    ```typescript
    // Read-heavy queries (analytics, lists)
    const { data } = await supabaseReplica
-     .from('news_articles')
-     .select('*')
-     .order('created_at', { ascending: false })
-     .limit(100)
+     .from("news_articles")
+     .select("*")
+     .order("created_at", { ascending: false })
+     .limit(100);
 
    // Writes always go to primary
    const { data: newArticle } = await supabasePrimary
-     .from('news_articles')
-     .insert(article)
+     .from("news_articles")
+     .insert(article);
    ```
 
 3. **Consider eventual consistency:**
@@ -303,23 +310,24 @@ Client Requests
 
 **Current Caching Configuration (`public/_headers`):**
 
-| Path Pattern | Cache Policy | Rationale |
-|--------------|--------------|-----------|
-| `/assets/*` | `max-age=31536000, immutable` | Content-hashed, safe to cache forever |
-| `/*.html` | `no-cache, must-revalidate` | SPA routing requires fresh entry point |
-| `/sw.js` | `no-cache, no-store` | Service worker must be fresh |
-| Images | `max-age=86400` | Daily refresh acceptable |
+| Path Pattern | Cache Policy                  | Rationale                              |
+| ------------ | ----------------------------- | -------------------------------------- |
+| `/assets/*`  | `max-age=31536000, immutable` | Content-hashed, safe to cache forever  |
+| `/*.html`    | `no-cache, must-revalidate`   | SPA routing requires fresh entry point |
+| `/sw.js`     | `no-cache, no-store`          | Service worker must be fresh           |
+| Images       | `max-age=86400`               | Daily refresh acceptable               |
 
 **Enhanced Caching Strategies:**
 
 1. **API Response Caching (Stale-While-Revalidate):**
+
    ```typescript
    // Client-side caching for public content
    const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
    async function fetchWithCache<T>(
      key: string,
-     fetcher: () => Promise<T>
+     fetcher: () => Promise<T>,
    ): Promise<T> {
      const cached = cache.get(key);
      if (cached && Date.now() - cached.time < CACHE_DURATION) {
@@ -346,26 +354,29 @@ Client Requests
 
 ### Expected Traffic Patterns
 
-| Scenario | Requests/min | Database Queries/min | Notes |
-|----------|--------------|---------------------|-------|
-| Baseline | 10-50 | 5-25 | Personal portfolio, low traffic |
-| Blog viral | 1,000-5,000 | 100-500 | Popular article shared |
-| Job search active | 100-500 | 50-250 | Recruiters reviewing portfolio |
-| Admin heavy use | 50-200 | 200-500 | Content management session |
+| Scenario          | Requests/min | Database Queries/min | Notes                           |
+| ----------------- | ------------ | -------------------- | ------------------------------- |
+| Baseline          | 10-50        | 5-25                 | Personal portfolio, low traffic |
+| Blog viral        | 1,000-5,000  | 100-500              | Popular article shared          |
+| Job search active | 100-500      | 50-250               | Recruiters reviewing portfolio  |
+| Admin heavy use   | 50-200       | 200-500              | Content management session      |
 
 ### Capacity by Component
 
 **Netlify (Current Free/Pro Tier):**
+
 - CDN bandwidth: 100GB-400GB/month
 - Edge Function invocations: 125K-500K/month
 - Build minutes: 300-1000/month
 
 **Supabase (Free Tier):**
+
 - Database: 500MB storage, 2GB bandwidth
 - Auth: 50,000 MAU
 - Edge Functions: 500K invocations
 
 **Clerk (Free Tier):**
+
 - 10,000 MAU
 - Unlimited sign-ins for authenticated users
 
@@ -384,6 +395,7 @@ Bandwidth Needs = Daily API Calls × Avg Response Size × 30
 ```
 
 **Example Calculation:**
+
 - 10,000 monthly visitors
 - Average 5 pages per visit = 50,000 page views
 - 3 API calls per page = 150,000 API calls/month
@@ -396,17 +408,18 @@ Bandwidth Needs = Daily API Calls × Avg Response Size × 30
 
 ### Potential Bottlenecks
 
-| Bottleneck | Symptoms | Detection | Mitigation |
-|------------|----------|-----------|------------|
-| Database connections | 500 errors, timeouts | `pg_stat_activity` count | Upgrade plan, optimize queries |
-| RLS policy overhead | Slow queries (>100ms) | Supabase query logs | Optimize `is_admin()`, add indexes |
-| Edge Function cold starts | First request latency | Netlify function logs | Minimize dependencies |
-| CDN cache misses | High origin bandwidth | Netlify Analytics | Review cache headers |
-| Rate limiting | 429 responses | Rate limit headers | Adjust limits, implement queuing |
+| Bottleneck                | Symptoms              | Detection                | Mitigation                         |
+| ------------------------- | --------------------- | ------------------------ | ---------------------------------- |
+| Database connections      | 500 errors, timeouts  | `pg_stat_activity` count | Upgrade plan, optimize queries     |
+| RLS policy overhead       | Slow queries (>100ms) | Supabase query logs      | Optimize `is_admin()`, add indexes |
+| Edge Function cold starts | First request latency | Netlify function logs    | Minimize dependencies              |
+| CDN cache misses          | High origin bandwidth | Netlify Analytics        | Review cache headers               |
+| Rate limiting             | 429 responses         | Rate limit headers       | Adjust limits, implement queuing   |
 
 ### Database Query Optimization
 
 **Current RLS Implementation:**
+
 ```sql
 -- This runs on every query with RLS
 CREATE OR REPLACE FUNCTION is_admin()
@@ -423,11 +436,13 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 **Optimization Strategies:**
 
 1. **Index the admin_users table:**
+
    ```sql
    CREATE UNIQUE INDEX idx_admin_users_email ON admin_users(email);
    ```
 
 2. **Add indexes for common query patterns:**
+
    ```sql
    -- Published content filtering
    CREATE INDEX idx_blog_posts_status ON blog_posts(status) WHERE status = 'published';
@@ -438,12 +453,15 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
    ```
 
 3. **Use selective queries:**
+
    ```typescript
    // Bad: Select all columns
-   const { data } = await supabase.from('apps').select('*');
+   const { data } = await supabase.from("apps").select("*");
 
    // Good: Select only needed columns
-   const { data } = await supabase.from('apps').select('id, name, slug, icon_url');
+   const { data } = await supabase
+     .from("apps")
+     .select("id, name, slug, icon_url");
    ```
 
 ### Real-time Subscription Scaling
@@ -451,12 +469,13 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 Supabase real-time uses WebSocket connections:
 
 | Plan | Max Concurrent | Messages/sec |
-|------|----------------|--------------|
-| Free | 200 | 10 |
-| Pro | 500 | 100 |
-| Team | 1,000+ | 1,000+ |
+| ---- | -------------- | ------------ |
+| Free | 200            | 10           |
+| Pro  | 500            | 100          |
+| Team | 1,000+         | 1,000+       |
 
 **Mitigation for Heavy Real-time Usage:**
+
 - Implement client-side debouncing
 - Use polling for non-critical updates
 - Batch updates where possible
@@ -522,19 +541,20 @@ Supabase real-time uses WebSocket connections:
 
 ### Key Performance Indicators (KPIs)
 
-| Metric | Source | Warning Threshold | Critical Threshold |
-|--------|--------|-------------------|-------------------|
-| Response Time (P95) | Sentry | > 500ms | > 2000ms |
-| Error Rate | Sentry | > 1% | > 5% |
-| Database CPU | Supabase | > 70% | > 90% |
-| Database Connections | Supabase | > 70% max | > 90% max |
-| CDN Cache Hit Ratio | Netlify | < 80% | < 50% |
-| Edge Function Duration | Netlify | > 30ms | > 50ms |
-| Auth Latency | Clerk | > 200ms | > 500ms |
+| Metric                 | Source   | Warning Threshold | Critical Threshold |
+| ---------------------- | -------- | ----------------- | ------------------ |
+| Response Time (P95)    | Sentry   | > 500ms           | > 2000ms           |
+| Error Rate             | Sentry   | > 1%              | > 5%               |
+| Database CPU           | Supabase | > 70%             | > 90%              |
+| Database Connections   | Supabase | > 70% max         | > 90% max          |
+| CDN Cache Hit Ratio    | Netlify  | < 80%             | < 50%              |
+| Edge Function Duration | Netlify  | > 30ms            | > 50ms             |
+| Auth Latency           | Clerk    | > 200ms           | > 500ms            |
 
 ### Monitoring Implementation
 
 **Current Monitoring Stack:**
+
 - Sentry for error tracking and performance
 - Web Vitals collection (`src/lib/web-vitals.ts`)
 - Netlify Analytics (automatic)
@@ -543,6 +563,7 @@ Supabase real-time uses WebSocket connections:
 **Recommended Additions:**
 
 1. **Custom Dashboard Query (Supabase):**
+
    ```sql
    -- Daily connection usage
    SELECT
@@ -555,6 +576,7 @@ Supabase real-time uses WebSocket connections:
    ```
 
 2. **Sentry Performance Monitoring:**
+
    ```typescript
    // Already configured in src/lib/sentry.ts
    Sentry.init({
@@ -573,26 +595,29 @@ Supabase real-time uses WebSocket connections:
 
 ### Manual Scaling Triggers
 
-| Trigger | Action | Responsible |
-|---------|--------|-------------|
-| Database CPU > 80% for 1 hour | Evaluate plan upgrade | Site owner |
-| Connection errors in logs | Enable connection pooling | Site owner |
-| P95 latency > 2s sustained | Performance audit | Site owner |
-| Error budget < 25% | Reliability freeze | Site owner |
+| Trigger                       | Action                    | Responsible |
+| ----------------------------- | ------------------------- | ----------- |
+| Database CPU > 80% for 1 hour | Evaluate plan upgrade     | Site owner  |
+| Connection errors in logs     | Enable connection pooling | Site owner  |
+| P95 latency > 2s sustained    | Performance audit         | Site owner  |
+| Error budget < 25%            | Reliability freeze        | Site owner  |
 
 ### Automated Responses
 
 **Netlify (Automatic):**
+
 - CDN scales automatically
 - Edge Functions scale with traffic
 - No manual intervention required
 
 **Supabase (Semi-Automatic):**
+
 - Connection pooling is always on
 - Storage auto-provisions within plan limits
 - Upgrades require manual approval
 
 **Clerk (Automatic):**
+
 - Authentication scales automatically
 - MAU tracking is automatic
 - Billing scales with usage
@@ -641,13 +666,13 @@ Before expected traffic spikes (product launch, viral content):
 
 ### When to Consider Migration
 
-| Signal | Threshold | Consideration |
-|--------|-----------|---------------|
-| Monthly cost | > $1,000/month | Custom infrastructure may be cheaper |
-| Database size | > 100GB | Self-hosted PostgreSQL |
-| Real-time needs | > 10K concurrent | Custom WebSocket infrastructure |
-| Custom requirements | Specific compliance | Hybrid or self-hosted |
-| Global latency | < 50ms required | Multi-region deployment |
+| Signal              | Threshold           | Consideration                        |
+| ------------------- | ------------------- | ------------------------------------ |
+| Monthly cost        | > $1,000/month      | Custom infrastructure may be cheaper |
+| Database size       | > 100GB             | Self-hosted PostgreSQL               |
+| Real-time needs     | > 10K concurrent    | Custom WebSocket infrastructure      |
+| Custom requirements | Specific compliance | Hybrid or self-hosted                |
+| Global latency      | < 50ms required     | Multi-region deployment              |
 
 ### Migration Options
 
@@ -761,14 +786,14 @@ npm run analyze
 
 ### Support Contacts
 
-| Service | Support URL | Priority |
-|---------|-------------|----------|
-| Netlify | support.netlify.com | Based on plan |
+| Service  | Support URL          | Priority      |
+| -------- | -------------------- | ------------- |
+| Netlify  | support.netlify.com  | Based on plan |
 | Supabase | supabase.com/support | Based on plan |
-| Clerk | clerk.com/support | Based on plan |
+| Clerk    | clerk.com/support    | Based on plan |
 
 ### Version History
 
-| Date | Change | Issue |
-|------|--------|-------|
-| 2025-01-20 | Initial document created | #80 |
+| Date       | Change                   | Issue |
+| ---------- | ------------------------ | ----- |
+| 2025-01-20 | Initial document created | #80   |
