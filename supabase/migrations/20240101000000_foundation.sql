@@ -5,6 +5,12 @@
 -- This single idempotent migration replaces:
 --   schema.sql, 001-006, 20240601000001-000012, news/001_initial.sql
 --
+-- NOTE: Some tables defined here are also created in 20250601* feature
+-- migrations. This duplication is INTENTIONAL — both this file and the
+-- feature migrations use IF NOT EXISTS / CREATE OR REPLACE, so running
+-- them in sequence is safe and idempotent. Do NOT attempt to deduplicate;
+-- the risk of ordering breakage outweighs the cosmetic benefit.
+--
 -- All CREATE TRIGGER use DROP IF EXISTS + CREATE pattern
 -- All CREATE POLICY use DROP IF EXISTS + CREATE pattern
 -- CREATE FUNCTION uses CREATE OR REPLACE (never inside DO $$ blocks)

@@ -6,20 +6,21 @@ A full-featured personal portfolio and resume website for Jonathan Christensen, 
 
 ## Tech Stack
 
-| Category | Technology |
-|----------|------------|
-| Frontend | React 18, TypeScript, Vite |
-| Styling | Tailwind CSS, Radix UI, Framer Motion |
-| Backend | Supabase (PostgreSQL + Real-time) |
-| Auth | Clerk |
-| CMS | Ghost (blog content) |
-| Monitoring | Sentry, Web Vitals |
-| Testing | Vitest, Playwright |
-| Deployment | Netlify, GitHub Actions |
+| Category   | Technology                            |
+| ---------- | ------------------------------------- |
+| Frontend   | React 18, TypeScript, Vite            |
+| Styling    | Tailwind CSS, Radix UI, Framer Motion |
+| Backend    | Supabase (PostgreSQL + Real-time)     |
+| Auth       | Clerk                                 |
+| CMS        | Ghost (blog content)                  |
+| Monitoring | Sentry, Web Vitals                    |
+| Testing    | Vitest, Playwright                    |
+| Deployment | Netlify, GitHub Actions               |
 
 ## Features
 
 ### Public Pages
+
 - **Home** - Dynamic hero with name, title, and tagline
 - **Portfolio** - Multi-tab interface showcasing:
   - Work history with interactive timeline
@@ -31,6 +32,7 @@ A full-featured personal portfolio and resume website for Jonathan Christensen, 
 - **App/Suite Detail** - Software showcase with descriptions and demos
 
 ### Admin Dashboard
+
 - **Content Management** - Create, edit, schedule, and publish blog posts, apps, projects
 - **News Aggregation** - Multi-source RSS/API feeds with curation, filtering, and bookmarking
 - **AI Manager** - Chat interface with Claude AI agent for autonomous tasks
@@ -46,6 +48,7 @@ A full-featured personal portfolio and resume website for Jonathan Christensen, 
 ## Quick Start
 
 ### Prerequisites
+
 - Node.js 20+
 - npm
 
@@ -87,20 +90,20 @@ Open [http://localhost:5173](http://localhost:5173)
 
 ## Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Production build with sitemap |
-| `npm run preview` | Preview production build |
-| `npm run lint` | Run ESLint |
-| `npm run lint:fix` | Fix linting issues |
-| `npm run typecheck` | TypeScript validation |
-| `npm run test` | Unit tests (watch mode) |
-| `npm run test:run` | Unit tests (single run) |
-| `npm run test:coverage` | Test coverage report |
-| `npm run test:e2e` | Playwright E2E tests |
-| `npm run test:e2e:ui` | E2E tests with UI |
-| `npm run analyze` | Bundle size analysis |
+| Command                 | Description                   |
+| ----------------------- | ----------------------------- |
+| `npm run dev`           | Start development server      |
+| `npm run build`         | Production build with sitemap |
+| `npm run preview`       | Preview production build      |
+| `npm run lint`          | Run ESLint                    |
+| `npm run lint:fix`      | Fix linting issues            |
+| `npm run typecheck`     | TypeScript validation         |
+| `npm run test`          | Unit tests (watch mode)       |
+| `npm run test:run`      | Unit tests (single run)       |
+| `npm run test:coverage` | Test coverage report          |
+| `npm run test:e2e`      | Playwright E2E tests          |
+| `npm run test:e2e:ui`   | E2E tests with UI             |
+| `npm run analyze`       | Bundle size analysis          |
 
 ## Project Structure
 
@@ -133,11 +136,7 @@ src/
 supabase/
 ├── functions/           # Edge functions (Deno)
 │   └── _shared/         # Shared utilities
-├── migrations/          # Database migrations
-├── schema.sql           # Core database schema
-├── news-schema.sql      # News aggregation
-├── agent-schema.sql     # AI agent system
-└── bookmarks-schema.sql # Bookmarking system
+└── migrations/          # Timestamped database migrations (canonical schema)
 
 e2e/                     # Playwright tests
 ```
@@ -160,6 +159,7 @@ The project uses Supabase with the following main table groups:
 ## Testing
 
 ### Unit Tests
+
 ```bash
 npm run test:run
 ```
@@ -167,6 +167,7 @@ npm run test:run
 Uses Vitest with React Testing Library. Test files are colocated with source files (`*.test.ts`).
 
 ### E2E Tests
+
 ```bash
 npm run test:e2e
 ```
@@ -193,4 +194,3 @@ The site auto-deploys to Netlify on push to `main`. The CI pipeline:
 ## License
 
 MIT
-
