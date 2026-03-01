@@ -96,6 +96,95 @@ export function getPlanLimits(plan: PlanTier): PlanLimits {
   return PLAN_LIMITS[plan];
 }
 
+// ============================================
+// PLAN DISPLAY DATA (for pricing page)
+// ============================================
+
+export interface PlanDisplay {
+  name: string;
+  description: string;
+  monthlyPrice: number | null; // null = "Contact us"
+  highlighted: boolean;
+  features: string[];
+}
+
+export const PLAN_DISPLAY: Record<PlanTier, PlanDisplay> = {
+  free: {
+    name: "Free",
+    description: "Get started with the essentials",
+    monthlyPrice: 0,
+    highlighted: false,
+    features: [
+      "1 user",
+      "5 apps",
+      "10 AI chats/month",
+      "Blog & portfolio",
+      "Basic analytics",
+    ],
+  },
+  starter: {
+    name: "Starter",
+    description: "For individuals and side projects",
+    monthlyPrice: 19,
+    highlighted: false,
+    features: [
+      "3 users",
+      "10 apps",
+      "100 AI chats/month",
+      "Custom subdomain",
+      "News feed & bookmarks",
+      "CRM basics",
+    ],
+  },
+  business: {
+    name: "Business",
+    description: "For growing teams and businesses",
+    monthlyPrice: 49,
+    highlighted: true,
+    features: [
+      "10 users",
+      "25 apps",
+      "500 AI chats/month",
+      "Custom domain",
+      "Full CRM & pipelines",
+      "Marketing & email campaigns",
+      "Task management",
+      "Metrics dashboards",
+    ],
+  },
+  professional: {
+    name: "Professional",
+    description: "For agencies and power users",
+    monthlyPrice: 99,
+    highlighted: false,
+    features: [
+      "25 users",
+      "Unlimited apps",
+      "2,000 AI chats/month",
+      "Domain procurement",
+      "Agent platform & workflows",
+      "Site builder",
+      "Advanced integrations",
+      "Priority support",
+    ],
+  },
+  enterprise: {
+    name: "Enterprise",
+    description: "For organizations at scale",
+    monthlyPrice: null,
+    highlighted: false,
+    features: [
+      "Unlimited users",
+      "Unlimited everything",
+      "Dedicated database",
+      "SLA guarantee",
+      "Custom integrations",
+      "Onboarding & training",
+      "24/7 support",
+    ],
+  },
+};
+
 /** Safely parse the plan from tenant settings, defaulting to "free" */
 export function parsePlanFromSettings(
   settings: Record<string, unknown> | null | undefined,

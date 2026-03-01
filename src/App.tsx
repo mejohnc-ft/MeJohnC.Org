@@ -24,6 +24,10 @@ import { initializeModules } from "./features";
 // Eager load critical pages for fast initial render
 import Home from "./pages/Home";
 
+// Landing/pricing pages (lazy)
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const PricingPage = lazy(() => import("./pages/PricingPage"));
+
 // Lazy load heavy pages for code splitting
 const Portfolio = lazy(() => import("./pages/Portfolio"));
 const About = lazy(() => import("./pages/About"));
@@ -297,6 +301,21 @@ function RouteTracker() {
   return null;
 }
 
+// Show landing page on main site, Home on tenant subdomains
+function HomeOrLanding() {
+  const { isMainSite } = useTenant();
+
+  if (isMainSite) {
+    return (
+      <Suspense fallback={<PageLoader />}>
+        <LandingPage />
+      </Suspense>
+    );
+  }
+
+  return <Home />;
+}
+
 function AnimatedRoutes() {
   const location = useLocation();
 
@@ -336,7 +355,15 @@ function AnimatedRoutes() {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         {/* Public routes */}
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<HomeOrLanding />} />
+        <Route
+          path="/pricing"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <PricingPage />
+            </Suspense>
+          }
+        />
         <Route
           path="/portfolio"
           element={
