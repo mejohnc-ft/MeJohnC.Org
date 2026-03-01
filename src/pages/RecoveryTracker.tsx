@@ -175,7 +175,9 @@ function InlineEditForm({ item, onSave, onCancel }: EditFormProps) {
 }
 
 // --- Main component ---
-export default function RecoveryTracker() {
+export default function RecoveryTracker({
+  embedded,
+}: { embedded?: boolean } = {}) {
   const [sections, setSections] = useState<TrackerSection[]>(() =>
     readStorage(STORAGE_KEYS.sections, DEFAULT_SECTIONS),
   );
@@ -292,10 +294,30 @@ export default function RecoveryTracker() {
     setAddingSectionId(null);
   };
 
+  // --- Embedded style overrides ---
+  const appStyle: CSSProperties = embedded
+    ? {
+        ...styles.app,
+        minHeight: undefined,
+        background: "transparent",
+        margin: 0,
+      }
+    : styles.app;
+
+  const onboardStyle: CSSProperties = embedded
+    ? {
+        ...styles.onboard,
+        height: undefined,
+        minHeight: 400,
+        background: "transparent",
+        borderRadius: 12,
+      }
+    : styles.onboard;
+
   // --- Onboarding screen ---
   if (!startDate) {
     return (
-      <div style={styles.onboard}>
+      <div style={onboardStyle}>
         <div
           style={{
             ...styles.onboardCard,
@@ -559,8 +581,8 @@ export default function RecoveryTracker() {
   };
 
   return (
-    <div style={styles.app}>
-      <div style={styles.grain} />
+    <div style={appStyle}>
+      {!embedded && <div style={styles.grain} />}
 
       <header style={styles.header}>
         <div style={styles.headerLeft}>
