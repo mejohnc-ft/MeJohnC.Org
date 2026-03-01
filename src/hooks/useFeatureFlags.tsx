@@ -6,8 +6,9 @@
 
 /* eslint-disable react-refresh/only-export-components */
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useUser } from '@clerk/clerk-react';
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { useUser } from "@clerk/clerk-react";
+import { useTenant } from "@/lib/tenant";
 import {
   featureFlags,
   isFeatureEnabled,
@@ -15,7 +16,7 @@ import {
   initFeatureFlags,
   EvaluationContext,
   FeatureFlag,
-} from '../lib/feature-flags';
+} from "../lib/feature-flags";
 
 /**
  * Hook to initialize feature flags
@@ -23,10 +24,11 @@ import {
  */
 export function useFeatureFlagsInit(): boolean {
   const [initialized, setInitialized] = useState(false);
+  const { tenantId } = useTenant();
 
   useEffect(() => {
-    initFeatureFlags().then(() => setInitialized(true));
-  }, []);
+    initFeatureFlags(tenantId).then(() => setInitialized(true));
+  }, [tenantId]);
 
   return initialized;
 }
@@ -36,14 +38,16 @@ export function useFeatureFlagsInit(): boolean {
  */
 function useEvaluationContext(): EvaluationContext {
   const { user } = useUser();
+  const { tenantId } = useTenant();
 
   return useMemo(
     () => ({
       userId: user?.id,
       userEmail: user?.primaryEmailAddress?.emailAddress,
-      environment: import.meta.env.DEV ? 'development' : 'production',
+      tenantId: tenantId ?? undefined,
+      environment: import.meta.env.DEV ? "development" : "production",
     }),
-    [user?.id, user?.primaryEmailAddress?.emailAddress]
+    [user?.id, user?.primaryEmailAddress?.emailAddress, tenantId],
   );
 }
 
@@ -52,7 +56,10 @@ function useEvaluationContext(): EvaluationContext {
  */
 export function useFeatureFlag(flagName: string): boolean {
   const context = useEvaluationContext();
-  return useMemo(() => isFeatureEnabled(flagName, context), [flagName, context]);
+  return useMemo(
+    () => isFeatureEnabled(flagName, context),
+    [flagName, context],
+  );
 }
 
 /**
@@ -77,7 +84,7 @@ export function useFeatureValue<T>(flagName: string, defaultValue: T): T {
   const context = useEvaluationContext();
   return useMemo(
     () => getFeatureValue(flagName, defaultValue, context),
-    [flagName, defaultValue, context]
+    [flagName, defaultValue, context],
   );
 }
 
@@ -127,7 +134,7 @@ export function useFeatureFlagOverrides() {
  */
 export function useABTestVariant(
   experimentName: string,
-  variants: string[]
+  variants: string[],
 ): string | null {
   const { user } = useUser();
   const context = useEvaluationContext();
@@ -148,7 +155,7 @@ export function useABTestVariant(
     const key = `${experimentName}:${user.id}`;
     for (let i = 0; i < key.length; i++) {
       const char = key.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash;
     }
 
@@ -166,7 +173,11 @@ interface FeatureGateProps {
   fallback?: React.ReactNode;
 }
 
-export function FeatureGate({ flag, children, fallback = null }: FeatureGateProps) {
+export function FeatureGate({
+  flag,
+  children,
+  fallback = null,
+}: FeatureGateProps) {
   const enabled = useFeatureFlag(flag);
   return <>{enabled ? children : fallback}</>;
 }
