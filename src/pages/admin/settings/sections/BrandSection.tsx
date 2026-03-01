@@ -28,8 +28,8 @@ const BrandSection = () => {
     setUploading(true);
     try {
       const ext = file.name.split(".").pop() || "png";
-      const path = `tenants/${tenant.id}/${field === "logo_url" ? "logo" : "favicon"}.${ext}`;
-      const url = await uploadFile(file, path, supabase);
+      const path = `brand/${field === "logo_url" ? "logo" : "favicon"}.${ext}`;
+      const url = await uploadFile(file, path, supabase, tenant.id);
       setBranding((prev) => ({ ...prev, [field]: url }));
     } catch (err) {
       captureException(err instanceof Error ? err : new Error(String(err)), {

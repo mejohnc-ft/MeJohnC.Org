@@ -376,8 +376,10 @@ export function isFeatureEnabled(
 /**
  * Initialize feature flags (call at app startup)
  */
-export async function initFeatureFlags(): Promise<void> {
-  await featureFlags.initialize();
+export async function initFeatureFlags(
+  tenantId?: string | null,
+): Promise<void> {
+  await featureFlags.initialize(tenantId);
 }
 
 /**
