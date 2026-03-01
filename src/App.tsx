@@ -83,6 +83,17 @@ const PublicSurveyPage = lazy(
 // Desktop OS mode
 const DesktopShell = lazy(() => import("./components/desktop/DesktopShell"));
 
+// Platform admin pages (super-admin)
+const PlatformDashboard = lazy(
+  () => import("./pages/admin/platform/Dashboard"),
+);
+const PlatformTenantList = lazy(
+  () => import("./pages/admin/platform/TenantList"),
+);
+const PlatformTenantDetail = lazy(
+  () => import("./pages/admin/platform/TenantDetail"),
+);
+
 // Agent Platform admin pages
 const AdminAgentRegistry = lazy(() => import("./pages/admin/AgentRegistry"));
 const AdminWorkflows = lazy(() => import("./pages/admin/Workflows"));
@@ -299,6 +310,17 @@ function RouteTracker() {
   }, [location.pathname]);
 
   return null;
+}
+
+// Gate for platform admin routes: main site + platform permission required
+function PlatformGate({ children }: { children: React.ReactNode }) {
+  const { isMainSite } = useTenant();
+
+  if (!isMainSite) {
+    return <Navigate to="/admin" replace />;
+  }
+
+  return <>{children}</>;
 }
 
 // Show landing page on main site, Home on tenant subdomains
@@ -556,6 +578,32 @@ function AdminRoutes() {
           <Route path="/admin/scheduler" element={<AdminScheduler />} />
           <Route path="/admin/integrations" element={<AdminIntegrationHub />} />
           <Route path="/admin/audit" element={<AdminAuditLog />} />
+
+          {/* Platform admin routes (super-admin, main site only) */}
+          <Route
+            path="/admin/platform"
+            element={
+              <PlatformGate>
+                <PlatformDashboard />
+              </PlatformGate>
+            }
+          />
+          <Route
+            path="/admin/platform/tenants"
+            element={
+              <PlatformGate>
+                <PlatformTenantList />
+              </PlatformGate>
+            }
+          />
+          <Route
+            path="/admin/platform/tenants/:id"
+            element={
+              <PlatformGate>
+                <PlatformTenantDetail />
+              </PlatformGate>
+            }
+          />
 
           {/* Dynamic feature module routes */}
           {renderFeatureRoutes()}
