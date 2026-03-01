@@ -1,11 +1,11 @@
-import { memo } from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Clock, Calendar } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { formatDate } from '@/lib/markdown';
+import { memo } from "react";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Clock, Calendar } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { formatDate } from "@/lib/markdown";
 
-// Unified post type that works with both local and Ghost posts
+// Unified post type for display
 interface UnifiedPost {
   id: string;
   title: string;
@@ -15,7 +15,7 @@ interface UnifiedPost {
   published_at: string | null;
   reading_time: number | null;
   tags: string[];
-  source: 'local' | 'ghost';
+  source: "local";
 }
 
 interface BlogCardProps {
@@ -24,7 +24,11 @@ interface BlogCardProps {
   featured?: boolean;
 }
 
-const BlogCard = memo(function BlogCard({ post, index = 0, featured = false }: BlogCardProps) {
+const BlogCard = memo(function BlogCard({
+  post,
+  index = 0,
+  featured = false,
+}: BlogCardProps) {
   return (
     <motion.article
       aria-labelledby={`blog-title-${post.id}`}
@@ -34,13 +38,14 @@ const BlogCard = memo(function BlogCard({ post, index = 0, featured = false }: B
     >
       <Link
         to={`/blog/${post.slug}`}
-        className={`group block ${featured ? 'md:flex gap-8' : ''}`}
+        className={`group block ${featured ? "md:flex gap-8" : ""}`}
       >
         {/* Cover Image */}
         {post.feature_image && (
           <div
-            className={`relative overflow-hidden rounded-lg bg-muted ${featured ? 'md:w-1/2 aspect-video' : 'aspect-video mb-4'
-              }`}
+            className={`relative overflow-hidden rounded-lg bg-muted ${
+              featured ? "md:w-1/2 aspect-video" : "aspect-video mb-4"
+            }`}
           >
             <img
               src={post.feature_image}
@@ -52,7 +57,13 @@ const BlogCard = memo(function BlogCard({ post, index = 0, featured = false }: B
         )}
 
         {/* Content */}
-        <div className={featured && post.feature_image ? 'md:w-1/2 flex flex-col justify-center' : ''}>
+        <div
+          className={
+            featured && post.feature_image
+              ? "md:w-1/2 flex flex-col justify-center"
+              : ""
+          }
+        >
           {/* Tags */}
           {post.tags && post.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-3">
@@ -67,8 +78,9 @@ const BlogCard = memo(function BlogCard({ post, index = 0, featured = false }: B
           {/* Title */}
           <h2
             id={`blog-title-${post.id}`}
-            className={`font-bold text-foreground group-hover:text-primary transition-colors ${featured ? 'text-2xl md:text-3xl' : 'text-xl'
-              }`}
+            className={`font-bold text-foreground group-hover:text-primary transition-colors ${
+              featured ? "text-2xl md:text-3xl" : "text-xl"
+            }`}
           >
             {post.title}
           </h2>

@@ -104,6 +104,8 @@ export const BlogPostSchema = z.object({
   published_at: z.string().nullable(),
   scheduled_for: z.string().nullable(),
   reading_time: z.number().nullable(),
+  author_name: z.string().nullable().optional(),
+  author_email: z.string().nullable().optional(),
   meta_title: z.string().nullable(),
   meta_description: z.string().nullable(),
   og_image: z.string().nullable(),

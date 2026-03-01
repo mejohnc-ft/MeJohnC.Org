@@ -5,7 +5,6 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
-  Ghost,
   Database,
   Key,
   Eye,
@@ -31,7 +30,6 @@ import {
   useAuthenticatedSupabase,
 } from "@/lib/supabase";
 import { getAnalyticsSettings, saveAnalyticsSettings } from "@/lib/analytics";
-import { getGhostSettings, saveGhostSettings } from "@/lib/ghost";
 import { useSEO, clearSEOCache } from "@/lib/seo";
 import { getSiteContent, upsertSiteContent } from "@/lib/supabase-queries";
 import { captureException } from "@/lib/sentry";
@@ -159,17 +157,7 @@ const PlatformSettings = () => {
   const { supabase } = useAuthenticatedSupabase();
 
   // Visibility toggles
-  const [showGhostKey, setShowGhostKey] = useState(false);
   const [showSupabaseKey, setShowSupabaseKey] = useState(false);
-
-  // Ghost state
-  const [ghostUrl, setGhostUrl] = useState("");
-  const [ghostKey, setGhostKey] = useState("");
-  const [ghostStatus, setGhostStatus] = useState<
-    "idle" | "testing" | "saving" | "success" | "error"
-  >("idle");
-  const [ghostMessage, setGhostMessage] = useState("");
-  const [ghostConfigured, setGhostConfigured] = useState(false);
 
   // Supabase state
   const [supabaseUrl, setSupabaseUrl] = useState("");
@@ -200,13 +188,6 @@ const PlatformSettings = () => {
   const [seoMessage, setSeoMessage] = useState("");
 
   useEffect(() => {
-    const ghost = getGhostSettings();
-    if (ghost) {
-      setGhostUrl(ghost.url);
-      setGhostKey(ghost.contentApiKey);
-      setGhostConfigured(true);
-    }
-
     const supa = getSupabaseSettings();
     setSupabaseUrl(supa.url);
     setSupabaseKey(supa.anonKey);
@@ -273,45 +254,6 @@ const PlatformSettings = () => {
         context: "Settings.saveSEO",
       });
     }
-  };
-
-  const testGhost = async () => {
-    if (!ghostUrl || !ghostKey) {
-      setGhostStatus("error");
-      setGhostMessage("Enter URL and key");
-      return;
-    }
-    setGhostStatus("testing");
-    try {
-      let url = ghostUrl.trim().replace(/\/$/, "");
-      if (!url.startsWith("http")) url = `https://${url}`;
-      const res = await fetch(
-        `${url}/ghost/api/content/posts/?key=${ghostKey}&limit=1`,
-        { headers: { "Accept-Version": "v5.0" } },
-      );
-      if (res.ok) {
-        const data = await res.json();
-        setGhostStatus("success");
-        setGhostMessage(`${data.meta?.pagination?.total || 0} posts`);
-      } else {
-        setGhostStatus("error");
-        setGhostMessage(`${res.status}`);
-      }
-    } catch {
-      setGhostStatus("error");
-      setGhostMessage("Failed");
-    }
-  };
-
-  const saveGhost = () => {
-    saveGhostSettings({ url: ghostUrl, contentApiKey: ghostKey });
-    setGhostConfigured(!!(ghostUrl && ghostKey));
-    setGhostStatus("success");
-    setGhostMessage("Saved");
-    setTimeout(() => {
-      setGhostStatus("idle");
-      setGhostMessage("");
-    }, 2000);
   };
 
   const testSupabase = async () => {
@@ -474,67 +416,7 @@ const PlatformSettings = () => {
             <Layers className="w-5 h-5 text-primary" />
             Integrations
           </h2>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {/* Ghost */}
-            <div className="bg-card border border-border rounded-lg p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Ghost className="w-4 h-4 text-orange-400" />
-                  <span className="font-medium text-sm">Ghost</span>
-                </div>
-                <ConfiguredBadge configured={ghostConfigured} />
-              </div>
-              <input
-                type="url"
-                value={ghostUrl}
-                onChange={(e) => setGhostUrl(e.target.value)}
-                placeholder="ghost.io URL"
-                className="w-full px-2 py-1 bg-background border border-border rounded text-xs"
-              />
-              <div className="relative">
-                <input
-                  type={showGhostKey ? "text" : "password"}
-                  value={ghostKey}
-                  onChange={(e) => setGhostKey(e.target.value)}
-                  placeholder="API Key"
-                  className="w-full px-2 py-1 pr-7 bg-background border border-border rounded text-xs font-mono"
-                />
-                <button
-                  onClick={() => setShowGhostKey(!showGhostKey)}
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground"
-                >
-                  {showGhostKey ? (
-                    <EyeOff className="w-3 h-3" />
-                  ) : (
-                    <Eye className="w-3 h-3" />
-                  )}
-                </button>
-              </div>
-              <div className="flex items-center gap-1">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={testGhost}
-                  disabled={ghostStatus === "testing"}
-                  className="h-6 text-xs px-2"
-                >
-                  {ghostStatus === "testing" ? (
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                  ) : (
-                    "Test"
-                  )}
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={saveGhost}
-                  className="h-6 text-xs px-2"
-                >
-                  Save
-                </Button>
-                <StatusBadge status={ghostStatus} message={ghostMessage} />
-              </div>
-            </div>
-
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
             {/* Clerk */}
             <div className="bg-card border border-border rounded-lg p-3 space-y-2">
               <div className="flex items-center justify-between">
