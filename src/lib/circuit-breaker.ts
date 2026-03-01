@@ -17,12 +17,12 @@
  *   const result = await breaker.execute(() => fetchFromSupabase());
  */
 
-import { log } from './logger';
+import { log } from "./logger";
 
 /**
  * Circuit breaker states
  */
-export type CircuitState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+export type CircuitState = "CLOSED" | "OPEN" | "HALF_OPEN";
 
 /**
  * Circuit breaker configuration
@@ -76,7 +76,7 @@ export interface CircuitBreakerStats {
  * Circuit Breaker implementation
  */
 export class CircuitBreaker {
-  private state: CircuitState = 'CLOSED';
+  private state: CircuitState = "CLOSED";
   private failures = 0;
   private successes = 0;
   private lastFailureTime = 0;
@@ -88,7 +88,7 @@ export class CircuitBreaker {
   private readonly config: Required<CircuitBreakerConfig>;
 
   constructor(config: CircuitBreakerConfig | string) {
-    const baseConfig = typeof config === 'string' ? { name: config } : config;
+    const baseConfig = typeof config === "string" ? { name: config } : config;
 
     this.config = {
       name: baseConfig.name,
@@ -98,9 +98,11 @@ export class CircuitBreaker {
       recoveryTimeout: baseConfig.recoveryTimeout ?? 30000,
       successThreshold: baseConfig.successThreshold ?? 3,
       windowSize: baseConfig.windowSize ?? 60000,
-      fallback: baseConfig.fallback ?? (() => {
-        throw new Error(`Circuit breaker '${baseConfig.name}' is open`);
-      }),
+      fallback:
+        baseConfig.fallback ??
+        (() => {
+          throw new Error(`Circuit breaker '${baseConfig.name}' is open`);
+        }),
       onStateChange: baseConfig.onStateChange ?? (() => {}),
     };
   }
@@ -113,14 +115,18 @@ export class CircuitBreaker {
     this.cleanHistory();
 
     // Check if we should attempt recovery
-    if (this.state === 'OPEN') {
+    if (this.state === "OPEN") {
       if (this.shouldAttemptRecovery()) {
-        this.transitionTo('HALF_OPEN');
+        this.transitionTo("HALF_OPEN");
       } else {
-        log.warn(`Circuit breaker '${this.config.name}' is open, using fallback`, {
-          state: this.state,
-          recoveryIn: this.config.recoveryTimeout - (Date.now() - this.lastFailureTime),
-        });
+        log.warn(
+          `Circuit breaker '${this.config.name}' is open, using fallback`,
+          {
+            state: this.state,
+            recoveryIn:
+              this.config.recoveryTimeout - (Date.now() - this.lastFailureTime),
+          },
+        );
         return this.config.fallback() as T;
       }
     }
@@ -140,11 +146,14 @@ export class CircuitBreaker {
   /**
    * Execute with automatic fallback on circuit open
    */
-  async executeWithFallback<T>(fn: () => Promise<T>, fallback: () => T | Promise<T>): Promise<T> {
+  async executeWithFallback<T>(
+    fn: () => Promise<T>,
+    fallback: () => T | Promise<T>,
+  ): Promise<T> {
     try {
       return await this.execute(fn);
     } catch (error) {
-      if (this.state === 'OPEN') {
+      if (this.state === "OPEN") {
         return fallback();
       }
       throw error;
@@ -157,8 +166,8 @@ export class CircuitBreaker {
   isAllowed(): boolean {
     this.cleanHistory();
 
-    if (this.state === 'CLOSED') return true;
-    if (this.state === 'OPEN') return this.shouldAttemptRecovery();
+    if (this.state === "CLOSED") return true;
+    if (this.state === "OPEN") return this.shouldAttemptRecovery();
     return true; // HALF_OPEN allows requests
   }
 
@@ -170,12 +179,12 @@ export class CircuitBreaker {
     this.lastSuccessTime = Date.now();
     this.callHistory.push({ timestamp: Date.now(), success: true, duration });
 
-    if (this.state === 'HALF_OPEN') {
+    if (this.state === "HALF_OPEN") {
       this.halfOpenSuccesses++;
       if (this.halfOpenSuccesses >= this.config.successThreshold) {
-        this.transitionTo('CLOSED');
+        this.transitionTo("CLOSED");
       }
-    } else if (this.state === 'CLOSED') {
+    } else if (this.state === "CLOSED") {
       // Reset failure count on success in closed state
       this.failures = 0;
     }
@@ -189,11 +198,11 @@ export class CircuitBreaker {
     this.lastFailureTime = Date.now();
     this.callHistory.push({ timestamp: Date.now(), success: false, duration });
 
-    if (this.state === 'HALF_OPEN') {
+    if (this.state === "HALF_OPEN") {
       // Any failure in half-open goes back to open
-      this.transitionTo('OPEN');
+      this.transitionTo("OPEN");
     } else if (this.shouldOpen()) {
-      this.transitionTo('OPEN');
+      this.transitionTo("OPEN");
     }
   }
 
@@ -235,11 +244,11 @@ export class CircuitBreaker {
     this.state = newState;
     this.lastStateChangeTime = Date.now();
 
-    if (newState === 'HALF_OPEN') {
+    if (newState === "HALF_OPEN") {
       this.halfOpenSuccesses = 0;
     }
 
-    if (newState === 'CLOSED') {
+    if (newState === "CLOSED") {
       this.failures = 0;
       this.halfOpenSuccesses = 0;
     }
@@ -307,21 +316,21 @@ export class CircuitBreaker {
    * Force circuit to open
    */
   forceOpen(): void {
-    this.transitionTo('OPEN');
+    this.transitionTo("OPEN");
   }
 
   /**
    * Force circuit to close
    */
   forceClose(): void {
-    this.transitionTo('CLOSED');
+    this.transitionTo("CLOSED");
   }
 
   /**
    * Reset the circuit breaker
    */
   reset(): void {
-    this.state = 'CLOSED';
+    this.state = "CLOSED";
     this.failures = 0;
     this.successes = 0;
     this.halfOpenSuccesses = 0;
@@ -341,7 +350,10 @@ class CircuitBreakerRegistry {
   /**
    * Get or create a circuit breaker
    */
-  get(name: string, config?: Omit<CircuitBreakerConfig, 'name'>): CircuitBreaker {
+  get(
+    name: string,
+    config?: Omit<CircuitBreakerConfig, "name">,
+  ): CircuitBreaker {
     if (!this.breakers.has(name)) {
       this.breakers.set(name, new CircuitBreaker({ name, ...config }));
     }
@@ -374,17 +386,12 @@ class CircuitBreakerRegistry {
 export const circuitBreakers = new CircuitBreakerRegistry();
 
 // Pre-configured breakers for common services
-export const supabaseBreaker = circuitBreakers.get('supabase', {
+export const supabaseBreaker = circuitBreakers.get("supabase", {
   failureThreshold: 5,
   recoveryTimeout: 30000,
 });
 
-export const ghostBreaker = circuitBreakers.get('ghost-cms', {
-  failureThreshold: 3,
-  recoveryTimeout: 60000,
-});
-
-export const externalApiBreaker = circuitBreakers.get('external-api', {
+export const externalApiBreaker = circuitBreakers.get("external-api", {
   failureThreshold: 10,
   recoveryTimeout: 15000,
 });

@@ -11,7 +11,13 @@
 /**
  * Available roles in the system
  */
-export type Role = "admin" | "editor" | "author" | "viewer" | "guest";
+export type Role =
+  | "platform_admin"
+  | "admin"
+  | "editor"
+  | "author"
+  | "viewer"
+  | "guest";
 
 /**
  * Resources that can be protected
@@ -30,7 +36,8 @@ export type Resource =
   | "site_builder"
   | "users"
   | "settings"
-  | "audit_logs";
+  | "audit_logs"
+  | "platform";
 
 /**
  * Actions that can be performed on resources
@@ -66,6 +73,19 @@ export interface RoleDefinition {
  * Role hierarchy and permissions
  */
 export const ROLE_DEFINITIONS: Record<Role, RoleDefinition> = {
+  platform_admin: {
+    name: "platform_admin",
+    displayName: "Platform Admin",
+    description: "Full platform access including tenant management",
+    inherits: ["admin"],
+    permissions: [
+      {
+        resource: "platform",
+        actions: ["create", "read", "update", "delete", "manage"],
+      },
+    ],
+  },
+
   admin: {
     name: "admin",
     displayName: "Administrator",
@@ -273,6 +293,7 @@ export function canAccessRoute(role: Role | Role[], route: string): boolean {
     "/admin/users": { resource: "users", action: "read" },
     "/admin/settings": { resource: "settings", action: "read" },
     "/admin/audit": { resource: "audit_logs", action: "read" },
+    "/admin/platform": { resource: "platform", action: "read" },
   };
 
   // Find matching route (handles nested routes)
@@ -298,6 +319,7 @@ export function canAccessRoute(role: Role | Role[], route: string): boolean {
  * Map Clerk organization role keys to app roles
  */
 const CLERK_ORG_ROLE_MAP: Record<string, Role> = {
+  "org:platform_admin": "platform_admin",
   "org:admin": "admin",
   "org:editor": "editor",
   "org:author": "author",

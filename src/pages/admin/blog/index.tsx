@@ -16,7 +16,6 @@ import {
   PenTool,
   Star,
   ExternalLink,
-  Ghost,
   Globe,
 } from "lucide-react";
 import AdminLayout from "@/components/AdminLayout";
@@ -34,7 +33,6 @@ import {
   type NewsArticle,
   type NewsSource,
 } from "@/lib/supabase-queries";
-import { getGhostPosts, type GhostPost } from "@/lib/ghost";
 import { formatDate } from "@/lib/markdown";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
@@ -52,7 +50,7 @@ interface UnifiedContent {
   published_at: string | null;
   reading_time: number | null;
   status: "published" | "draft" | "scheduled" | "curated";
-  source: "local" | "ghost" | "news";
+  source: "local" | "news";
   url?: string;
   sourceName?: string;
   tags?: string[];
@@ -70,21 +68,6 @@ function localToUnified(post: BlogPost): UnifiedContent {
     status: post.status,
     source: "local",
     tags: post.tags || [],
-  };
-}
-
-function ghostToUnified(post: GhostPost): UnifiedContent {
-  return {
-    id: post.id,
-    title: post.title,
-    slug: post.slug,
-    excerpt: post.excerpt || post.custom_excerpt || null,
-    cover_image: post.feature_image || null,
-    published_at: post.published_at || null,
-    reading_time: post.reading_time || null,
-    status: "published",
-    source: "ghost",
-    tags: post.tags?.map((t) => t.name) || [],
   };
 }
 
@@ -112,7 +95,6 @@ const AdminContentList = () => {
   const { supabase } = useAuthenticatedSupabase();
 
   const [localPosts, setLocalPosts] = useState<BlogPost[]>([]);
-  const [ghostPosts, setGhostPosts] = useState<GhostPost[]>([]);
   const [curatedNews, setCuratedNews] = useState<ArticleWithSource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -126,13 +108,11 @@ const AdminContentList = () => {
       return;
     }
     try {
-      const [posts, ghost, curated] = await Promise.all([
+      const [posts, curated] = await Promise.all([
         getBlogPosts(true, supabase),
-        getGhostPosts().catch(() => []),
         getCuratedArticles(100, supabase),
       ]);
       setLocalPosts(posts);
-      setGhostPosts(ghost);
       setCuratedNews(curated);
     } catch (err) {
       captureException(err instanceof Error ? err : new Error(String(err)), {
@@ -149,7 +129,6 @@ const AdminContentList = () => {
 
   // Convert to unified format
   const unifiedLocal = localPosts.map(localToUnified);
-  const unifiedGhost = ghostPosts.map(ghostToUnified);
   const unifiedNews = curatedNews.map(newsToUnified);
 
   // Get content based on active tab
@@ -158,14 +137,14 @@ const AdminContentList = () => {
 
     switch (activeTab) {
       case "me":
-        content = [...unifiedLocal, ...unifiedGhost];
+        content = [...unifiedLocal];
         break;
       case "news":
         content = unifiedNews;
         break;
       case "all":
       default:
-        content = [...unifiedLocal, ...unifiedGhost, ...unifiedNews];
+        content = [...unifiedLocal, ...unifiedNews];
     }
 
     // Apply status filter for local posts
@@ -319,8 +298,6 @@ const AdminContentList = () => {
     switch (source) {
       case "local":
         return <PenTool className="w-3 h-3" />;
-      case "ghost":
-        return <Ghost className="w-3 h-3" />;
       case "news":
         return <Globe className="w-3 h-3" />;
       default:
@@ -332,8 +309,6 @@ const AdminContentList = () => {
     switch (source) {
       case "local":
         return "Site";
-      case "ghost":
-        return "Ghost";
       case "news":
         return "News";
       default:
@@ -382,7 +357,7 @@ const AdminContentList = () => {
             <FileText className="w-4 h-4" />
             All
             <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
-              {unifiedLocal.length + unifiedGhost.length + unifiedNews.length}
+              {unifiedLocal.length + unifiedNews.length}
             </span>
           </button>
           <button
@@ -396,7 +371,7 @@ const AdminContentList = () => {
             <PenTool className="w-4 h-4" />
             Me
             <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
-              {unifiedLocal.length + unifiedGhost.length}
+              {unifiedLocal.length}
             </span>
           </button>
           <button
@@ -420,14 +395,14 @@ const AdminContentList = () => {
           <div className="flex gap-2">
             <Link to="/admin/blog?tab=me">
               <Badge variant={!statusFilter ? "default" : "secondary"}>
-                All ({localPosts.length + ghostPosts.length})
+                All ({localPosts.length})
               </Badge>
             </Link>
             <Link to="/admin/blog?tab=me&status=published">
               <Badge
                 variant={statusFilter === "published" ? "default" : "secondary"}
               >
-                Published ({localPublished + ghostPosts.length})
+                Published ({localPublished})
               </Badge>
             </Link>
             <Link to="/admin/blog?tab=me&status=draft">
@@ -623,9 +598,7 @@ const AdminContentList = () => {
                       className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full ${
                         item.source === "local"
                           ? "bg-blue-500/10 text-blue-500"
-                          : item.source === "ghost"
-                            ? "bg-purple-500/10 text-purple-500"
-                            : "bg-green-500/10 text-green-500"
+                          : "bg-green-500/10 text-green-500"
                       }`}
                     >
                       {getSourceIcon(item.source)}
@@ -707,22 +680,6 @@ const AdminContentList = () => {
                         )}
                       </Button>
                     </>
-                  )}
-                  {item.source === "ghost" && (
-                    <Button
-                      asChild
-                      size="sm"
-                      variant="ghost"
-                      title="View on Ghost"
-                    >
-                      <a
-                        href={`/blog/${item.slug}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </a>
-                    </Button>
                   )}
                   {item.source === "news" && (
                     <>

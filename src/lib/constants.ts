@@ -41,7 +41,6 @@ export const STORAGE_BUCKET = import.meta.env.VITE_STORAGE_BUCKET || "uploads";
 export const STORAGE_KEYS = {
   SUPABASE_SETTINGS: "supabase_settings",
   ANALYTICS_SETTINGS: "analytics_settings",
-  GHOST_SETTINGS: "ghost_settings",
   THEME: "resume-site-theme",
   PWA_DISMISSED: "pwa-dismissed",
   ANALYTICS_CONSENT: "analytics_consent",

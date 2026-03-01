@@ -24,6 +24,10 @@ import { initializeModules } from "./features";
 // Eager load critical pages for fast initial render
 import Home from "./pages/Home";
 
+// Landing/pricing pages (lazy)
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const PricingPage = lazy(() => import("./pages/PricingPage"));
+
 // Lazy load heavy pages for code splitting
 const Portfolio = lazy(() => import("./pages/Portfolio"));
 const About = lazy(() => import("./pages/About"));
@@ -78,6 +82,17 @@ const PublicSurveyPage = lazy(
 
 // Desktop OS mode
 const DesktopShell = lazy(() => import("./components/desktop/DesktopShell"));
+
+// Platform admin pages (super-admin)
+const PlatformDashboard = lazy(
+  () => import("./pages/admin/platform/Dashboard"),
+);
+const PlatformTenantList = lazy(
+  () => import("./pages/admin/platform/TenantList"),
+);
+const PlatformTenantDetail = lazy(
+  () => import("./pages/admin/platform/TenantDetail"),
+);
 
 // Agent Platform admin pages
 const AdminAgentRegistry = lazy(() => import("./pages/admin/AgentRegistry"));
@@ -297,6 +312,32 @@ function RouteTracker() {
   return null;
 }
 
+// Gate for platform admin routes: main site + platform permission required
+function PlatformGate({ children }: { children: React.ReactNode }) {
+  const { isMainSite } = useTenant();
+
+  if (!isMainSite) {
+    return <Navigate to="/admin" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+// Show landing page on main site, Home on tenant subdomains
+function HomeOrLanding() {
+  const { isMainSite } = useTenant();
+
+  if (isMainSite) {
+    return (
+      <Suspense fallback={<PageLoader />}>
+        <LandingPage />
+      </Suspense>
+    );
+  }
+
+  return <Home />;
+}
+
 function AnimatedRoutes() {
   const location = useLocation();
 
@@ -336,7 +377,15 @@ function AnimatedRoutes() {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         {/* Public routes */}
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<HomeOrLanding />} />
+        <Route
+          path="/pricing"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <PricingPage />
+            </Suspense>
+          }
+        />
         <Route
           path="/portfolio"
           element={
@@ -529,6 +578,32 @@ function AdminRoutes() {
           <Route path="/admin/scheduler" element={<AdminScheduler />} />
           <Route path="/admin/integrations" element={<AdminIntegrationHub />} />
           <Route path="/admin/audit" element={<AdminAuditLog />} />
+
+          {/* Platform admin routes (super-admin, main site only) */}
+          <Route
+            path="/admin/platform"
+            element={
+              <PlatformGate>
+                <PlatformDashboard />
+              </PlatformGate>
+            }
+          />
+          <Route
+            path="/admin/platform/tenants"
+            element={
+              <PlatformGate>
+                <PlatformTenantList />
+              </PlatformGate>
+            }
+          />
+          <Route
+            path="/admin/platform/tenants/:id"
+            element={
+              <PlatformGate>
+                <PlatformTenantDetail />
+              </PlatformGate>
+            }
+          />
 
           {/* Dynamic feature module routes */}
           {renderFeatureRoutes()}

@@ -35,8 +35,11 @@ import {
   FileSearch,
   Monitor,
   Calendar,
+  Building2,
+  LayoutGrid,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { useTenant } from "@/lib/tenant";
 import { UserButton, OrganizationSwitcher } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggleMinimal } from "./ThemeToggle";
@@ -122,6 +125,20 @@ const sidebarSections: SidebarSection[] = [
     ],
   },
 ];
+
+// Platform admin section (conditionally shown on main site)
+const platformAdminSection: SidebarSection = {
+  id: "platform_admin",
+  label: "Platform Admin",
+  items: [
+    {
+      label: "Platform Dashboard",
+      path: "/admin/platform",
+      icon: LayoutGrid,
+    },
+    { label: "Tenants", path: "/admin/platform/tenants", icon: Building2 },
+  ],
+};
 
 // Pinned items at bottom (above footer)
 const accountItems: SidebarItem[] = [
@@ -246,6 +263,7 @@ interface SidebarContentProps {
   signOut: ReturnType<typeof useAuth>["signOut"];
   expandedSections: Record<string, boolean>;
   toggleSection: (id: string) => void;
+  sections: SidebarSection[];
 }
 
 const SidebarContent = ({
@@ -255,6 +273,7 @@ const SidebarContent = ({
   signOut,
   expandedSections,
   toggleSection,
+  sections,
 }: SidebarContentProps) => (
   <>
     {/* Navigation */}
@@ -265,7 +284,7 @@ const SidebarContent = ({
       <div className="pt-1" />
 
       {/* Collapsible sections */}
-      {sidebarSections.map((section) => {
+      {sections.map((section) => {
         const isExpanded = expandedSections[section.id] ?? true;
         return (
           <div key={section.id}>
@@ -374,7 +393,15 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isSignedIn, isLoaded, signOut } = useAuth();
+  const { isMainSite } = useTenant();
   const prefersReducedMotion = useReducedMotion();
+
+  // Conditionally include platform admin section on main site
+  const effectiveSections = useMemo(
+    () =>
+      isMainSite ? [...sidebarSections, platformAdminSection] : sidebarSections,
+    [isMainSite],
+  );
 
   // Initialize sidebar state from localStorage or responsive default
   const [sidebarOpen, setSidebarOpen] = useState(() => {
@@ -458,7 +485,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
   // Auto-expand the section containing the active route
   const activeSectionId = useMemo(() => {
-    for (const section of sidebarSections) {
+    for (const section of effectiveSections) {
       for (const item of section.items) {
         if (
           location.pathname === item.path ||
@@ -607,6 +634,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                 signOut={signOut}
                 expandedSections={expandedSections}
                 toggleSection={toggleSection}
+                sections={effectiveSections}
               />
             </motion.aside>
           )}

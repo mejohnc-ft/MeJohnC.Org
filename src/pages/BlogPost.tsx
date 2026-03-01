@@ -1,22 +1,27 @@
-import { useEffect, useState } from 'react';
-import { useParams, Link, useSearchParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeHighlight from 'rehype-highlight';
-import DOMPurify from 'dompurify';
-import { ArrowLeft, Clock, Calendar, Loader2, FileText, Eye } from 'lucide-react';
-import PageTransition from '@/components/PageTransition';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { getGhostPostBySlug } from '@/lib/ghost';
-import { getBlogPostBySlug } from '@/lib/supabase-queries';
-import { formatDate } from '@/lib/markdown';
-import { useSEO, useJsonLd } from '@/lib/seo';
-import { analytics } from '@/lib/analytics';
-import { captureException } from '@/lib/sentry';
+import { useEffect, useState } from "react";
+import { useParams, Link, useSearchParams } from "react-router-dom";
+import { motion } from "framer-motion";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
+import {
+  ArrowLeft,
+  Clock,
+  Calendar,
+  Loader2,
+  FileText,
+  Eye,
+} from "lucide-react";
+import PageTransition from "@/components/PageTransition";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { getBlogPostBySlug } from "@/lib/supabase-queries";
+import { formatDate } from "@/lib/markdown";
+import { useSEO, useJsonLd } from "@/lib/seo";
+import { analytics } from "@/lib/analytics";
+import { captureException } from "@/lib/sentry";
 
-// Unified display type
+// Display type
 interface DisplayPost {
   title: string;
   slug: string;
@@ -25,13 +30,12 @@ interface DisplayPost {
   feature_image: string | null;
   tags: string[];
   content: string;
-  contentType: 'markdown' | 'html';
 }
 
 const BlogPostPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const [searchParams] = useSearchParams();
-  const isPreview = searchParams.get('preview') === 'true';
+  const isPreview = searchParams.get("preview") === "true";
   const [post, setPost] = useState<DisplayPost | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,27 +45,28 @@ const BlogPostPage = () => {
     post
       ? {
           title: isPreview ? `[Preview] ${post.title}` : post.title,
-          description: post.content.slice(0, 160).replace(/[#*_`]/g, '') + '...',
+          description:
+            post.content.slice(0, 160).replace(/[#*_`]/g, "") + "...",
           image: post.feature_image || undefined,
           url: `/blog/${post.slug}`,
-          type: 'article',
+          type: "article",
           publishedTime: post.published_at || undefined,
           noIndex: isPreview,
         }
-      : { title: 'Blog Post', url: `/blog/${slug}`, noIndex: isPreview }
+      : { title: "Blog Post", url: `/blog/${slug}`, noIndex: isPreview },
   );
 
   useJsonLd(
     post
       ? {
-          type: 'Article',
+          type: "Article",
           headline: post.title,
-          description: post.content.slice(0, 160).replace(/[#*_`]/g, ''),
+          description: post.content.slice(0, 160).replace(/[#*_`]/g, ""),
           image: post.feature_image || undefined,
           datePublished: post.published_at || undefined,
           url: `/blog/${post.slug}`,
         }
-      : { type: 'Article', headline: 'Blog Post' }
+      : { type: "Article", headline: "Blog Post" },
   );
 
   // Track blog read when post is loaded (not in preview mode)
@@ -76,7 +81,6 @@ const BlogPostPage = () => {
       if (!slug) return;
 
       try {
-        // Try local Supabase first
         const localPost = await getBlogPostBySlug(slug).catch(() => null);
 
         if (localPost) {
@@ -88,37 +92,18 @@ const BlogPostPage = () => {
             feature_image: localPost.cover_image,
             tags: localPost.tags || [],
             content: localPost.content,
-            contentType: 'markdown',
           });
           setIsLoading(false);
           return;
         }
 
-        // Try Ghost if not found locally
-        const ghostPost = await getGhostPostBySlug(slug);
-
-        if (ghostPost) {
-          setPost({
-            title: ghostPost.title,
-            slug: ghostPost.slug,
-            published_at: ghostPost.published_at || null,
-            reading_time: ghostPost.reading_time || null,
-            feature_image: ghostPost.feature_image || null,
-            tags: ghostPost.tags?.map(t => t.name) || [],
-            content: ghostPost.html || '',
-            contentType: 'html',
-          });
-          setIsLoading(false);
-          return;
-        }
-
-        setError('Post not found');
+        setError("Post not found");
       } catch (err) {
         captureException(err instanceof Error ? err : new Error(String(err)), {
-          context: 'BlogPost.fetchPost',
+          context: "BlogPost.fetchPost",
           slug,
         });
-        setError('Post not found');
+        setError("Post not found");
       } finally {
         setIsLoading(false);
       }
@@ -140,7 +125,9 @@ const BlogPostPage = () => {
       <PageTransition>
         <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-6">
           <FileText className="w-16 h-16 text-muted-foreground mb-4" />
-          <h1 className="text-2xl font-bold text-foreground mb-2">Post not found</h1>
+          <h1 className="text-2xl font-bold text-foreground mb-2">
+            Post not found
+          </h1>
           <p className="text-muted-foreground mb-6">
             The blog post you're looking for doesn't exist.
           </p>
@@ -245,16 +232,12 @@ const BlogPostPage = () => {
             transition={{ delay: 0.2 }}
             className="prose prose-invert max-w-none"
           >
-            {post.contentType === 'markdown' ? (
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                rehypePlugins={[rehypeHighlight]}
-              >
-                {post.content}
-              </ReactMarkdown>
-            ) : (
-              <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }} />
-            )}
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeHighlight]}
+            >
+              {post.content}
+            </ReactMarkdown>
           </motion.div>
 
           {/* Footer */}
