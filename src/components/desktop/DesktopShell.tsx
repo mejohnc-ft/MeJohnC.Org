@@ -1,7 +1,10 @@
 import { useState, useCallback } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
+import { useTenant } from "@/lib/tenant";
+import { parseTenantSettings } from "@/lib/tenant-settings";
 import { Loader2, Undo2 } from "lucide-react";
+import OnboardingWizard from "./OnboardingWizard";
 import {
   WindowManagerProvider,
   useWindowManagerContext,
@@ -106,6 +109,8 @@ function DesktopShellContent() {
 
 export default function DesktopShell() {
   const { isSignedIn, isLoaded, user } = useAuth();
+  const { tenant, status, isMainSite, refreshTenant } = useTenant();
+  const [wizardDismissed, setWizardDismissed] = useState(false);
 
   if (!isLoaded) {
     return (
@@ -117,6 +122,22 @@ export default function DesktopShell() {
 
   if (!isSignedIn || !user) {
     return <Navigate to="/admin/login" replace />;
+  }
+
+  // Show onboarding wizard for tenant users who haven't completed setup
+  if (!isMainSite && status === "resolved" && !wizardDismissed) {
+    const settings = parseTenantSettings(tenant?.settings);
+    if (!settings.onboarding_complete) {
+      return (
+        <OnboardingWizard
+          initialStep={settings.onboarding_step}
+          onComplete={() => {
+            setWizardDismissed(true);
+            refreshTenant();
+          }}
+        />
+      );
+    }
   }
 
   return (

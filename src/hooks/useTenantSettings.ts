@@ -22,6 +22,8 @@ interface UseTenantSettingsResult {
   saveDockPinned: (pinned: string[]) => Promise<void>;
   saveDomain: (domain: TenantDomain) => Promise<void>;
   saveEmail: (email: TenantEmail) => Promise<void>;
+  saveOnboardingComplete: (complete: boolean) => Promise<void>;
+  saveOnboardingStep: (step: number) => Promise<void>;
   isSaving: boolean;
   saveError: string | null;
 }
@@ -86,6 +88,20 @@ export function useTenantSettings(): UseTenantSettingsResult {
     [callRpc],
   );
 
+  const saveOnboardingComplete = useCallback(
+    async (complete: boolean) => {
+      await callRpc({ p_onboarding_complete: complete });
+    },
+    [callRpc],
+  );
+
+  const saveOnboardingStep = useCallback(
+    async (step: number) => {
+      await callRpc({ p_onboarding_step: step });
+    },
+    [callRpc],
+  );
+
   return {
     settings,
     saveBranding,
@@ -93,6 +109,8 @@ export function useTenantSettings(): UseTenantSettingsResult {
     saveDockPinned,
     saveDomain,
     saveEmail,
+    saveOnboardingComplete,
+    saveOnboardingStep,
     isSaving,
     saveError,
   };
