@@ -3,9 +3,11 @@
 // Invoke: POST /functions/v1/workflow-executor
 //
 // Step types:
-//   agent_command — inserts into agent_commands table (dispatch-oriented, no polling)
+//   agent_command — dispatch to single agent-executor, wait for completion
 //   wait — setTimeout delay
 //   condition — evaluate expression against previous step results, branch to step ID
+//   integration_action — dispatch integration action, poll for completion
+//   orchestrator — fan-out to multiple agents, collect + merge results (#270)
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import { authenticateAgent, AgentAuthResult } from "../_shared/agent-auth.ts";
@@ -13,6 +15,7 @@ import { Logger } from "../_shared/logger.ts";
 import { validateInput, validateFields } from "../_shared/input-validator.ts";
 import { CORS_ORIGIN } from "../_shared/cors.ts";
 import { pollCommandCompletion } from "../_shared/command-polling.ts";
+import { orchestrate, MergeStrategy } from "../_shared/orchestration.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": CORS_ORIGIN,
@@ -23,7 +26,12 @@ const corsHeaders = {
 
 interface WorkflowStep {
   id: string;
-  type: "agent_command" | "wait" | "condition" | "integration_action";
+  type:
+    | "agent_command"
+    | "wait"
+    | "condition"
+    | "integration_action"
+    | "orchestrator";
   config: Record<string, unknown>;
   timeout_ms?: number;
   retries?: number;
@@ -291,6 +299,71 @@ async function executeStepInner(
         status: pollResult.status,
         output: pollResult.output,
         parameters: mergedParams,
+      };
+    }
+
+    case "orchestrator": {
+      // Fan-out command to multiple agents, collect + merge results (#270)
+      const {
+        agent_ids,
+        command: orchCommand,
+        strategy = "merge_all",
+        payload,
+      } = step.config as {
+        agent_ids: string[];
+        command: string;
+        strategy?: MergeStrategy;
+        payload?: unknown;
+      };
+
+      if (!agent_ids || agent_ids.length === 0)
+        throw new Error('orchestrator step requires "agent_ids" in config');
+      if (!orchCommand)
+        throw new Error('orchestrator step requires "command" in config');
+
+      const content =
+        typeof payload === "string" ? payload : JSON.stringify(payload || {});
+      const fullCommand = `${orchCommand}: ${content}`;
+
+      const timeoutMs = step.timeout_ms || 20000;
+
+      const orchResult = await orchestrate(
+        {
+          command: fullCommand,
+          agent_ids,
+          strategy,
+          timeout_ms: timeoutMs,
+        },
+        supabase,
+        logger,
+      );
+
+      logger.info("Orchestrator step completed", {
+        orchestrationRunId: orchResult.orchestration_run_id,
+        strategy,
+        agentCount: agent_ids.length,
+        completedCount: orchResult.agent_results.filter(
+          (r) => r.status === "completed",
+        ).length,
+      });
+
+      if (orchResult.status === "timed_out") {
+        throw new Error("All agents timed out during orchestration");
+      }
+      if (orchResult.status === "failed") {
+        throw new Error("All agents failed during orchestration");
+      }
+
+      return {
+        orchestration_run_id: orchResult.orchestration_run_id,
+        merged_response: orchResult.merged_response,
+        strategy: orchResult.strategy,
+        agent_results: orchResult.agent_results.map((r) => ({
+          agent_id: r.agent_id,
+          status: r.status,
+          duration_ms: r.duration_ms,
+        })),
+        duration_ms: orchResult.duration_ms,
       };
     }
 
