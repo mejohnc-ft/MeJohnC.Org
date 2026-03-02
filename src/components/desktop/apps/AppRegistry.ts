@@ -345,6 +345,48 @@ const apps: DesktopApp[] = [
     minPlan: "professional",
   },
 
+  // Terminal
+  {
+    id: "terminal",
+    name: "Terminal",
+    icon: "Terminal",
+    color: "text-green-400",
+    category: "system",
+    component: () => import("@/components/desktop/apps/TerminalApp"),
+    defaultSize: { width: 700, height: 450 },
+    minSize: { width: 400, height: 300 },
+    singleton: false,
+    defaultDockPinned: false,
+  },
+
+  // Notes
+  {
+    id: "notes",
+    name: "Notes",
+    icon: "StickyNote",
+    color: "text-yellow-400",
+    category: "system",
+    component: () => import("@/components/desktop/apps/NotesApp"),
+    defaultSize: { width: 750, height: 500 },
+    minSize: { width: 500, height: 350 },
+    singleton: true,
+    defaultDockPinned: false,
+  },
+
+  // System Monitor
+  {
+    id: "system-monitor",
+    name: "Monitor",
+    icon: "Activity",
+    color: "text-green-500",
+    category: "system",
+    component: () => import("@/components/desktop/apps/SystemMonitorApp"),
+    defaultSize: { width: 500, height: 550 },
+    minSize: { width: 400, height: 400 },
+    singleton: true,
+    defaultDockPinned: false,
+  },
+
   // File System
   {
     id: "file-explorer",
