@@ -9,17 +9,27 @@ import {
   useRef,
   ReactNode,
 } from "react";
-import { useWindowManager, WindowManagerState } from "@/hooks/useWindowManager";
+import {
+  useWindowManager,
+  WindowManagerState,
+  WindowState,
+} from "@/hooks/useWindowManager";
 import { useDesktopWorkspace } from "@/hooks/useDesktopWorkspace";
 import { getApp, isAppLocked } from "./apps/AppRegistry";
 import { useBilling } from "@/hooks/useBilling";
 import { useTenant } from "@/lib/tenant";
+import { useUndoStack } from "@/hooks/useUndoStack";
 
 import {
   MENU_BAR_HEIGHT,
   DOCK_HEIGHT,
   MAX_OPEN_WINDOWS,
 } from "@/lib/desktop-constants";
+
+interface UndoToast {
+  label: string;
+  actionId: string;
+}
 
 interface WindowManagerContextType {
   state: WindowManagerState;
@@ -38,6 +48,10 @@ interface WindowManagerContextType {
     x?: number,
     y?: number,
   ) => void;
+  undo: () => void;
+  canUndo: boolean;
+  undoToast: UndoToast | null;
+  dismissUndoToast: () => void;
 }
 
 export interface WorkspaceContextType {
@@ -70,6 +84,7 @@ export function WindowManagerProvider({
   const wm = useWindowManager();
   const cascadeOffset = useRef(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const undoStack = useUndoStack();
   const { plan } = useBilling();
   const { tenant } = useTenant();
   const enabledAppIds = (tenant?.settings as Record<string, unknown>)
@@ -144,6 +159,30 @@ export function WindowManagerProvider({
     [wm, plan, enabledAppIds],
   );
 
+  const closeWindowWithUndo = useCallback(
+    (id: string) => {
+      const win = wm.state.windows.find((w: WindowState) => w.id === id);
+      if (!win) {
+        wm.closeWindow(id);
+        return;
+      }
+      const snapshot = { ...win };
+      const app = getApp(win.appId);
+      wm.closeWindow(id);
+      undoStack.push(`Closed ${app?.name ?? "window"}`, () => {
+        wm.openWindow(
+          snapshot.appId,
+          snapshot.title,
+          snapshot.x,
+          snapshot.y,
+          snapshot.width,
+          snapshot.height,
+        );
+      });
+    },
+    [wm, undoStack],
+  );
+
   const maximizeWindow = useCallback(
     (id: string) => {
       wm.maximizeWindow(id, {
@@ -184,13 +223,17 @@ export function WindowManagerProvider({
         state: wm.state,
         toastMessage,
         launchApp,
-        closeWindow: wm.closeWindow,
+        closeWindow: closeWindowWithUndo,
         focusWindow: wm.focusWindow,
         minimizeWindow: wm.minimizeWindow,
         maximizeWindow,
         restoreWindow: wm.restoreWindow,
         moveWindow: wm.moveWindow,
         resizeWindow: wm.resizeWindow,
+        undo: undoStack.undo,
+        canUndo: undoStack.canUndo,
+        undoToast: undoStack.toast,
+        dismissUndoToast: undoStack.dismissToast,
       }}
     >
       <WorkspaceContext.Provider value={workspaceValue}>
