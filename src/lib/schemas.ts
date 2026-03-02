@@ -1815,6 +1815,103 @@ export const EventSchema = z.object({
 });
 export type Event = z.infer<typeof EventSchema>;
 
+// Agent Messages (inter-agent message bus) (#270)
+export const AgentMessageTypeSchema = z.enum([
+  "task",
+  "result",
+  "status",
+  "delegation",
+]);
+export type AgentMessageType = z.infer<typeof AgentMessageTypeSchema>;
+
+export const AgentMessageStatusSchema = z.enum([
+  "pending",
+  "delivered",
+  "read",
+  "expired",
+]);
+export type AgentMessageStatus = z.infer<typeof AgentMessageStatusSchema>;
+
+export const AgentMessageSchema = z.object({
+  id: z.string().uuid(),
+  tenant_id: z.string().uuid().nullable(),
+  from_agent_id: z.string().uuid(),
+  to_agent_id: z.string().uuid().nullable(),
+  channel: z.string(),
+  message_type: AgentMessageTypeSchema,
+  content: z.record(z.unknown()),
+  correlation_id: z.string().uuid().nullable(),
+  status: AgentMessageStatusSchema,
+  expires_at: z.string().nullable(),
+  created_at: z.string(),
+});
+export type AgentMessage = z.infer<typeof AgentMessageSchema>;
+
+// Orchestration Runs (#270)
+export const OrchestrationStrategySchema = z.enum([
+  "first_completed",
+  "best_score",
+  "merge_all",
+  "consensus",
+]);
+export type OrchestrationStrategy = z.infer<typeof OrchestrationStrategySchema>;
+
+export const OrchestrationRunStatusSchema = z.enum([
+  "pending",
+  "running",
+  "completed",
+  "failed",
+  "timed_out",
+]);
+export type OrchestrationRunStatus = z.infer<
+  typeof OrchestrationRunStatusSchema
+>;
+
+export const OrchestrationRunSchema = z.object({
+  id: z.string().uuid(),
+  tenant_id: z.string().uuid().nullable(),
+  workflow_run_id: z.string().uuid().nullable(),
+  step_id: z.string().nullable(),
+  command: z.string(),
+  agent_ids: z.array(z.string().uuid()),
+  strategy: OrchestrationStrategySchema,
+  status: OrchestrationRunStatusSchema,
+  result: z.record(z.unknown()).nullable(),
+  started_at: z.string().nullable(),
+  completed_at: z.string().nullable(),
+  timeout_ms: z.number(),
+  created_at: z.string(),
+});
+export type OrchestrationRun = z.infer<typeof OrchestrationRunSchema>;
+
+// Orchestration Responses (#270)
+export const OrchestrationResponseStatusSchema = z.enum([
+  "pending",
+  "running",
+  "completed",
+  "failed",
+  "timed_out",
+]);
+export type OrchestrationResponseStatus = z.infer<
+  typeof OrchestrationResponseStatusSchema
+>;
+
+export const OrchestrationResponseSchema = z.object({
+  id: z.string().uuid(),
+  orchestration_run_id: z.string().uuid(),
+  agent_id: z.string().uuid(),
+  status: OrchestrationResponseStatusSchema,
+  response: z.string().nullable(),
+  tool_calls: z.number().nullable(),
+  turns: z.number().nullable(),
+  score: z.number().nullable(),
+  duration_ms: z.number().nullable(),
+  error: z.string().nullable(),
+  created_at: z.string(),
+  completed_at: z.string().nullable(),
+});
+export type OrchestrationResponse = z.infer<typeof OrchestrationResponseSchema>;
+
 // Integration Actions
 export const IntegrationActionSchema = z.object({
   id: z.string().uuid(),
@@ -1843,6 +1940,7 @@ export const StepTemplateSchema = z.object({
     "wait",
     "condition",
     "integration_action",
+    "orchestrator",
   ]),
   config: z.record(z.unknown()),
   timeout_ms: z.number(),

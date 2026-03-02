@@ -443,3 +443,55 @@ export const MOCK_MEMORY_2 = {
 };
 
 export const MOCK_EMBEDDING = new Array(1536).fill(0.01);
+
+// ─── Mock Orchestration Data (#270) ─────────────────────────────────
+
+export const WORKFLOW_ORCHESTRATED = {
+  id: "w0000000-0000-0000-0000-000000000010",
+  name: "Multi-Agent Orchestration Workflow",
+  description: "Fan-out to multiple agents and merge results",
+  trigger_type: "manual",
+  trigger_config: {},
+  is_active: true,
+  steps: [
+    {
+      id: "step-orchestrate",
+      type: "orchestrator",
+      config: {
+        agent_ids: [AGENT_OPENCLAW.id, AGENT_DASHBOARD.id, AGENT_SUPERVISED.id],
+        command: "analyze_contacts",
+        strategy: "merge_all",
+        payload: { query: "recent signups" },
+      },
+      timeout_ms: 15000,
+    },
+    {
+      id: "step-after",
+      type: "wait",
+      config: { delay_ms: 50 },
+    },
+  ],
+  created_by: "user_test",
+  created_at: "2026-01-01T00:00:00Z",
+  updated_at: "2026-01-01T00:00:00Z",
+};
+
+export const WORKFLOW_ORCHESTRATED_FIRST = {
+  id: "w0000000-0000-0000-0000-000000000011",
+  name: "First-Completed Orchestration",
+  trigger_type: "manual",
+  trigger_config: {},
+  is_active: true,
+  steps: [
+    {
+      id: "step-race",
+      type: "orchestrator",
+      config: {
+        agent_ids: [AGENT_OPENCLAW.id, AGENT_DASHBOARD.id],
+        command: "quick_lookup",
+        strategy: "first_completed",
+      },
+      timeout_ms: 10000,
+    },
+  ],
+};
