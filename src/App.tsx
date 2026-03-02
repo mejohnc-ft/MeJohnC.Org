@@ -100,6 +100,7 @@ const AdminWorkflows = lazy(() => import("./pages/admin/Workflows"));
 const AdminWorkflowEditor = lazy(() => import("./pages/admin/WorkflowEditor"));
 const AdminScheduler = lazy(() => import("./pages/admin/Scheduler"));
 const AdminIntegrationHub = lazy(() => import("./pages/admin/IntegrationHub"));
+const AdminOAuthCallback = lazy(() => import("./pages/admin/OAuthCallback"));
 const AdminAuditLog = lazy(() => import("./pages/admin/AuditLog"));
 
 // Note: These routes are now dynamically loaded from feature modules:
@@ -577,6 +578,10 @@ function AdminRoutes() {
           />
           <Route path="/admin/scheduler" element={<AdminScheduler />} />
           <Route path="/admin/integrations" element={<AdminIntegrationHub />} />
+          <Route
+            path="/admin/integrations/callback"
+            element={<AdminOAuthCallback />}
+          />
           <Route path="/admin/audit" element={<AdminAuditLog />} />
 
           {/* Platform admin routes (super-admin, main site only) */}
