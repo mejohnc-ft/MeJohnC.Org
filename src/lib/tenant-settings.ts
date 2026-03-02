@@ -28,6 +28,8 @@ export interface TenantSettings {
   dock_pinned: string[];
   domain: TenantDomain;
   email: TenantEmail;
+  onboarding_complete: boolean;
+  onboarding_step: number;
 }
 
 export const DEFAULT_TENANT_SETTINGS: TenantSettings = {
@@ -49,6 +51,8 @@ export const DEFAULT_TENANT_SETTINGS: TenantSettings = {
     from_name: "",
     from_address: "",
   },
+  onboarding_complete: false,
+  onboarding_step: 0,
 };
 
 function str<T>(value: unknown, fallback: T): T extends string ? string : T {
@@ -103,5 +107,13 @@ export function parseTenantSettings(
       : DEFAULT_TENANT_SETTINGS.dock_pinned,
     domain: parseDomain((raw.domain as Partial<TenantDomain>) || {}),
     email: parseEmail((raw.email as Partial<TenantEmail>) || {}),
+    onboarding_complete:
+      typeof raw.onboarding_complete === "boolean"
+        ? raw.onboarding_complete
+        : DEFAULT_TENANT_SETTINGS.onboarding_complete,
+    onboarding_step:
+      typeof raw.onboarding_step === "number"
+        ? raw.onboarding_step
+        : DEFAULT_TENANT_SETTINGS.onboarding_step,
   };
 }
