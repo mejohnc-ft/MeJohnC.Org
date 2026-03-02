@@ -406,6 +406,47 @@ export default function IntegrationHub() {
     }
   };
 
+  // OAuth Connect flow (#271)
+  const [connectingOAuth, setConnectingOAuth] = useState<string | null>(null);
+
+  const handleOAuthConnect = async (integration: IntegrationWithAgents) => {
+    if (!supabase) return;
+
+    setConnectingOAuth(integration.id);
+    try {
+      const callbackUri = `${window.location.origin}/admin/integrations/callback`;
+
+      const { data, error } = await supabase.functions.invoke(
+        "integration-auth",
+        {
+          body: {
+            action: "initiate",
+            integration_id: integration.id,
+            redirect_uri: callbackUri,
+          },
+        },
+      );
+
+      if (error || !data?.auth_url || !data?.state) {
+        throw new Error(error?.message || "Failed to initiate OAuth flow");
+      }
+
+      // Store state in sessionStorage for the callback page
+      sessionStorage.setItem(`oauth_integration_${data.state}`, integration.id);
+
+      // Redirect to provider's authorization page
+      window.location.href = data.auth_url;
+    } catch (error) {
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        { context: "IntegrationHub.oauthConnect" },
+      );
+      console.error("Failed to initiate OAuth:", error);
+      toast.error("Failed to start OAuth flow");
+      setConnectingOAuth(null);
+    }
+  };
+
   const handleTestConnection = async (integration: IntegrationWithAgents) => {
     if (!supabase) return;
 
@@ -600,6 +641,22 @@ export default function IntegrationHub() {
                         {integration.agentCount !== 1 ? "s" : ""} connected
                       </div>
                       <div className="flex items-center gap-2">
+                        {integration.service_type === "oauth2" && (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => handleOAuthConnect(integration)}
+                            disabled={connectingOAuth === integration.id}
+                            className="gap-2"
+                          >
+                            {connectingOAuth === integration.id ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Key className="w-3 h-3" />
+                            )}
+                            Connect
+                          </Button>
+                        )}
                         {integration.health_check_url && (
                           <Button
                             variant="outline"
