@@ -1718,6 +1718,21 @@ export type MarketingStats = z.infer<typeof MarketingStatsSchema>;
 // AGENT PLATFORM PHASE 4 SCHEMAS
 // ============================================
 
+// Tool Definitions (maps Claude tools to capabilities and actions)
+export const ToolDefinitionSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  display_name: z.string(),
+  description: z.string(),
+  capability_name: z.string(),
+  input_schema: z.record(z.unknown()),
+  action_name: z.string(),
+  is_active: z.boolean(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type ToolDefinition = z.infer<typeof ToolDefinitionSchema>;
+
 // Capability Definitions
 export const CapabilityDefinitionSchema = z.object({
   name: z.string(),
