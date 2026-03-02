@@ -11,6 +11,7 @@ interface UseDesktopShortcutsOptions {
   closeSpotlight: () => void;
   isSpotlightOpen: boolean;
   undo?: () => void;
+  toggleQuickNote?: () => void;
 }
 
 export function useDesktopShortcuts({
@@ -23,6 +24,7 @@ export function useDesktopShortcuts({
   closeSpotlight,
   isSpotlightOpen,
   undo,
+  toggleQuickNote,
 }: UseDesktopShortcutsOptions) {
   const handleModKey = useCallback(
     (e: KeyboardEvent) => {
@@ -74,7 +76,16 @@ export function useDesktopShortcuts({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Skip global shortcuts when focus is inside input fields
+      const mod = e.metaKey || e.ctrlKey;
+
+      // Ctrl+Shift+N — Quick Note (works even in input fields)
+      if (mod && e.shiftKey && e.key === "N") {
+        e.preventDefault();
+        if (toggleQuickNote) toggleQuickNote();
+        return;
+      }
+
+      // Skip other global shortcuts when focus is inside input fields
       const target = e.target as HTMLElement;
       if (
         target.tagName === "INPUT" ||
@@ -83,8 +94,6 @@ export function useDesktopShortcuts({
       ) {
         return;
       }
-
-      const mod = e.metaKey || e.ctrlKey;
 
       if (mod) {
         handleModKey(e);
@@ -99,5 +108,5 @@ export function useDesktopShortcuts({
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [handleModKey, isSpotlightOpen, closeSpotlight]);
+  }, [handleModKey, isSpotlightOpen, closeSpotlight, toggleQuickNote]);
 }

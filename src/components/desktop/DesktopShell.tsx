@@ -12,6 +12,7 @@ import Desktop from "./Desktop";
 import Dock from "./Dock";
 import Spotlight from "./Spotlight";
 import NotificationCenter from "./NotificationCenter";
+import QuickNote from "./QuickNote";
 import { useAgentConfirmations } from "@/hooks/useAgentConfirmations";
 
 function DesktopShellContent() {
@@ -27,12 +28,17 @@ function DesktopShellContent() {
   } = useWindowManagerContext();
   const [spotlightOpen, setSpotlightOpen] = useState(false);
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
+  const [quickNoteOpen, setQuickNoteOpen] = useState(false);
   const { pending, pendingCount, respond } = useAgentConfirmations();
 
   const openSpotlight = useCallback(() => setSpotlightOpen(true), []);
   const closeSpotlight = useCallback(() => setSpotlightOpen(false), []);
   const toggleNotifications = useCallback(
     () => setNotificationCenterOpen((prev) => !prev),
+    [],
+  );
+  const toggleQuickNote = useCallback(
+    () => setQuickNoteOpen((prev) => !prev),
     [],
   );
 
@@ -46,6 +52,7 @@ function DesktopShellContent() {
     closeSpotlight,
     isSpotlightOpen: spotlightOpen,
     undo,
+    toggleQuickNote,
   });
 
   return (
@@ -62,6 +69,10 @@ function DesktopShellContent() {
         onClose={() => setNotificationCenterOpen(false)}
         pendingConfirmations={pending}
         onRespond={respond}
+      />
+      <QuickNote
+        isOpen={quickNoteOpen}
+        onClose={() => setQuickNoteOpen(false)}
       />
       {toastMessage && (
         <div
