@@ -9,9 +9,13 @@ import { getApp } from "./apps/AppRegistry";
 
 interface MenuBarProps {
   onToggleNotifications?: () => void;
+  pendingCount?: number;
 }
 
-export default function MenuBar({ onToggleNotifications }: MenuBarProps) {
+export default function MenuBar({
+  onToggleNotifications,
+  pendingCount = 0,
+}: MenuBarProps) {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const { state } = useWindowManagerContext();
@@ -126,9 +130,18 @@ export default function MenuBar({ onToggleNotifications }: MenuBarProps) {
             data-notification-toggle
             onClick={onToggleNotifications}
             className="relative text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Toggle notifications"
+            aria-label={
+              pendingCount > 0
+                ? `${pendingCount} pending approvals`
+                : "Toggle notifications"
+            }
           >
             <Bell className="w-3.5 h-3.5" />
+            {pendingCount > 0 && (
+              <span className="absolute -top-1 -right-1.5 min-w-[14px] h-[14px] flex items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white px-0.5 animate-in fade-in zoom-in">
+                {pendingCount > 9 ? "9+" : pendingCount}
+              </span>
+            )}
           </button>
         )}
         <span className="text-[11px] text-muted-foreground tabular-nums">

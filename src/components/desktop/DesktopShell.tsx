@@ -12,12 +12,14 @@ import Desktop from "./Desktop";
 import Dock from "./Dock";
 import Spotlight from "./Spotlight";
 import NotificationCenter from "./NotificationCenter";
+import { useAgentConfirmations } from "@/hooks/useAgentConfirmations";
 
 function DesktopShellContent() {
   const { state, toastMessage, closeWindow, minimizeWindow, focusWindow } =
     useWindowManagerContext();
   const [spotlightOpen, setSpotlightOpen] = useState(false);
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
+  const { pending, pendingCount, respond } = useAgentConfirmations();
 
   const openSpotlight = useCallback(() => setSpotlightOpen(true), []);
   const closeSpotlight = useCallback(() => setSpotlightOpen(false), []);
@@ -39,13 +41,18 @@ function DesktopShellContent() {
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-background">
-      <MenuBar onToggleNotifications={toggleNotifications} />
+      <MenuBar
+        onToggleNotifications={toggleNotifications}
+        pendingCount={pendingCount}
+      />
       <Desktop />
       <Dock />
       <Spotlight isOpen={spotlightOpen} onClose={closeSpotlight} />
       <NotificationCenter
         isOpen={notificationCenterOpen}
         onClose={() => setNotificationCenterOpen(false)}
+        pendingConfirmations={pending}
+        onRespond={respond}
       />
       {toastMessage && (
         <div

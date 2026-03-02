@@ -476,6 +476,37 @@ export const WORKFLOW_ORCHESTRATED = {
   updated_at: "2026-01-01T00:00:00Z",
 };
 
+// ─── Mock Agent Confirmation Data (#292) ─────────────────────────────
+
+export const MOCK_CONFIRMATION_PENDING = {
+  id: "cf000000-0000-0000-0000-000000000001",
+  tenant_id: "00000000-0000-0000-0000-000000000000",
+  session_id: "s0000000-0000-0000-0000-000000000001",
+  command_id: "cmd00000-0000-0000-0000-000000000001",
+  tool_name: "delete_contact",
+  tool_input: { contact_id: "c123" },
+  description: "Agent wants to delete contact Alice Smith",
+  status: "pending" as const,
+  expires_at: new Date(Date.now() + 5 * 60_000).toISOString(),
+  responded_at: null,
+  created_at: new Date().toISOString(),
+};
+
+export const MOCK_CONFIRMATION_EXPIRED = {
+  ...MOCK_CONFIRMATION_PENDING,
+  id: "cf000000-0000-0000-0000-000000000002",
+  tool_name: "send_email",
+  description: "Agent wants to send email to all contacts",
+  expires_at: new Date(Date.now() - 60_000).toISOString(), // Expired 1 min ago
+};
+
+export const MOCK_CONFIRMATION_APPROVED = {
+  ...MOCK_CONFIRMATION_PENDING,
+  id: "cf000000-0000-0000-0000-000000000003",
+  status: "approved" as const,
+  responded_at: new Date().toISOString(),
+};
+
 export const WORKFLOW_ORCHESTRATED_FIRST = {
   id: "w0000000-0000-0000-0000-000000000011",
   name: "First-Completed Orchestration",
