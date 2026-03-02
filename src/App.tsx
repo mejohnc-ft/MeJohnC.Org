@@ -63,6 +63,9 @@ const AdminPromptLibrary = lazy(() => import("./pages/admin/PromptLibrary"));
 
 // Command Center admin pages
 const AdminSkillsRegistry = lazy(() => import("./pages/admin/SkillsRegistry"));
+const AdminToolDefinitions = lazy(
+  () => import("./pages/admin/ToolDefinitions"),
+);
 const AdminInfrastructureMap = lazy(
   () => import("./pages/admin/InfrastructureMap"),
 );
@@ -522,6 +525,10 @@ function AdminRoutes() {
           <Route path="/admin/prompts" element={<AdminPromptLibrary />} />
           {/* Command Center routes */}
           <Route path="/admin/skills" element={<AdminSkillsRegistry />} />
+          <Route
+            path="/admin/tool-definitions"
+            element={<AdminToolDefinitions />}
+          />
           <Route
             path="/admin/infrastructure"
             element={<AdminInfrastructureMap />}
