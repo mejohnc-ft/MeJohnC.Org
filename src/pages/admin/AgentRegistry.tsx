@@ -12,6 +12,7 @@ import {
   Loader2,
   Copy,
   Check,
+  Activity,
 } from "lucide-react";
 import AdminLayout from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ import type {
   PlatformAgentType,
   PlatformAgentStatus,
 } from "@/lib/schemas";
+import AgentActivityPanel from "@/components/admin/AgentActivityPanel";
 
 type ModalType = "create" | "edit" | "delete" | "apiKey" | null;
 
@@ -114,6 +116,11 @@ export default function AgentRegistry() {
 
   // API key modal state
   const [apiKeyData, setApiKeyData] = useState<ApiKeyData>({ copied: false });
+
+  // Activity panel state (#272)
+  const [activityAgent, setActivityAgent] = useState<AgentPlatform | null>(
+    null,
+  );
 
   // Load agents
   const loadAgents = useCallback(async () => {
@@ -527,6 +534,14 @@ export default function AgentRegistry() {
                       <Button
                         size="sm"
                         variant="ghost"
+                        onClick={() => setActivityAgent(agent)}
+                        title="View Activity"
+                      >
+                        <Activity className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
                         onClick={() => openApiKeyModal(agent)}
                         title="Manage API Key"
                       >
@@ -817,6 +832,13 @@ export default function AgentRegistry() {
             )}
           </div>
         </div>
+      )}
+      {/* Activity Panel (#272) */}
+      {activityAgent && (
+        <AgentActivityPanel
+          agent={activityAgent}
+          onClose={() => setActivityAgent(null)}
+        />
       )}
     </AdminLayout>
   );
