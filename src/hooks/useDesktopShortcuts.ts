@@ -10,6 +10,7 @@ interface UseDesktopShortcutsOptions {
   openSpotlight: () => void;
   closeSpotlight: () => void;
   isSpotlightOpen: boolean;
+  undo?: () => void;
 }
 
 export function useDesktopShortcuts({
@@ -21,6 +22,7 @@ export function useDesktopShortcuts({
   openSpotlight,
   closeSpotlight,
   isSpotlightOpen,
+  undo,
 }: UseDesktopShortcutsOptions) {
   const handleModKey = useCallback(
     (e: KeyboardEvent) => {
@@ -51,6 +53,10 @@ export function useDesktopShortcuts({
           if (isSpotlightOpen) closeSpotlight();
           else openSpotlight();
           break;
+        case "z":
+          e.preventDefault();
+          if (undo) undo();
+          break;
       }
     },
     [
@@ -62,6 +68,7 @@ export function useDesktopShortcuts({
       openSpotlight,
       closeSpotlight,
       isSpotlightOpen,
+      undo,
     ],
   );
 
