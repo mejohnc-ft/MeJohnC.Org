@@ -579,6 +579,12 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Heartbeat: update last_seen_at (#272)
+    supabase
+      .rpc("agent_heartbeat", { p_agent_id: agentId })
+      .then(() => {})
+      .catch(() => {});
+
     // Audit log
     await supabase.rpc("log_audit_event", {
       p_actor_type: "agent",
