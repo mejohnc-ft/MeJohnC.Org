@@ -89,7 +89,7 @@
     "globals": "^17.3.0",
     "husky": "^9.1.7",
     "jsdom": "^28.1.0",
-    "lint-staged": "^15.4.3",
+    "lint-staged": "^16.3.1",
     "netlify-cli": "^23.15.1",
     "playwright": "^1.58.2",
     "postcss": "^8.4.35",
