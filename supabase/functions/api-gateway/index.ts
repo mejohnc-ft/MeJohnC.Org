@@ -9,7 +9,7 @@
 // - Action routing to appropriate handlers
 // - Audit logging
 //
-// Issue: #158
+// Issues: #158, #276 (destructive action gate)
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import { authenticateAgent } from "../_shared/agent-auth.ts";
@@ -22,6 +22,10 @@ import { verifySignature } from "../_shared/command-signing.ts";
 import { Logger } from "../_shared/logger.ts";
 import { validateInput, validateFields } from "../_shared/input-validator.ts";
 import { CORS_ORIGIN } from "../_shared/cors.ts";
+import {
+  isDestructiveAction,
+  verifyDestructiveAction,
+} from "../_shared/destructive-actions.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": CORS_ORIGIN,
@@ -382,6 +386,52 @@ Deno.serve(async (req) => {
           }),
           {
             status: 202,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+    }
+
+    // Destructive action gate (#276)
+    if (isDestructiveAction(action)) {
+      // Load allow_destructive flag from agent record
+      const { data: agentRecord } = await supabase
+        .from("agents")
+        .select("allow_destructive")
+        .eq("id", agent.id)
+        .single();
+
+      const destructiveCheck = verifyDestructiveAction(action, agentType, {
+        allow_destructive: agentRecord?.allow_destructive ?? false,
+      });
+
+      if (!destructiveCheck.allowed) {
+        logger.warn("Destructive action blocked", {
+          agentId: agent.id,
+          action,
+          reason: destructiveCheck.reason,
+        });
+
+        // Audit log the block
+        await supabase.rpc("log_audit_event", {
+          p_actor_type: "agent",
+          p_actor_id: agent.id,
+          p_action: `gateway.destructive_blocked`,
+          p_resource_type: "api_gateway",
+          p_resource_id: correlationId,
+          p_details: {
+            action,
+            reason: destructiveCheck.reason,
+          },
+        });
+
+        return new Response(
+          JSON.stringify({
+            error: "Forbidden",
+            message: destructiveCheck.reason,
+          }),
+          {
+            status: 403,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           },
         );
