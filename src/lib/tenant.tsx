@@ -73,6 +73,41 @@ export function extractSlugFromHostname(hostname: string): string | null {
   return null;
 }
 
+// --- Hostname resolution (supports custom domains) ---
+
+type HostnameType = "slug" | "custom_domain" | "main_site";
+
+interface ResolvedHostname {
+  type: HostnameType;
+  value: string | null;
+}
+
+export function resolveHostname(hostname: string): ResolvedHostname {
+  const lower = hostname.toLowerCase();
+
+  // Main site: bare domain, www, or localhost
+  if (
+    lower === BASE_DOMAIN ||
+    lower === `www.${BASE_DOMAIN}` ||
+    lower === "localhost" ||
+    lower.startsWith("localhost:")
+  ) {
+    return { type: "main_site", value: null };
+  }
+
+  // Subdomain: *.{BASE_DOMAIN}
+  if (lower.endsWith(`.${BASE_DOMAIN}`)) {
+    const sub = lower.slice(0, -(BASE_DOMAIN.length + 1));
+    if (!RESERVED_SUBDOMAINS.has(sub)) {
+      return { type: "slug", value: sub };
+    }
+    return { type: "main_site", value: null };
+  }
+
+  // Everything else is a custom domain
+  return { type: "custom_domain", value: lower };
+}
+
 function getDevSlug(): string | null {
   if (!import.meta.env.DEV) return null;
 
@@ -112,18 +147,49 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Determine slug: dev override takes priority, then hostname
-    const slug =
-      getDevSlug() ?? extractSlugFromHostname(window.location.hostname);
+    // Dev override takes priority
+    const devSlug = getDevSlug();
+    if (devSlug) {
+      // Dev mode: always resolve by slug
+      const client = createSupabaseClient();
+      if (!client) {
+        setStatus("error");
+        setError("Supabase not configured");
+        return;
+      }
 
-    // No slug → this is the main site
-    if (!slug) {
+      let cancelled = false;
+      client
+        .rpc("resolve_tenant_by_slug", { p_slug: devSlug })
+        .then(({ data, error: rpcError }) => {
+          if (cancelled) return;
+          if (rpcError) {
+            setStatus("error");
+            setError(rpcError.message);
+            return;
+          }
+          if (!data || (Array.isArray(data) && data.length === 0)) {
+            setStatus("not_found");
+            return;
+          }
+          const row = Array.isArray(data) ? data[0] : data;
+          setTenant(row as Tenant);
+          setStatus("resolved");
+        });
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    // Production: resolve based on hostname type
+    const resolved = resolveHostname(window.location.hostname);
+
+    if (resolved.type === "main_site") {
       setStatus("main_site");
       setTenant(null);
       return;
     }
 
-    // Resolve tenant via RPC
     let cancelled = false;
     const client = createSupabaseClient();
 
@@ -133,26 +199,33 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    client
-      .rpc("resolve_tenant_by_slug", { p_slug: slug })
-      .then(({ data, error: rpcError }) => {
-        if (cancelled) return;
+    const rpcName =
+      resolved.type === "slug"
+        ? "resolve_tenant_by_slug"
+        : "resolve_tenant_by_domain";
+    const rpcParams =
+      resolved.type === "slug"
+        ? { p_slug: resolved.value }
+        : { p_domain: resolved.value };
 
-        if (rpcError) {
-          setStatus("error");
-          setError(rpcError.message);
-          return;
-        }
+    client.rpc(rpcName, rpcParams).then(({ data, error: rpcError }) => {
+      if (cancelled) return;
 
-        if (!data || (Array.isArray(data) && data.length === 0)) {
-          setStatus("not_found");
-          return;
-        }
+      if (rpcError) {
+        setStatus("error");
+        setError(rpcError.message);
+        return;
+      }
 
-        const row = Array.isArray(data) ? data[0] : data;
-        setTenant(row as Tenant);
-        setStatus("resolved");
-      });
+      if (!data || (Array.isArray(data) && data.length === 0)) {
+        setStatus("not_found");
+        return;
+      }
+
+      const row = Array.isArray(data) ? data[0] : data;
+      setTenant(row as Tenant);
+      setStatus("resolved");
+    });
 
     return () => {
       cancelled = true;

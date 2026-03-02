@@ -43,6 +43,12 @@
   to = "/.netlify/functions/stripe-portal"
   status = 200
 
+# Domain provisioning (Issue #313)
+[[redirects]]
+  from = "/api/domain-provision"
+  to = "/.netlify/functions/domain-provision"
+  status = 200
+
 # SPA redirect - let React Router handle all routes
 [[redirects]]
   from = "/*"

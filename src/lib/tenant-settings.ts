@@ -12,9 +12,28 @@ export interface TenantBranding {
   dark_mode_default: boolean;
 }
 
+export type DomainVerificationStatus =
+  | "none"
+  | "pending"
+  | "verified"
+  | "failed";
+export type DomainProvisionMethod = "byo" | "purchased" | null;
+
+export interface DnsRecord {
+  type: "CNAME" | "TXT";
+  name: string;
+  value: string;
+}
+
 export interface TenantDomain {
   subdomain: string;
   custom_domain: string | null;
+  verification_status: DomainVerificationStatus;
+  verification_token: string | null;
+  verification_error: string | null;
+  verified_at: string | null;
+  dns_records: DnsRecord[];
+  provisioned_via: DomainProvisionMethod;
 }
 
 export interface TenantEmail {
@@ -46,6 +65,12 @@ export const DEFAULT_TENANT_SETTINGS: TenantSettings = {
   domain: {
     subdomain: "",
     custom_domain: null,
+    verification_status: "none",
+    verification_token: null,
+    verification_error: null,
+    verified_at: null,
+    dns_records: [],
+    provisioned_via: null,
   },
   email: {
     from_name: "",
@@ -76,11 +101,40 @@ function parseBranding(raw: Partial<TenantBranding>): TenantBranding {
   };
 }
 
+const VALID_VERIFICATION_STATUSES: DomainVerificationStatus[] = [
+  "none",
+  "pending",
+  "verified",
+  "failed",
+];
+
+const VALID_PROVISION_METHODS: DomainProvisionMethod[] = [
+  "byo",
+  "purchased",
+  null,
+];
+
 function parseDomain(raw: Partial<TenantDomain>): TenantDomain {
   const d = DEFAULT_TENANT_SETTINGS.domain;
   return {
     subdomain: str(raw.subdomain, d.subdomain),
     custom_domain: str(raw.custom_domain, d.custom_domain),
+    verification_status: VALID_VERIFICATION_STATUSES.includes(
+      raw.verification_status as DomainVerificationStatus,
+    )
+      ? (raw.verification_status as DomainVerificationStatus)
+      : d.verification_status,
+    verification_token: str(raw.verification_token, d.verification_token),
+    verification_error: str(raw.verification_error, d.verification_error),
+    verified_at: str(raw.verified_at, d.verified_at),
+    dns_records: Array.isArray(raw.dns_records)
+      ? (raw.dns_records as DnsRecord[])
+      : d.dns_records,
+    provisioned_via: VALID_PROVISION_METHODS.includes(
+      raw.provisioned_via as DomainProvisionMethod,
+    )
+      ? (raw.provisioned_via as DomainProvisionMethod)
+      : d.provisioned_via,
   };
 }
 
