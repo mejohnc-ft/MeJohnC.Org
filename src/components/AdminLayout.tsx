@@ -37,6 +37,7 @@ import {
   Calendar,
   Building2,
   LayoutGrid,
+  ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useTenant } from "@/lib/tenant";
@@ -110,6 +111,7 @@ const sidebarSections: SidebarSection[] = [
       { label: "Infrastructure", path: "/admin/infrastructure", icon: Server },
       { label: "APIs", path: "/admin/apis", icon: Cable },
       { label: "Configs", path: "/admin/configs", icon: FileCode2 },
+      { label: "Compliance", path: "/admin/compliance", icon: ShieldCheck },
       { label: "Style Guide", path: "/admin/style", icon: Palette },
     ],
   },

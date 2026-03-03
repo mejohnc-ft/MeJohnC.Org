@@ -105,6 +105,9 @@ const AdminScheduler = lazy(() => import("./pages/admin/Scheduler"));
 const AdminIntegrationHub = lazy(() => import("./pages/admin/IntegrationHub"));
 const AdminOAuthCallback = lazy(() => import("./pages/admin/OAuthCallback"));
 const AdminAuditLog = lazy(() => import("./pages/admin/AuditLog"));
+const AdminComplianceDashboard = lazy(
+  () => import("./pages/admin/ComplianceDashboard"),
+);
 
 // Note: These routes are now dynamically loaded from feature modules:
 // - Tasks (/admin/tasks/*) - from tasks module
@@ -590,6 +593,10 @@ function AdminRoutes() {
             element={<AdminOAuthCallback />}
           />
           <Route path="/admin/audit" element={<AdminAuditLog />} />
+          <Route
+            path="/admin/compliance"
+            element={<AdminComplianceDashboard />}
+          />
 
           {/* Platform admin routes (super-admin, main site only) */}
           <Route
