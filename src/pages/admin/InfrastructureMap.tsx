@@ -12,6 +12,8 @@ import {
   DollarSign,
   Link2,
   ExternalLink,
+  Network,
+  List,
 } from "lucide-react";
 import AdminLayout from "@/components/AdminLayout";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +39,7 @@ import {
   INFRA_STATUSES,
   INFRA_ENVIRONMENTS,
 } from "@/lib/infrastructure-schemas";
+import { InfraGraph } from "@/components/admin/InfraGraph";
 
 // ============================================
 // STATUS HELPERS
@@ -480,6 +483,7 @@ function InfrastructureMap() {
   const [statusFilter, setStatusFilter] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingNode, setEditingNode] = useState<InfraNode | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "graph">("list");
 
   const fetchNodes = useCallback(async () => {
     if (!supabase) return;
@@ -606,6 +610,23 @@ function InfrastructureMap() {
           ))}
         </div>
 
+        <div className="flex items-center gap-2 mb-2">
+          <Button
+            variant={viewMode === "list" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setViewMode("list")}
+          >
+            <List className="w-4 h-4 mr-1" /> List
+          </Button>
+          <Button
+            variant={viewMode === "graph" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setViewMode("graph")}
+          >
+            <Network className="w-4 h-4 mr-1" /> Graph
+          </Button>
+        </div>
+
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -683,6 +704,14 @@ function InfrastructureMap() {
               <Plus className="w-4 h-4 mr-1" /> Create Node
             </Button>
           </div>
+        ) : viewMode === "graph" ? (
+          <InfraGraph
+            nodes={nodes}
+            onNodeClick={(id) => {
+              const node = nodes.find((n) => n.id === id);
+              if (node) openEdit(node);
+            }}
+          />
         ) : (
           <div className="grid gap-4">
             {nodes.map((node, index) => (
