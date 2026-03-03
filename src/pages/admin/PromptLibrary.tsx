@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   BookText,
   Plus,
@@ -15,13 +15,15 @@ import {
   Check,
   Variable,
   Loader2,
-} from 'lucide-react';
-import AdminLayout from '@/components/AdminLayout';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useSEO } from '@/lib/seo';
-import { useAuthenticatedSupabase } from '@/lib/supabase';
+  Play,
+} from "lucide-react";
+import AdminLayout from "@/components/AdminLayout";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useSEO } from "@/lib/seo";
+import { useAuthenticatedSupabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth";
 import {
   getPrompts,
   createPrompt,
@@ -29,23 +31,311 @@ import {
   deletePrompt,
   togglePromptFavorite,
   generateSlug,
-} from '@/lib/prompt-queries';
-import type { Prompt, PromptCreate, PromptQueryOptions } from '@/lib/prompt-schemas';
-import type { PromptVariable } from '@/lib/prompt-schemas';
+} from "@/lib/prompt-queries";
+import type {
+  Prompt,
+  PromptCreate,
+  PromptQueryOptions,
+} from "@/lib/prompt-schemas";
+import type { PromptVariable } from "@/lib/prompt-schemas";
 
 // ============================================
 // CONSTANTS
 // ============================================
 
 const CATEGORIES = [
-  'coding', 'writing', 'analysis', 'creative', 'system',
-  'data', 'education', 'business', 'other',
+  "coding",
+  "writing",
+  "analysis",
+  "creative",
+  "system",
+  "data",
+  "education",
+  "business",
+  "other",
 ];
 
 const MODELS = [
-  'claude-opus-4-6', 'claude-sonnet-4-5-20250929', 'claude-haiku-4-5-20251001',
-  'gpt-4o', 'gpt-4o-mini', 'gemini-2.0-flash', 'other',
+  "claude-opus-4-6",
+  "claude-sonnet-4-5-20250929",
+  "claude-haiku-4-5-20251001",
+  "gpt-4o",
+  "gpt-4o-mini",
+  "gemini-2.0-flash",
+  "other",
 ];
+
+// ============================================
+// TEST PROMPT PANEL COMPONENT
+// ============================================
+
+interface TestPromptPanelProps {
+  prompt: Prompt | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+function TestPromptPanel({ prompt, isOpen, onClose }: TestPromptPanelProps) {
+  const { getToken } = useAuth();
+  const [selectedModel, setSelectedModel] = useState(
+    "claude-sonnet-4-5-20250929",
+  );
+  const [variableValues, setVariableValues] = useState<Record<string, string>>(
+    {},
+  );
+  const [isRunning, setIsRunning] = useState(false);
+  const [response, setResponse] = useState("");
+  const [error, setError] = useState("");
+  const [copiedResponse, setCopiedResponse] = useState(false);
+
+  // Initialize variable values with defaults when prompt changes
+  useEffect(() => {
+    if (prompt?.is_template && prompt.variables) {
+      const defaults: Record<string, string> = {};
+      prompt.variables.forEach((v) => {
+        defaults[v.name] = v.default_value || "";
+      });
+      setVariableValues(defaults);
+    } else {
+      setVariableValues({});
+    }
+    setResponse("");
+    setError("");
+    setSelectedModel("claude-sonnet-4-5-20250929");
+  }, [prompt]);
+
+  const resolveTemplate = (
+    content: string,
+    values: Record<string, string>,
+  ): string => {
+    let resolved = content;
+    Object.entries(values).forEach(([key, value]) => {
+      const regex = new RegExp(`\\{\\{${key}\\}\\}`, "g");
+      resolved = resolved.replace(regex, value);
+    });
+    return resolved;
+  };
+
+  const resolvedContent = useMemo(() => {
+    if (!prompt) return "";
+    if (!prompt.is_template) return prompt.content;
+    return resolveTemplate(prompt.content, variableValues);
+  }, [prompt, variableValues]);
+
+  const handleRunTest = async () => {
+    if (!prompt) return;
+    setIsRunning(true);
+    setResponse("");
+    setError("");
+
+    try {
+      const token = await getToken();
+      const res = await fetch("/.netlify/functions/ai-proxy", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          model: selectedModel,
+          max_tokens: 2048,
+          temperature: 0.7,
+          messages: [{ role: "user", content: resolvedContent }],
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Failed to get AI response");
+      } else {
+        const text = data.content?.[0]?.text || JSON.stringify(data, null, 2);
+        setResponse(text);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleCopyResponse = async () => {
+    await navigator.clipboard.writeText(response);
+    setCopiedResponse(true);
+    setTimeout(() => setCopiedResponse(false), 2000);
+  };
+
+  if (!isOpen || !prompt) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/50 z-50"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ x: "100%" }}
+          animate={{ x: 0 }}
+          exit={{ x: "100%" }}
+          transition={{ type: "spring", damping: 25, stiffness: 200 }}
+          className="absolute right-0 top-0 h-full w-full max-w-[500px] bg-card border-l border-border overflow-y-auto"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="sticky top-0 bg-card border-b border-border p-4 flex items-center justify-between z-10">
+            <div className="flex items-center gap-2">
+              <Play className="w-5 h-5 text-primary" />
+              <h2 className="text-lg font-semibold text-foreground">
+                Test Prompt
+              </h2>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="p-4 space-y-4">
+            {/* Prompt Title */}
+            <div>
+              <h3 className="font-semibold text-foreground mb-2">
+                {prompt.title}
+              </h3>
+              {prompt.description && (
+                <p className="text-sm text-muted-foreground">
+                  {prompt.description}
+                </p>
+              )}
+            </div>
+
+            {/* Variables (if template) */}
+            {prompt.is_template &&
+              prompt.variables &&
+              prompt.variables.length > 0 && (
+                <div className="space-y-3 border border-border rounded-lg p-3">
+                  <label className="text-sm font-medium text-foreground">
+                    Variables
+                  </label>
+                  {prompt.variables.map((v) => (
+                    <div key={v.name}>
+                      <label className="text-xs text-muted-foreground block mb-1">
+                        {v.name} {v.description && `- ${v.description}`}
+                      </label>
+                      <Input
+                        value={variableValues[v.name] || ""}
+                        onChange={(e) =>
+                          setVariableValues((prev) => ({
+                            ...prev,
+                            [v.name]: e.target.value,
+                          }))
+                        }
+                        placeholder={v.default_value || ""}
+                        className="text-sm"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+            {/* Preview */}
+            <div>
+              <label className="text-sm font-medium text-foreground block mb-2">
+                {prompt.is_template ? "Preview (Resolved)" : "Prompt Content"}
+              </label>
+              <div className="bg-muted/50 border border-border rounded-lg p-3 max-h-48 overflow-y-auto">
+                <pre className="text-xs font-mono text-foreground whitespace-pre-wrap break-words">
+                  {resolvedContent}
+                </pre>
+              </div>
+            </div>
+
+            {/* Model Selector */}
+            <div>
+              <label className="text-sm font-medium text-foreground block mb-2">
+                Model
+              </label>
+              <select
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                {MODELS.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Run Test Button */}
+            <Button
+              onClick={handleRunTest}
+              disabled={isRunning || !resolvedContent.trim()}
+              className="w-full"
+            >
+              {isRunning ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Running...
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4 mr-2" />
+                  Run Test
+                </>
+              )}
+            </Button>
+
+            {/* Error Display */}
+            {error && (
+              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+                <p className="text-sm text-destructive">{error}</p>
+              </div>
+            )}
+
+            {/* Response Display */}
+            {response && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-foreground">
+                    Response
+                  </label>
+                  <button
+                    onClick={handleCopyResponse}
+                    className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                  >
+                    {copiedResponse ? (
+                      <>
+                        <Check className="w-3 h-3" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        Copy
+                      </>
+                    )}
+                  </button>
+                </div>
+                <div className="bg-muted/50 border border-border rounded-lg p-3 max-h-96 overflow-y-auto">
+                  <pre className="text-xs font-mono text-foreground whitespace-pre-wrap break-words">
+                    {response}
+                  </pre>
+                </div>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
 
 // ============================================
 // MODAL COMPONENT
@@ -55,19 +345,27 @@ interface PromptModalProps {
   prompt: Prompt | null;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: PromptCreate | { id: string } & Partial<Prompt>) => Promise<void>;
+  onSave: (
+    data: PromptCreate | ({ id: string } & Partial<Prompt>),
+  ) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
 }
 
-function PromptModal({ prompt, isOpen, onClose, onSave, onDelete }: PromptModalProps) {
+function PromptModal({
+  prompt,
+  isOpen,
+  onClose,
+  onSave,
+  onDelete,
+}: PromptModalProps) {
   const isEdit = !!prompt;
-  const [title, setTitle] = useState('');
-  const [slug, setSlug] = useState('');
-  const [content, setContent] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
-  const [tagsInput, setTagsInput] = useState('');
-  const [model, setModel] = useState('');
+  const [title, setTitle] = useState("");
+  const [slug, setSlug] = useState("");
+  const [content, setContent] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
+  const [tagsInput, setTagsInput] = useState("");
+  const [model, setModel] = useState("");
   const [isTemplate, setIsTemplate] = useState(false);
   const [isPublic, setIsPublic] = useState(false);
   const [variables, setVariables] = useState<PromptVariable[]>([]);
@@ -80,21 +378,21 @@ function PromptModal({ prompt, isOpen, onClose, onSave, onDelete }: PromptModalP
       setTitle(prompt.title);
       setSlug(prompt.slug);
       setContent(prompt.content);
-      setDescription(prompt.description ?? '');
-      setCategory(prompt.category ?? '');
-      setTagsInput((prompt.tags ?? []).join(', '));
-      setModel(prompt.model ?? '');
+      setDescription(prompt.description ?? "");
+      setCategory(prompt.category ?? "");
+      setTagsInput((prompt.tags ?? []).join(", "));
+      setModel(prompt.model ?? "");
       setIsTemplate(prompt.is_template);
       setIsPublic(prompt.is_public);
       setVariables(prompt.variables ?? []);
     } else {
-      setTitle('');
-      setSlug('');
-      setContent('');
-      setDescription('');
-      setCategory('');
-      setTagsInput('');
-      setModel('');
+      setTitle("");
+      setSlug("");
+      setContent("");
+      setDescription("");
+      setCategory("");
+      setTagsInput("");
+      setModel("");
       setIsTemplate(false);
       setIsPublic(false);
       setVariables([]);
@@ -113,7 +411,10 @@ function PromptModal({ prompt, isOpen, onClose, onSave, onDelete }: PromptModalP
     if (!title.trim() || !content.trim()) return;
     setSaving(true);
     try {
-      const tags = tagsInput.split(',').map(t => t.trim()).filter(Boolean);
+      const tags = tagsInput
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
       const data = {
         title: title.trim(),
         slug: slug.trim() || generateSlug(title),
@@ -154,15 +455,24 @@ function PromptModal({ prompt, isOpen, onClose, onSave, onDelete }: PromptModalP
   };
 
   const addVariable = () => {
-    setVariables(prev => [...prev, { name: '', description: '', default_value: '' }]);
+    setVariables((prev) => [
+      ...prev,
+      { name: "", description: "", default_value: "" },
+    ]);
   };
 
-  const updateVariable = (index: number, field: keyof PromptVariable, value: string) => {
-    setVariables(prev => prev.map((v, i) => i === index ? { ...v, [field]: value } : v));
+  const updateVariable = (
+    index: number,
+    field: keyof PromptVariable,
+    value: string,
+  ) => {
+    setVariables((prev) =>
+      prev.map((v, i) => (i === index ? { ...v, [field]: value } : v)),
+    );
   };
 
   const removeVariable = (index: number) => {
-    setVariables(prev => prev.filter((_, i) => i !== index));
+    setVariables((prev) => prev.filter((_, i) => i !== index));
   };
 
   if (!isOpen) return null;
@@ -185,9 +495,12 @@ function PromptModal({ prompt, isOpen, onClose, onSave, onDelete }: PromptModalP
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-border">
             <h2 className="text-lg font-semibold text-foreground">
-              {isEdit ? 'Edit Prompt' : 'New Prompt'}
+              {isEdit ? "Edit Prompt" : "New Prompt"}
             </h2>
-            <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+            <button
+              onClick={onClose}
+              className="text-muted-foreground hover:text-foreground"
+            >
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -196,20 +509,24 @@ function PromptModal({ prompt, isOpen, onClose, onSave, onDelete }: PromptModalP
           <div className="p-6 space-y-4">
             {/* Title */}
             <div>
-              <label className="text-sm font-medium text-foreground block mb-1">Title</label>
+              <label className="text-sm font-medium text-foreground block mb-1">
+                Title
+              </label>
               <Input
                 value={title}
-                onChange={e => handleTitleChange(e.target.value)}
+                onChange={(e) => handleTitleChange(e.target.value)}
                 placeholder="My Prompt"
               />
             </div>
 
             {/* Slug */}
             <div>
-              <label className="text-sm font-medium text-foreground block mb-1">Slug</label>
+              <label className="text-sm font-medium text-foreground block mb-1">
+                Slug
+              </label>
               <Input
                 value={slug}
-                onChange={e => setSlug(e.target.value)}
+                onChange={(e) => setSlug(e.target.value)}
                 placeholder="my-prompt"
                 className="font-mono text-sm"
               />
@@ -217,10 +534,12 @@ function PromptModal({ prompt, isOpen, onClose, onSave, onDelete }: PromptModalP
 
             {/* Content */}
             <div>
-              <label className="text-sm font-medium text-foreground block mb-1">Content</label>
+              <label className="text-sm font-medium text-foreground block mb-1">
+                Content
+              </label>
               <textarea
                 value={content}
-                onChange={e => setContent(e.target.value)}
+                onChange={(e) => setContent(e.target.value)}
                 placeholder="Enter your prompt content..."
                 rows={8}
                 className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm font-mono shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-y"
@@ -229,10 +548,12 @@ function PromptModal({ prompt, isOpen, onClose, onSave, onDelete }: PromptModalP
 
             {/* Description */}
             <div>
-              <label className="text-sm font-medium text-foreground block mb-1">Description</label>
+              <label className="text-sm font-medium text-foreground block mb-1">
+                Description
+              </label>
               <Input
                 value={description}
-                onChange={e => setDescription(e.target.value)}
+                onChange={(e) => setDescription(e.target.value)}
                 placeholder="Brief description of what this prompt does"
               />
             </div>
@@ -240,28 +561,36 @@ function PromptModal({ prompt, isOpen, onClose, onSave, onDelete }: PromptModalP
             {/* Category + Model row */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-foreground block mb-1">Category</label>
+                <label className="text-sm font-medium text-foreground block mb-1">
+                  Category
+                </label>
                 <select
                   value={category}
-                  onChange={e => setCategory(e.target.value)}
+                  onChange={(e) => setCategory(e.target.value)}
                   className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 >
                   <option value="">None</option>
-                  {CATEGORIES.map(c => (
-                    <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+                  {CATEGORIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c.charAt(0).toUpperCase() + c.slice(1)}
+                    </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium text-foreground block mb-1">Model</label>
+                <label className="text-sm font-medium text-foreground block mb-1">
+                  Model
+                </label>
                 <select
                   value={model}
-                  onChange={e => setModel(e.target.value)}
+                  onChange={(e) => setModel(e.target.value)}
                   className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 >
                   <option value="">Any</option>
-                  {MODELS.map(m => (
-                    <option key={m} value={m}>{m}</option>
+                  {MODELS.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -269,10 +598,12 @@ function PromptModal({ prompt, isOpen, onClose, onSave, onDelete }: PromptModalP
 
             {/* Tags */}
             <div>
-              <label className="text-sm font-medium text-foreground block mb-1">Tags (comma-separated)</label>
+              <label className="text-sm font-medium text-foreground block mb-1">
+                Tags (comma-separated)
+              </label>
               <Input
                 value={tagsInput}
-                onChange={e => setTagsInput(e.target.value)}
+                onChange={(e) => setTagsInput(e.target.value)}
                 placeholder="agent, system-prompt, coding"
               />
             </div>
@@ -283,16 +614,18 @@ function PromptModal({ prompt, isOpen, onClose, onSave, onDelete }: PromptModalP
                 <input
                   type="checkbox"
                   checked={isTemplate}
-                  onChange={e => setIsTemplate(e.target.checked)}
+                  onChange={(e) => setIsTemplate(e.target.checked)}
                   className="rounded border-input"
                 />
-                <span className="text-sm text-foreground">Template (has variables)</span>
+                <span className="text-sm text-foreground">
+                  Template (has variables)
+                </span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={isPublic}
-                  onChange={e => setIsPublic(e.target.checked)}
+                  onChange={(e) => setIsPublic(e.target.checked)}
                   className="rounded border-input"
                 />
                 <span className="text-sm text-foreground">Public</span>
@@ -304,29 +637,38 @@ function PromptModal({ prompt, isOpen, onClose, onSave, onDelete }: PromptModalP
               <div className="space-y-3 border border-border rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium text-foreground">
-                    Variables (use {'{{name}}'} in content)
+                    Variables (use {"{{name}}"} in content)
                   </label>
                   <Button variant="ghost" size="sm" onClick={addVariable}>
                     <Plus className="w-4 h-4 mr-1" /> Add
                   </Button>
                 </div>
                 {variables.map((v, i) => (
-                  <div key={i} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-start">
+                  <div
+                    key={i}
+                    className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-start"
+                  >
                     <Input
                       value={v.name}
-                      onChange={e => updateVariable(i, 'name', e.target.value)}
+                      onChange={(e) =>
+                        updateVariable(i, "name", e.target.value)
+                      }
                       placeholder="name"
                       className="font-mono text-xs"
                     />
                     <Input
-                      value={v.description ?? ''}
-                      onChange={e => updateVariable(i, 'description', e.target.value)}
+                      value={v.description ?? ""}
+                      onChange={(e) =>
+                        updateVariable(i, "description", e.target.value)
+                      }
                       placeholder="description"
                       className="text-xs"
                     />
                     <Input
-                      value={v.default_value ?? ''}
-                      onChange={e => updateVariable(i, 'default_value', e.target.value)}
+                      value={v.default_value ?? ""}
+                      onChange={(e) =>
+                        updateVariable(i, "default_value", e.target.value)
+                      }
                       placeholder="default"
                       className="text-xs"
                     />
@@ -350,21 +692,33 @@ function PromptModal({ prompt, isOpen, onClose, onSave, onDelete }: PromptModalP
                   variant="ghost"
                   onClick={handleDelete}
                   disabled={deleting}
-                  className={confirmDelete ? 'text-destructive hover:text-destructive' : 'text-muted-foreground'}
+                  className={
+                    confirmDelete
+                      ? "text-destructive hover:text-destructive"
+                      : "text-muted-foreground"
+                  }
                 >
                   <Trash2 className="w-4 h-4 mr-1" />
-                  {deleting ? 'Deleting...' : confirmDelete ? 'Confirm Delete' : 'Delete'}
+                  {deleting
+                    ? "Deleting..."
+                    : confirmDelete
+                      ? "Confirm Delete"
+                      : "Delete"}
                 </Button>
               )}
             </div>
             <div className="flex gap-2">
-              <Button variant="ghost" onClick={onClose}>Cancel</Button>
+              <Button variant="ghost" onClick={onClose}>
+                Cancel
+              </Button>
               <Button
                 onClick={handleSave}
                 disabled={saving || !title.trim() || !content.trim()}
               >
-                {saving ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : null}
-                {isEdit ? 'Save Changes' : 'Create Prompt'}
+                {saving ? (
+                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                ) : null}
+                {isEdit ? "Save Changes" : "Create Prompt"}
               </Button>
             </div>
           </div>
@@ -379,18 +733,20 @@ function PromptModal({ prompt, isOpen, onClose, onSave, onDelete }: PromptModalP
 // ============================================
 
 function PromptLibrary() {
-  useSEO({ title: 'Prompt Library', noIndex: true });
+  useSEO({ title: "Prompt Library", noIndex: true });
 
   const { supabase, isLoading: authLoading } = useAuthenticatedSupabase();
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
   const [showFavorites, setShowFavorites] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [testPanelOpen, setTestPanelOpen] = useState(false);
+  const [testingPrompt, setTestingPrompt] = useState<Prompt | null>(null);
 
   const fetchPrompts = useCallback(async () => {
     if (!supabase) return;
@@ -414,9 +770,11 @@ function PromptLibrary() {
     }
   }, [authLoading, supabase, fetchPrompts]);
 
-  const handleSave = async (data: PromptCreate | ({ id: string } & Partial<Prompt>)) => {
+  const handleSave = async (
+    data: PromptCreate | ({ id: string } & Partial<Prompt>),
+  ) => {
     if (!supabase) return;
-    if ('id' in data) {
+    if ("id" in data) {
       const { id, ...updates } = data;
       await updatePrompt(id, updates, supabase);
     } else {
@@ -453,25 +811,35 @@ function PromptLibrary() {
     setModalOpen(true);
   };
 
+  const openTest = (prompt: Prompt) => {
+    setTestingPrompt(prompt);
+    setTestPanelOpen(true);
+  };
+
   // Stats
-  const stats = useMemo(() => ({
-    total: prompts.length,
-    templates: prompts.filter(p => p.is_template).length,
-    favorites: prompts.filter(p => p.is_favorite).length,
-    public: prompts.filter(p => p.is_public).length,
-  }), [prompts]);
+  const stats = useMemo(
+    () => ({
+      total: prompts.length,
+      templates: prompts.filter((p) => p.is_template).length,
+      favorites: prompts.filter((p) => p.is_favorite).length,
+      public: prompts.filter((p) => p.is_public).length,
+    }),
+    [prompts],
+  );
 
   // Unique categories from data
   const categories = useMemo(() => {
-    const cats = new Set(prompts.map(p => p.category).filter(Boolean) as string[]);
+    const cats = new Set(
+      prompts.map((p) => p.category).filter(Boolean) as string[],
+    );
     return Array.from(cats).sort();
   }, [prompts]);
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
@@ -492,7 +860,9 @@ function PromptLibrary() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <BookText className="w-6 h-6 text-primary" />
-            <h1 className="text-2xl font-bold text-foreground">Prompt Library</h1>
+            <h1 className="text-2xl font-bold text-foreground">
+              Prompt Library
+            </h1>
           </div>
           <Button onClick={openNew}>
             <Plus className="w-4 h-4 mr-1" /> New Prompt
@@ -502,15 +872,20 @@ function PromptLibrary() {
         {/* Stats Row */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
-            { label: 'Total', value: stats.total, icon: FileText },
-            { label: 'Templates', value: stats.templates, icon: Variable },
-            { label: 'Favorites', value: stats.favorites, icon: Heart },
-            { label: 'Public', value: stats.public, icon: Globe },
+            { label: "Total", value: stats.total, icon: FileText },
+            { label: "Templates", value: stats.templates, icon: Variable },
+            { label: "Favorites", value: stats.favorites, icon: Heart },
+            { label: "Public", value: stats.public, icon: Globe },
           ].map(({ label, value, icon: Icon }) => (
-            <div key={label} className="bg-card border border-border rounded-lg p-4 flex items-center gap-3">
+            <div
+              key={label}
+              className="bg-card border border-border rounded-lg p-4 flex items-center gap-3"
+            >
               <Icon className="w-5 h-5 text-muted-foreground" />
               <div>
-                <div className="text-2xl font-bold text-foreground">{value}</div>
+                <div className="text-2xl font-bold text-foreground">
+                  {value}
+                </div>
                 <div className="text-xs text-muted-foreground">{label}</div>
               </div>
             </div>
@@ -523,34 +898,38 @@ function PromptLibrary() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={(e) => setSearch(e.target.value)}
               placeholder="Search prompts..."
               className="pl-9"
             />
           </div>
           <select
             value={categoryFilter}
-            onChange={e => setCategoryFilter(e.target.value)}
+            onChange={(e) => setCategoryFilter(e.target.value)}
             className="h-9 rounded-md border border-input bg-transparent px-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             <option value="">All Categories</option>
-            {categories.map(c => (
-              <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+            {categories.map((c) => (
+              <option key={c} value={c}>
+                {c.charAt(0).toUpperCase() + c.slice(1)}
+              </option>
             ))}
           </select>
           <Button
-            variant={showFavorites ? 'default' : 'outline'}
+            variant={showFavorites ? "default" : "outline"}
             size="sm"
-            onClick={() => setShowFavorites(prev => !prev)}
+            onClick={() => setShowFavorites((prev) => !prev)}
             className="h-9"
           >
-            <Star className={`w-4 h-4 mr-1 ${showFavorites ? 'fill-current' : ''}`} />
+            <Star
+              className={`w-4 h-4 mr-1 ${showFavorites ? "fill-current" : ""}`}
+            />
             Favorites
           </Button>
           <Button
-            variant={showTemplates ? 'default' : 'outline'}
+            variant={showTemplates ? "default" : "outline"}
             size="sm"
-            onClick={() => setShowTemplates(prev => !prev)}
+            onClick={() => setShowTemplates((prev) => !prev)}
             className="h-9"
           >
             <Variable className="w-4 h-4 mr-1" />
@@ -566,8 +945,12 @@ function PromptLibrary() {
         ) : prompts.length === 0 ? (
           <div className="text-center py-20">
             <BookText className="w-12 h-12 mx-auto text-muted-foreground/40 mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-1">No prompts yet</h3>
-            <p className="text-muted-foreground mb-4">Create your first prompt to get started.</p>
+            <h3 className="text-lg font-medium text-foreground mb-1">
+              No prompts yet
+            </h3>
+            <p className="text-muted-foreground mb-4">
+              Create your first prompt to get started.
+            </p>
             <Button onClick={openNew}>
               <Plus className="w-4 h-4 mr-1" /> Create Prompt
             </Button>
@@ -623,7 +1006,7 @@ function PromptLibrary() {
 
                     {/* Tags + meta */}
                     <div className="flex items-center gap-2 flex-wrap">
-                      {(prompt.tags ?? []).slice(0, 5).map(tag => (
+                      {(prompt.tags ?? []).slice(0, 5).map((tag) => (
                         <span
                           key={tag}
                           className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground"
@@ -647,9 +1030,11 @@ function PromptLibrary() {
                     <button
                       onClick={() => handleToggleFavorite(prompt)}
                       className="p-1.5 rounded hover:bg-muted transition-colors"
-                      title={prompt.is_favorite ? 'Unfavorite' : 'Favorite'}
+                      title={prompt.is_favorite ? "Unfavorite" : "Favorite"}
                     >
-                      <Star className={`w-4 h-4 ${prompt.is_favorite ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} />
+                      <Star
+                        className={`w-4 h-4 ${prompt.is_favorite ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}`}
+                      />
                     </button>
                     <button
                       onClick={() => handleCopy(prompt)}
@@ -661,6 +1046,13 @@ function PromptLibrary() {
                       ) : (
                         <Copy className="w-4 h-4 text-muted-foreground" />
                       )}
+                    </button>
+                    <button
+                      onClick={() => openTest(prompt)}
+                      className="p-1.5 rounded hover:bg-muted transition-colors"
+                      title="Test prompt"
+                    >
+                      <Play className="w-4 h-4 text-muted-foreground" />
                     </button>
                     <button
                       onClick={() => openEdit(prompt)}
@@ -684,6 +1076,13 @@ function PromptLibrary() {
         onClose={() => setModalOpen(false)}
         onSave={handleSave}
         onDelete={handleDelete}
+      />
+
+      {/* Test Panel */}
+      <TestPromptPanel
+        prompt={testingPrompt}
+        isOpen={testPanelOpen}
+        onClose={() => setTestPanelOpen(false)}
       />
     </AdminLayout>
   );
