@@ -18,7 +18,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import WorkflowCreatePanel from "@/components/admin/WorkflowCreatePanel";
+import WorkflowTemplateGallery from "@/components/admin/WorkflowTemplateGallery";
 import { useAuthenticatedSupabase } from "@/lib/supabase";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
@@ -28,6 +30,8 @@ import {
   updateWorkflow,
 } from "@/lib/agent-platform-queries";
 import type { Workflow } from "@/lib/schemas";
+import type { WorkflowTemplate } from "@/lib/workflow-templates";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 const getTriggerBadgeStyles = (triggerType: string) => {
   switch (triggerType) {
@@ -54,29 +58,41 @@ const Workflows = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreatePanel, setShowCreatePanel] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [activeTab, setActiveTab] = useState<"workflows" | "templates">(
+    "workflows",
+  );
 
-  useEffect(() => {
-    async function fetchWorkflows() {
-      if (!supabase) {
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const data = await getWorkflows(supabase);
-        setWorkflows(data);
-      } catch (error) {
-        captureException(
-          error instanceof Error ? error : new Error(String(error)),
-          { context: "Workflows.fetchWorkflows" },
-        );
-      } finally {
-        setIsLoading(false);
-      }
+  const fetchWorkflows = async () => {
+    if (!supabase) {
+      setIsLoading(false);
+      return;
     }
 
+    try {
+      const data = await getWorkflows(supabase);
+      setWorkflows(data);
+    } catch (error) {
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        { context: "Workflows.fetchWorkflows" },
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchWorkflows();
   }, [supabase]);
+
+  // Realtime subscription for workflows
+  useRealtimeSubscription({
+    supabase,
+    channelName: "workflow-changes",
+    table: "workflows",
+    onData: fetchWorkflows,
+    enabled: !!supabase,
+  });
 
   const handleToggleActive = async (workflow: Workflow) => {
     if (!supabase) return;
@@ -147,6 +163,59 @@ const Workflows = () => {
     }
   };
 
+  const handleInstallTemplate = async (template: WorkflowTemplate) => {
+    if (!supabase) return;
+
+    setIsCreating(true);
+    try {
+      // Convert template steps to workflow steps
+      const workflowSteps = template.steps
+        .filter((step) => step.type !== "trigger") // Filter out trigger type steps
+        .map((step) => ({
+          id: crypto.randomUUID(),
+          type:
+            step.type === "delay"
+              ? "wait"
+              : step.type === "action"
+                ? "agent_command"
+                : step.type,
+          config: step.config || {},
+          timeout_ms: step.timeout_ms || 30000,
+          retries: step.retries || 0,
+          on_failure: (step.on_failure || "stop") as
+            | "continue"
+            | "stop"
+            | "skip",
+        }));
+
+      const created = await createWorkflow(
+        {
+          name: template.name,
+          description: template.description,
+          trigger_type: template.trigger_type,
+          trigger_config: template.trigger_config || null,
+          steps: workflowSteps,
+          is_active: false,
+          created_by: null,
+        },
+        supabase,
+      );
+
+      setWorkflows((prev) => [created, ...prev]);
+      toast.success(`Template "${template.name}" installed successfully`);
+      setActiveTab("workflows");
+      navigate(`/admin/workflows/${created.id}`);
+    } catch (error) {
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        { context: "Workflows.installTemplate", templateId: template.id },
+      );
+      toast.error("Failed to install template");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   const handleRunNow = async (e: React.MouseEvent, workflow: Workflow) => {
     e.preventDefault();
     e.stopPropagation();
@@ -209,190 +278,214 @@ const Workflows = () => {
               Automate tasks with multi-step workflows
             </p>
           </div>
-          <Button onClick={() => setShowCreatePanel(!showCreatePanel)}>
-            <Plus className="w-4 h-4 mr-2" />
-            New Workflow
-          </Button>
+          {activeTab === "workflows" && (
+            <Button onClick={() => setShowCreatePanel(!showCreatePanel)}>
+              <Plus className="w-4 h-4 mr-2" />
+              New Workflow
+            </Button>
+          )}
         </div>
 
-        {/* Search Bar */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Search workflows..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
+        {/* Tabs */}
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value as typeof activeTab)}
+        >
+          <TabsList>
+            <TabsTrigger value="workflows">My Workflows</TabsTrigger>
+            <TabsTrigger value="templates">Templates</TabsTrigger>
+          </TabsList>
 
-        {/* Main Content: List + Panel */}
-        <div className="flex gap-0">
-          <motion.div
-            animate={{ flex: showCreatePanel ? "0 0 55%" : "1 1 100%" }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="min-w-0"
-          >
-            {/* Loading State */}
-            {isLoading && (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              </div>
-            )}
-
-            {/* Empty State */}
-            {!isLoading && filteredWorkflows.length === 0 && !searchQuery && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center py-12"
-              >
-                <GitBranch className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  No workflows yet
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  Create your first workflow to automate tasks
-                </p>
-                <Button onClick={() => setShowCreatePanel(true)}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Workflow
-                </Button>
-              </motion.div>
-            )}
-
-            {/* No Search Results */}
-            {!isLoading && filteredWorkflows.length === 0 && searchQuery && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center py-12"
-              >
-                <Search className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  No workflows found
-                </h3>
-                <p className="text-muted-foreground">
-                  Try adjusting your search query
-                </p>
-              </motion.div>
-            )}
-
-            {/* Workflows Grid */}
-            {!isLoading && filteredWorkflows.length > 0 && (
-              <div
-                className="grid gap-6"
-                style={{
-                  gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                }}
-              >
-                {filteredWorkflows.map((workflow, index) => (
-                  <motion.div
-                    key={workflow.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <Card className="p-6 hover:border-primary/50 transition-colors cursor-pointer group relative">
-                      <Link
-                        to={`/admin/workflows/${workflow.id}`}
-                        className="absolute inset-0"
-                      />
-
-                      <div className="space-y-4">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">
-                              {workflow.name}
-                            </h3>
-                            {workflow.description && (
-                              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                                {workflow.description}
-                              </p>
-                            )}
-                          </div>
-
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleToggleActive(workflow);
-                            }}
-                            className="relative z-10 p-1.5 rounded hover:bg-muted transition-colors"
-                            aria-label={
-                              workflow.is_active
-                                ? "Pause workflow"
-                                : "Activate workflow"
-                            }
-                          >
-                            {workflow.is_active ? (
-                              <Pause className="w-4 h-4 text-green-500" />
-                            ) : (
-                              <Play className="w-4 h-4 text-muted-foreground" />
-                            )}
-                          </button>
-                        </div>
-
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Badge
-                            className={getTriggerBadgeStyles(
-                              workflow.trigger_type,
-                            )}
-                          >
-                            {workflow.trigger_type}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {workflow.steps?.length || 0} steps
-                          </span>
-
-                          {workflow.trigger_type === "manual" && (
-                            <button
-                              onClick={(e) => handleRunNow(e, workflow)}
-                              className="relative z-10 inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-                            >
-                              <Zap className="w-3 h-3" />
-                              Run Now
-                            </button>
-                          )}
-                        </div>
-
-                        {workflow.trigger_type === "webhook" &&
-                          (() => {
-                            const url = getWebhookUrl(workflow);
-                            return url ? (
-                              <div className="flex items-center gap-1.5 mt-1">
-                                <LinkIcon className="w-3 h-3 text-muted-foreground shrink-0" />
-                                <code className="text-xs text-muted-foreground truncate flex-1">
-                                  {url}
-                                </code>
-                                <button
-                                  onClick={(e) => copyWebhookUrl(e, url)}
-                                  className="relative z-10 p-1 text-muted-foreground hover:text-foreground rounded"
-                                >
-                                  <Copy className="w-3 h-3" />
-                                </button>
-                              </div>
-                            ) : null;
-                          })()}
-                      </div>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </motion.div>
-
-          {/* Create Panel */}
-          <AnimatePresence>
-            {showCreatePanel && (
-              <WorkflowCreatePanel
-                onClose={() => setShowCreatePanel(false)}
-                onCreate={handleCreateWorkflow}
-                isCreating={isCreating}
+          <TabsContent value="workflows" className="space-y-6 mt-6">
+            {/* Search Bar */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search workflows..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
               />
-            )}
-          </AnimatePresence>
-        </div>
+            </div>
+
+            {/* Main Content: List + Panel */}
+            <div className="flex gap-0">
+              <motion.div
+                animate={{ flex: showCreatePanel ? "0 0 55%" : "1 1 100%" }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className="min-w-0"
+              >
+                {/* Loading State */}
+                {isLoading && (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  </div>
+                )}
+
+                {/* Empty State */}
+                {!isLoading &&
+                  filteredWorkflows.length === 0 &&
+                  !searchQuery && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-center py-12"
+                    >
+                      <GitBranch className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-semibold text-foreground mb-2">
+                        No workflows yet
+                      </h3>
+                      <p className="text-muted-foreground mb-4">
+                        Create your first workflow to automate tasks
+                      </p>
+                      <Button onClick={() => setShowCreatePanel(true)}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Workflow
+                      </Button>
+                    </motion.div>
+                  )}
+
+                {/* No Search Results */}
+                {!isLoading &&
+                  filteredWorkflows.length === 0 &&
+                  searchQuery && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-center py-12"
+                    >
+                      <Search className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-semibold text-foreground mb-2">
+                        No workflows found
+                      </h3>
+                      <p className="text-muted-foreground">
+                        Try adjusting your search query
+                      </p>
+                    </motion.div>
+                  )}
+
+                {/* Workflows Grid */}
+                {!isLoading && filteredWorkflows.length > 0 && (
+                  <div
+                    className="grid gap-6"
+                    style={{
+                      gridTemplateColumns:
+                        "repeat(auto-fill, minmax(280px, 1fr))",
+                    }}
+                  >
+                    {filteredWorkflows.map((workflow, index) => (
+                      <motion.div
+                        key={workflow.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                      >
+                        <Card className="p-6 hover:border-primary/50 transition-colors cursor-pointer group relative">
+                          <Link
+                            to={`/admin/workflows/${workflow.id}`}
+                            className="absolute inset-0"
+                          />
+
+                          <div className="space-y-4">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                                  {workflow.name}
+                                </h3>
+                                {workflow.description && (
+                                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                                    {workflow.description}
+                                  </p>
+                                )}
+                              </div>
+
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleToggleActive(workflow);
+                                }}
+                                className="relative z-10 p-1.5 rounded hover:bg-muted transition-colors"
+                                aria-label={
+                                  workflow.is_active
+                                    ? "Pause workflow"
+                                    : "Activate workflow"
+                                }
+                              >
+                                {workflow.is_active ? (
+                                  <Pause className="w-4 h-4 text-green-500" />
+                                ) : (
+                                  <Play className="w-4 h-4 text-muted-foreground" />
+                                )}
+                              </button>
+                            </div>
+
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Badge
+                                className={getTriggerBadgeStyles(
+                                  workflow.trigger_type,
+                                )}
+                              >
+                                {workflow.trigger_type}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                {workflow.steps?.length || 0} steps
+                              </span>
+
+                              {workflow.trigger_type === "manual" && (
+                                <button
+                                  onClick={(e) => handleRunNow(e, workflow)}
+                                  className="relative z-10 inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                                >
+                                  <Zap className="w-3 h-3" />
+                                  Run Now
+                                </button>
+                              )}
+                            </div>
+
+                            {workflow.trigger_type === "webhook" &&
+                              (() => {
+                                const url = getWebhookUrl(workflow);
+                                return url ? (
+                                  <div className="flex items-center gap-1.5 mt-1">
+                                    <LinkIcon className="w-3 h-3 text-muted-foreground shrink-0" />
+                                    <code className="text-xs text-muted-foreground truncate flex-1">
+                                      {url}
+                                    </code>
+                                    <button
+                                      onClick={(e) => copyWebhookUrl(e, url)}
+                                      className="relative z-10 p-1 text-muted-foreground hover:text-foreground rounded"
+                                    >
+                                      <Copy className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                ) : null;
+                              })()}
+                          </div>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+
+              {/* Create Panel */}
+              <AnimatePresence>
+                {showCreatePanel && (
+                  <WorkflowCreatePanel
+                    onClose={() => setShowCreatePanel(false)}
+                    onCreate={handleCreateWorkflow}
+                    isCreating={isCreating}
+                  />
+                )}
+              </AnimatePresence>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="templates" className="mt-6">
+            <WorkflowTemplateGallery onInstall={handleInstallTemplate} />
+          </TabsContent>
+        </Tabs>
       </div>
     </AdminLayout>
   );

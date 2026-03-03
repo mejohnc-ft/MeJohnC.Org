@@ -13,6 +13,7 @@ import {
   Copy,
   Check,
   Activity,
+  Sparkles,
 } from "lucide-react";
 import AdminLayout from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -38,8 +39,11 @@ import type {
   PlatformAgentStatus,
 } from "@/lib/schemas";
 import AgentActivityPanel from "@/components/admin/AgentActivityPanel";
+import AgentTemplateGallery from "@/components/admin/AgentTemplateGallery";
+import type { AgentTemplate } from "@/lib/agent-templates";
 
 type ModalType = "create" | "edit" | "delete" | "apiKey" | null;
+type ViewType = "agents" | "templates";
 
 interface ApiKeyData {
   apiKey?: string;
@@ -98,6 +102,7 @@ export default function AgentRegistry() {
   const [statusFilter, setStatusFilter] = useState<PlatformAgentStatus | "all">(
     "all",
   );
+  const [viewType, setViewType] = useState<ViewType>("agents");
 
   const [modalType, setModalType] = useState<ModalType>(null);
   const [selectedAgent, setSelectedAgent] = useState<AgentPlatform | null>(
@@ -367,6 +372,39 @@ export default function AgentRegistry() {
     );
   };
 
+  // Template deployment
+  const handleDeployTemplate = async (template: AgentTemplate) => {
+    if (!supabase) return;
+
+    try {
+      setSubmitting(true);
+      await createAgent(
+        {
+          name: template.name,
+          type: template.type,
+          status: "active",
+          capabilities: template.capabilities,
+          rate_limit_rpm: null,
+          metadata: {
+            template_id: template.id,
+            system_prompt: template.system_prompt,
+            model: template.model,
+            category: template.category,
+          },
+        },
+        supabase,
+      );
+
+      await loadAgents();
+      setViewType("agents");
+    } catch (error) {
+      captureException(error);
+      console.error("Failed to deploy template:", error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   if (!supabase) {
     return (
       <AdminLayout>
@@ -390,185 +428,227 @@ export default function AgentRegistry() {
               Manage autonomous agents, supervised agents, and tools
             </p>
           </div>
-          <Button onClick={openCreateModal}>
-            <Plus className="w-4 h-4 mr-2" />
-            Create Agent
-          </Button>
-        </div>
-
-        {/* Filters */}
-        <Card className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            {/* Search */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search agents..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-
-            {/* Status tabs */}
-            <div className="flex gap-2">
-              {(["all", "active", "inactive", "suspended"] as const).map(
-                (status) => (
-                  <button
-                    key={status}
-                    onClick={() => setStatusFilter(status)}
-                    className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                      statusFilter === status
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {status === "all"
-                      ? "All"
-                      : status.charAt(0).toUpperCase() + status.slice(1)}
-                  </button>
-                ),
-              )}
-            </div>
-          </div>
-        </Card>
-
-        {/* Agents table */}
-        {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          </div>
-        ) : filteredAgents.length === 0 ? (
-          <Card className="p-12 text-center">
-            <Bot className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No agents found</h3>
-            <p className="text-muted-foreground mb-4">
-              {searchQuery || statusFilter !== "all"
-                ? "Try adjusting your filters"
-                : "Get started by creating your first agent"}
-            </p>
-            {!searchQuery && statusFilter === "all" && (
+          <div className="flex gap-2">
+            {viewType === "agents" && (
               <Button onClick={openCreateModal}>
                 <Plus className="w-4 h-4 mr-2" />
                 Create Agent
               </Button>
             )}
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {filteredAgents.map((agent, index) => (
-              <motion.div
-                key={agent.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <Card className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <Bot className="w-5 h-5 text-primary flex-shrink-0" />
-                        <h3 className="text-lg font-semibold truncate">
-                          {agent.name}
-                        </h3>
-                        <TypeBadge type={agent.type} />
-                        <StatusBadge status={agent.status} />
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
-                        {/* Capabilities */}
-                        <div>
-                          <p className="text-xs text-muted-foreground mb-1">
-                            Capabilities
-                          </p>
-                          {agent.capabilities &&
-                          agent.capabilities.length > 0 ? (
-                            <div className="flex flex-wrap gap-1">
-                              {agent.capabilities.map((cap) => (
-                                <Badge
-                                  key={cap}
-                                  variant="outline"
-                                  className="text-[10px]"
-                                >
-                                  {cap}
-                                </Badge>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="text-sm text-muted-foreground">
-                              None
-                            </p>
-                          )}
-                        </div>
-
-                        {/* API Key */}
-                        <div>
-                          <p className="text-xs text-muted-foreground mb-1">
-                            API Key
-                          </p>
-                          <p className="text-sm font-mono">
-                            {agent.api_key_prefix ? (
-                              `${agent.api_key_prefix}...`
-                            ) : (
-                              <span className="text-muted-foreground">
-                                None
-                              </span>
-                            )}
-                          </p>
-                        </div>
-
-                        {/* Last Seen */}
-                        <div>
-                          <p className="text-xs text-muted-foreground mb-1">
-                            Last Seen
-                          </p>
-                          <p className="text-sm">
-                            {formatRelativeTime(agent.last_seen_at)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-2 ml-4">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setActivityAgent(agent)}
-                        title="View Activity"
-                      >
-                        <Activity className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => openApiKeyModal(agent)}
-                        title="Manage API Key"
-                      >
-                        <Key className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => openEditModal(agent)}
-                        title="Edit"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => openDeleteModal(agent)}
-                        title="Delete"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
           </div>
+        </div>
+
+        {/* View Toggle */}
+        <Card className="p-1">
+          <div className="flex gap-1">
+            <button
+              onClick={() => setViewType("agents")}
+              className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors flex items-center justify-center gap-2 ${
+                viewType === "agents"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Bot className="w-4 h-4" />
+              My Agents
+            </button>
+            <button
+              onClick={() => setViewType("templates")}
+              className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors flex items-center justify-center gap-2 ${
+                viewType === "templates"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Sparkles className="w-4 h-4" />
+              Template Gallery
+            </button>
+          </div>
+        </Card>
+
+        {/* Content */}
+        {viewType === "agents" ? (
+          <>
+            {/* Filters */}
+            <Card className="p-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                {/* Search */}
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search agents..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+
+                {/* Status tabs */}
+                <div className="flex gap-2">
+                  {(["all", "active", "inactive", "suspended"] as const).map(
+                    (status) => (
+                      <button
+                        key={status}
+                        onClick={() => setStatusFilter(status)}
+                        className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                          statusFilter === status
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {status === "all"
+                          ? "All"
+                          : status.charAt(0).toUpperCase() + status.slice(1)}
+                      </button>
+                    ),
+                  )}
+                </div>
+              </div>
+            </Card>
+
+            {/* Agents table */}
+            {loading ? (
+              <div className="flex items-center justify-center h-64">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : filteredAgents.length === 0 ? (
+              <Card className="p-12 text-center">
+                <Bot className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No agents found</h3>
+                <p className="text-muted-foreground mb-4">
+                  {searchQuery || statusFilter !== "all"
+                    ? "Try adjusting your filters"
+                    : "Get started by creating your first agent"}
+                </p>
+                {!searchQuery && statusFilter === "all" && (
+                  <Button onClick={openCreateModal}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Agent
+                  </Button>
+                )}
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {filteredAgents.map((agent, index) => (
+                  <motion.div
+                    key={agent.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <Card className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3 mb-2">
+                            <Bot className="w-5 h-5 text-primary flex-shrink-0" />
+                            <h3 className="text-lg font-semibold truncate">
+                              {agent.name}
+                            </h3>
+                            <TypeBadge type={agent.type} />
+                            <StatusBadge status={agent.status} />
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+                            {/* Capabilities */}
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">
+                                Capabilities
+                              </p>
+                              {agent.capabilities &&
+                              agent.capabilities.length > 0 ? (
+                                <div className="flex flex-wrap gap-1">
+                                  {agent.capabilities.map((cap) => (
+                                    <Badge
+                                      key={cap}
+                                      variant="outline"
+                                      className="text-[10px]"
+                                    >
+                                      {cap}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-sm text-muted-foreground">
+                                  None
+                                </p>
+                              )}
+                            </div>
+
+                            {/* API Key */}
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">
+                                API Key
+                              </p>
+                              <p className="text-sm font-mono">
+                                {agent.api_key_prefix ? (
+                                  `${agent.api_key_prefix}...`
+                                ) : (
+                                  <span className="text-muted-foreground">
+                                    None
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+
+                            {/* Last Seen */}
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">
+                                Last Seen
+                              </p>
+                              <p className="text-sm">
+                                {formatRelativeTime(agent.last_seen_at)}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex gap-2 ml-4">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setActivityAgent(agent)}
+                            title="View Activity"
+                          >
+                            <Activity className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => openApiKeyModal(agent)}
+                            title="Manage API Key"
+                          >
+                            <Key className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => openEditModal(agent)}
+                            title="Edit"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => openDeleteModal(agent)}
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <AgentTemplateGallery
+            onDeploy={handleDeployTemplate}
+            deploying={submitting}
+          />
         )}
       </div>
 
