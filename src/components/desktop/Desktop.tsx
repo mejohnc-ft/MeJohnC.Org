@@ -3,6 +3,8 @@ import { useWindowManagerContext, useWorkspaceContext } from "./WindowManager";
 import Window from "./Window";
 import DesktopIcon from "./DesktopIcon";
 import ContextMenu from "./ContextMenu";
+import DesktopWidgets from "./widgets/DesktopWidgets";
+import { DesktopDndContext } from "./DesktopDndContext";
 import { useContextMenu, type ContextMenuItem } from "@/hooks/useContextMenu";
 import { useFileSystem } from "@/hooks/useFileSystem";
 import { ROOT_FOLDERS, type FileSystemNode } from "@/lib/desktop-schemas";
@@ -92,38 +94,43 @@ export default function Desktop() {
   }
 
   return (
-    <div
-      className="flex-1 relative overflow-hidden"
-      style={{ background: workspace.wallpaper }}
-      onClick={handleDesktopClick}
-      onContextMenu={handleDesktopContextMenu}
-    >
-      {/* Desktop Icons */}
-      {fs.children.map((node) => (
-        <DesktopIcon
-          key={node.id}
-          node={node}
-          isSelected={selectedIconId === node.id}
-          onSelect={handleIconSelect}
-          onOpen={handleOpenIcon}
-          onContextMenu={handleIconContextMenu}
-          onPositionChange={fs.updatePosition}
-        />
-      ))}
+    <DesktopDndContext>
+      <div
+        className="flex-1 relative overflow-hidden"
+        style={{ background: workspace.wallpaper }}
+        onClick={handleDesktopClick}
+        onContextMenu={handleDesktopContextMenu}
+      >
+        {/* Desktop Icons */}
+        {fs.children.map((node) => (
+          <DesktopIcon
+            key={node.id}
+            node={node}
+            isSelected={selectedIconId === node.id}
+            onSelect={handleIconSelect}
+            onOpen={handleOpenIcon}
+            onContextMenu={handleIconContextMenu}
+            onPositionChange={fs.updatePosition}
+          />
+        ))}
 
-      {/* Windows */}
-      {state.windows.map((win) => (
-        <Window key={win.id} window={win} />
-      ))}
+        {/* Desktop Widgets */}
+        <DesktopWidgets />
 
-      {/* Context Menu */}
-      {contextMenu.isOpen && (
-        <ContextMenu
-          items={contextMenu.menuItems}
-          position={contextMenu.position}
-          onClose={contextMenu.closeMenu}
-        />
-      )}
-    </div>
+        {/* Windows */}
+        {state.windows.map((win) => (
+          <Window key={win.id} window={win} />
+        ))}
+
+        {/* Context Menu */}
+        {contextMenu.isOpen && (
+          <ContextMenu
+            items={contextMenu.menuItems}
+            position={contextMenu.position}
+            onClose={contextMenu.closeMenu}
+          />
+        )}
+      </div>
+    </DesktopDndContext>
   );
 }

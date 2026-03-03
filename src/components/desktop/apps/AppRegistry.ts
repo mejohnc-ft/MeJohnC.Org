@@ -9,6 +9,18 @@ export type AppCategory =
   | "agents"
   | "system";
 
+export interface AppMenuItem {
+  label: string; // "File", "Edit", "View"
+  items: {
+    id: string;
+    label: string;
+    shortcut?: string;
+    separator?: boolean;
+    disabled?: boolean;
+    onClick?: string; // event name to dispatch
+  }[];
+}
+
 export interface DesktopApp {
   id: string;
   name: string;
@@ -22,6 +34,7 @@ export interface DesktopApp {
   defaultDockPinned: boolean;
   route?: string; // Original admin route (for context)
   minPlan?: PlanTier; // Minimum plan required (omit = free)
+  menuItems?: AppMenuItem[]; // App-specific menu items
 }
 
 // Lazy component factories — reusing the same imports as App.tsx
@@ -55,6 +68,58 @@ const apps: DesktopApp[] = [
     defaultDockPinned: true,
     route: "/admin/blog",
     minPlan: "starter",
+    menuItems: [
+      {
+        label: "File",
+        items: [
+          {
+            id: "new-post",
+            label: "New Post",
+            shortcut: "⌘N",
+            onClick: "app-menu:blog:file:new-post",
+          },
+          {
+            id: "save",
+            label: "Save",
+            shortcut: "⌘S",
+            onClick: "app-menu:blog:file:save",
+          },
+        ],
+      },
+      {
+        label: "Edit",
+        items: [
+          {
+            id: "undo",
+            label: "Undo",
+            shortcut: "⌘Z",
+            onClick: "app-menu:blog:edit:undo",
+          },
+          { id: "sep-1", label: "", separator: true },
+          {
+            id: "find",
+            label: "Find",
+            shortcut: "⌘F",
+            onClick: "app-menu:blog:edit:find",
+          },
+        ],
+      },
+      {
+        label: "View",
+        items: [
+          {
+            id: "list",
+            label: "List View",
+            onClick: "app-menu:blog:view:list",
+          },
+          {
+            id: "grid",
+            label: "Grid View",
+            onClick: "app-menu:blog:view:grid",
+          },
+        ],
+      },
+    ],
   },
   {
     id: "news",
@@ -113,6 +178,39 @@ const apps: DesktopApp[] = [
     defaultDockPinned: false,
     route: "/admin/prompts",
     minPlan: "business",
+    menuItems: [
+      {
+        label: "File",
+        items: [
+          {
+            id: "new-prompt",
+            label: "New Prompt",
+            shortcut: "⌘N",
+            onClick: "app-menu:prompts:file:new-prompt",
+          },
+        ],
+      },
+      {
+        label: "View",
+        items: [
+          {
+            id: "all",
+            label: "All Prompts",
+            onClick: "app-menu:prompts:view:all",
+          },
+          {
+            id: "favorites",
+            label: "Favorites",
+            onClick: "app-menu:prompts:view:favorites",
+          },
+          {
+            id: "templates",
+            label: "Templates",
+            onClick: "app-menu:prompts:view:templates",
+          },
+        ],
+      },
+    ],
   },
   {
     id: "skills",
@@ -157,6 +255,50 @@ const apps: DesktopApp[] = [
     defaultDockPinned: true,
     route: "/admin/tasks",
     minPlan: "starter",
+    menuItems: [
+      {
+        label: "File",
+        items: [
+          {
+            id: "new-task",
+            label: "New Task",
+            shortcut: "⌘N",
+            onClick: "app-menu:tasks:file:new-task",
+          },
+        ],
+      },
+      {
+        label: "Edit",
+        items: [
+          {
+            id: "undo",
+            label: "Undo",
+            shortcut: "⌘Z",
+            onClick: "app-menu:tasks:edit:undo",
+          },
+        ],
+      },
+      {
+        label: "View",
+        items: [
+          {
+            id: "list",
+            label: "List View",
+            onClick: "app-menu:tasks:view:list",
+          },
+          {
+            id: "kanban",
+            label: "Kanban View",
+            onClick: "app-menu:tasks:view:kanban",
+          },
+          {
+            id: "calendar",
+            label: "Calendar View",
+            onClick: "app-menu:tasks:view:calendar",
+          },
+        ],
+      },
+    ],
   },
   {
     id: "calendar",
@@ -272,6 +414,62 @@ const apps: DesktopApp[] = [
     route: "/admin/configs",
     minPlan: "business",
   },
+  {
+    id: "partner-program",
+    name: "Partners",
+    icon: "Handshake",
+    color: "text-teal-500",
+    category: "platform",
+    component: () => import("@/pages/admin/PartnerProgram"),
+    defaultSize: { width: 900, height: 650 },
+    minSize: { width: 600, height: 450 },
+    singleton: true,
+    defaultDockPinned: false,
+    route: "/admin/partner-program",
+    minPlan: "business",
+  },
+  {
+    id: "api-access",
+    name: "API Access",
+    icon: "Shield",
+    color: "text-indigo-500",
+    category: "platform",
+    component: () => import("@/pages/admin/ApiAccess"),
+    defaultSize: { width: 900, height: 700 },
+    minSize: { width: 600, height: 500 },
+    singleton: true,
+    defaultDockPinned: false,
+    route: "/admin/api-access",
+    minPlan: "professional",
+  },
+  {
+    id: "compliance",
+    name: "Compliance",
+    icon: "ShieldCheck",
+    color: "text-green-600",
+    category: "platform",
+    component: () => import("@/pages/admin/ComplianceDashboard"),
+    defaultSize: { width: 900, height: 650 },
+    minSize: { width: 600, height: 450 },
+    singleton: true,
+    defaultDockPinned: false,
+    route: "/admin/compliance",
+    minPlan: "professional",
+  },
+  {
+    id: "dedicated-instance",
+    name: "Dedicated Instance",
+    icon: "Shield",
+    color: "text-purple-500",
+    category: "platform",
+    component: () => import("@/pages/admin/DedicatedInstance"),
+    defaultSize: { width: 900, height: 700 },
+    minSize: { width: 600, height: 500 },
+    singleton: true,
+    defaultDockPinned: false,
+    route: "/admin/dedicated-instance",
+    minPlan: "enterprise",
+  },
 
   // Agent Platform
   {
@@ -342,6 +540,20 @@ const apps: DesktopApp[] = [
     singleton: true,
     defaultDockPinned: false,
     route: "/admin/tool-definitions",
+    minPlan: "business",
+  },
+  {
+    id: "war-room",
+    name: "War Room",
+    icon: "Radar",
+    color: "text-orange-500",
+    category: "agents",
+    component: () => import("@/pages/admin/AgentWarRoom"),
+    defaultSize: { width: 1000, height: 700 },
+    minSize: { width: 700, height: 500 },
+    singleton: true,
+    defaultDockPinned: false,
+    route: "/admin/war-room",
     minPlan: "business",
   },
   {
@@ -457,6 +669,20 @@ const apps: DesktopApp[] = [
     singleton: true,
     defaultDockPinned: false,
     route: "/admin/profile",
+  },
+  {
+    id: "data-management",
+    name: "Data",
+    icon: "Database",
+    color: "text-emerald-500",
+    category: "system",
+    component: () => import("@/pages/admin/DataManagement"),
+    defaultSize: { width: 700, height: 550 },
+    minSize: { width: 500, height: 400 },
+    singleton: true,
+    defaultDockPinned: false,
+    route: "/admin/data-management",
+    minPlan: "professional",
   },
 ];
 

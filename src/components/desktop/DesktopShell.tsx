@@ -10,13 +10,17 @@ import {
   useWindowManagerContext,
 } from "./WindowManager";
 import { useDesktopShortcuts } from "@/hooks/useDesktopShortcuts";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import MenuBar from "./MenuBar";
 import Desktop from "./Desktop";
 import Dock from "./Dock";
 import Spotlight from "./Spotlight";
 import NotificationCenter from "./NotificationCenter";
 import QuickNote from "./QuickNote";
+import MissionControl from "./MissionControl";
+import MobileShell from "./MobileShell";
 import { useAgentConfirmations } from "@/hooks/useAgentConfirmations";
+import { getTileGeometry, type TileLayout } from "./SnapLayoutMenu";
 
 function DesktopShellContent() {
   const {
@@ -25,13 +29,16 @@ function DesktopShellContent() {
     closeWindow,
     minimizeWindow,
     focusWindow,
+    resizeWindow,
     undo,
     undoToast,
     dismissUndoToast,
   } = useWindowManagerContext();
+  const isMobile = useIsMobile();
   const [spotlightOpen, setSpotlightOpen] = useState(false);
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
   const [quickNoteOpen, setQuickNoteOpen] = useState(false);
+  const [missionControlOpen, setMissionControlOpen] = useState(false);
   const { pending, pendingCount, respond } = useAgentConfirmations();
 
   const openSpotlight = useCallback(() => setSpotlightOpen(true), []);
@@ -43,6 +50,18 @@ function DesktopShellContent() {
   const toggleQuickNote = useCallback(
     () => setQuickNoteOpen((prev) => !prev),
     [],
+  );
+  const toggleMissionControl = useCallback(
+    () => setMissionControlOpen((prev) => !prev),
+    [],
+  );
+
+  const tileWindow = useCallback(
+    (id: string, layout: TileLayout) => {
+      const geo = getTileGeometry(layout);
+      resizeWindow(id, geo.width, geo.height, geo.x, geo.y);
+    },
+    [resizeWindow],
   );
 
   useDesktopShortcuts({
@@ -56,8 +75,16 @@ function DesktopShellContent() {
     isSpotlightOpen: spotlightOpen,
     undo,
     toggleQuickNote,
+    toggleMissionControl,
+    tileWindow,
   });
 
+  // Mobile layout
+  if (isMobile) {
+    return <MobileShell />;
+  }
+
+  // Desktop layout
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-background">
       <MenuBar
@@ -76,6 +103,10 @@ function DesktopShellContent() {
       <QuickNote
         isOpen={quickNoteOpen}
         onClose={() => setQuickNoteOpen(false)}
+      />
+      <MissionControl
+        isOpen={missionControlOpen}
+        onClose={() => setMissionControlOpen(false)}
       />
       {toastMessage && (
         <div
