@@ -74,6 +74,20 @@ export function setAuthTokenProvider(
   _getAuthToken = provider;
 }
 
+/**
+ * Tenant ID provider for usage tracking (#314).
+ * Set by the calling code via setTenantIdProvider().
+ */
+let _getTenantId: (() => string | null) | null = null;
+
+export function setTenantIdProvider(provider: () => string | null): void {
+  _getTenantId = provider;
+}
+
+export function getTenantId(): string | null {
+  return _getTenantId?.() ?? null;
+}
+
 // ============================================
 // CORE API FUNCTION
 // ============================================
@@ -111,6 +125,7 @@ async function callClaudeAPI(
         temperature: options.temperature ?? 0.7,
         system: options.systemPrompt,
         messages: [{ role: "user", content: userMessage }],
+        tenant_id: _getTenantId?.() ?? undefined,
       }),
     });
 

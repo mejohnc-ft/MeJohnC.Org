@@ -6,6 +6,7 @@
  */
 
 import type { GeneratedUI } from "../schemas";
+import { getTenantId } from "@/lib/ai-service";
 
 // ============================================
 // TYPES
@@ -499,6 +500,8 @@ ${contextPrompt}
 Return ONLY valid JSON, no markdown formatting.`,
           },
         ],
+        tenant_id: getTenantId(),
+        feature: "generative-ui",
       }),
     });
 
@@ -575,6 +578,8 @@ export async function generateWithStreaming(
             content: `Generate a UI layout for: ${prompt}\n\nReturn ONLY valid JSON.`,
           },
         ],
+        tenant_id: getTenantId(),
+        feature: "generative-ui",
       }),
     });
 

@@ -9,8 +9,24 @@ import { createClient } from "@supabase/supabase-js";
  * Client calls: POST /api/stripe-checkout
  * Body: { tenant_id, price_id, success_url?, cancel_url? }
  *
- * Issue: #301
+ * Issue: #301, #314
  */
+
+/** Map a Stripe price ID to our plan tier name */
+function mapPriceToPlan(priceId: string): string {
+  const mapping: Record<string, string> = {};
+
+  if (process.env.STRIPE_STARTER_PRICE_ID)
+    mapping[process.env.STRIPE_STARTER_PRICE_ID] = "starter";
+  if (process.env.STRIPE_BUSINESS_PRICE_ID)
+    mapping[process.env.STRIPE_BUSINESS_PRICE_ID] = "business";
+  if (process.env.STRIPE_PROFESSIONAL_PRICE_ID)
+    mapping[process.env.STRIPE_PROFESSIONAL_PRICE_ID] = "professional";
+  if (process.env.STRIPE_ENTERPRISE_PRICE_ID)
+    mapping[process.env.STRIPE_ENTERPRISE_PRICE_ID] = "enterprise";
+
+  return mapping[priceId] || "free";
+}
 
 const handler: Handler = async (event: HandlerEvent) => {
   if (event.httpMethod !== "POST") {
@@ -122,11 +138,23 @@ const handler: Handler = async (event: HandlerEvent) => {
       }
     }
 
+    // Build line items — add metered overage price for paid plans (#314)
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
+      { price: body.price_id, quantity: 1 },
+    ];
+    const overagePriceId = process.env.STRIPE_AI_OVERAGE_PRICE_ID;
+    if (overagePriceId) {
+      const plan = mapPriceToPlan(body.price_id);
+      if (plan !== "free" && plan !== "enterprise") {
+        lineItems.push({ price: overagePriceId });
+      }
+    }
+
     // Create Checkout Session
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: customerId,
-      line_items: [{ price: body.price_id, quantity: 1 }],
+      line_items: lineItems,
       success_url:
         body.success_url ||
         `${event.headers["origin"] || "https://mejohnc.org"}/admin/settings?billing=success`,
