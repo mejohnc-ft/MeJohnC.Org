@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from "react";
 import type { WindowState } from "./useWindowManager";
+import type { TileLayout } from "@/components/desktop/SnapLayoutMenu";
 
 interface UseDesktopShortcutsOptions {
   closeWindow: (id: string) => void;
@@ -12,6 +13,8 @@ interface UseDesktopShortcutsOptions {
   isSpotlightOpen: boolean;
   undo?: () => void;
   toggleQuickNote?: () => void;
+  toggleMissionControl?: () => void;
+  tileWindow?: (id: string, layout: TileLayout) => void;
 }
 
 export function useDesktopShortcuts({
@@ -25,6 +28,8 @@ export function useDesktopShortcuts({
   isSpotlightOpen,
   undo,
   toggleQuickNote,
+  toggleMissionControl,
+  tileWindow,
 }: UseDesktopShortcutsOptions) {
   const handleModKey = useCallback(
     (e: KeyboardEvent) => {
@@ -59,6 +64,10 @@ export function useDesktopShortcuts({
           e.preventDefault();
           if (undo) undo();
           break;
+        case "ArrowUp":
+          e.preventDefault();
+          if (toggleMissionControl) toggleMissionControl();
+          break;
       }
     },
     [
@@ -71,6 +80,7 @@ export function useDesktopShortcuts({
       closeSpotlight,
       isSpotlightOpen,
       undo,
+      toggleMissionControl,
     ],
   );
 
@@ -83,6 +93,22 @@ export function useDesktopShortcuts({
         e.preventDefault();
         if (toggleQuickNote) toggleQuickNote();
         return;
+      }
+
+      // Ctrl+Shift+Arrow — Window tiling
+      if (mod && e.shiftKey && tileWindow && focusedWindowId) {
+        const tileMap: Record<string, TileLayout> = {
+          ArrowLeft: "left-half",
+          ArrowRight: "right-half",
+          ArrowUp: "full",
+          ArrowDown: "center-half",
+        };
+        const layout = tileMap[e.key];
+        if (layout) {
+          e.preventDefault();
+          tileWindow(focusedWindowId, layout);
+          return;
+        }
       }
 
       // Skip other global shortcuts when focus is inside input fields
@@ -100,6 +126,13 @@ export function useDesktopShortcuts({
         return;
       }
 
+      // F3 — Mission Control
+      if (e.key === "F3") {
+        e.preventDefault();
+        if (toggleMissionControl) toggleMissionControl();
+        return;
+      }
+
       if (e.key === "Escape" && isSpotlightOpen) {
         e.preventDefault();
         closeSpotlight();
@@ -108,5 +141,13 @@ export function useDesktopShortcuts({
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [handleModKey, isSpotlightOpen, closeSpotlight, toggleQuickNote]);
+  }, [
+    handleModKey,
+    isSpotlightOpen,
+    closeSpotlight,
+    toggleQuickNote,
+    toggleMissionControl,
+    focusedWindowId,
+    tileWindow,
+  ]);
 }

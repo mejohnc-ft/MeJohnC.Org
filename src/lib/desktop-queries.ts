@@ -301,3 +301,90 @@ export async function createDefaultWorkspace(
   if (error) throw error;
   return parseResponse(DesktopWorkspaceSchema, data, "createDefaultWorkspace");
 }
+
+/** Get all workspaces for a user */
+export async function getAllWorkspaces(
+  ownerId: string,
+  client: SupabaseClient = getSupabase(),
+): Promise<DesktopWorkspace[]> {
+  const { data, error } = await client
+    .from("desktop_workspaces")
+    .select("*")
+    .eq("owner_id", ownerId)
+    .order("created_at");
+
+  if (error) throw error;
+  return parseArrayResponse(DesktopWorkspaceSchema, data, "getAllWorkspaces");
+}
+
+/** Switch active workspace: deactivate all then activate one */
+export async function switchWorkspace(
+  ownerId: string,
+  workspaceId: string,
+  client: SupabaseClient | null = supabase,
+): Promise<void> {
+  const c = client ?? getSupabase();
+  // Deactivate all
+  const { error: deactError } = await c
+    .from("desktop_workspaces")
+    .update({ is_active: false })
+    .eq("owner_id", ownerId);
+  if (deactError) throw deactError;
+
+  // Activate the selected one
+  const { error: actError } = await c
+    .from("desktop_workspaces")
+    .update({ is_active: true })
+    .eq("id", workspaceId);
+  if (actError) throw actError;
+}
+
+/** Create a new named workspace */
+export async function createWorkspace(
+  ownerId: string,
+  name: string,
+  client: SupabaseClient | null = supabase,
+): Promise<DesktopWorkspace> {
+  const c = client ?? getSupabase();
+  const { data, error } = await c
+    .from("desktop_workspaces")
+    .insert({
+      name,
+      owner_id: ownerId,
+      is_active: false,
+      is_default: false,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return parseResponse(DesktopWorkspaceSchema, data, "createWorkspace");
+}
+
+/** Rename a workspace */
+export async function renameWorkspace(
+  workspaceId: string,
+  name: string,
+  client: SupabaseClient | null = supabase,
+): Promise<void> {
+  const c = client ?? getSupabase();
+  const { error } = await c
+    .from("desktop_workspaces")
+    .update({ name })
+    .eq("id", workspaceId);
+  if (error) throw error;
+}
+
+/** Delete a workspace (cannot delete the default) */
+export async function deleteWorkspace(
+  workspaceId: string,
+  client: SupabaseClient | null = supabase,
+): Promise<void> {
+  const c = client ?? getSupabase();
+  const { error } = await c
+    .from("desktop_workspaces")
+    .delete()
+    .eq("id", workspaceId)
+    .eq("is_default", false);
+  if (error) throw error;
+}
