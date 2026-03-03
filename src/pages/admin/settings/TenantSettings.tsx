@@ -4,9 +4,11 @@ import { Settings, RotateCcw, Loader2 } from "lucide-react";
 import AdminLayout from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useSEO } from "@/lib/seo";
 import { useTenant } from "@/lib/tenant";
 import { useTenantSettings } from "@/hooks/useTenantSettings";
+import { useI18n } from "@/lib/i18n";
 import BrandSection from "./sections/BrandSection";
 import ThemeSection from "./sections/ThemeSection";
 import AppsSection from "./sections/AppsSection";
@@ -19,6 +21,7 @@ const TenantSettings = () => {
   const { refreshTenant } = useTenant();
   const { saveOnboardingComplete, saveOnboardingStep, isSaving } =
     useTenantSettings();
+  const { t } = useI18n();
   const [resetting, setResetting] = useState(false);
 
   const handleRerunWizard = async () => {
@@ -72,6 +75,7 @@ const TenantSettings = () => {
             <TabsTrigger value="domain">Domain</TabsTrigger>
             <TabsTrigger value="email">Email</TabsTrigger>
             <TabsTrigger value="plan">Plan</TabsTrigger>
+            <TabsTrigger value="language">Language</TabsTrigger>
           </TabsList>
 
           <TabsContent value="brand">
@@ -91,6 +95,19 @@ const TenantSettings = () => {
           </TabsContent>
           <TabsContent value="plan">
             <PlanSection />
+          </TabsContent>
+          <TabsContent value="language">
+            <div className="bg-card border border-border rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                {t("settings.language")}
+              </h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                Choose your preferred language for the interface
+              </p>
+              <div className="flex items-center gap-4">
+                <LanguageSwitcher />
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </motion.div>

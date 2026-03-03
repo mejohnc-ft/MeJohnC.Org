@@ -18,10 +18,12 @@ import {
   Code2,
   Palette,
   Zap,
+  Languages,
 } from "lucide-react";
 import AdminLayout from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useAuth } from "@/lib/auth";
 import { useSession } from "@clerk/clerk-react";
 import {
@@ -33,6 +35,7 @@ import { getAnalyticsSettings, saveAnalyticsSettings } from "@/lib/analytics";
 import { useSEO, clearSEOCache } from "@/lib/seo";
 import { getSiteContent, upsertSiteContent } from "@/lib/supabase-queries";
 import { captureException } from "@/lib/sentry";
+import { useI18n } from "@/lib/i18n";
 
 interface SEOSettings {
   siteName: string;
@@ -155,6 +158,7 @@ const PlatformSettings = () => {
   const { user } = useAuth();
   const { session } = useSession();
   const { supabase } = useAuthenticatedSupabase();
+  const { t } = useI18n();
 
   // Visibility toggles
   const [showSupabaseKey, setShowSupabaseKey] = useState(false);
@@ -586,6 +590,27 @@ const PlatformSettings = () => {
                 </Button>
                 <StatusBadge status={gaStatus} message={gaMessage} />
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Language Settings */}
+        <section>
+          <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+            <Languages className="w-5 h-5 text-primary" />
+            {t("settings.language")}
+          </h2>
+          <div className="bg-card border border-border rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium text-foreground mb-1">
+                  Interface Language
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Choose your preferred language for the platform interface
+                </p>
+              </div>
+              <LanguageSwitcher />
             </div>
           </div>
         </section>
