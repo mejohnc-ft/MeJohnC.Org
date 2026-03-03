@@ -124,6 +124,9 @@ const handler: Handler = async (event: HandlerEvent) => {
           p_current_period_end: new Date(
             subscription.current_period_end * 1000,
           ).toISOString(),
+          p_current_period_start: new Date(
+            subscription.current_period_start * 1000,
+          ).toISOString(),
         });
         break;
       }
@@ -147,6 +150,9 @@ const handler: Handler = async (event: HandlerEvent) => {
           p_current_period_end: new Date(
             subscription.current_period_end * 1000,
           ).toISOString(),
+          p_current_period_start: new Date(
+            subscription.current_period_start * 1000,
+          ).toISOString(),
         });
         break;
       }
@@ -166,6 +172,9 @@ const handler: Handler = async (event: HandlerEvent) => {
           p_subscription_status: "canceled",
           p_current_period_end: new Date(
             subscription.current_period_end * 1000,
+          ).toISOString(),
+          p_current_period_start: new Date(
+            subscription.current_period_start * 1000,
           ).toISOString(),
         });
         break;
@@ -199,6 +208,9 @@ const handler: Handler = async (event: HandlerEvent) => {
           p_subscription_status: "past_due",
           p_current_period_end: new Date(
             subscription.current_period_end * 1000,
+          ).toISOString(),
+          p_current_period_start: new Date(
+            subscription.current_period_start * 1000,
           ).toISOString(),
         });
         break;

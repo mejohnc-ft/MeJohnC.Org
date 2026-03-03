@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useBilling } from "@/hooks/useBilling";
+import { useAIUsage } from "@/hooks/useAIUsage";
 import { useTenant } from "@/lib/tenant";
 import { type PlanTier } from "@/lib/billing";
 import { captureException } from "@/lib/sentry";
@@ -31,6 +32,11 @@ const PLAN_DISPLAY: Record<PlanTier, { label: string; color: string }> = {
 const PlanSection = () => {
   const { plan, limits, isPastDue, isFreePlan } = useBilling();
   const { tenant } = useTenant();
+  const {
+    used: aiUsed,
+    limit: aiLimit,
+    loading: aiUsageLoading,
+  } = useAIUsage();
   const [portalLoading, setPortalLoading] = useState(false);
   const display = PLAN_DISPLAY[plan];
 
@@ -165,6 +171,63 @@ const PlanSection = () => {
             </div>
           ))}
         </div>
+
+        {/* AI Usage Meter (#314) */}
+        {!aiUsageLoading && aiLimit !== Infinity && (
+          <div className="bg-muted/30 rounded-lg p-4 space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">AI Chats This Month</span>
+              <span className="font-medium">
+                {aiUsed} / {aiLimit}
+              </span>
+            </div>
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${
+                  aiUsed / aiLimit > 0.9
+                    ? "bg-orange-500"
+                    : aiUsed / aiLimit > 0.7
+                      ? "bg-yellow-500"
+                      : "bg-green-500"
+                }`}
+                style={{ width: `${Math.min((aiUsed / aiLimit) * 100, 100)}%` }}
+              />
+            </div>
+            {!isFreePlan && aiUsed > aiLimit && (
+              <div className="bg-orange-500/10 border border-orange-500/30 rounded-md p-3 mt-2">
+                <p className="text-xs text-orange-400">
+                  You have used {aiUsed - aiLimit} overage interaction
+                  {aiUsed - aiLimit !== 1 ? "s" : ""} this month. Estimated
+                  overage cost: ${((aiUsed - aiLimit) * 0.05).toFixed(2)}
+                </p>
+              </div>
+            )}
+            {isFreePlan && aiUsed >= aiLimit && (
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-md p-3 mt-2 flex items-center justify-between">
+                <p className="text-xs text-yellow-400">
+                  You've reached your free AI chat limit.
+                </p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10 ml-3"
+                  onClick={openCheckout}
+                >
+                  <ArrowUpCircle className="w-3 h-3 mr-1" />
+                  Upgrade Plan
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+        {!aiUsageLoading && aiLimit === Infinity && (
+          <div className="bg-muted/30 rounded-lg p-4">
+            <div className="flex items-center gap-2 text-sm">
+              <Check className="w-4 h-4 text-emerald-400" />
+              <span className="text-muted-foreground">Unlimited AI Chats</span>
+            </div>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex items-center gap-3 pt-2">
