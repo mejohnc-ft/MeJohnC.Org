@@ -4,28 +4,35 @@
  * Main CRM contacts page with list view and filters
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Users, UserPlus, Search, Loader2, X } from 'lucide-react';
-import AdminLayout from '@/components/AdminLayout';
-import { Button } from '@/components/ui/button';
-import { useAuthenticatedSupabase } from '@/lib/supabase';
-import { useSEO } from '@/lib/seo';
-import { captureException } from '@/lib/sentry';
-import { ContactList } from '../components/ContactList';
-import { ContactForm } from '../components/ContactForm';
-import type { Contact } from '../schemas';
-import { getContacts, createContact, updateContact, deleteContact, type ContactQueryOptions } from '@/lib/crm-queries';
+import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Users, UserPlus, Search, Loader2, X } from "lucide-react";
+import AdminLayout from "@/components/AdminLayout";
+import { Button } from "@/components/ui/button";
+import { useAuthenticatedSupabase } from "@/lib/supabase";
+import { useSEO } from "@/lib/seo";
+import { captureException } from "@/lib/sentry";
+import { ContactList } from "../components/ContactList";
+import { ContactForm } from "../components/ContactForm";
+import type { Contact } from "../schemas";
+import {
+  getContacts,
+  createContact,
+  updateContact,
+  deleteContact,
+  type ContactQueryOptions,
+} from "@/lib/crm-queries";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 const ContactsPage = () => {
-  useSEO({ title: 'CRM - Contacts', noIndex: true });
+  useSEO({ title: "CRM - Contacts", noIndex: true });
   const { supabase } = useAuthenticatedSupabase();
 
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedType, setSelectedType] = useState<string>('');
-  const [selectedStatus, setSelectedStatus] = useState<string>('active');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedType, setSelectedType] = useState<string>("");
+  const [selectedStatus, setSelectedStatus] = useState<string>("active");
   const [showContactForm, setShowContactForm] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
 
@@ -36,17 +43,20 @@ const ContactsPage = () => {
     try {
       const queryOptions: ContactQueryOptions = {
         search: searchQuery || undefined,
-        contactType: selectedType as Contact['contact_type'] || undefined,
-        status: selectedStatus as Contact['status'] || undefined,
+        contactType: (selectedType as Contact["contact_type"]) || undefined,
+        status: (selectedStatus as Contact["status"]) || undefined,
         limit: 100,
       };
 
       const data = await getContacts(queryOptions, supabase);
       setContacts(data);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'ContactsPage.loadContacts',
-      });
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "ContactsPage.loadContacts",
+        },
+      );
     } finally {
       setIsLoading(false);
     }
@@ -55,6 +65,15 @@ const ContactsPage = () => {
   useEffect(() => {
     loadContacts();
   }, [loadContacts]);
+
+  // Realtime subscription for CRM contacts
+  useRealtimeSubscription({
+    supabase,
+    channelName: "crm-changes",
+    table: "crm_contacts",
+    onData: loadContacts,
+    enabled: !!supabase,
+  });
 
   const handleCreateContact = () => {
     setEditingContact(null);
@@ -73,7 +92,7 @@ const ContactsPage = () => {
     phone: string;
     company: string;
     job_title: string;
-    contact_type: Contact['contact_type'];
+    contact_type: Contact["contact_type"];
     source: string;
     notes: string;
     tags: string[];
@@ -88,42 +107,51 @@ const ContactsPage = () => {
       if (editingContact) {
         await updateContact(editingContact.id, formData, supabase);
       } else {
-        await createContact({
-          ...formData,
-          status: 'active',
-          lead_score: 0,
-          source_detail: null,
-          referrer_id: null,
-          city: null,
-          state: null,
-          country: null,
-          timezone: null,
-          avatar_url: null,
-          bio: null,
-          custom_fields: null,
-          next_follow_up_at: null,
-          last_contacted_at: null,
-        }, supabase);
+        await createContact(
+          {
+            ...formData,
+            status: "active",
+            lead_score: 0,
+            source_detail: null,
+            referrer_id: null,
+            city: null,
+            state: null,
+            country: null,
+            timezone: null,
+            avatar_url: null,
+            bio: null,
+            custom_fields: null,
+            next_follow_up_at: null,
+            last_contacted_at: null,
+          },
+          supabase,
+        );
       }
       setShowContactForm(false);
       loadContacts();
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'ContactsPage.saveContact',
-      });
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "ContactsPage.saveContact",
+        },
+      );
     }
   };
 
   const handleDeleteContact = async (id: string) => {
-    if (!supabase || !confirm('Delete this contact?')) return;
+    if (!supabase || !confirm("Delete this contact?")) return;
 
     try {
       await deleteContact(id, supabase);
       loadContacts();
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
-        context: 'ContactsPage.deleteContact',
-      });
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          context: "ContactsPage.deleteContact",
+        },
+      );
     }
   };
 
@@ -192,7 +220,9 @@ const ContactsPage = () => {
           <div className="text-center py-12">
             <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-medium mb-2">No contacts yet</h3>
-            <p className="text-muted-foreground mb-4">Add your first contact to get started</p>
+            <p className="text-muted-foreground mb-4">
+              Add your first contact to get started
+            </p>
             <Button onClick={handleCreateContact}>
               <UserPlus className="w-4 h-4 mr-2" />
               Add Contact
@@ -225,31 +255,40 @@ const ContactsPage = () => {
               >
                 <div className="flex items-center justify-between p-4 border-b border-border">
                   <h2 className="text-lg font-medium">
-                    {editingContact ? 'Edit Contact' : 'Add Contact'}
+                    {editingContact ? "Edit Contact" : "Add Contact"}
                   </h2>
-                  <Button variant="ghost" size="sm" onClick={() => setShowContactForm(false)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowContactForm(false)}
+                  >
                     <X className="w-4 h-4" />
                   </Button>
                 </div>
 
                 <div className="p-4">
                   <ContactForm
-                    initialData={editingContact ? {
-                      first_name: editingContact.first_name || '',
-                      last_name: editingContact.last_name || '',
-                      email: editingContact.email || '',
-                      phone: editingContact.phone || '',
-                      company: editingContact.company || '',
-                      job_title: editingContact.job_title || '',
-                      contact_type: editingContact.contact_type,
-                      source: editingContact.source || '',
-                      notes: editingContact.notes || '',
-                      tags: editingContact.tags || [],
-                      website: editingContact.website || '',
-                      linkedin_url: editingContact.linkedin_url || '',
-                      twitter_handle: editingContact.twitter_handle || '',
-                      github_username: editingContact.github_username || '',
-                    } : undefined}
+                    initialData={
+                      editingContact
+                        ? {
+                            first_name: editingContact.first_name || "",
+                            last_name: editingContact.last_name || "",
+                            email: editingContact.email || "",
+                            phone: editingContact.phone || "",
+                            company: editingContact.company || "",
+                            job_title: editingContact.job_title || "",
+                            contact_type: editingContact.contact_type,
+                            source: editingContact.source || "",
+                            notes: editingContact.notes || "",
+                            tags: editingContact.tags || [],
+                            website: editingContact.website || "",
+                            linkedin_url: editingContact.linkedin_url || "",
+                            twitter_handle: editingContact.twitter_handle || "",
+                            github_username:
+                              editingContact.github_username || "",
+                          }
+                        : undefined
+                    }
                     onSubmit={handleSaveContact}
                     onCancel={() => setShowContactForm(false)}
                     isEditing={!!editingContact}

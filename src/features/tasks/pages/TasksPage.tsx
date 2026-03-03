@@ -17,6 +17,7 @@ import AdminLayout from "@/components/AdminLayout";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
 import { TaskCard } from "../components";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 const TasksPage = () => {
   useSEO({ title: "Tasks", noIndex: true });
@@ -50,6 +51,15 @@ const TasksPage = () => {
     searchQuery,
     sortBy,
   ]);
+
+  // Realtime subscription for tasks
+  useRealtimeSubscription({
+    supabase,
+    channelName: "tasks-changes",
+    table: "tasks",
+    onData: fetchData,
+    enabled: !!supabase,
+  });
 
   async function fetchData() {
     if (!supabase) {
