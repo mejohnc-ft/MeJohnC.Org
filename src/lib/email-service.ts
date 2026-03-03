@@ -8,6 +8,17 @@
  */
 
 import { captureException } from "./sentry";
+import type { EmailBranding } from "./email-templates";
+import {
+  renderWelcomeEmail,
+  renderUnsubscribeEmail,
+  renderTestEmail,
+  renderNotificationEmail,
+  getTenantBranding,
+} from "./email-templates";
+
+// Re-export for convenience
+export { getTenantBranding };
 
 export type EmailProvider = "resend" | "sendgrid" | "console";
 
@@ -240,26 +251,59 @@ class EmailService {
 
   /**
    * Send a transactional email from a template
-   * @param templateId - Template ID to use
+   * @param templateId - Template ID (welcome, notification, unsubscribe, test)
    * @param to - Recipient email(s)
    * @param variables - Template variables
+   * @param branding - Optional tenant branding
    * @param options - Additional email options
    */
   async sendFromTemplate(
     templateId: string,
     to: string | string[],
     variables: Record<string, string>,
+    branding?: EmailBranding,
     options?: Partial<EmailOptions>,
   ): Promise<EmailResponse> {
-    // This would fetch the template from the database and render it
-    // For now, this is a placeholder - log params to satisfy linter
-    console.debug("sendFromTemplate called with:", {
-      templateId,
+    const defaultBranding: EmailBranding = {
+      brandName: import.meta.env.VITE_PLATFORM_NAME || "Business OS",
+      primaryColor: "#6366f1",
+      footerText: "Powered by Business OS",
+    };
+
+    const brand = branding || defaultBranding;
+    let rendered: { subject: string; html: string; text: string };
+
+    switch (templateId) {
+      case "welcome":
+        rendered = renderWelcomeEmail(brand, variables.name);
+        break;
+      case "notification":
+        rendered = renderNotificationEmail(
+          brand,
+          variables.title || "Notification",
+          variables.message || "",
+          variables.actionUrl,
+          variables.actionLabel,
+        );
+        break;
+      case "unsubscribe":
+        rendered = renderUnsubscribeEmail(brand, variables.resubscribeUrl);
+        break;
+      case "test":
+        rendered = renderTestEmail(brand, this.provider);
+        break;
+      default:
+        throw new Error(`Unknown template ID: ${templateId}`);
+    }
+
+    return this.send({
       to,
-      variables,
-      options,
+      from: brand.fromEmail || options?.from,
+      subject: rendered.subject,
+      html: rendered.html,
+      text: rendered.text,
+      ...options,
     });
-    throw new Error("Template rendering not implemented yet");
   }
 
   /**
@@ -324,50 +368,75 @@ class EmailService {
 // Singleton instance
 export const emailService = new EmailService();
 
+// Re-export EmailBranding for convenience
+export type { EmailBranding };
+
 // Helper functions for common email types
 export async function sendWelcomeEmail(
   to: string,
   firstName?: string,
+  branding?: EmailBranding,
 ): Promise<EmailResponse> {
-  const name = firstName || "there";
+  const defaultBranding: EmailBranding = {
+    brandName: import.meta.env.VITE_PLATFORM_NAME || "Business OS",
+    primaryColor: "#6366f1",
+    footerText: "Powered by Business OS",
+  };
+
+  const brand = branding || defaultBranding;
+  const rendered = renderWelcomeEmail(brand, firstName);
+
   return emailService.send({
     to,
-    subject: `Welcome to ${import.meta.env.VITE_PLATFORM_NAME || "Business OS"}!`,
-    html: `
-      <h1>Welcome ${name}!</h1>
-      <p>Thanks for subscribing to our newsletter.</p>
-      <p>You'll receive updates about new content, projects, and insights.</p>
-      <p>Best regards,<br>John</p>
-    `,
-    text: `Welcome ${name}!\n\nThanks for subscribing to our newsletter.\nYou'll receive updates about new content, projects, and insights.\n\nBest regards,\nJohn`,
+    from: brand.fromEmail,
+    subject: rendered.subject,
+    html: rendered.html,
+    text: rendered.text,
   });
 }
 
 export async function sendUnsubscribeConfirmation(
   to: string,
+  branding?: EmailBranding,
 ): Promise<EmailResponse> {
+  const defaultBranding: EmailBranding = {
+    brandName: import.meta.env.VITE_PLATFORM_NAME || "Business OS",
+    primaryColor: "#6366f1",
+    footerText: "Powered by Business OS",
+  };
+
+  const brand = branding || defaultBranding;
+  const resubscribeUrl = `${import.meta.env.VITE_SITE_URL}/subscribe`;
+  const rendered = renderUnsubscribeEmail(brand, resubscribeUrl);
+
   return emailService.send({
     to,
-    subject: "Unsubscribe Confirmation",
-    html: `
-      <h1>You've been unsubscribed</h1>
-      <p>We're sorry to see you go. You've been removed from our mailing list.</p>
-      <p>If this was a mistake, you can <a href="${import.meta.env.VITE_SITE_URL}/subscribe">re-subscribe here</a>.</p>
-    `,
-    text: `You've been unsubscribed\n\nWe're sorry to see you go. You've been removed from our mailing list.\n\nIf this was a mistake, you can re-subscribe at ${import.meta.env.VITE_SITE_URL}/subscribe`,
+    from: brand.fromEmail,
+    subject: rendered.subject,
+    html: rendered.html,
+    text: rendered.text,
   });
 }
 
-export async function sendTestEmail(to: string): Promise<EmailResponse> {
+export async function sendTestEmail(
+  to: string,
+  branding?: EmailBranding,
+): Promise<EmailResponse> {
+  const defaultBranding: EmailBranding = {
+    brandName: import.meta.env.VITE_PLATFORM_NAME || "Business OS",
+    primaryColor: "#6366f1",
+    footerText: "Powered by Business OS",
+  };
+
+  const brand = branding || defaultBranding;
+  const provider = emailService.getProviderInfo().provider;
+  const rendered = renderTestEmail(brand, provider);
+
   return emailService.send({
     to,
-    subject: `Test Email from ${import.meta.env.VITE_PLATFORM_NAME || "Business OS"}`,
-    html: `
-      <h1>Test Email</h1>
-      <p>This is a test email from the marketing system.</p>
-      <p>If you received this, your email configuration is working correctly!</p>
-      <p>Provider: <strong>${emailService.getProviderInfo().provider}</strong></p>
-    `,
-    text: `Test Email\n\nThis is a test email from the marketing system.\nIf you received this, your email configuration is working correctly!\n\nProvider: ${emailService.getProviderInfo().provider}`,
+    from: brand.fromEmail,
+    subject: rendered.subject,
+    html: rendered.html,
+    text: rendered.text,
   });
 }
