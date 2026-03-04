@@ -31,7 +31,7 @@ interface RequestBody {
 const CUSTOM_DOMAIN_PLANS = ["business", "professional", "enterprise"];
 const DOMAIN_PROCUREMENT_PLANS = ["professional", "enterprise"];
 
-const BASE_DOMAIN = process.env.VITE_BASE_DOMAIN || "businessos.app";
+const BASE_DOMAIN = process.env.VITE_BASE_DOMAIN || "mejohnc.org";
 
 function json(statusCode: number, body: Record<string, unknown>) {
   return {

@@ -42,7 +42,7 @@ interface TenantContextValue {
 }
 
 const DEFAULT_TENANT_ID = "00000000-0000-0000-0000-000000000001";
-const BASE_DOMAIN = import.meta.env.VITE_BASE_DOMAIN || "businessos.app";
+const BASE_DOMAIN = import.meta.env.VITE_BASE_DOMAIN || "mejohnc.org";
 const RESERVED_SUBDOMAINS = new Set(["www", "app", ""]);
 
 // --- Context ---

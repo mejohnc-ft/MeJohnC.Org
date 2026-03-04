@@ -19,7 +19,7 @@ import { useAuth } from "@/lib/auth";
 import { useBilling } from "@/hooks/useBilling";
 import type { DomainVerificationStatus } from "@/lib/tenant-settings";
 
-const BASE_DOMAIN = import.meta.env.VITE_BASE_DOMAIN || "businessos.app";
+const BASE_DOMAIN = import.meta.env.VITE_BASE_DOMAIN || "mejohnc.org";
 
 async function domainApi(
   action: string,

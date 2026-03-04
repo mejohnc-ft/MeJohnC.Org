@@ -56,8 +56,7 @@ class EmailService {
   constructor() {
     this.provider = this.getProvider();
     this.apiKey = this.getApiKey();
-    this.fromEmail =
-      import.meta.env.VITE_EMAIL_FROM || "noreply@businessos.app";
+    this.fromEmail = import.meta.env.VITE_EMAIL_FROM || "noreply@mejohnc.org";
   }
 
   private getProvider(): EmailProvider {
