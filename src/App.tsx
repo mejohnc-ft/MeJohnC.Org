@@ -156,7 +156,8 @@ function PageLoader() {
   );
 }
 
-// Gate that blocks rendering until tenant is resolved
+// Gate that blocks rendering only for tenant subdomain resolution.
+// The main site ALWAYS renders — errors only block explicit tenant subdomains.
 function TenantGate({ children }: { children: React.ReactNode }) {
   const { status, error } = useTenant();
 
@@ -164,6 +165,8 @@ function TenantGate({ children }: { children: React.ReactNode }) {
     return <PageLoader />;
   }
 
+  // "not_found" only fires for explicit subdomain slugs (e.g. unknown.mejohnc.org).
+  // The main site and custom-domain fallbacks never reach this state.
   if (status === "not_found") {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -186,6 +189,8 @@ function TenantGate({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // "error" only fires for explicit subdomain slugs whose RPC failed.
+  // The main site never gets here.
   if (status === "error") {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -207,6 +212,7 @@ function TenantGate({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // "main_site" and "resolved" both render the app.
   return <>{children}</>;
 }
 
