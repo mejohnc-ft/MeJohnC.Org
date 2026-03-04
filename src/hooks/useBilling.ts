@@ -21,15 +21,18 @@ interface BillingState {
 }
 
 export function useBilling(): BillingState {
-  const { tenant } = useTenant();
+  const { tenant, isMainSite } = useTenant();
 
   return useMemo(() => {
-    const plan = parsePlanFromSettings(tenant?.settings);
+    // Main site owner gets full access to all apps/features
+    const plan: PlanTier = isMainSite
+      ? "enterprise"
+      : parsePlanFromSettings(tenant?.settings);
     return {
       plan,
       limits: getPlanLimits(plan),
       isPastDue: isSubscriptionPastDue(tenant?.settings),
       isFreePlan: plan === "free",
     };
-  }, [tenant?.settings]);
+  }, [tenant?.settings, isMainSite]);
 }

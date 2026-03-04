@@ -38,6 +38,10 @@ import {
   Building2,
   LayoutGrid,
   ShieldCheck,
+  Radar,
+  Shield,
+  Database,
+  Handshake,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useTenant } from "@/lib/tenant";
@@ -110,8 +114,20 @@ const sidebarSections: SidebarSection[] = [
     items: [
       { label: "Infrastructure", path: "/admin/infrastructure", icon: Server },
       { label: "APIs", path: "/admin/apis", icon: Cable },
+      { label: "API Access", path: "/admin/api-access", icon: Shield },
       { label: "Configs", path: "/admin/configs", icon: FileCode2 },
       { label: "Compliance", path: "/admin/compliance", icon: ShieldCheck },
+      { label: "Partners", path: "/admin/partner-program", icon: Handshake },
+      {
+        label: "Dedicated Instance",
+        path: "/admin/dedicated-instance",
+        icon: Server,
+      },
+      {
+        label: "Data Management",
+        path: "/admin/data-management",
+        icon: Database,
+      },
       { label: "Style Guide", path: "/admin/style", icon: Palette },
     ],
   },
@@ -123,6 +139,7 @@ const sidebarSections: SidebarSection[] = [
       { label: "Workflows", path: "/admin/workflows", icon: GitBranch },
       { label: "Scheduler", path: "/admin/scheduler", icon: Clock },
       { label: "Integrations", path: "/admin/integrations", icon: Plug },
+      { label: "War Room", path: "/admin/war-room", icon: Radar },
       { label: "Audit Log", path: "/admin/audit", icon: FileSearch },
     ],
   },

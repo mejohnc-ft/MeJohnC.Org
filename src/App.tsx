@@ -108,6 +108,13 @@ const AdminAuditLog = lazy(() => import("./pages/admin/AuditLog"));
 const AdminComplianceDashboard = lazy(
   () => import("./pages/admin/ComplianceDashboard"),
 );
+const AdminAgentWarRoom = lazy(() => import("./pages/admin/AgentWarRoom"));
+const AdminApiAccess = lazy(() => import("./pages/admin/ApiAccess"));
+const AdminDataManagement = lazy(() => import("./pages/admin/DataManagement"));
+const AdminDedicatedInstance = lazy(
+  () => import("./pages/admin/DedicatedInstance"),
+);
+const AdminPartnerProgram = lazy(() => import("./pages/admin/PartnerProgram"));
 
 // Note: These routes are now dynamically loaded from feature modules:
 // - Tasks (/admin/tasks/*) - from tasks module
@@ -609,6 +616,20 @@ function AdminRoutes() {
             path="/admin/compliance"
             element={<AdminComplianceDashboard />}
           />
+          <Route path="/admin/war-room" element={<AdminAgentWarRoom />} />
+          <Route path="/admin/api-access" element={<AdminApiAccess />} />
+          <Route
+            path="/admin/data-management"
+            element={<AdminDataManagement />}
+          />
+          <Route
+            path="/admin/dedicated-instance"
+            element={<AdminDedicatedInstance />}
+          />
+          <Route
+            path="/admin/partner-program"
+            element={<AdminPartnerProgram />}
+          />
 
           {/* Platform admin routes (super-admin, main site only) */}
           <Route
@@ -638,6 +659,9 @@ function AdminRoutes() {
 
           {/* Dynamic feature module routes */}
           {renderFeatureRoutes()}
+
+          {/* 404 catch-all: redirect unknown admin paths to dashboard */}
+          <Route path="/admin/*" element={<Navigate to="/admin" replace />} />
         </Routes>
       </Suspense>
     </ErrorBoundary>
