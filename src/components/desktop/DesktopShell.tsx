@@ -138,6 +138,8 @@ function DesktopShellContent() {
   );
 }
 
+const MAIN_SITE_ONBOARDING_KEY = "desktop-onboarding-complete";
+
 export default function DesktopShell() {
   const { isSignedIn, isLoaded, user } = useAuth();
   const { tenant, status, isMainSite, refreshTenant } = useTenant();
@@ -153,6 +155,23 @@ export default function DesktopShell() {
 
   if (!isSignedIn || !user) {
     return <Navigate to="/admin/login" replace />;
+  }
+
+  // Show onboarding wizard for main site owner on first desktop visit
+  if (isMainSite && !wizardDismissed) {
+    const alreadyCompleted =
+      localStorage.getItem(MAIN_SITE_ONBOARDING_KEY) === "true";
+    if (!alreadyCompleted) {
+      return (
+        <OnboardingWizard
+          initialStep={0}
+          onComplete={() => {
+            localStorage.setItem(MAIN_SITE_ONBOARDING_KEY, "true");
+            setWizardDismissed(true);
+          }}
+        />
+      );
+    }
   }
 
   // Show onboarding wizard for tenant users who haven't completed setup

@@ -31,6 +31,16 @@ import {
   User,
   Sparkles,
   Palette,
+  Terminal,
+  Activity,
+  StickyNote,
+  Database,
+  Radar,
+  Hammer,
+  Calendar,
+  Shield,
+  ShieldCheck,
+  Handshake,
 } from "lucide-react";
 import { useReducedMotion } from "@/lib/reduced-motion";
 import { useWindowManagerContext } from "./WindowManager";
@@ -69,6 +79,16 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Palette,
   FolderOpen,
   Package,
+  Terminal,
+  Activity,
+  StickyNote,
+  Database,
+  Radar,
+  Hammer,
+  Calendar,
+  Shield,
+  ShieldCheck,
+  Handshake,
 };
 
 interface SpotlightProps {
