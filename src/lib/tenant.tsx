@@ -195,8 +195,9 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     const client = createSupabaseClient();
 
     if (!client) {
-      setStatus("error");
-      setError("Supabase not configured");
+      // No Supabase? Main site still works — only tenants need it.
+      setStatus("main_site");
+      setTenant(null);
       return;
     }
 
@@ -216,13 +217,27 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         if (cancelled) return;
 
         if (rpcError) {
-          setStatus("error");
-          setError(rpcError.message);
+          // Subdomain slugs are explicit tenant requests — show the error.
+          // Custom domains that fail to resolve fall back to main site.
+          if (resolved.type === "slug") {
+            setStatus("error");
+            setError(rpcError.message);
+          } else {
+            setStatus("main_site");
+            setTenant(null);
+          }
           return;
         }
 
         if (!data || (Array.isArray(data) && data.length === 0)) {
-          setStatus("not_found");
+          // Subdomain slugs that don't resolve → workspace not found.
+          // Custom domains that don't resolve → this IS the main site.
+          if (resolved.type === "slug") {
+            setStatus("not_found");
+          } else {
+            setStatus("main_site");
+            setTenant(null);
+          }
           return;
         }
 
