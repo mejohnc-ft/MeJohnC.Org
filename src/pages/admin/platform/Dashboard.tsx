@@ -32,7 +32,9 @@ const PlatformDashboard = () => {
     async function fetchStats() {
       if (!supabase) return;
       try {
-        const { data, error } = await supabase.rpc("get_platform_stats");
+        const { data, error } = await supabase
+          .schema("app")
+          .rpc("get_platform_stats");
         if (error) throw error;
         setStats(data as PlatformStats);
       } catch (err) {

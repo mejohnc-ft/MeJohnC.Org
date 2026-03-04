@@ -116,7 +116,7 @@ const handler: Handler = async (event: HandlerEvent) => {
         const priceId = subscription.items.data[0]?.price.id || "";
         const plan = mapPriceToPlan(priceId);
 
-        await supabase.rpc("update_tenant_billing", {
+        await supabase.schema("app").rpc("update_tenant_billing", {
           p_stripe_customer_id: customerId,
           p_stripe_subscription_id: subscriptionId,
           p_plan: plan,
@@ -142,7 +142,7 @@ const handler: Handler = async (event: HandlerEvent) => {
         const priceId = subscription.items.data[0]?.price.id || "";
         const plan = mapPriceToPlan(priceId);
 
-        await supabase.rpc("update_tenant_billing", {
+        await supabase.schema("app").rpc("update_tenant_billing", {
           p_stripe_customer_id: customerId,
           p_stripe_subscription_id: subscription.id,
           p_plan: plan,
@@ -165,7 +165,7 @@ const handler: Handler = async (event: HandlerEvent) => {
             ? subscription.customer
             : subscription.customer.id;
 
-        await supabase.rpc("update_tenant_billing", {
+        await supabase.schema("app").rpc("update_tenant_billing", {
           p_stripe_customer_id: customerId,
           p_stripe_subscription_id: subscription.id,
           p_plan: "free",
@@ -201,7 +201,7 @@ const handler: Handler = async (event: HandlerEvent) => {
         const priceId = subscription.items.data[0]?.price.id || "";
         const plan = mapPriceToPlan(priceId);
 
-        await supabase.rpc("update_tenant_billing", {
+        await supabase.schema("app").rpc("update_tenant_billing", {
           p_stripe_customer_id: customerId,
           p_stripe_subscription_id: subscriptionId,
           p_plan: plan,

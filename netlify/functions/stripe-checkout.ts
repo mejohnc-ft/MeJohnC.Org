@@ -124,10 +124,12 @@ const handler: Handler = async (event: HandlerEvent) => {
       customerId = customer.id;
 
       // Link customer ID to tenant via RPC
-      const { error: linkError } = await supabase.rpc("link_stripe_customer", {
-        p_tenant_id: tenant.id,
-        p_stripe_customer_id: customerId,
-      });
+      const { error: linkError } = await supabase
+        .schema("app")
+        .rpc("link_stripe_customer", {
+          p_tenant_id: tenant.id,
+          p_stripe_customer_id: customerId,
+        });
 
       if (linkError) {
         return {

@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'supabase/migrations/**'
+      - 'supabase/config.toml'
       - '.github/workflows/migrate.yml'
   workflow_dispatch:
 
@@ -30,3 +31,11 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+
+      - name: Sync PostgREST exposed schemas
+        run: |
+          curl -sf -X PATCH \
+            "https://api.supabase.com/v1/projects/${{ secrets.SUPABASE_PROJECT_REF }}/postgrest" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ACCESS_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"db_schema": "public,graphql_public,app"}'
