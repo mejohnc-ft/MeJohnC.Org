@@ -300,6 +300,7 @@ export function useTenantSupabase(): {
     if (!supabase || !tenantId || contextSetRef.current) return;
 
     supabase
+      .schema("app")
       .rpc("set_tenant_context", { tenant_id: tenantId })
       .then(({ error }) => {
         if (error) {

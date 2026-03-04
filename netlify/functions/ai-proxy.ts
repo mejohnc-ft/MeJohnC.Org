@@ -129,13 +129,12 @@ const handler: Handler = async (event: HandlerEvent) => {
       // Get current usage count
       const periodStart = settings.current_period_start as string | undefined;
       if (periodStart) {
-        const { data: count } = await supabase.rpc(
-          "get_tenant_ai_usage_count",
-          {
+        const { data: count } = await supabase
+          .schema("app")
+          .rpc("get_tenant_ai_usage_count", {
             p_tenant_id: tenantId,
             p_period_start: periodStart,
-          },
-        );
+          });
         usageCount = typeof count === "number" ? count : 0;
       }
 

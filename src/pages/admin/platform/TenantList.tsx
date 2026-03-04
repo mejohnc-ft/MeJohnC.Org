@@ -31,7 +31,7 @@ const TenantListPage = () => {
     if (!supabase) return;
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.rpc("list_tenants", {
+      const { data, error } = await supabase.schema("app").rpc("list_tenants", {
         p_search: search || null,
         p_limit: PAGE_SIZE,
         p_offset: page * PAGE_SIZE,
@@ -55,10 +55,12 @@ const TenantListPage = () => {
     if (!supabase) return;
     setTogglingId(tenantId);
     try {
-      const { error } = await supabase.rpc("toggle_tenant_status", {
-        p_tenant_id: tenantId,
-        p_is_active: !isActive,
-      });
+      const { error } = await supabase
+        .schema("app")
+        .rpc("toggle_tenant_status", {
+          p_tenant_id: tenantId,
+          p_is_active: !isActive,
+        });
       if (error) throw error;
       setTenants((prev) =>
         prev.map((t) =>

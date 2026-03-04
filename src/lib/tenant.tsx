@@ -160,6 +160,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
 
       let cancelled = false;
       client
+        .schema("app")
         .rpc("resolve_tenant_by_slug", { p_slug: devSlug })
         .then(({ data, error: rpcError }) => {
           if (cancelled) return;
@@ -208,24 +209,27 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         ? { p_slug: resolved.value }
         : { p_domain: resolved.value };
 
-    client.rpc(rpcName, rpcParams).then(({ data, error: rpcError }) => {
-      if (cancelled) return;
+    client
+      .schema("app")
+      .rpc(rpcName, rpcParams)
+      .then(({ data, error: rpcError }) => {
+        if (cancelled) return;
 
-      if (rpcError) {
-        setStatus("error");
-        setError(rpcError.message);
-        return;
-      }
+        if (rpcError) {
+          setStatus("error");
+          setError(rpcError.message);
+          return;
+        }
 
-      if (!data || (Array.isArray(data) && data.length === 0)) {
-        setStatus("not_found");
-        return;
-      }
+        if (!data || (Array.isArray(data) && data.length === 0)) {
+          setStatus("not_found");
+          return;
+        }
 
-      const row = Array.isArray(data) ? data[0] : data;
-      setTenant(row as Tenant);
-      setStatus("resolved");
-    });
+        const row = Array.isArray(data) ? data[0] : data;
+        setTenant(row as Tenant);
+        setStatus("resolved");
+      });
 
     return () => {
       cancelled = true;

@@ -132,9 +132,11 @@ async function initiateByo(
     provisioned_via: "byo",
   };
 
-  const { error: rpcError } = await supabase.rpc("update_tenant_settings", {
-    p_domain: domainSettings,
-  });
+  const { error: rpcError } = await supabase
+    .schema("app")
+    .rpc("update_tenant_settings", {
+      p_domain: domainSettings,
+    });
 
   // update_tenant_settings requires authenticated + is_admin, but we're service_role
   // so call it directly if the RPC doesn't work
@@ -148,13 +150,12 @@ async function initiateByo(
       .eq("id", tenantId);
 
     // Direct JSONB merge
-    const { error: directErr } = await supabase.rpc(
-      "set_tenant_custom_domain",
-      {
+    const { error: directErr } = await supabase
+      .schema("app")
+      .rpc("set_tenant_custom_domain", {
         p_tenant_id: tenantId,
         p_domain: null, // don't set column yet — not verified
-      },
-    );
+      });
 
     // Update settings directly
     const { data: tenant } = await supabase
@@ -349,10 +350,12 @@ async function provisionNetlify(
   }
 
   // Set the indexed column via RPC
-  const { error: rpcErr } = await supabase.rpc("set_tenant_custom_domain", {
-    p_tenant_id: tenantId,
-    p_domain: customDomain,
-  });
+  const { error: rpcErr } = await supabase
+    .schema("app")
+    .rpc("set_tenant_custom_domain", {
+      p_tenant_id: tenantId,
+      p_domain: customDomain,
+    });
 
   if (rpcErr) {
     return json(500, { error: "Failed to set custom domain on tenant record" });
@@ -482,7 +485,7 @@ async function purchaseDomain(
   }
 
   // 4. Set tenant custom domain column + JSONB
-  await supabase.rpc("set_tenant_custom_domain", {
+  await supabase.schema("app").rpc("set_tenant_custom_domain", {
     p_tenant_id: tenantId,
     p_domain: domain,
   });
@@ -578,7 +581,7 @@ async function removeDomain(
   }
 
   // Clear custom_domain column via RPC
-  await supabase.rpc("set_tenant_custom_domain", {
+  await supabase.schema("app").rpc("set_tenant_custom_domain", {
     p_tenant_id: tenantId,
     p_domain: null,
   });

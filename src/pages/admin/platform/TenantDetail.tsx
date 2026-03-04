@@ -53,10 +53,12 @@ const TenantDetailPage = () => {
     if (!supabase || !tenant) return;
     setIsToggling(true);
     try {
-      const { error } = await supabase.rpc("toggle_tenant_status", {
-        p_tenant_id: tenant.id,
-        p_is_active: !tenant.is_active,
-      });
+      const { error } = await supabase
+        .schema("app")
+        .rpc("toggle_tenant_status", {
+          p_tenant_id: tenant.id,
+          p_is_active: !tenant.is_active,
+        });
       if (error) throw error;
       setTenant({ ...tenant, is_active: !tenant.is_active });
     } catch (err) {

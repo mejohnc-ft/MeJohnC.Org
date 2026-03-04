@@ -44,7 +44,9 @@ export function useTenantSettings(): UseTenantSettingsResult {
   } = useMutation(
     async (params: Record<string, unknown>) => {
       if (!supabase) throw new Error("Supabase not available");
-      const { error } = await supabase.rpc("update_tenant_settings", params);
+      const { error } = await supabase
+        .schema("app")
+        .rpc("update_tenant_settings", params);
       if (error) throw error;
     },
     {

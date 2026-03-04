@@ -40,6 +40,7 @@ export function useAIUsage(): AIUsageState {
     setLoading(true);
 
     supabase
+      .schema("app")
       .rpc("get_tenant_ai_usage_count", {
         p_tenant_id: tenant.id,
         p_period_start: periodStart,
