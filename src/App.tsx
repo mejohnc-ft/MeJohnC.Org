@@ -336,16 +336,12 @@ function PlatformGate({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// Show landing page on main site, Home on tenant subdomains
+// Personal portfolio on main site, tenant Home on subdomains
 function HomeOrLanding() {
   const { isMainSite } = useTenant();
 
   if (isMainSite) {
-    return (
-      <Suspense fallback={<PageLoader />}>
-        <LandingPage />
-      </Suspense>
-    );
+    return <Home />;
   }
 
   return <Home />;
@@ -468,6 +464,16 @@ function AnimatedRoutes() {
           element={
             <Suspense fallback={<PageLoader />}>
               <TerritoriesProject />
+            </Suspense>
+          }
+        />
+
+        {/* Business OS Platform (product landing page) */}
+        <Route
+          path="/projects/business-os"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <LandingPage />
             </Suspense>
           }
         />
