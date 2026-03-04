@@ -205,6 +205,11 @@ export default function OnboardingWizard({
         } else if (currentStep === 2) {
           await saveEnabledApps(enabledApps);
           await saveDockPinned(dockPinned);
+          // Also persist to localStorage as fallback (main site has no tenant to save to)
+          localStorage.setItem(
+            "desktop-onboarding-dock-pins",
+            JSON.stringify(dockPinned),
+          );
         } else if (currentStep === 3) {
           await sendInvites();
         }
