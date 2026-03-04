@@ -660,6 +660,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
               signOut={signOut}
               expandedSections={expandedSections}
               toggleSection={toggleSection}
+              sections={effectiveSections}
             />
           </div>
         </motion.aside>
