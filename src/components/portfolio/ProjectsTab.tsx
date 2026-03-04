@@ -1,23 +1,25 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Edit2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { CardSkeleton } from '@/components/Skeleton';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { SignedIn } from '@/lib/auth';
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Edit2 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { CardSkeleton } from "@/components/Skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { SignedIn } from "@/lib/auth";
 import {
   getProjects,
   getSiteContent,
   type Project,
   type SiteContent,
-} from '@/lib/supabase-queries';
-import { captureException } from '@/lib/sentry';
+} from "@/lib/supabase-queries";
+import { captureException } from "@/lib/sentry";
 
 export default function ProjectsTab() {
   const [projects, setProjects] = useState<Project[]>([]);
-  const [projectsContent, setProjectsContent] = useState<SiteContent | null>(null);
+  const [projectsContent, setProjectsContent] = useState<SiteContent | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -25,12 +27,14 @@ export default function ProjectsTab() {
       try {
         const [projectsData, contentData] = await Promise.all([
           getProjects(),
-          getSiteContent('projects'),
+          getSiteContent("projects"),
         ]);
         setProjects(projectsData);
         setProjectsContent(contentData);
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), { context: 'ProjectsTab.fetchProjects' });
+        captureException(err instanceof Error ? err : new Error(String(err)), {
+          context: "ProjectsTab.fetchProjects",
+        });
       } finally {
         setIsLoading(false);
       }
@@ -45,7 +49,7 @@ export default function ProjectsTab() {
       initial={{ opacity: 0, x: -50 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 50 }}
-      transition={{ duration: 0.3, ease: 'easeInOut' }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
     >
       <div className="mb-12">
         <div className="flex items-center justify-between">
@@ -54,7 +58,7 @@ export default function ProjectsTab() {
               Experiments
             </span>
             <h2 className="text-3xl md:text-4xl font-black text-foreground mt-2">
-              {projectsContent?.title || 'Side Projects'}
+              {projectsContent?.title || "Side Projects"}
             </h2>
           </div>
           <SignedIn>
@@ -91,22 +95,81 @@ export default function ProjectsTab() {
               <Card className="overflow-hidden border border-border hover:border-primary transition-all duration-300 bg-card/50 group cursor-pointer">
                 <div className="aspect-video overflow-hidden bg-black">
                   <div className="w-full h-full flex items-center justify-center">
-                    <span className="font-serif text-6xl font-bold text-white tracking-tight" style={{ fontFamily: "'Playfair Display', 'Georgia', serif" }}>T</span>
+                    <span
+                      className="font-serif text-6xl font-bold text-white tracking-tight"
+                      style={{
+                        fontFamily: "'Playfair Display', 'Georgia', serif",
+                      }}
+                    >
+                      T
+                    </span>
                   </div>
                 </div>
                 <div className="p-6">
                   <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors mb-2">
                     Territories
                   </h3>
-                  <p className="text-sm text-primary mb-2">Design System Explorer</p>
+                  <p className="text-sm text-primary mb-2">
+                    Design System Explorer
+                  </p>
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                    A comprehensive design reference tool for AI-forward product design.
-                    Explore 50+ design territories, compare philosophies, and build custom design recipes.
+                    A comprehensive design reference tool for AI-forward product
+                    design. Explore 50+ design territories, compare
+                    philosophies, and build custom design recipes.
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline" className="font-mono text-xs">HTML</Badge>
-                    <Badge variant="outline" className="font-mono text-xs">CSS</Badge>
-                    <Badge variant="outline" className="font-mono text-xs">Design Systems</Badge>
+                    <Badge variant="outline" className="font-mono text-xs">
+                      HTML
+                    </Badge>
+                    <Badge variant="outline" className="font-mono text-xs">
+                      CSS
+                    </Badge>
+                    <Badge variant="outline" className="font-mono text-xs">
+                      Design Systems
+                    </Badge>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+          </motion.div>
+
+          {/* Business OS Platform - Static Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Link to="/projects/business-os">
+              <Card className="overflow-hidden border border-border hover:border-primary transition-all duration-300 bg-card/50 group cursor-pointer">
+                <div className="aspect-video overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5">
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="font-mono text-5xl font-bold text-primary tracking-tight">
+                      BOS
+                    </span>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors mb-2">
+                    Business OS
+                  </h3>
+                  <p className="text-sm text-primary mb-2">
+                    Website & Business Platform
+                  </p>
+                  <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                    A full-stack platform for building your website with
+                    integrated business tools — CRM, AI agents, metrics, site
+                    builder, and multi-tenant support.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline" className="font-mono text-xs">
+                      React
+                    </Badge>
+                    <Badge variant="outline" className="font-mono text-xs">
+                      Supabase
+                    </Badge>
+                    <Badge variant="outline" className="font-mono text-xs">
+                      Multi-Tenant
+                    </Badge>
                   </div>
                 </div>
               </Card>
@@ -119,7 +182,7 @@ export default function ProjectsTab() {
               key={project.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: (index + 1) * 0.1 }}
+              transition={{ delay: (index + 2) * 0.1 }}
             >
               <Card className="overflow-hidden border border-border hover:border-primary transition-all duration-300 bg-card/50 group">
                 {project.cover_image && (
@@ -136,7 +199,9 @@ export default function ProjectsTab() {
                     {project.name}
                   </h3>
                   {project.tagline && (
-                    <p className="text-sm text-primary mb-2">{project.tagline}</p>
+                    <p className="text-sm text-primary mb-2">
+                      {project.tagline}
+                    </p>
                   )}
                   {project.description && (
                     <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
@@ -146,7 +211,11 @@ export default function ProjectsTab() {
                   {project.tech_stack && project.tech_stack.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {project.tech_stack.slice(0, 3).map((t, i) => (
-                        <Badge key={i} variant="outline" className="font-mono text-xs">
+                        <Badge
+                          key={i}
+                          variant="outline"
+                          className="font-mono text-xs"
+                        >
                           {t}
                         </Badge>
                       ))}
