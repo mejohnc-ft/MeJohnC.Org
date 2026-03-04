@@ -274,7 +274,7 @@ export default function FileExplorer() {
     <div
       ref={containerRef}
       tabIndex={-1}
-      className="flex flex-col h-full -m-8 bg-background outline-none"
+      className="flex flex-col h-full bg-background outline-none"
     >
       <FileExplorerToolbar
         currentPath={fs.currentPath}

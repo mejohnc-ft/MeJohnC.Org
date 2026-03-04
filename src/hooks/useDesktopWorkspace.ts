@@ -161,6 +161,27 @@ export function useDesktopWorkspace({
           if (appIds.length > 0) {
             setDockItems(appIds);
           }
+        } else {
+          // Check localStorage for dock pins set during onboarding (main site fallback)
+          const onboardingPins = localStorage.getItem(
+            "desktop-onboarding-dock-pins",
+          );
+          if (onboardingPins) {
+            try {
+              const pins = JSON.parse(onboardingPins) as string[];
+              const validPins = pins.filter((id) => !!getApp(id));
+              if (validPins.length > 0) {
+                setDockItems(validPins);
+                // Save to workspace so they persist properly going forward
+                saveWorkspace(ws.id, {
+                  dock_items: validPins.map((appId) => ({ appId })),
+                }).catch(() => {});
+              }
+            } catch {
+              // Invalid JSON, ignore
+            }
+            localStorage.removeItem("desktop-onboarding-dock-pins");
+          }
         }
 
         // Restore window states (handles both legacy array and versioned format)

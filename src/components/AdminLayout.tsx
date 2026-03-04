@@ -535,6 +535,11 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
+  // Inside desktop OS shell — skip admin chrome, DesktopShell handles auth
+  if (location.pathname.startsWith("/admin/desktop")) {
+    return <>{children}</>;
+  }
+
   if (!isLoaded) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
