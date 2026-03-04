@@ -49,8 +49,8 @@ interface SEOSettings {
 }
 
 const defaultSEO: SEOSettings = {
-  siteName: import.meta.env.VITE_PLATFORM_NAME || "Business OS",
-  siteUrl: import.meta.env.VITE_SITE_URL || "https://businessos.app",
+  siteName: import.meta.env.VITE_PLATFORM_NAME || "MeJohnC",
+  siteUrl: import.meta.env.VITE_SITE_URL || "https://mejohnc.org",
   defaultDescription:
     import.meta.env.VITE_SITE_DESCRIPTION ||
     "Your website and business tools in one platform.",

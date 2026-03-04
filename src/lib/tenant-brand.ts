@@ -22,9 +22,9 @@ export interface TenantBrand {
 
 /** Platform-level defaults (used for main site / fallback) */
 const PLATFORM_DEFAULTS: TenantBrand = {
-  name: import.meta.env.VITE_PLATFORM_NAME || "Business OS",
-  siteUrl: import.meta.env.VITE_SITE_URL || "https://businessos.app",
-  fromEmail: import.meta.env.VITE_EMAIL_FROM || "noreply@businessos.app",
+  name: import.meta.env.VITE_PLATFORM_NAME || "MeJohnC",
+  siteUrl: import.meta.env.VITE_SITE_URL || "https://mejohnc.org",
+  fromEmail: import.meta.env.VITE_EMAIL_FROM || "noreply@mejohnc.org",
   storageBucket: import.meta.env.VITE_STORAGE_BUCKET || "uploads",
   corsOrigins: (import.meta.env.VITE_CORS_ORIGINS || "")
     .split(",")
