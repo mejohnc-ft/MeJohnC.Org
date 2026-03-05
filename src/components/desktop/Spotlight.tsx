@@ -273,7 +273,10 @@ export default function Spotlight({ isOpen, onClose }: SpotlightProps) {
   // Keyboard navigation
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === "ArrowDown") {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      } else if (e.key === "ArrowDown") {
         e.preventDefault();
         setSelectedIndex((prev) => Math.min(prev + 1, results.length - 1));
       } else if (e.key === "ArrowUp") {
@@ -287,7 +290,7 @@ export default function Spotlight({ isOpen, onClose }: SpotlightProps) {
         }
       }
     },
-    [results, selectedIndex],
+    [results, selectedIndex, onClose],
   );
 
   // Scroll selected result into view
