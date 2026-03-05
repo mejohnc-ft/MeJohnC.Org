@@ -1,4 +1,11 @@
-import { useState, useCallback, useMemo, Suspense, lazy } from "react";
+import {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  Suspense,
+  lazy,
+} from "react";
 import { useWindowManagerContext, useWorkspaceContext } from "./WindowManager";
 import { getApp, getAppsForTenant } from "./apps/AppRegistry";
 import { ArrowLeft, Search, Clock } from "lucide-react";
@@ -15,11 +22,17 @@ function MobileStatusBar({
   currentAppName: string | null;
   onSpotlightOpen: () => void;
 }) {
-  const now = new Date();
-  const timeString = now.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  const formatTime = () =>
+    new Date().toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  const [timeString, setTimeString] = useState(formatTime);
+
+  useEffect(() => {
+    const interval = setInterval(() => setTimeString(formatTime()), 1_000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="h-14 bg-card/80 backdrop-blur-md border-b border-border flex items-center justify-between px-4 sticky top-0 z-10">
