@@ -50,6 +50,17 @@ export default function Desktop() {
     [contextMenu, fs, launchApp],
   );
 
+  const handleOpenIcon = useCallback(
+    (node: FileSystemNode) => {
+      if (node.type === "folder") {
+        launchApp("file-explorer");
+      } else if (node.target_type === "app" && node.target_id) {
+        launchApp(node.target_id);
+      }
+    },
+    [launchApp],
+  );
+
   const handleIconContextMenu = useCallback(
     (e: React.MouseEvent, node: FileSystemNode) => {
       const items: ContextMenuItem[] = [
@@ -64,18 +75,7 @@ export default function Desktop() {
       ];
       contextMenu.openMenu(e, items);
     },
-    [contextMenu, fs],
-  );
-
-  const handleOpenIcon = useCallback(
-    (node: FileSystemNode) => {
-      if (node.type === "folder") {
-        launchApp("file-explorer");
-      } else if (node.target_type === "app" && node.target_id) {
-        launchApp(node.target_id);
-      }
-    },
-    [launchApp],
+    [contextMenu, fs, handleOpenIcon],
   );
 
   const handleIconSelect = useCallback((id: string) => {
