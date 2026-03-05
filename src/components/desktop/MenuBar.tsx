@@ -87,7 +87,7 @@ export default function MenuBar({
 
   return (
     <div
-      className="h-7 flex items-center justify-between px-3 bg-card/90 backdrop-blur-sm border-b border-border select-none"
+      className="h-7 relative flex items-center justify-between px-3 bg-card/90 backdrop-blur-sm border-b border-border select-none"
       style={{ zIndex: 50 }}
       role="menubar"
     >
