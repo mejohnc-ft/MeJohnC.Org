@@ -118,7 +118,7 @@ export default function ContextMenu({
       ref={menuRef}
       className="fixed min-w-[180px] bg-card/95 backdrop-blur-md border border-border rounded-lg shadow-xl py-1 outline-none"
       style={{
-        zIndex: 55,
+        zIndex: 9995,
         left: positioned ? undefined : -9999,
         top: positioned ? undefined : -9999,
         visibility: positioned ? "visible" : "hidden",
