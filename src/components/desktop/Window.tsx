@@ -3,7 +3,6 @@ import {
   Suspense,
   useCallback,
   useRef,
-  lazy,
   useMemo,
   useState,
   useEffect,
@@ -13,7 +12,7 @@ import { motion } from "framer-motion";
 import { useReducedMotion } from "@/lib/reduced-motion";
 import { useWindowManagerContext } from "./WindowManager";
 import WindowTitleBar from "./WindowTitleBar";
-import { getApp } from "./apps/AppRegistry";
+import { getApp, getLazyComponent } from "./apps/AppRegistry";
 import { useWindowDrag } from "@/hooks/useWindowDrag";
 import { useWindowResize, ResizeHandles } from "@/hooks/useWindowResize";
 import { useSnapZones, SnapPreview } from "@/hooks/useSnapZones";
@@ -279,7 +278,7 @@ export default function Window({ window: win }: WindowProps) {
   // Lazy load the app component
   const AppComponent = useMemo(() => {
     if (!app) return null;
-    return lazy(app.component);
+    return getLazyComponent(app);
   }, [app]);
 
   if (!app || !AppComponent) return null;
