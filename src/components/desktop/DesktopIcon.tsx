@@ -204,7 +204,16 @@ export default function DesktopIcon({
         case "Delete":
         case "Backspace":
           e.preventDefault();
-          onContextMenu(e as unknown as React.MouseEvent, node);
+          if (iconRef.current) {
+            const rect = iconRef.current.getBoundingClientRect();
+            const syntheticEvent = {
+              clientX: rect.left + rect.width / 2,
+              clientY: rect.top + rect.height / 2,
+              preventDefault: () => {},
+              stopPropagation: () => {},
+            } as unknown as React.MouseEvent;
+            onContextMenu(syntheticEvent, node);
+          }
           break;
       }
     },
