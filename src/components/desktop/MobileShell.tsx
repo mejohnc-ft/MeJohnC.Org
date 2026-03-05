@@ -1,6 +1,6 @@
-import { useState, useCallback, useMemo, Suspense, lazy } from "react";
+import { useState, useCallback, useMemo, Suspense } from "react";
 import { useWindowManagerContext, useWorkspaceContext } from "./WindowManager";
-import { getApp, getAppsForTenant } from "./apps/AppRegistry";
+import { getApp, getAppsForTenant, getLazyComponent } from "./apps/AppRegistry";
 import { ArrowLeft, Search, Clock } from "lucide-react";
 import { useBilling } from "@/hooks/useBilling";
 import { useTenant } from "@/lib/tenant";
@@ -157,7 +157,7 @@ function MobileAppRenderer({ appId }: { appId: string }) {
 
   if (!app) return null;
 
-  const AppComponent = lazy(app.component);
+  const AppComponent = getLazyComponent(app);
 
   return (
     <div className="flex-1 overflow-auto bg-background">
