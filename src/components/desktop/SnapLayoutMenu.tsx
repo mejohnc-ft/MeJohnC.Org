@@ -92,54 +92,54 @@ export function getTileGeometry(layout: TileLayout): {
 
   switch (layout) {
     case "full":
-      return { x: 0, y: MENU_BAR_HEIGHT, width: vw, height: usableH };
+      return { x: 0, y: 0, width: vw, height: usableH };
     case "left-half":
-      return { x: 0, y: MENU_BAR_HEIGHT, width: halfW, height: usableH };
+      return { x: 0, y: 0, width: halfW, height: usableH };
     case "right-half":
       return {
         x: halfW,
-        y: MENU_BAR_HEIGHT,
+        y: 0,
         width: vw - halfW,
         height: usableH,
       };
     case "top-left":
-      return { x: 0, y: MENU_BAR_HEIGHT, width: halfW, height: halfH };
+      return { x: 0, y: 0, width: halfW, height: halfH };
     case "top-right":
-      return { x: halfW, y: MENU_BAR_HEIGHT, width: vw - halfW, height: halfH };
+      return { x: halfW, y: 0, width: vw - halfW, height: halfH };
     case "bottom-left":
       return {
         x: 0,
-        y: MENU_BAR_HEIGHT + halfH,
+        y: halfH,
         width: halfW,
         height: usableH - halfH,
       };
     case "bottom-right":
       return {
         x: halfW,
-        y: MENU_BAR_HEIGHT + halfH,
+        y: halfH,
         width: vw - halfW,
         height: usableH - halfH,
       };
     case "left-third":
-      return { x: 0, y: MENU_BAR_HEIGHT, width: thirdW, height: usableH };
+      return { x: 0, y: 0, width: thirdW, height: usableH };
     case "center-third":
-      return { x: thirdW, y: MENU_BAR_HEIGHT, width: thirdW, height: usableH };
+      return { x: thirdW, y: 0, width: thirdW, height: usableH };
     case "right-third":
       return {
         x: thirdW * 2,
-        y: MENU_BAR_HEIGHT,
+        y: 0,
         width: vw - thirdW * 2,
         height: usableH,
       };
     case "center-half":
       return {
         x: Math.floor(vw / 4),
-        y: MENU_BAR_HEIGHT,
+        y: 0,
         width: halfW,
         height: usableH,
       };
     default:
-      return { x: 0, y: MENU_BAR_HEIGHT, width: vw, height: usableH };
+      return { x: 0, y: 0, width: vw, height: usableH };
   }
 }
 

@@ -1,5 +1,4 @@
 import { useCallback, useRef } from "react";
-import { MENU_BAR_HEIGHT } from "@/lib/desktop-constants";
 
 export type ResizeEdge = "n" | "e" | "s" | "w" | "ne" | "nw" | "se" | "sw";
 
@@ -52,9 +51,9 @@ function calcResize(
   if (hasNorth) {
     const dh = Math.min(dy, start.h - minH);
     newH = start.h - dh;
-    newY = Math.max(MENU_BAR_HEIGHT, start.y + dh);
-    if (newY === MENU_BAR_HEIGHT && start.y + dh < MENU_BAR_HEIGHT) {
-      newH = start.y + start.h - MENU_BAR_HEIGHT;
+    newY = Math.max(0, start.y + dh);
+    if (newY === 0 && start.y + dh < 0) {
+      newH = start.y + start.h;
     }
   }
 

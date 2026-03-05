@@ -136,7 +136,7 @@ export function WindowManagerProvider({
 
       // Cascade position for new windows
       const baseX = 80 + (cascadeOffset.current % 8) * 30;
-      const baseY = MENU_BAR_HEIGHT + 40 + (cascadeOffset.current % 8) * 30;
+      const baseY = 40 + (cascadeOffset.current % 8) * 30;
       cascadeOffset.current++;
 
       // Clamp size to viewport
@@ -148,8 +148,8 @@ export function WindowManagerProvider({
       // Clamp position to viewport
       const maxX = Math.max(0, window.innerWidth - width);
       const maxY = Math.max(
-        MENU_BAR_HEIGHT,
-        window.innerHeight - DOCK_HEIGHT - height,
+        0,
+        window.innerHeight - MENU_BAR_HEIGHT - DOCK_HEIGHT - height,
       );
       const x = Math.min(baseX, maxX);
       const y = Math.min(baseY, maxY);
@@ -187,8 +187,8 @@ export function WindowManagerProvider({
     (id: string) => {
       wm.maximizeWindow(id, {
         width: window.innerWidth,
-        height: window.innerHeight - DOCK_HEIGHT,
-        topOffset: MENU_BAR_HEIGHT,
+        height: window.innerHeight - MENU_BAR_HEIGHT - DOCK_HEIGHT,
+        topOffset: 0,
       });
     },
     [wm],
