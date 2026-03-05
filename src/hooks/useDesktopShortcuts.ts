@@ -35,6 +35,8 @@ export function useDesktopShortcuts({
     (e: KeyboardEvent) => {
       switch (e.key) {
         case "w":
+          // Only intercept Cmd+W on Mac; Ctrl+W on Windows/Linux closes the browser tab
+          if (!e.metaKey) break;
           e.preventDefault();
           if (focusedWindowId) closeWindow(focusedWindowId);
           break;
