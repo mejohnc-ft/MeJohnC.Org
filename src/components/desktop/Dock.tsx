@@ -254,7 +254,7 @@ export default function Dock() {
       <div
         ref={dockRef}
         className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-end gap-1 px-3 py-1.5 bg-card/60 backdrop-blur-md border border-border/50 rounded-2xl shadow-xl max-w-[calc(100vw-48px)] overflow-x-auto scrollbar-hide"
-        style={{ zIndex: 40 }}
+        style={{ zIndex: 9990 }}
         role="toolbar"
         aria-label="Application dock"
         onMouseMove={handleMouseMove}
