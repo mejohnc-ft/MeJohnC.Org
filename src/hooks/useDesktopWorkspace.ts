@@ -134,87 +134,99 @@ export function useDesktopWorkspace({
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasRestoredRef = useRef(false);
 
-  // Load or create workspace on mount
-  useEffect(() => {
-    let cancelled = false;
-
-    async function init() {
-      try {
-        let ws = await getActiveWorkspace(userId);
-        if (!ws && !cancelled) {
-          ws = await createDefaultWorkspace(userId);
-        }
-        if (cancelled || !ws) return;
-
-        workspaceRef.current = ws;
-
-        // Restore wallpaper
-        if (ws.wallpaper) {
-          setWallpaper(ws.wallpaper);
-        }
-
-        // Restore dock items
-        if (ws.dock_items && ws.dock_items.length > 0) {
-          const appIds = (ws.dock_items as Array<{ appId?: string }>)
-            .map((item) => item.appId)
-            .filter((id): id is string => !!id && !!getApp(id));
-          if (appIds.length > 0) {
-            setDockItems(appIds);
-          }
-        } else {
-          // Check localStorage for dock pins set during onboarding (main site fallback)
-          const onboardingPins = localStorage.getItem(
-            "desktop-onboarding-dock-pins",
-          );
-          if (onboardingPins) {
-            try {
-              const pins = JSON.parse(onboardingPins) as string[];
-              const validPins = pins.filter((id) => !!getApp(id));
-              if (validPins.length > 0) {
-                setDockItems(validPins);
-                // Save to workspace so they persist properly going forward
-                saveWorkspace(ws.id, {
-                  dock_items: validPins.map((appId) => ({ appId })),
-                }).catch(() => {});
-              }
-            } catch {
-              // Invalid JSON, ignore
-            }
-            localStorage.removeItem("desktop-onboarding-dock-pins");
-          }
-        }
-
-        // Restore window states (handles both legacy array and versioned format)
-        if (
-          ws.window_states &&
-          (Array.isArray(ws.window_states) ? ws.window_states.length > 0 : true)
-        ) {
-          const parsed = parsePersistedWindows(ws.window_states);
-          if (parsed.length > 0) {
-            const { windows, nextZIndex } = deserializeWindows(
-              parsed,
-              plan,
-              enabledAppIds,
-            );
-            if (windows.length > 0) {
-              restoreWindowState(windows, nextZIndex);
-            }
-          }
-        }
-
-        hasRestoredRef.current = true;
-      } catch (err) {
-        console.error("[useDesktopWorkspace] Failed to load workspace:", err);
-      } finally {
-        if (!cancelled) setIsLoading(false);
+  // Core workspace loading logic (shared by initial load and reload)
+  const loadWorkspace = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      let ws = await getActiveWorkspace(userId);
+      if (!ws) {
+        ws = await createDefaultWorkspace(userId);
       }
-    }
+      if (!ws) return;
 
-    init();
-    return () => {
-      cancelled = true;
-    };
-  }, [userId, restoreWindowState]);
+      workspaceRef.current = ws;
+
+      // Restore wallpaper
+      if (ws.wallpaper) {
+        setWallpaper(ws.wallpaper);
+      } else {
+        setWallpaper(DEFAULT_WALLPAPER);
+      }
+
+      // Restore dock items
+      if (ws.dock_items && ws.dock_items.length > 0) {
+        const appIds = (ws.dock_items as Array<{ appId?: string }>)
+          .map((item) => item.appId)
+          .filter((id): id is string => !!id && !!getApp(id));
+        if (appIds.length > 0) {
+          setDockItems(appIds);
+        } else {
+          setDockItems(getDefaultDockApps().map((a) => a.id));
+        }
+      } else {
+        // Check localStorage for dock pins set during onboarding (main site fallback)
+        const onboardingPins = localStorage.getItem(
+          "desktop-onboarding-dock-pins",
+        );
+        if (onboardingPins) {
+          try {
+            const pins = JSON.parse(onboardingPins) as string[];
+            const validPins = pins.filter((id) => !!getApp(id));
+            if (validPins.length > 0) {
+              setDockItems(validPins);
+              // Save to workspace so they persist properly going forward
+              saveWorkspace(ws.id, {
+                dock_items: validPins.map((appId) => ({ appId })),
+              }).catch(() => {});
+            }
+          } catch {
+            // Invalid JSON, ignore
+          }
+          localStorage.removeItem("desktop-onboarding-dock-pins");
+        } else {
+          setDockItems(getDefaultDockApps().map((a) => a.id));
+        }
+      }
+
+      // Restore window states (handles both legacy array and versioned format)
+      if (
+        ws.window_states &&
+        (Array.isArray(ws.window_states) ? ws.window_states.length > 0 : true)
+      ) {
+        const parsed = parsePersistedWindows(ws.window_states);
+        if (parsed.length > 0) {
+          const { windows, nextZIndex } = deserializeWindows(
+            parsed,
+            plan,
+            enabledAppIds,
+          );
+          restoreWindowState(windows, nextZIndex);
+        } else {
+          restoreWindowState([], 100);
+        }
+      } else {
+        restoreWindowState([], 100);
+      }
+
+      hasRestoredRef.current = true;
+    } catch (err) {
+      console.error("[useDesktopWorkspace] Failed to load workspace:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [userId, restoreWindowState, plan, enabledAppIds]);
+
+  // Load workspace on mount
+  useEffect(() => {
+    loadWorkspace();
+  }, [loadWorkspace]);
+
+  // Reload workspace (e.g., after switching virtual spaces)
+  const reloadWorkspace = useCallback(async () => {
+    hasRestoredRef.current = false;
+    prevWindowsRef.current = "";
+    await loadWorkspace();
+  }, [loadWorkspace]);
 
   // Debounced save on window state changes
   const prevWindowsRef = useRef<string>("");
@@ -309,5 +321,6 @@ export function useDesktopWorkspace({
     pinApp,
     unpinApp,
     reorderDockItems,
+    reloadWorkspace,
   };
 }

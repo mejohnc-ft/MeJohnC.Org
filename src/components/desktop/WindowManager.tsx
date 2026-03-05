@@ -63,6 +63,7 @@ export interface WorkspaceContextType {
   pinApp: (appId: string) => void;
   unpinApp: (appId: string) => void;
   reorderDockItems: (items: string[]) => void;
+  reloadWorkspace: () => Promise<void>;
 }
 
 const WindowManagerContext = createContext<
@@ -204,6 +205,7 @@ export function WindowManagerProvider({
       pinApp: workspace.pinApp,
       unpinApp: workspace.unpinApp,
       reorderDockItems: workspace.reorderDockItems,
+      reloadWorkspace: workspace.reloadWorkspace,
     }),
     [
       userId,
@@ -214,6 +216,7 @@ export function WindowManagerProvider({
       workspace.pinApp,
       workspace.unpinApp,
       workspace.reorderDockItems,
+      workspace.reloadWorkspace,
     ],
   );
 
