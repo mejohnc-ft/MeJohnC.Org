@@ -248,7 +248,7 @@ export default function MenuBar({
         )}
         <VirtualSpaces
           userId={workspace.userId}
-          onSwitch={() => window.location.reload()}
+          onSwitch={() => workspace.reloadWorkspace()}
         />
         <span className="text-[11px] text-muted-foreground tabular-nums">
           {clock}
