@@ -25,6 +25,16 @@ import {
   Sparkles,
   Palette,
   FolderOpen,
+  Terminal,
+  Activity,
+  StickyNote,
+  Database,
+  Radar,
+  Hammer,
+  Calendar,
+  Shield,
+  ShieldCheck,
+  Handshake,
 } from "lucide-react";
 import type { DesktopApp } from "./apps/AppRegistry";
 
@@ -54,6 +64,16 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Sparkles,
   Palette,
   FolderOpen,
+  Terminal,
+  Activity,
+  StickyNote,
+  Database,
+  Radar,
+  Hammer,
+  Calendar,
+  Shield,
+  ShieldCheck,
+  Handshake,
 };
 
 interface DockItemProps {

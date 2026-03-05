@@ -1,5 +1,4 @@
 import { useCallback, useRef } from "react";
-import { MENU_BAR_HEIGHT } from "@/lib/desktop-constants";
 const TITLE_BAR_MIN_VISIBLE = 48;
 
 export interface DragCallbacks {
@@ -63,7 +62,7 @@ export function useWindowDrag({
         let newX = dragStartRef.current.winX + dx;
         let newY = dragStartRef.current.winY + dy;
         // Cannot go above menu bar
-        newY = Math.max(MENU_BAR_HEIGHT, newY);
+        newY = Math.max(0, newY);
         // At least 48px of title bar visible horizontally
         newX = Math.max(-width + TITLE_BAR_MIN_VISIBLE, newX);
         newX = Math.min(viewW - TITLE_BAR_MIN_VISIBLE, newX);
@@ -94,7 +93,7 @@ export function useWindowDrag({
 
         let newX = dragStartRef.current.winX + dx;
         let newY = dragStartRef.current.winY + dy;
-        newY = Math.max(MENU_BAR_HEIGHT, newY);
+        newY = Math.max(0, newY);
         newX = Math.max(-width + TITLE_BAR_MIN_VISIBLE, newX);
         newX = Math.min(viewW - TITLE_BAR_MIN_VISIBLE, newX);
         newY = Math.min(viewH - TITLE_BAR_MIN_VISIBLE, newY);

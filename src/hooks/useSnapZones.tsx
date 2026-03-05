@@ -61,31 +61,31 @@ export function getSnapGeometry(zone: SnapZone): {
 
   switch (zone) {
     case "full":
-      return { x: 0, y: MENU_BAR_HEIGHT, width: vw, height: usableHeight };
+      return { x: 0, y: 0, width: vw, height: usableHeight };
     case "left-half":
-      return { x: 0, y: MENU_BAR_HEIGHT, width: halfW, height: usableHeight };
+      return { x: 0, y: 0, width: halfW, height: usableHeight };
     case "right-half":
       return {
         x: halfW,
-        y: MENU_BAR_HEIGHT,
+        y: 0,
         width: vw - halfW,
         height: usableHeight,
       };
     case "top-left":
-      return { x: 0, y: MENU_BAR_HEIGHT, width: halfW, height: halfH };
+      return { x: 0, y: 0, width: halfW, height: halfH };
     case "top-right":
-      return { x: halfW, y: MENU_BAR_HEIGHT, width: vw - halfW, height: halfH };
+      return { x: halfW, y: 0, width: vw - halfW, height: halfH };
     case "bottom-left":
       return {
         x: 0,
-        y: MENU_BAR_HEIGHT + halfH,
+        y: halfH,
         width: halfW,
         height: usableHeight - halfH,
       };
     case "bottom-right":
       return {
         x: halfW,
-        y: MENU_BAR_HEIGHT + halfH,
+        y: halfH,
         width: vw - halfW,
         height: usableHeight - halfH,
       };
@@ -133,7 +133,7 @@ export function SnapPreview({ zone }: { zone: SnapZone }) {
       style={{
         position: "fixed",
         left: geo.x,
-        top: geo.y,
+        top: geo.y + MENU_BAR_HEIGHT,
         width: geo.width,
         height: geo.height,
         zIndex: 9999,

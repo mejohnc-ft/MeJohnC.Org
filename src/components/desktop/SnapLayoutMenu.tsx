@@ -54,26 +54,78 @@ const LAYOUTS: { id: TileLayout; label: string; grid: boolean[] }[] = [
     label: "Bottom Right",
     grid: [false, false, false, false, false, true],
   },
-  // Row 3: thirds and center
+  // Row 3: thirds and center (6x2 grid for visual distinction from halves)
   {
     id: "left-third",
     label: "Left Third",
-    grid: [true, false, false, true, false, false],
+    grid: [
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+    ],
   },
   {
     id: "center-third",
     label: "Center Third",
-    grid: [false, true, false, false, true, false],
+    grid: [
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+    ],
   },
   {
     id: "right-third",
     label: "Right Third",
-    grid: [false, false, true, false, false, true],
+    grid: [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+    ],
   },
   {
     id: "center-half",
     label: "Center Half",
-    grid: [false, true, false, false, true, false],
+    grid: [
+      false,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      false,
+    ],
   },
 ];
 
@@ -92,54 +144,54 @@ export function getTileGeometry(layout: TileLayout): {
 
   switch (layout) {
     case "full":
-      return { x: 0, y: MENU_BAR_HEIGHT, width: vw, height: usableH };
+      return { x: 0, y: 0, width: vw, height: usableH };
     case "left-half":
-      return { x: 0, y: MENU_BAR_HEIGHT, width: halfW, height: usableH };
+      return { x: 0, y: 0, width: halfW, height: usableH };
     case "right-half":
       return {
         x: halfW,
-        y: MENU_BAR_HEIGHT,
+        y: 0,
         width: vw - halfW,
         height: usableH,
       };
     case "top-left":
-      return { x: 0, y: MENU_BAR_HEIGHT, width: halfW, height: halfH };
+      return { x: 0, y: 0, width: halfW, height: halfH };
     case "top-right":
-      return { x: halfW, y: MENU_BAR_HEIGHT, width: vw - halfW, height: halfH };
+      return { x: halfW, y: 0, width: vw - halfW, height: halfH };
     case "bottom-left":
       return {
         x: 0,
-        y: MENU_BAR_HEIGHT + halfH,
+        y: halfH,
         width: halfW,
         height: usableH - halfH,
       };
     case "bottom-right":
       return {
         x: halfW,
-        y: MENU_BAR_HEIGHT + halfH,
+        y: halfH,
         width: vw - halfW,
         height: usableH - halfH,
       };
     case "left-third":
-      return { x: 0, y: MENU_BAR_HEIGHT, width: thirdW, height: usableH };
+      return { x: 0, y: 0, width: thirdW, height: usableH };
     case "center-third":
-      return { x: thirdW, y: MENU_BAR_HEIGHT, width: thirdW, height: usableH };
+      return { x: thirdW, y: 0, width: thirdW, height: usableH };
     case "right-third":
       return {
         x: thirdW * 2,
-        y: MENU_BAR_HEIGHT,
+        y: 0,
         width: vw - thirdW * 2,
         height: usableH,
       };
     case "center-half":
       return {
         x: Math.floor(vw / 4),
-        y: MENU_BAR_HEIGHT,
+        y: 0,
         width: halfW,
         height: usableH,
       };
     default:
-      return { x: 0, y: MENU_BAR_HEIGHT, width: vw, height: usableH };
+      return { x: 0, y: 0, width: vw, height: usableH };
   }
 }
 
@@ -236,7 +288,7 @@ export default function SnapLayoutMenu({
                   }`}
                   title={layout.label}
                 >
-                  <div className="grid grid-cols-3 grid-rows-2 gap-px w-8 h-5">
+                  <div className="grid grid-cols-6 grid-rows-2 gap-px w-8 h-5">
                     {layout.grid.map((active, i) => (
                       <div
                         key={i}
