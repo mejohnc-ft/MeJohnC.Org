@@ -54,26 +54,78 @@ const LAYOUTS: { id: TileLayout; label: string; grid: boolean[] }[] = [
     label: "Bottom Right",
     grid: [false, false, false, false, false, true],
   },
-  // Row 3: thirds and center
+  // Row 3: thirds and center (6x2 grid for visual distinction from halves)
   {
     id: "left-third",
     label: "Left Third",
-    grid: [true, false, false, true, false, false],
+    grid: [
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+    ],
   },
   {
     id: "center-third",
     label: "Center Third",
-    grid: [false, true, false, false, true, false],
+    grid: [
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+    ],
   },
   {
     id: "right-third",
     label: "Right Third",
-    grid: [false, false, true, false, false, true],
+    grid: [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+    ],
   },
   {
     id: "center-half",
     label: "Center Half",
-    grid: [false, true, false, false, true, false],
+    grid: [
+      false,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      false,
+    ],
   },
 ];
 
@@ -236,7 +288,7 @@ export default function SnapLayoutMenu({
                   }`}
                   title={layout.label}
                 >
-                  <div className="grid grid-cols-3 grid-rows-2 gap-px w-8 h-5">
+                  <div className="grid grid-cols-6 grid-rows-2 gap-px w-8 h-5">
                     {layout.grid.map((active, i) => (
                       <div
                         key={i}
