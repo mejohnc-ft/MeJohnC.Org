@@ -154,6 +154,17 @@ const PublicPage = lazy(() => import("./pages/PublicPage"));
 // Public generative UI panels
 const PanelPage = lazy(() => import("./pages/PanelPage"));
 
+// Signal workspace pages
+const SignalDashboard = lazy(() => import("./pages/signal/Dashboard"));
+const SignalPortfolio = lazy(() => import("./pages/signal/Portfolio"));
+const SignalWatchlist = lazy(() => import("./pages/signal/Watchlist"));
+const SignalFeed = lazy(() => import("./pages/signal/SignalFeed"));
+const SignalFirings = lazy(() => import("./pages/signal/Firings"));
+const SignalCatalysts = lazy(() => import("./pages/signal/Catalysts"));
+const SignalDiscipline = lazy(() => import("./pages/signal/Discipline"));
+const SignalJournal = lazy(() => import("./pages/signal/Journal"));
+const SignalSettings = lazy(() => import("./pages/signal/Settings"));
+
 // Minimal loading fallback
 function PageLoader() {
   return (
@@ -221,6 +232,36 @@ function TenantGate({ children }: { children: React.ReactNode }) {
 
   // "main_site" and "resolved" both render the app.
   return <>{children}</>;
+}
+
+// Route-specific error fallback for Signal workspace
+function SignalErrorFallback() {
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="max-w-md w-full text-center">
+        <h1 className="text-2xl font-bold text-foreground mb-2">
+          Signal error
+        </h1>
+        <p className="text-muted-foreground mb-6">
+          Something went wrong in Signal. Your data is safe.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <a
+            href="/signal"
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity"
+          >
+            Go to dashboard
+          </a>
+          <a
+            href="/admin"
+            className="px-4 py-2 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors"
+          >
+            Admin panel
+          </a>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // Route-specific error fallback for admin section
@@ -668,9 +709,31 @@ function AdminRoutes() {
   );
 }
 
+function SignalRoutes() {
+  return (
+    <ErrorBoundary fallback={<SignalErrorFallback />}>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/signal" element={<SignalDashboard />} />
+          <Route path="/signal/portfolio" element={<SignalPortfolio />} />
+          <Route path="/signal/watchlist" element={<SignalWatchlist />} />
+          <Route path="/signal/signals" element={<SignalFeed />} />
+          <Route path="/signal/firings" element={<SignalFirings />} />
+          <Route path="/signal/catalysts" element={<SignalCatalysts />} />
+          <Route path="/signal/discipline" element={<SignalDiscipline />} />
+          <Route path="/signal/journal" element={<SignalJournal />} />
+          <Route path="/signal/settings" element={<SignalSettings />} />
+          <Route path="/signal/*" element={<Navigate to="/signal" replace />} />
+        </Routes>
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
+
 function AppContent() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
+  const isSignalRoute = location.pathname.startsWith("/signal");
   const isCustomPage = location.pathname.startsWith("/p/");
   const isPanelPage = location.pathname.startsWith("/panel/");
   const isRecoveryTracker = location.pathname === "/recovery-tracker";
@@ -678,6 +741,10 @@ function AppContent() {
   // Don't track admin routes in analytics
   if (isAdminRoute) {
     return <AdminRoutes />;
+  }
+
+  if (isSignalRoute) {
+    return <SignalRoutes />;
   }
 
   // Custom pages, panels, and standalone apps don't need the default Layout
