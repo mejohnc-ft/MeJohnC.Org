@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# mejohnc.org/mac — bootstrap shim for a fresh Mac.
+#
+# Usage on a new machine:
+#   curl -fsSL https://mejohnc.org/mac | bash
+#
+# Pulls https://github.com/mejohnc-ft/mac.brew (public) and runs its
+# bootstrap.sh, which installs Homebrew, runs `brew bundle`, sets up
+# AI CLIs, symlinks dotfiles, pins the Dock, and applies macOS defaults.
+
+set -euo pipefail
+
+REPO_URL="https://github.com/mejohnc-ft/mac.brew.git"
+TARGET="$HOME/mac-setup"
+
+echo "▶ mejohnc.org/mac — bootstrapping…"
+
+# Homebrew (also provides git on a fresh Mac without Xcode CLT)
+if ! command -v brew >/dev/null 2>&1; then
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+
+# Clone or update mac.brew
+if [ -d "$TARGET/.git" ]; then
+  git -C "$TARGET" pull --ff-only
+else
+  git clone "$REPO_URL" "$TARGET"
+fi
+
+# Hand off to the real bootstrap
+bash "$TARGET/bootstrap.sh"
