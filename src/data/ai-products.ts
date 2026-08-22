@@ -31,7 +31,6 @@ export interface PortfolioThesis {
   loop: { stage: LoopStage; detail: string }[];
   honestClaim: string;
   agentAuthority: string;
-  namedSeams: string[];
 }
 
 export const portfolioThesis: PortfolioThesis = {
@@ -46,7 +45,8 @@ export const portfolioThesis: PortfolioThesis = {
   loop: [
     {
       stage: "sense",
-      detail: "Pull ticket, meeting, and client signals without dropping the source.",
+      detail:
+        "Pull ticket, meeting, and client signals without dropping the source.",
     },
     {
       stage: "decide",
@@ -54,11 +54,13 @@ export const portfolioThesis: PortfolioThesis = {
     },
     {
       stage: "govern",
-      detail: "Decide which identities, models, and agents may run. accessAI is still pre-GA.",
+      detail:
+        "Decide which identities, models, and agents may run. accessAI is still pre-GA.",
     },
     {
       stage: "build",
-      detail: "Draft delivery stays in review until CI is green and a person merges.",
+      detail:
+        "Draft delivery stays in review until CI is green and a person merges.",
     },
     {
       stage: "operate",
@@ -69,15 +71,6 @@ export const portfolioThesis: PortfolioThesis = {
     "A developing set of substantial products — not yet one uniformly integrated platform.",
   agentAuthority:
     "Agents advise, draft, and test. People keep merge, deploy, and production authority.",
-  namedSeams: [
-    "Cadre",
-    "Spark",
-    "Spot",
-    "Navigate",
-    "Vantage",
-    "Knowledge",
-    "AI Triage",
-  ],
 };
 
 export const productBriefs: ProductBrief[] = [
@@ -119,11 +112,7 @@ export const productBriefs: ProductBrief[] = [
     name: "Service Desk Toolbox + Incident Buddy",
     tagline:
       "Technician app, built with the service desk team, that routes tickets into guided automations and an investigation assistant. Humans review before writeback.",
-    chips: [
-      "Ticket-linked automations",
-      "Incident Buddy",
-      "Human writeback",
-    ],
+    chips: ["Ticket-linked automations", "Incident Buddy", "Human writeback"],
     loopStages: ["sense", "operate"],
     capabilities: [
       "Guided automations for common identity, mail, and access work",
@@ -149,11 +138,7 @@ export const productBriefs: ProductBrief[] = [
     name: "Iris",
     tagline:
       "A company-grounded assistant in Teams and Iris OS. It researches, remembers, and drafts — and only acts after someone approves.",
-    chips: [
-      "Teams + Iris OS",
-      "Company context",
-      "Approval-gated action",
-    ],
+    chips: ["Teams + Iris OS", "Company context", "Approval-gated action"],
     loopStages: ["sense", "operate"],
     capabilities: [
       "Answers grounded in handbook, people, tickets, and approved channels",

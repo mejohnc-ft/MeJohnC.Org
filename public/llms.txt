@@ -24,8 +24,6 @@ Products:
 - Proxima — draft-mode delivery: reviewed branches, draft PRs, green CI
 - accessAI — AI control plane, pre-GA as a universal control plane
 
-Also in the loop (not full product pages): Cadre, Spark, Spot, Navigate, Vantage, Knowledge, AI Triage.
-
 Honest claim: a developing set of substantial products, not yet one uniformly integrated platform. accessAI is substantial but pre-GA. Agents advise, draft, and test. People keep merge, deploy, and production authority.
 
 ## Endpoint Logistics

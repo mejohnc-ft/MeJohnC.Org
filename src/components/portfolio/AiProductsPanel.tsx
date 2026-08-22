@@ -57,9 +57,7 @@ export default function AiProductsPanel({ entries }: AiProductsPanelProps) {
               Products
             </span>
             <p className="text-sm text-muted-foreground mt-1">
-              Five products I led or shipped. Cadre, Spark, Spot, Navigate,
-              Vantage, Knowledge, and AI Triage stay in the loop as named seams
-              — not a second catalog.
+              Five products I led or shipped.
             </p>
           </div>
         </div>
@@ -86,7 +84,9 @@ export default function AiProductsPanel({ entries }: AiProductsPanelProps) {
                     return;
                   }
                   event.preventDefault();
-                  const index = briefs.findIndex((item) => item.id === brief.id);
+                  const index = briefs.findIndex(
+                    (item) => item.id === brief.id,
+                  );
                   const delta = event.key === "ArrowRight" ? 1 : -1;
                   const next =
                     briefs[(index + delta + briefs.length) % briefs.length];
@@ -201,13 +201,11 @@ function ThesisCard({
         </ol>
       </div>
 
-      <p className="text-foreground leading-relaxed mb-3">{thesis.honestClaim}</p>
-      <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-        {thesis.agentAuthority}
+      <p className="text-foreground leading-relaxed mb-3">
+        {thesis.honestClaim}
       </p>
-
-      <p className="text-xs text-muted-foreground">
-        Also in the loop: {thesis.namedSeams.join(" · ")}
+      <p className="text-sm text-muted-foreground leading-relaxed">
+        {thesis.agentAuthority}
       </p>
     </motion.section>
   );
@@ -268,7 +266,9 @@ function ProductBriefCard({
           <h4 className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-3">
             Stack
           </h4>
-          <p className="text-sm text-muted-foreground">{brief.stack.join(" · ")}</p>
+          <p className="text-sm text-muted-foreground">
+            {brief.stack.join(" · ")}
+          </p>
         </div>
       </div>
 
@@ -295,7 +295,10 @@ function LoopMarker({
         const active = stages.includes(stage);
         return (
           <span key={stage}>
-            <span style={{ color: active ? primary : undefined }} className={active ? "font-semibold" : ""}>
+            <span
+              style={{ color: active ? primary : undefined }}
+              className={active ? "font-semibold" : ""}
+            >
               {LOOP_STAGE_LABELS[stage]}
             </span>
             {index < LOOP_ORDER.length - 1 ? " → " : ""}
@@ -306,13 +309,7 @@ function LoopMarker({
   );
 }
 
-function MaturityColumn({
-  label,
-  items,
-}: {
-  label: string;
-  items: string[];
-}) {
+function MaturityColumn({ label, items }: { label: string; items: string[] }) {
   return (
     <div className="rounded-lg border border-border p-4 bg-background/40">
       <h4 className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2">

@@ -13,8 +13,17 @@ import {
   normalizeTimelineTrack,
   resolveTimelineTrack,
 } from "@/data/timeline-tracks";
-import { orderProductBriefs, portfolioThesis, productBriefs } from "@/data/ai-products";
-import { formatTalkTimestamp, sortTalksByDateDesc, talks, type Talk } from "@/data/talks";
+import {
+  orderProductBriefs,
+  portfolioThesis,
+  productBriefs,
+} from "@/data/ai-products";
+import {
+  formatTalkTimestamp,
+  sortTalksByDateDesc,
+  talks,
+  type Talk,
+} from "@/data/talks";
 import TalksSection from "@/components/portfolio/TalksSection";
 import {
   buildCreativeWorkJsonLd,
@@ -95,7 +104,9 @@ describe("Success Roadmap tracks", () => {
   it("defaults unknown track query values to AI Products", () => {
     expect(resolveTimelineTrack(null)).toBe("ai-products");
     expect(resolveTimelineTrack("nope")).toBe("ai-products");
-    expect(resolveTimelineTrack("endpoint-logistics")).toBe("endpoint-logistics");
+    expect(resolveTimelineTrack("endpoint-logistics")).toBe(
+      "endpoint-logistics",
+    );
   });
 
   it("treats missing DB track as endpoint logistics so live year pills stay on that track", () => {
@@ -104,9 +115,10 @@ describe("Success Roadmap tracks", () => {
   });
 
   it("keeps the provisioning year history on Endpoint Logistics", () => {
-    const years = entriesForTrack(defaultTimelineData, "endpoint-logistics").map(
-      (entry) => entry.label,
-    );
+    const years = entriesForTrack(
+      defaultTimelineData,
+      "endpoint-logistics",
+    ).map((entry) => entry.label);
     expect(years).toEqual(["2022-2023", "2024", "2025", "2026+"]);
   });
 
@@ -141,8 +153,12 @@ describe("AI Products briefs", () => {
   it("includes the portfolio thesis and Client Toolbox", () => {
     expect(portfolioThesis.lead).toMatch(/not yet one uniformly integrated/i);
     expect(portfolioThesis.lead).toMatch(/pre-GA/i);
-    expect(portfolioThesis.honestClaim).toMatch(/not yet one uniformly integrated/i);
-    const toolbox = productBriefs.find((brief) => brief.id === "client-toolbox");
+    expect(portfolioThesis.honestClaim).toMatch(
+      /not yet one uniformly integrated/i,
+    );
+    const toolbox = productBriefs.find(
+      (brief) => brief.id === "client-toolbox",
+    );
     expect(toolbox).toBeDefined();
     expect(toolbox).not.toHaveProperty("owner");
     expect(toolbox?.capabilities.length).toBeGreaterThanOrEqual(3);
@@ -168,7 +184,7 @@ describe("AI Products briefs", () => {
     expect(accessAi?.tagline).toMatch(/pre-GA/i);
   });
 
-  it("does not invent full briefs for named seams", () => {
+  it("only briefs the five public products", () => {
     const ids = productBriefs.map((brief) => brief.id);
     expect(ids).toEqual([
       "client-toolbox",
@@ -177,8 +193,7 @@ describe("AI Products briefs", () => {
       "proxima",
       "accessai",
     ]);
-    expect(portfolioThesis.namedSeams).toContain("Vantage");
-    expect(portfolioThesis.namedSeams).toContain("Cadre");
+    expect(portfolioThesis).not.toHaveProperty("namedSeams");
   });
 
   it("orders briefs from timeline entry keys when present", () => {
@@ -206,7 +221,9 @@ describe("AI Products briefs", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: /governed ai for the msp work i ship/i }),
+      screen.getByRole("heading", {
+        name: /governed ai for the msp work i ship/i,
+      }),
     ).toBeInTheDocument();
     expect(screen.queryByText(/14 normalized briefs/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/readiness ledger/i)).not.toBeInTheDocument();
@@ -215,6 +232,18 @@ describe("AI Products briefs", () => {
       "aria-selected",
       "true",
     );
+    expect(
+      screen.getByText("Five products I led or shipped."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/named seams/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/second catalog/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/also in the loop/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("tab", { name: "Cadre" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("tab", { name: "Vantage" }),
+    ).not.toBeInTheDocument();
     expect(
       screen.getByText(/vITM workspace that turns identity/i),
     ).toBeInTheDocument();
@@ -267,9 +296,13 @@ describe("SEO helpers", () => {
   });
 
   it("builds Website, Occupation, and CreativeWork JSON-LD", () => {
-    expect(buildWebsiteJsonLd({ type: "Website", name: "MeJohnC", url: "https://mejohnc.org" })["@type"]).toBe(
-      "WebSite",
-    );
+    expect(
+      buildWebsiteJsonLd({
+        type: "Website",
+        name: "MeJohnC",
+        url: "https://mejohnc.org",
+      })["@type"],
+    ).toBe("WebSite");
     expect(buildOccupationJsonLd(occupationSchema).name).toBe(
       "AI Automation Engineer",
     );
