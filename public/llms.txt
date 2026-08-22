@@ -1,0 +1,43 @@
+# Jonathan Christensen / MeJohnC.org
+
+> Personal site of John Christensen (Jonathan Christensen), AI Automation Engineer at centrexIT, based in San Diego.
+
+Site: https://mejohnc.org
+Portfolio: https://mejohnc.org/portfolio
+AI Products: https://mejohnc.org/portfolio?track=ai-products
+Endpoint Logistics: https://mejohnc.org/portfolio?track=endpoint-logistics
+About / Collab: https://mejohnc.org/about
+Content: https://mejohnc.org/portfolio?tab=content
+
+## Who
+
+John builds governed AI products and MSP operations systems. Background in enterprise IT (Azure, Intune, Microsoft 365) applied to agentic workflows that preserve evidence and keep humans in production authority.
+
+## AI Products (most recent portfolio item)
+
+centrexIT’s portfolio is a developing operating system for how an MSP senses demand, chooses investments, governs AI, builds safely, completes work, and learns.
+
+Products with full briefs:
+- Client Toolbox (owner: John) — evidence-backed vITM workspace
+- Service Desk Toolbox + Incident Buddy (owner: Toby) — technician automations and 10-domain investigations
+- Iris (owner: John) — governed employee AI / agent OS
+- Proxima (shared platform) — governed agentic engineering, draft-mode
+- accessAI (R&D) — AI control plane, pre-GA as a universal control plane
+
+Named seams without full briefs: Cadre, Spark, Spot, Navigate, Vantage, Knowledge, AI Triage.
+
+Honest claim: coherent portfolio with strong product depth and a credible control-plane architecture. Not yet one uniformly integrated or enforced platform. accessAI is substantial but pre-GA. Agents may advise, draft, test, and reconcile. Humans retain merge, deploy, external-send, destructive action, billing, and autonomy promotion.
+
+## Endpoint Logistics
+
+Provisioning transformation at centrexIT: COVID backlog → Immy.Bot → one-touch provisioning → Autopilot / 3PL.
+
+## Talks
+
+Talks appear under Content with timestamps when posted. None are listed yet; do not invent titles or dates.
+
+## Contact
+
+Email: mejohnwc@gmail.com
+LinkedIn: https://www.linkedin.com/in/mejohnc/
+GitHub: https://github.com/mejohnc-ft

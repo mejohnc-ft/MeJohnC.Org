@@ -6,9 +6,10 @@ import { DownArrowHint } from '@/components/ArrowHints';
 import { useAuth } from '@/lib/auth';
 import { useKeyboardFocus } from '@/lib/keyboard-focus';
 import { useSearchParams } from 'react-router-dom';
-import { useSEO, useJsonLd, personSchema } from '@/lib/seo';
+import { useSEO, useJsonLd, personSchema, websiteSchema, occupationSchema, softwareSchema, RECRUITING_KEYWORDS } from '@/lib/seo';
 import { prefetchTabData } from '@/lib/prefetch';
 import { analytics } from '@/lib/analytics';
+import { resolveTimelineTrack, type TimelineTrackId } from '@/data/timeline-tracks';
 
 // Eager load Work tab (most common landing)
 import { WorkTab } from '@/components/portfolio';
@@ -42,15 +43,56 @@ const Portfolio = () => {
   const [activeTab, setActiveTab] = useState<TabId>(
     tabFromUrl && tabs.some(t => t.id === tabFromUrl) ? tabFromUrl : 'work'
   );
+  const [activeTrack, setActiveTrack] = useState<TimelineTrackId>(() =>
+    resolveTimelineTrack(searchParams.get('track'))
+  );
   useAuth(); // Keep auth context active
 
-  useSEO({
-    title: 'Portfolio',
-    description: 'Explore my work, projects, software, and content. AI automation, Microsoft 365, Azure, and enterprise IT solutions.',
-    url: '/portfolio',
-  });
+  const seoForTab = (() => {
+    if (activeTab === 'content') {
+      return {
+        title: 'Content & Talks',
+        description:
+          'Writing, timestamped talks, and curated AI news from Jonathan Christensen — AI automation, governed agents, and MSP engineering.',
+        url: '/portfolio?tab=content',
+        keywords: RECRUITING_KEYWORDS,
+      };
+    }
+    if (activeTab === 'work' && activeTrack === 'ai-products') {
+      return {
+        title: 'AI Products',
+        description:
+          'centrexIT AI products John Christensen owns or leads: Client Toolbox, Iris, Proxima, accessAI, and Service Desk Toolbox. Governed agents, evidence-preserving workflows, and honest pre-GA claims.',
+        url: '/portfolio?track=ai-products',
+        keywords: RECRUITING_KEYWORDS,
+      };
+    }
+    if (activeTab === 'work' && activeTrack === 'endpoint-logistics') {
+      return {
+        title: 'Endpoint Logistics',
+        description:
+          'Provisioning roadmap: COVID backlog, Immy.Bot, one-touch provisioning, Autopilot and 3PL. Endpoint logistics transformation at centrexIT.',
+        url: '/portfolio?track=endpoint-logistics',
+        keywords: RECRUITING_KEYWORDS,
+      };
+    }
+    return {
+      title: 'Portfolio',
+      description:
+        'Portfolio of Jonathan Christensen, AI Automation Engineer: governed AI products, MSP endpoint logistics, Microsoft 365, Azure, and lab-ready IT systems.',
+      url: '/portfolio',
+      keywords: RECRUITING_KEYWORDS,
+    };
+  })();
 
-  useJsonLd(personSchema);
+  useSEO(seoForTab);
+
+  useJsonLd([
+    personSchema,
+    websiteSchema,
+    occupationSchema,
+    softwareSchema,
+  ]);
 
   // Global keyboard focus context
   const { focusLevel, setFocusLevel } = useKeyboardFocus();
@@ -73,17 +115,31 @@ const Portfolio = () => {
     setFocusLevel('timeline');
   }, [setFocusLevel]);
 
+  const handleTrackChange = useCallback((trackId: TimelineTrackId) => {
+    setActiveTrack(trackId);
+    if (activeTab !== 'work') return;
+    if (trackId === 'ai-products') {
+      setSearchParams({});
+    } else {
+      setSearchParams({ track: trackId });
+    }
+  }, [activeTab, setSearchParams]);
+
   // Update URL when tab changes
   const handleTabChange = useCallback((tabId: TabId) => {
     setActiveTab(tabId);
     focusTabs(); // Clicking a tab focuses the tabs
     analytics.trackTabChange(tabId);
     if (tabId === 'work') {
-      setSearchParams({});
+      if (activeTrack === 'ai-products') {
+        setSearchParams({});
+      } else {
+        setSearchParams({ track: activeTrack });
+      }
     } else {
       setSearchParams({ tab: tabId });
     }
-  }, [setSearchParams, focusTabs]);
+  }, [setSearchParams, focusTabs, activeTrack]);
 
   // Navigate to next/previous tab
   const goToNextTab = useCallback(() => {
@@ -241,7 +297,12 @@ const Portfolio = () => {
           >
             <AnimatePresence mode="wait">
               {activeTab === 'work' && (
-                <WorkTab key="work" onRequestFocusUp={focusTabs} />
+                <WorkTab
+                  key="work"
+                  onRequestFocusUp={focusTabs}
+                  activeTrack={activeTrack}
+                  onTrackChange={handleTrackChange}
+                />
               )}
               {activeTab === 'projects' && (
                 <Suspense key="projects" fallback={<TabLoader />}>

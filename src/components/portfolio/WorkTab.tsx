@@ -7,6 +7,8 @@ import { useSupabaseClient } from '@/lib/supabase';
 import { getCaseStudies, type CaseStudy } from '@/lib/supabase-queries';
 import { captureException } from '@/lib/sentry';
 import { Loader2 } from 'lucide-react';
+import { useReducedMotion } from '@/lib/reduced-motion';
+import type { TimelineTrackId } from '@/data/timeline-tracks';
 
 // Fallback case studies if database is empty
 const defaultCaseStudies = [
@@ -33,12 +35,19 @@ interface CaseStudyItem {
 
 interface WorkTabProps {
   onRequestFocusUp: () => void;
+  activeTrack?: TimelineTrackId;
+  onTrackChange?: (track: TimelineTrackId) => void;
 }
 
-export default function WorkTab({ onRequestFocusUp }: WorkTabProps) {
+export default function WorkTab({
+  onRequestFocusUp,
+  activeTrack,
+  onTrackChange,
+}: WorkTabProps) {
   const workHistoryRef = useRef<HTMLDivElement>(null);
   const { focusLevel, setFocusLevel } = useKeyboardFocus();
   const supabase = useSupabaseClient();
+  const prefersReducedMotion = useReducedMotion();
   const [caseStudies, setCaseStudies] = useState<CaseStudyItem[]>(defaultCaseStudies);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -107,25 +116,31 @@ export default function WorkTab({ onRequestFocusUp }: WorkTabProps) {
   return (
     <motion.div
       key="work"
-      initial={{ opacity: 0, x: -50 }}
+      initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: -24 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 50 }}
-      transition={{ duration: 0.3, ease: 'easeInOut' }}
+      exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: 24 }}
+      transition={{ duration: prefersReducedMotion ? 0 : 0.3, ease: 'easeInOut' }}
     >
-      {/* Provisioning Success Roadmaps Header */}
       <div className="mb-12">
         <span className="font-mono text-sm text-primary uppercase tracking-widest">
           Success Roadmaps
         </span>
         <h2 className="text-3xl md:text-4xl font-black text-foreground mt-2 mb-4">
-          Provisioning: Automation & Logistics Transformation
+          AI products and endpoint logistics
         </h2>
+        <p className="text-muted-foreground max-w-3xl">
+          Two tracks on one roadmap. AI Products is the latest portfolio item —
+          governed MSP apps John owns or leads. Endpoint Logistics keeps the
+          provisioning story from COVID backlog through Autopilot and 3PL.
+        </p>
       </div>
 
       {/* Hero Timeline */}
       <div className="scroll-mt-20">
         <ProjectTimeline
           focused={timelineFocused}
+          activeTrack={activeTrack}
+          onTrackChange={onTrackChange}
           onRequestFocusUp={timelineRequestFocusUp}
           onRequestFocusDown={focusWorkHistory}
         />

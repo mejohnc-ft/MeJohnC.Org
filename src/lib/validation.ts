@@ -162,6 +162,8 @@ export const timelineEntrySchema = z.object({
   content: z.string().optional().nullable(),
   dot_position: z.number().min(0).max(100).default(50),
   order_index: z.number().int().default(0),
+  track: z.enum(['ai-products', 'endpoint-logistics']).optional(),
+  entry_key: z.string().max(80).optional().nullable(),
 });
 
 export type TimelineEntryInput = z.infer<typeof timelineEntrySchema>;

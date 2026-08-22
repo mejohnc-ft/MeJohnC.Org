@@ -28,7 +28,7 @@ const DEFAULT_SEO: SEOSettings = {
   siteUrl: import.meta.env.VITE_SITE_URL || "https://mejohnc.org",
   defaultDescription:
     import.meta.env.VITE_SITE_DESCRIPTION ||
-    "Your website and business tools in one platform.",
+    "Jonathan Christensen is an AI Automation Engineer in San Diego building governed agents, MSP automation, and evidence-preserving IT workflows for lab and production environments.",
   ogImage: "/og-image.png",
   twitterHandle: import.meta.env.VITE_TWITTER_HANDLE || "",
   linkedinUrl: import.meta.env.VITE_LINKEDIN_URL || "",
@@ -113,6 +113,7 @@ interface SEOProps {
   publishedTime?: string;
   modifiedTime?: string;
   author?: string;
+  keywords?: string;
   noIndex?: boolean;
 }
 
@@ -125,6 +126,7 @@ export function useSEO({
   publishedTime,
   modifiedTime,
   author,
+  keywords,
   noIndex = false,
 }: SEOProps = {}) {
   const settings = useSEOSettings();
@@ -169,8 +171,14 @@ export function useSEO({
 
     // Basic meta tags
     setMeta("name", "description", fullDescription);
+    setMeta("name", "author", authorName);
+    if (keywords) {
+      setMeta("name", "keywords", keywords);
+    }
     if (noIndex) {
       setMeta("name", "robots", "noindex, nofollow");
+    } else {
+      setMeta("name", "robots", "index, follow, max-image-preview:large");
     }
 
     // Open Graph tags
@@ -232,19 +240,36 @@ export function useSEO({
     modifiedTime,
     author,
     noIndex,
+    keywords,
     settings,
   ]);
 }
 
 // JSON-LD structured data types
+export const PERSON_KNOWS_ABOUT = [
+  "AI automation",
+  "Governed agents",
+  "MSP operations",
+  "Endpoint logistics",
+  "Microsoft 365",
+  "Azure",
+  "IT laboratory systems",
+] as const;
+
+export const RECRUITING_KEYWORDS =
+  "AI automation engineer, governed agents, MSP, lab IT, Microsoft 365, Azure, endpoint provisioning, centrexIT";
+
 interface PersonSchema {
   type: "Person";
   name: string;
   jobTitle?: string;
+  description?: string;
   url?: string;
   image?: string;
   sameAs?: string[];
   email?: string;
+  knowsAbout?: string[];
+  worksFor?: string;
   address?: {
     locality: string;
     region: string;
@@ -275,11 +300,124 @@ interface BreadcrumbSchema {
   items: { name: string; url: string }[];
 }
 
+interface CreativeWorkSchema {
+  type: "CreativeWork";
+  name: string;
+  description?: string;
+  url?: string;
+  creator?: string;
+  keywords?: string[];
+}
+
+interface OccupationSchema {
+  type: "Occupation";
+  name: string;
+  description?: string;
+  occupationalCategory?: string;
+}
+
+interface FAQSchema {
+  type: "FAQPage";
+  questions: { question: string; answer: string }[];
+}
+
 type SchemaData =
   | PersonSchema
   | ArticleSchema
   | WebsiteSchema
-  | BreadcrumbSchema;
+  | BreadcrumbSchema
+  | CreativeWorkSchema
+  | OccupationSchema
+  | FAQSchema;
+
+export function buildPersonJsonLd(
+  person: PersonSchema,
+  baseUrl: string,
+): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: person.name,
+    jobTitle: person.jobTitle,
+    description: person.description,
+    url: person.url || baseUrl,
+    image: person.image,
+    sameAs: person.sameAs,
+    email: person.email,
+    knowsAbout: person.knowsAbout,
+    worksFor: person.worksFor
+      ? { "@type": "Organization", name: person.worksFor }
+      : undefined,
+    address: person.address
+      ? {
+          "@type": "PostalAddress",
+          addressLocality: person.address.locality,
+          addressRegion: person.address.region,
+          addressCountry: person.address.country,
+        }
+      : undefined,
+  };
+}
+
+export function buildWebsiteJsonLd(site: WebsiteSchema): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: site.name,
+    url: site.url,
+    description: site.description,
+    inLanguage: "en-US",
+  };
+}
+
+export function buildCreativeWorkJsonLd(
+  work: CreativeWorkSchema,
+  baseUrl: string,
+): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: work.name,
+    description: work.description,
+    url: work.url
+      ? work.url.startsWith("http")
+        ? work.url
+        : `${baseUrl}${work.url}`
+      : baseUrl,
+    creator: {
+      "@type": "Person",
+      name: work.creator || "Jonathan Christensen",
+    },
+    keywords: work.keywords,
+  };
+}
+
+export function buildOccupationJsonLd(
+  occupation: OccupationSchema,
+): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Occupation",
+    name: occupation.name,
+    description: occupation.description,
+    occupationalCategory: occupation.occupationalCategory,
+  };
+}
+
+export function buildFaqJsonLd(faq: FAQSchema): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faq.questions.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
+}
 
 export function useJsonLd(schema: SchemaData | SchemaData[]) {
   const settings = useSEOSettings();
@@ -289,7 +427,6 @@ export function useJsonLd(schema: SchemaData | SchemaData[]) {
     const schemas = Array.isArray(schema) ? schema : [schema];
     const scriptId = "json-ld-schema";
 
-    // Remove existing script
     const existing = document.getElementById(scriptId);
     if (existing) {
       existing.remove();
@@ -298,24 +435,7 @@ export function useJsonLd(schema: SchemaData | SchemaData[]) {
     const jsonLdData = schemas.map((s) => {
       switch (s.type) {
         case "Person":
-          return {
-            "@context": "https://schema.org",
-            "@type": "Person",
-            name: s.name,
-            jobTitle: s.jobTitle,
-            url: s.url || BASE_URL,
-            image: s.image,
-            sameAs: s.sameAs,
-            email: s.email,
-            address: s.address
-              ? {
-                  "@type": "PostalAddress",
-                  addressLocality: s.address.locality,
-                  addressRegion: s.address.region,
-                  addressCountry: s.address.country,
-                }
-              : undefined,
-          };
+          return buildPersonJsonLd(s, BASE_URL);
 
         case "Article":
           return {
@@ -341,13 +461,7 @@ export function useJsonLd(schema: SchemaData | SchemaData[]) {
           };
 
         case "Website":
-          return {
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            name: s.name,
-            url: s.url,
-            description: s.description,
-          };
+          return buildWebsiteJsonLd(s);
 
         case "BreadcrumbList":
           return {
@@ -362,10 +476,18 @@ export function useJsonLd(schema: SchemaData | SchemaData[]) {
                 : `${BASE_URL}${item.url}`,
             })),
           };
+
+        case "CreativeWork":
+          return buildCreativeWorkJsonLd(s, BASE_URL);
+
+        case "Occupation":
+          return buildOccupationJsonLd(s);
+
+        case "FAQPage":
+          return buildFaqJsonLd(s);
       }
     });
 
-    // Create and insert script
     const script = document.createElement("script");
     script.id = scriptId;
     script.type = "application/ld+json";
@@ -380,12 +502,10 @@ export function useJsonLd(schema: SchemaData | SchemaData[]) {
         toRemove.remove();
       }
     };
-    // BASE_URL is derived from settings, which is in deps
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [schema, settings]);
 }
 
-// Hook to get dynamic person schema from settings
 export function usePersonSchema(): PersonSchema {
   const settings = useSEOSettings();
 
@@ -402,20 +522,22 @@ export function usePersonSchema(): PersonSchema {
     type: "Person",
     name: settings.siteName,
     jobTitle: "AI Automation Engineer",
+    description: settings.defaultDescription,
     url: settings.siteUrl,
     image: settings.ogImage.startsWith("http")
       ? settings.ogImage
       : `${settings.siteUrl}${settings.ogImage}`,
     sameAs,
+    knowsAbout: [...PERSON_KNOWS_ABOUT],
+    worksFor: "centrexIT",
     address: {
-      locality: settings.location.city,
-      region: settings.location.state,
-      country: settings.location.country,
+      locality: settings.location.city || "San Diego",
+      region: settings.location.state || "CA",
+      country: settings.location.country || "US",
     },
   };
 }
 
-// Hook to get dynamic website schema from settings
 export function useWebsiteSchema(): WebsiteSchema {
   const settings = useSEOSettings();
 
@@ -427,18 +549,23 @@ export function useWebsiteSchema(): WebsiteSchema {
   };
 }
 
-// Legacy exports for backwards compatibility (static versions)
+const PERSON_DESCRIPTION =
+  "AI Automation Engineer building governed agents, evidence-preserving MSP workflows, and endpoint logistics systems. Background in Azure, Intune, and Microsoft 365 at scale.";
+
 export const personSchema: PersonSchema = {
   type: "Person",
-  name: DEFAULT_SEO.siteName,
+  name: "Jonathan Christensen",
   jobTitle: "AI Automation Engineer",
+  description: PERSON_DESCRIPTION,
   url: DEFAULT_SEO.siteUrl,
   image: `${DEFAULT_SEO.siteUrl}${DEFAULT_SEO.ogImage}`,
   sameAs: [DEFAULT_SEO.linkedinUrl, DEFAULT_SEO.githubUrl].filter(Boolean),
+  knowsAbout: [...PERSON_KNOWS_ABOUT],
+  worksFor: "centrexIT",
   address: {
-    locality: DEFAULT_SEO.location.city,
-    region: DEFAULT_SEO.location.state,
-    country: DEFAULT_SEO.location.country,
+    locality: DEFAULT_SEO.location.city || "San Diego",
+    region: DEFAULT_SEO.location.state || "CA",
+    country: DEFAULT_SEO.location.country || "US",
   },
 };
 
@@ -448,3 +575,50 @@ export const websiteSchema: WebsiteSchema = {
   url: DEFAULT_SEO.siteUrl,
   description: DEFAULT_SEO.defaultDescription,
 };
+
+export const occupationSchema: OccupationSchema = {
+  type: "Occupation",
+  name: "AI Automation Engineer",
+  description:
+    "Designs governed AI products, MSP automation, and lab-ready IT systems. Agents advise and draft; humans retain merge, deploy, and production authority.",
+  occupationalCategory: "15-1252.00",
+};
+
+export const softwareSchema: CreativeWorkSchema = {
+  type: "CreativeWork",
+  name: "centrexIT AI Products",
+  description:
+    "A developing operating system for how an MSP senses demand, chooses investments, governs AI, builds safely, and completes work. Substantial products today; not yet one uniformly integrated platform. accessAI is pre-GA as a universal control plane.",
+  url: "/portfolio?track=ai-products",
+  creator: "Jonathan Christensen",
+  keywords: [
+    "Client Toolbox",
+    "Iris",
+    "Proxima",
+    "accessAI",
+    "Service Desk Toolbox",
+    "governed agents",
+  ],
+};
+
+export const aboutFaqSchema: FAQSchema = {
+  type: "FAQPage",
+  questions: [
+    {
+      question: "What does Jonathan Christensen work on?",
+      answer:
+        "AI automation with a focus on agentic systems, agent management planes, and production workflows that survive cost, latency, and eval scrutiny. Background in enterprise IT — Azure, Intune, and Microsoft 365 at scale — applied to governed AI products at centrexIT.",
+    },
+    {
+      question: "Are the centrexIT AI products a single integrated platform?",
+      answer:
+        "No. The portfolio is a coherent set of substantial products with a credible control-plane architecture. Common contracts, package adoption, and several cross-product governance seams remain pre-GA or target state. accessAI is substantial but pre-GA as a universal control plane.",
+    },
+    {
+      question: "Where is Jonathan based?",
+      answer:
+        "San Diego, California. Open to AI automation, governed-agent, MSP, lab, and IT roles that value evidence-preserving systems over chatbot demos.",
+    },
+  ],
+};
+

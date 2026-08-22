@@ -4,10 +4,11 @@ import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PageTransition from '@/components/PageTransition';
-import { useSEO, useJsonLd, personSchema, websiteSchema } from '@/lib/seo';
+import { useSEO, useJsonLd, personSchema, websiteSchema, occupationSchema, RECRUITING_KEYWORDS } from '@/lib/seo';
 import { useSupabaseClient } from '@/lib/supabase';
 import { getSiteContent } from '@/lib/supabase-queries';
 import { captureException } from '@/lib/sentry';
+import { useReducedMotion } from '@/lib/reduced-motion';
 
 interface HeroContent {
   name: string;
@@ -24,12 +25,16 @@ const defaultHero: HeroContent = {
 const Home = () => {
   const supabase = useSupabaseClient();
   const [hero, setHero] = useState<HeroContent>(defaultHero);
+  const prefersReducedMotion = useReducedMotion();
 
   useSEO({
     url: '/',
+    description:
+      'Jonathan Christensen — AI Automation Engineer in San Diego. Governed agents, MSP automation, endpoint logistics, and lab-ready IT systems.',
+    keywords: RECRUITING_KEYWORDS,
   });
 
-  useJsonLd([personSchema, websiteSchema]);
+  useJsonLd([personSchema, websiteSchema, occupationSchema]);
 
   useEffect(() => {
     async function fetchHero() {
@@ -69,9 +74,9 @@ const Home = () => {
           {/* Name with staggered letter animation */}
           <div className="overflow-hidden mb-4">
             <motion.h1
-              initial={{ y: 100 }}
+              initial={prefersReducedMotion ? { y: 0 } : { y: 100 }}
               animate={{ y: 0 }}
-              transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+              transition={{ duration: prefersReducedMotion ? 0 : 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black text-foreground tracking-tight leading-[0.85]"
             >
               {firstName}
@@ -79,9 +84,9 @@ const Home = () => {
           </div>
           <div className="overflow-hidden mb-8">
             <motion.h1
-              initial={{ y: 100 }}
+              initial={prefersReducedMotion ? { y: 0 } : { y: 100 }}
               animate={{ y: 0 }}
-              transition={{ duration: 0.8, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+              transition={{ duration: prefersReducedMotion ? 0 : 0.8, delay: prefersReducedMotion ? 0 : 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black text-foreground tracking-tight leading-[0.85]"
             >
               {lastName}
@@ -123,8 +128,8 @@ const Home = () => {
                 View my work
                 <motion.span
                   className="inline-block ml-2"
-                  animate={{ x: [0, 4, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
+                  animate={prefersReducedMotion ? undefined : { x: [0, 4, 0] }}
+                  transition={prefersReducedMotion ? undefined : { duration: 1.5, repeat: Infinity }}
                 >
                   <ArrowRight className="w-4 h-4" />
                 </motion.span>
