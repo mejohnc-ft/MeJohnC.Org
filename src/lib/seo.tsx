@@ -588,7 +588,7 @@ export const softwareSchema: CreativeWorkSchema = {
   type: "CreativeWork",
   name: "AI products John Christensen led or shipped",
   description:
-    "Governed AI for the Enterprise work I ship: evidence-preserving client reviews, technician assistance, a company-grounded assistant, and draft-mode delivery. Substantial products today; not yet one uniformly integrated platform.",
+    "Governed AI for the Enterprise work I ship. I built an app platform, several individual apps, and an agent and compute federation platform. Two of the app platforms I stewarded from idea through scoping, iteration, and review, and saw through to completion. Substantial products; not yet one uniformly integrated platform.",
   url: "/portfolio?track=ai-products",
   creator: "Jonathan Christensen",
   keywords: [
@@ -612,7 +612,7 @@ export const aboutFaqSchema: FAQSchema = {
     {
       question: "Are the centrexIT AI products a single integrated platform?",
       answer:
-        "No. They are a developing set of substantial products John led or shipped — client reviews, technician assistance, a company-grounded assistant, draft-mode delivery, and a control plane. The portfolio is not yet one uniformly integrated platform.",
+        "No. They are a developing set of substantial products John led or shipped — an app platform, individual apps, and an agent and compute federation platform. The portfolio is not yet one uniformly integrated platform.",
     },
     {
       question: "Where is Jonathan based?",

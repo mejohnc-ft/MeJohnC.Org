@@ -10,7 +10,7 @@ export const TIMELINE_TRACKS = [
     label: "AI Products",
     heading: "AI products I lead or ship",
     summary:
-      "Work I led or shipped at centrexIT: evidence-preserving workflows, governed agents, and a control plane. Not yet one platform.",
+      "I built an app platform, several individual apps, and an agent and compute federation platform. Two of the app platforms I stewarded from idea through to completion. Not yet one platform.",
   },
   {
     id: "endpoint-logistics",

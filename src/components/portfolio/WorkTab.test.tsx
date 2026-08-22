@@ -68,7 +68,7 @@ describe("Results case studies", () => {
     renderWorkTab();
 
     expect(
-      screen.getByText(/latest work I led or shipped/i),
+      screen.getByText(/app platform, several individual apps/i),
     ).toBeInTheDocument();
     expect(screen.queryByText(/pre-GA/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/John owns or leads/i)).not.toBeInTheDocument();

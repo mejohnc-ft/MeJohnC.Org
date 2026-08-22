@@ -11,7 +11,7 @@ Content: https://mejohnc.org/portfolio?tab=content
 
 ## Who
 
-John builds governed AI products that IT leaders and the people who run operations actually use. Background in enterprise IT (Azure, Intune, Microsoft 365) applied to agentic workflows that preserve evidence and keep humans in production authority.
+John built an app platform, several individual apps, and an agent and compute federation platform. Two of the app platforms he stewarded from idea through scoping, iteration, and review, and saw through to completion. Governed AI that IT leaders and the people who run operations actually use. Background in enterprise IT (Azure, Intune, Microsoft 365) applied to agentic workflows that preserve evidence and keep humans in production authority.
 
 ## AI Products (most recent portfolio item)
 

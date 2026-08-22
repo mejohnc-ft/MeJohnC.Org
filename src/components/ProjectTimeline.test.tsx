@@ -154,6 +154,12 @@ describe("Success Roadmap tracks", () => {
 
 describe("AI Products briefs", () => {
   it("includes the portfolio thesis and Client Toolbox", () => {
+    expect(portfolioThesis.lead).toMatch(/app platform/i);
+    expect(portfolioThesis.lead).toMatch(/individual apps/i);
+    expect(portfolioThesis.lead).toMatch(/federation/i);
+    expect(portfolioThesis.lead).toMatch(/stewarded/i);
+    expect(portfolioThesis.lead).toMatch(/idea/i);
+    expect(portfolioThesis.lead).toMatch(/completion/i);
     expect(portfolioThesis.lead).toMatch(/not yet one uniformly integrated/i);
     expect(portfolioThesis.lead).toMatch(/IT leaders/i);
     expect(portfolioThesis.title).toBe(
@@ -339,6 +345,9 @@ describe("SEO helpers", () => {
     expect(String(work.description)).toMatch(
       /^Governed AI for the Enterprise work I ship/,
     );
+    expect(String(work.description)).toMatch(/app platform/i);
+    expect(String(work.description)).toMatch(/federation/i);
+    expect(String(work.description)).toMatch(/stewarded/i);
     expect(String(work.description)).toMatch(
       /not yet one uniformly integrated/i,
     );
