@@ -8,9 +8,9 @@ export const TIMELINE_TRACKS = [
   {
     id: "ai-products",
     label: "AI Products",
-    heading: "Governed MSP operating loop",
+    heading: "AI products I lead or ship",
     summary:
-      "centrexIT products John owns or leads: evidence-preserving workflows, a shared control plane, and human production authority.",
+      "Work I led or shipped at centrexIT: evidence-preserving workflows, governed agents, and a pre-GA control plane. Not yet one platform.",
   },
   {
     id: "endpoint-logistics",
@@ -101,9 +101,9 @@ export const defaultAiProductEntries: TimelineItem[] = [
   {
     id: "ai-client-toolbox",
     label: "Client Toolbox",
-    phase: "Evidence-backed vITM",
+    phase: "Evidence-backed client reviews",
     summary:
-      "Identity, endpoint, security, network, licensing, and service data into QBR-ready decisions.",
+      "A vITM workspace that turns identity, endpoint, and security evidence into a client book you can explain.",
     content: null,
     dot_position: 72,
     track: "ai-products",
@@ -114,7 +114,7 @@ export const defaultAiProductEntries: TimelineItem[] = [
     label: "Service Desk Toolbox",
     phase: "Technician work + Incident Buddy",
     summary:
-      "Halo tickets routed to governed automations and 10-domain investigations.",
+      "Ticket-linked automations and an investigation assistant, built with the service desk team.",
     content: null,
     dot_position: 68,
     track: "ai-products",
@@ -136,7 +136,7 @@ export const defaultAiProductEntries: TimelineItem[] = [
     label: "Proxima",
     phase: "Governed agentic engineering",
     summary:
-      "Approved Vantage work into reviewed branches, draft PRs, and green CI.",
+      "Draft PRs and green CI for approved work; humans still merge.",
     content: null,
     dot_position: 64,
     track: "ai-products",
@@ -147,7 +147,7 @@ export const defaultAiProductEntries: TimelineItem[] = [
     label: "accessAI",
     phase: "AI control plane (pre-GA)",
     summary:
-      "Identities, models, agents, tools, policy, cost, audit, evaluation, promotion, rollback.",
+      "Pre-GA control plane for models, agents, policy, cost, and audit.",
     content: null,
     dot_position: 58,
     track: "ai-products",

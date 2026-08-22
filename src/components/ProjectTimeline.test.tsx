@@ -118,7 +118,7 @@ describe("Success Roadmap tracks", () => {
     expect(logistics).toHaveAttribute("aria-selected", "false");
     expect(
       await screen.findByRole("heading", {
-        name: /developing operating system/i,
+        name: /governed ai for the msp work i ship/i,
       }),
     ).toBeInTheDocument();
   });
@@ -139,12 +139,33 @@ describe("Success Roadmap tracks", () => {
 
 describe("AI Products briefs", () => {
   it("includes the portfolio thesis and Client Toolbox", () => {
-    expect(portfolioThesis.lead).toMatch(/developing operating system/i);
+    expect(portfolioThesis.lead).toMatch(/not yet one uniformly integrated/i);
+    expect(portfolioThesis.lead).toMatch(/pre-GA/i);
     expect(portfolioThesis.honestClaim).toMatch(/not yet one uniformly integrated/i);
     const toolbox = productBriefs.find((brief) => brief.id === "client-toolbox");
-    expect(toolbox?.owner).toBe("John");
-    expect(toolbox?.capabilities).toHaveLength(6);
-    expect(toolbox?.flow).toHaveLength(5);
+    expect(toolbox).toBeDefined();
+    expect(toolbox).not.toHaveProperty("owner");
+    expect(toolbox?.capabilities.length).toBeGreaterThanOrEqual(3);
+    expect(toolbox?.capabilities.length).toBeLessThanOrEqual(5);
+  });
+
+  it("keeps recruiter-length briefs and an honest pre-GA split", () => {
+    const leadWords = portfolioThesis.lead.trim().split(/\s+/).length;
+    expect(leadWords).toBeGreaterThanOrEqual(40);
+    expect(leadWords).toBeLessThanOrEqual(80);
+
+    for (const brief of productBriefs) {
+      expect(brief.tagline.trim().split(/\s+/).length).toBeLessThanOrEqual(40);
+      expect(brief.capabilities.length).toBeLessThanOrEqual(5);
+      expect(brief.stack.length).toBeGreaterThanOrEqual(4);
+      expect(brief.stack.length).toBeLessThanOrEqual(8);
+      expect(brief).not.toHaveProperty("owner");
+      expect(brief).not.toHaveProperty("readiness");
+    }
+
+    const accessAi = productBriefs.find((brief) => brief.id === "accessai");
+    expect(accessAi?.preGa.length).toBeGreaterThan(0);
+    expect(accessAi?.tagline).toMatch(/pre-GA/i);
   });
 
   it("does not invent full briefs for named seams", () => {
@@ -185,16 +206,19 @@ describe("AI Products briefs", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: /developing operating system/i }),
+      screen.getByRole("heading", { name: /governed ai for the msp work i ship/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/14 normalized briefs/i)).toBeInTheDocument();
+    expect(screen.queryByText(/14 normalized briefs/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/readiness ledger/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/owner toby/i)).not.toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Client Toolbox" })).toHaveAttribute(
       "aria-selected",
       "true",
     );
     expect(
-      screen.getByText(/Evidence-backed vITM workspace/i),
+      screen.getByText(/vITM workspace that turns identity/i),
     ).toBeInTheDocument();
+    expect(screen.getByText(/What I shipped/i)).toBeInTheDocument();
   });
 });
 

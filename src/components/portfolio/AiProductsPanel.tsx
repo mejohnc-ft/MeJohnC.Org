@@ -6,7 +6,6 @@ import {
   portfolioThesis,
   type LoopStage,
   type ProductBrief,
-  type ReadinessLedger,
 } from "@/data/ai-products";
 import type { TimelineItem } from "@/data/timeline-tracks";
 import { useReducedMotion } from "@/lib/reduced-motion";
@@ -55,19 +54,19 @@ export default function AiProductsPanel({ entries }: AiProductsPanelProps) {
         <div className="flex items-end justify-between gap-4 mb-4">
           <div>
             <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
-              Product briefs
+              Products
             </span>
             <p className="text-sm text-muted-foreground mt-1">
-              Five products with named owners. Cadre, Spark, Spot, Navigate,
-              Vantage, Knowledge, and AI Triage appear as seams in the loop
-              above — not as full briefs.
+              Five products I led or shipped. Cadre, Spark, Spot, Navigate,
+              Vantage, Knowledge, and AI Triage stay in the loop as named seams
+              — not a second catalog.
             </p>
           </div>
         </div>
 
         <div
           role="tablist"
-          aria-label="AI product briefs"
+          aria-label="AI products"
           className="flex flex-wrap gap-2 mb-6"
         >
           {briefs.map((brief) => {
@@ -155,7 +154,7 @@ function ThesisCard({
       }}
     >
       <span className="font-mono text-xs text-primary uppercase tracking-widest">
-        Portfolio thesis
+        What I build
       </span>
       <h3
         id="ai-products-thesis"
@@ -202,56 +201,13 @@ function ThesisCard({
         </ol>
       </div>
 
-      <p className="text-foreground leading-relaxed mb-3">{thesis.cohesive}</p>
-      <p className="text-sm text-muted-foreground leading-relaxed mb-8">
-        {thesis.honestClaim}
+      <p className="text-foreground leading-relaxed mb-3">{thesis.honestClaim}</p>
+      <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+        {thesis.agentAuthority}
       </p>
 
-      <div className="grid md:grid-cols-2 gap-6 mb-8">
-        <div>
-          <h4 className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-3">
-            Layers
-          </h4>
-          <ul className="space-y-2">
-            {thesis.layers.map((layer) => (
-              <li key={layer.name} className="text-sm">
-                <span className="font-semibold text-foreground">
-                  {layer.name}
-                </span>
-                <span className="text-muted-foreground"> — {layer.detail}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div>
-          <h4 className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-3">
-            Guardrails
-          </h4>
-          <ul className="flex flex-wrap gap-2 mb-4">
-            {thesis.guardrails.map((item) => (
-              <li
-                key={item}
-                className="text-xs px-2 py-1 rounded border border-border text-foreground"
-              >
-                {item}
-              </li>
-            ))}
-          </ul>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            {thesis.agentAuthority}
-          </p>
-        </div>
-      </div>
-
-      <p className="text-sm text-foreground mb-6">
-        <span className="font-semibold">Current truth. </span>
-        {thesis.currentTruth}
-      </p>
-
-      <ReadinessLedgerBlock ledger={thesis.operatingEvidence} />
-
-      <p className="text-xs text-muted-foreground mt-6">
-        Named seams: {thesis.namedSeams.join(" · ")}
+      <p className="text-xs text-muted-foreground">
+        Also in the loop: {thesis.namedSeams.join(" · ")}
       </p>
     </motion.section>
   );
@@ -269,12 +225,7 @@ function ProductBriefCard({
       className="p-6 md:p-8 rounded-xl border bg-card/50 backdrop-blur-sm"
       style={{ borderColor: "hsl(var(--border))" }}
     >
-      <div className="flex flex-wrap items-baseline justify-between gap-3 mb-3">
-        <h3 className="text-2xl font-black text-foreground">{brief.name}</h3>
-        <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-          Owner {brief.owner}
-        </span>
-      </div>
+      <h3 className="text-2xl font-black text-foreground mb-3">{brief.name}</h3>
       <p className="text-muted-foreground leading-relaxed mb-4">
         {brief.tagline}
       </p>
@@ -293,8 +244,8 @@ function ProductBriefCard({
       <LoopMarker stages={brief.loopStages} primary={theme.primary} />
 
       <p className="text-sm text-foreground leading-relaxed my-6">
-        <span className="font-semibold">Primary. </span>
-        {brief.primaryCapability}
+        <span className="font-semibold">What I shipped. </span>
+        {brief.shipped}
       </p>
 
       <div className="grid md:grid-cols-2 gap-8 mb-8">
@@ -313,55 +264,18 @@ function ProductBriefCard({
             ))}
           </ol>
         </div>
-        <div className="space-y-6">
-          <div>
-            <h4 className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-3">
-              Flow
-            </h4>
-            <p className="text-sm text-foreground">
-              {brief.flow.join(" → ")}
-            </p>
-          </div>
-          <div>
-            <h4 className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-3">
-              Stack
-            </h4>
-            <p className="text-sm text-muted-foreground">{brief.stack.join(" · ")}</p>
-          </div>
+        <div>
+          <h4 className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-3">
+            Stack
+          </h4>
+          <p className="text-sm text-muted-foreground">{brief.stack.join(" · ")}</p>
         </div>
       </div>
 
-      {(brief.engineeringNotes || brief.securityNotes) && (
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          {brief.engineeringNotes && (
-            <div>
-              <h4 className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2">
-                Engineering
-              </h4>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {brief.engineeringNotes}
-              </p>
-            </div>
-          )}
-          {brief.securityNotes && (
-            <div>
-              <h4 className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2">
-                Security
-              </h4>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {brief.securityNotes}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
-      <ReadinessLedgerBlock ledger={brief.readiness} />
-
-      <div className="grid md:grid-cols-3 gap-4 mt-6">
+      <div className="grid md:grid-cols-3 gap-4">
         <MaturityColumn label="Proven today" items={brief.proven} />
-        <MaturityColumn label="Pre-GA" items={brief.preGa} />
-        <MaturityColumn label="Target seam" items={brief.target} />
+        <MaturityColumn label="Still coming" items={brief.preGa} />
+        <MaturityColumn label="Later" items={brief.target} />
       </div>
     </article>
   );
@@ -389,31 +303,6 @@ function LoopMarker({
         );
       })}
     </p>
-  );
-}
-
-function ReadinessLedgerBlock({ ledger }: { ledger: ReadinessLedger }) {
-  const rows: [string, string][] = [
-    ["Lifecycle", ledger.lifecycle],
-    ["Adoption", ledger.adoption],
-    ["Production", ledger.production],
-    ["Ownership", ledger.ownership],
-    ["Risk", ledger.risk],
-  ];
-  return (
-    <div>
-      <h4 className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-3">
-        Readiness ledger
-      </h4>
-      <dl className="grid sm:grid-cols-2 gap-x-6 gap-y-2">
-        {rows.map(([label, value]) => (
-          <div key={label} className="text-sm">
-            <dt className="inline font-semibold text-foreground">{label}. </dt>
-            <dd className="inline text-muted-foreground">{value}</dd>
-          </div>
-        ))}
-      </dl>
-    </div>
   );
 }
 

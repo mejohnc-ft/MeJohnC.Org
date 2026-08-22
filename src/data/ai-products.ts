@@ -6,32 +6,19 @@ export const LOOP_STAGE_LABELS: Record<LoopStage, string> = {
   sense: "Sense",
   decide: "Decide",
   govern: "Govern",
-  build: "Build+prove",
-  operate: "Operate+learn",
+  build: "Build",
+  operate: "Operate",
 };
-
-export interface ReadinessLedger {
-  lifecycle: string;
-  adoption: string;
-  production: string;
-  ownership: string;
-  risk: string;
-}
 
 export interface ProductBrief {
   id: string;
   name: string;
-  owner: string;
   tagline: string;
   chips: string[];
   loopStages: LoopStage[];
   capabilities: string[];
-  primaryCapability: string;
+  shipped: string;
   stack: string[];
-  flow: string[];
-  engineeringNotes?: string;
-  securityNotes?: string;
-  readiness: ReadinessLedger;
   proven: string[];
   preGa: string[];
   target: string[];
@@ -42,80 +29,46 @@ export interface PortfolioThesis {
   lead: string;
   tags: string[];
   loop: { stage: LoopStage; detail: string }[];
-  cohesive: string;
   honestClaim: string;
-  layers: { name: string; detail: string }[];
-  guardrails: string[];
   agentAuthority: string;
-  currentTruth: string;
-  operatingEvidence: ReadinessLedger;
   namedSeams: string[];
 }
 
 export const portfolioThesis: PortfolioThesis = {
-  title: "A developing operating system for MSP work",
-  lead: "centrexIT’s portfolio is a developing operating system for how an MSP senses demand, chooses investments, governs AI, builds safely, completes work, and learns. Products are substantial today; common contracts, package adoption, and several cross-product governance seams remain pre-GA or target state.",
+  title: "Governed AI for the MSP work I ship",
+  lead: "I build AI products for MSP work: evidence-preserving client reviews, technician assistance, a company-grounded assistant, and a delivery agent that stays in draft until a human merges. These are substantial products I led or shipped at centrexIT — not yet one uniformly integrated platform. accessAI, the shared control plane, is pre-GA.",
   tags: [
-    "14 normalized briefs",
     "Evidence-preserving workflows",
+    "Governed agents",
     "Human production authority",
-    "Shared governance model",
+    "Honest pre-GA claims",
   ],
   loop: [
     {
       stage: "sense",
-      detail:
-        "Spark captures employee/meeting signals; Spot finds client opportunity; Service Desk and AI Triage capture ticket evidence; Client Toolbox assembles client posture; Iris captures employee intent and feedback.",
+      detail: "Pull ticket, meeting, and client signals without dropping the source.",
     },
     {
       stage: "decide",
-      detail:
-        "Client Toolbox → client strategy; Navigate governs company strategy/KPIs; Vantage scores demand, governs PRDs and ROI, assigns ownership, measures realized value.",
+      detail: "Turn that evidence into work a human can defend.",
     },
     {
       stage: "govern",
-      detail:
-        "accessAI is the shared control-plane for identity, models, agents, tools, policy, runs, cost, audit, evaluation, promotion, rollback.",
+      detail: "Decide which identities, models, and agents may run. accessAI is still pre-GA.",
     },
     {
       stage: "build",
-      detail:
-        "Proxima governs delivery automation; Cadre supplies durable threads, paired execution hosts, workspace tools, evaluations, engineering evidence.",
+      detail: "Draft delivery stays in review until CI is green and a person merges.",
     },
     {
       stage: "operate",
-      detail:
-        "Service Desk Toolbox completes technician work; AI Triage improves routing; Knowledge governs documentation; Iris orchestrates context, durable work, specialists, approval-gated action.",
+      detail: "Technicians finish the work; writeback waits for a human.",
     },
   ],
-  cohesive:
-    "One governed operating loop from human signal to proven value. The defensible asset is not a chatbot. It is domain-specific apps + evidence-preserving decision flows + governed AI + agentic delivery inside deterministic controls + shared human-control design language.",
   honestClaim:
-    "Coherent portfolio with strong product depth and a credible control-plane architecture — not yet one uniformly integrated or enforced platform.",
-  layers: [
-    { name: "Signal", detail: "Spark + operational evidence" },
-    { name: "Decision", detail: "Client Toolbox + Vantage" },
-    { name: "Control", detail: "accessAI" },
-    { name: "Delivery", detail: "Proxima + development standard" },
-    { name: "Work", detail: "Service Desk + Iris" },
-  ],
-  guardrails: [
-    "Tenant safety",
-    "Bounded agents",
-    "Deterministic evidence",
-    "Human control",
-  ],
+    "A developing set of substantial products — not yet one uniformly integrated platform.",
   agentAuthority:
-    "Agents may advise, draft, test, and reconcile. Humans retain merge, deploy, external-send, destructive-action, billing, and autonomy-promotion.",
-  currentTruth:
-    "Strong products; uneven shared enforcement. accessAI is substantial but pre-GA as a universal control plane.",
-  operatingEvidence: {
-    lifecycle: "Portfolio convergence",
-    adoption: "Product-level evidence, one baseline pending",
-    production: "Mixed live / pre-GA / target",
-    ownership: "Leadership + named product owners",
-    risk: "Uneven shared-contract enforcement",
-  },
+    "Agents advise, draft, and test. People keep merge, deploy, and production authority.",
   namedSeams: [
     "Cadre",
     "Spark",
@@ -131,290 +84,161 @@ export const productBriefs: ProductBrief[] = [
   {
     id: "client-toolbox",
     name: "Client Toolbox",
-    owner: "John",
     tagline:
-      "Evidence-backed vITM workspace converting identity, endpoint, security, network, licensing, and service data into a scoped client portfolio, explainable health, prioritized opportunities, and QBR-ready decisions.",
+      "A vITM workspace that turns identity, endpoint, and security evidence into a client book you can explain — scores, gaps, and next conversations.",
     chips: [
       "Assigned client book",
-      "Explainable controls",
-      "QBR lifecycle",
+      "Explainable scores",
       "Evidence provenance",
     ],
     loopStages: ["sense", "decide", "operate"],
     capabilities: [
-      "Assigned client book",
-      "Client 360",
-      "Transparent standards (every score → control, observation, source, evidence age, coverage, confidence)",
-      "Risk / opportunity",
-      "QBR lifecycle",
-      "Governed AI teammate “Buddy” (source systems remain authoritative)",
+      "A scoped book of clients, not a generic dashboard",
+      "Scores that point back to a control, a source, and how fresh the evidence is",
+      "Gaps lower confidence instead of looking clean",
+      "A governed AI teammate that drafts; source systems stay authoritative",
     ],
-    primaryCapability:
-      "One evidence spine from source system to QBR. Honest gaps reduce confidence instead of reading clean.",
+    shipped:
+      "Designed and shipped the evidence spine: collection, scoring, and the workspace used to review a client.",
     stack: [
       "React",
       "TypeScript",
-      "Vite",
-      "Azure SWA",
+      "Azure Static Web Apps",
       "Entra ID",
       "Supabase",
-      "PostgreSQL RLS",
-      "Rewst collectors",
+      "PostgreSQL",
+      "Rewst",
       "Azure AI Foundry",
-      "Teams",
     ],
-    flow: [
-      "Collect",
-      "Reconcile identities",
-      "Score",
-      "Review",
-      "Communicate QBR",
-    ],
-    engineeringNotes:
-      "One issue per PR; locked builds, migration replay, typecheck, lint, tests, SWA smoke, security contracts, screenshots, perf budgets.",
-    securityNotes:
-      "Entra roles, signed principals, RLS, service-only mutations, scoped machine creds, audit.",
-    readiness: {
-      lifecycle: "Toolbox Next staging",
-      adoption: "Assigned-client workflow, baseline pending",
-      production: "Live collection and QBR workspace",
-      ownership: "John",
-      risk: "Portfolio-wide outcome linkage incomplete",
-    },
-    proven: [
-      "Collection",
-      "Provenance",
-      "Controls",
-      "Workspaces",
-      "QBR",
-    ],
+    proven: ["Collection", "Provenance", "Scoring workspace"],
     preGa: [],
-    target: ["Universal outcome linkage to Vantage"],
+    target: ["Shared outcome tracking with the rest of the portfolio"],
   },
   {
     id: "service-desk-toolbox",
     name: "Service Desk Toolbox + Incident Buddy",
-    owner: "Toby",
     tagline:
-      "Technician app that routes Halo tickets to governed automations and uses Incident Buddy for 10-domain investigations, then writes results back.",
+      "Technician app, built with the service desk team, that routes tickets into guided automations and an investigation assistant. Humans review before writeback.",
     chips: [
-      "20+ automation forms",
-      "Rewst-hosted shell",
-      "Halo-connected work",
-      "10-domain investigation",
+      "Ticket-linked automations",
+      "Incident Buddy",
+      "Human writeback",
     ],
     loopStages: ["sense", "operate"],
     capabilities: [
-      "Application shell",
-      "20+ guided forms via Rewst (identity, Exchange, provisioning, security, service)",
-      "Halo ticket linking",
-      "Incident Buddy across identity, access, mail, endpoint, security, network, automation, ticket, client, infrastructure",
-      "Automation program metrics",
-      "Teams bot is intentionally narrow (chat + EOD numbers)",
+      "Guided automations for common identity, mail, and access work",
+      "Ticket context stays attached to the run",
+      "Incident Buddy investigates across the usual MSP domains",
+      "Humans review findings before anything is written back",
     ],
-    primaryCapability:
-      "Raise ticket quality with cross-system context. Human reviews findings before Halo writeback.",
+    shipped:
+      "Shipped with the service desk team: ticket-linked automations and an investigation assistant that does not write back until a human reviews.",
     stack: [
-      "Custom Toolbox shell",
-      "Rewst host / auth / forms",
-      "Halo SOR",
+      "Rewst",
+      "Halo",
       "Azure AI Foundry",
-      "Teams",
+      "Microsoft Teams",
+      "TypeScript",
     ],
-    flow: [
-      "Intake Halo",
-      "Route",
-      "Investigate 10 domains",
-      "Human review",
-      "Record + measure",
-    ],
-    readiness: {
-      lifecycle: "Operational product",
-      adoption: "20+ forms in use",
-      production: "Live technician app",
-      ownership: "Toby",
-      risk: "Portfolio outcome backbone still target",
-    },
-    proven: ["Shell", "Catalog", "Ticket linking", "Incident Buddy"],
+    proven: ["Technician shell", "Ticket linking", "Incident Buddy"],
     preGa: [],
-    target: ["Portfolio outcome backbone"],
+    target: ["Shared outcome tracking with the rest of the portfolio"],
   },
   {
     id: "iris",
     name: "Iris",
-    owner: "John",
     tagline:
-      "One assistant that understands company, client, ticket, meeting, and operational context, then researches, creates, remembers, schedules, investigates, and takes approved action from Teams or Iris OS.",
+      "A company-grounded assistant in Teams and Iris OS. It researches, remembers, and drafts — and only acts after someone approves.",
     chips: [
       "Teams + Iris OS",
-      "Company-grounded answers",
-      "Durable skills",
-      "Approved action",
+      "Company context",
+      "Approval-gated action",
     ],
     loopStages: ["sense", "operate"],
     capabilities: [
-      "Teams + Iris OS (chat, role-composed home, apps, pins, files, skills, voice, search, PWA)",
-      "Grounds in handbook, people, approved Teams channels, MeetingOS, live Halo, ticket history, client records",
-      "Research / create with citations, OCR, signed expiring artifacts",
-      "Reminders, memory, skills, chains",
-      "Specialists (Incident Buddy, vITM tools)",
-      "Governed action via brokers (mail, calendar, MeetingOS, Halo, Rewst) with payload-bound approval and audit",
+      "Answers grounded in handbook, people, tickets, and approved channels",
+      "Research and drafts with citations",
+      "Durable skills, reminders, and memory",
+      "Specialists sit behind the same approval gate",
     ],
-    primaryCapability:
-      "Personal AI with company context and permission to act.",
+    shipped:
+      "Led Iris: the Teams bot, the Iris OS shell, and the approval-gated action path.",
     stack: [
-      "Bot Framework",
-      "Adaptive Cards",
       "React",
       "TypeScript",
-      "Vite",
-      "Cuelume",
-      "PWA SWA",
-      "iris-sdk",
-      "Azure Functions Node 22 v4",
-      "Durable Functions",
+      "Azure Functions",
       "Azure AI Foundry",
-      "Azure Tables",
-      "Blob",
-      "AI Search",
-      "Rewst",
+      "Microsoft Graph",
       "Halo",
-      "Graph",
-      "accessAI",
+      "Rewst",
+      "Bot Framework",
     ],
-    flow: [
-      "Ask",
-      "Resolve identity / scope",
-      "Ground",
-      "Execute",
-      "Govern + learn",
-    ],
-    readiness: {
-      lifecycle: "Integrated product, federation pre-GA",
-      adoption: "Teams + Iris OS in use",
-      production: "Live assistant; accessAI federation pre-GA",
-      ownership: "John",
-      risk: "accessAI federation",
-    },
-    proven: ["Manager", "Teams", "Iris OS"],
+    proven: ["Teams bot", "Iris OS"],
     preGa: ["accessAI federation"],
-    target: ["Full agent-OS citizenship"],
+    target: ["Tighter shared-control-plane integration"],
   },
   {
     id: "proxima",
     name: "Proxima",
-    owner: "Shared platform",
     tagline:
-      "Turns approved Vantage work and GitHub evidence into reviewed branches, draft PRs, green CI, traceable delivery records, and concise human decisions.",
+      "Takes approved engineering work and returns a reviewed branch, a draft PR, and green CI. The model never marks its own work done.",
     chips: [
-      "Vantage-governed intent",
       "GitHub-native delivery",
-      "CI-bound completion",
-      "Draft-mode autonomy",
+      "Draft-mode only",
+      "Human merge authority",
     ],
     loopStages: ["build"],
     capabilities: [
-      "Steward approved Vantage work",
-      "Review PR estate (small unambiguous fixes only)",
-      "Build drafts in a fresh clone bound to true head SHA",
-      "Repair against real CI (up to two passes; model never self-declares success)",
-      "Reconcile to Vantage / Halo via signed Rewst bridge",
-      "Teams surfaces decisions, not noise",
+      "Implements approved work in a fresh clone bound to a real commit",
+      "Opens draft PRs and repairs against actual CI",
+      "Surfaces decisions in Teams instead of a chat firehose",
+      "Humans keep merge, deploy, and anything that spends money",
     ],
-    primaryCapability:
-      "Agentic delivery inside a deterministic shell. Humans retain merge, deploy, risky, and cost-incurring action.",
+    shipped:
+      "Helped design the draft-mode delivery loop: agents implement and verify against real CI; people still merge.",
     stack: [
-      "Forge monorepo",
-      "pnpm",
-      "Turbo",
-      "Node",
+      "TypeScript",
       "Python",
       "Docker",
-      "GitHub App / CLI",
-      "Azure CLI",
-      "Supabase CLI",
+      "GitHub",
+      "Node",
+      "Azure",
+      "Supabase",
     ],
-    flow: [
-      "Intake",
-      "Claim",
-      "Implement",
-      "Verify exact SHA",
-      "Repair + reconcile",
-    ],
-    engineeringNotes:
-      "CI is automatic; production is governed. Draft-mode autonomy — the model never self-declares success.",
-    readiness: {
-      lifecycle: "Draft-mode, autonomy pre-GA",
-      adoption: "Delivery loop in use for approved work",
-      production: "Draft delivery live; autonomy maturity pre-GA",
-      ownership: "Shared platform",
-      risk: "Autonomy promotion still human-gated",
-    },
     proven: ["Draft delivery loop"],
-    preGa: ["Autonomy maturity"],
-    target: ["Portfolio conformance operator"],
+    preGa: ["Broader autonomy"],
+    target: ["Shared delivery standard across products"],
   },
   {
     id: "accessai",
     name: "accessAI",
-    owner: "R&D",
     tagline:
-      "Defines which identities, models, agents, tools, policies, compute destinations, and deployment bindings may operate; records execution, cost, audit, evaluation, promotion, rollback.",
+      "Pre-GA control plane for which identities, models, agents, and tools may run — plus cost, audit, evaluation, and rollback.",
     chips: [
       "Multi-model governance",
       "Tenant-safe execution",
-      "Agent delivery control",
-      "Cost + audit + evaluation",
+      "Cost + audit",
+      "Pre-GA",
     ],
     loopStages: ["govern"],
     capabilities: [
-      "Multi-provider (Azure OpenAI, Anthropic, OpenAI, Foundry)",
-      "Entra / MSAL JWT, API keys, tenant resolution, API RBAC, Postgres RLS",
-      "Recipes / harnesses / destinations",
-      "Builtin and Foundry execution with memory, tools, MCP, policy, approvals, kill switches",
-      "Append-only audit, evals, promotion, cost, telemetry, rollback",
-      "Central Exchange + Agent Factory",
+      "Routes work across Azure OpenAI, Anthropic, OpenAI, and Foundry",
+      "Fail-closed identity and tenant isolation",
+      "Records runs, cost, evals, and promotions",
+      "Not an end-user assistant, and not sellable-GA yet",
     ],
-    primaryCapability:
-      "Control plane defines what/why; providers execute how. Shared infrastructure IP — not an end-user assistant or foundation model. Not sellable-GA yet (no releases/tags, 0.0.0 packages, incomplete golden path, no live second-tenant acceptance).",
+    shipped:
+      "Helped define the control-plane model — what may run, under whose authority, and how it gets promoted. Still pre-GA as a universal control plane.",
     stack: [
-      "Node 22",
       "TypeScript",
       "Hono",
-      "React 19",
-      "Vite 8",
-      "Tailwind 4",
-      "PostgreSQL 16 + pgvector",
-      "Forced RLS",
+      "React",
+      "PostgreSQL",
       "Azure Container Apps",
-      "SWA",
       "Key Vault",
-      "Vitest",
-      "Playwright",
-      "CodeQL",
-      "ZAP",
-      "Trivy",
     ],
-    flow: [
-      "Discover",
-      "Bind",
-      "Authorize fail-closed",
-      "Execute",
-      "Promote or roll back",
-    ],
-    engineeringNotes:
-      "Progressive deploy 5% → 25% → manually approved 100%.",
-    securityNotes:
-      "Forced RLS, fail-closed authorization, append-only audit, kill switches, tenant-safe execution.",
-    readiness: {
-      lifecycle: "Substantial control plane, pre-GA",
-      adoption: "Not sellable-GA; no live second-tenant acceptance",
-      production: "Broad implementation; universal use pre-GA",
-      ownership: "R&D",
-      risk: "Portfolio-wide enforcement is target state",
-    },
-    proven: ["Broad control-plane implementation"],
-    preGa: ["Sellability / universal use"],
+    proven: ["Control-plane implementation"],
+    preGa: ["Universal use"],
     target: ["Portfolio-wide enforcement"],
   },
 ];

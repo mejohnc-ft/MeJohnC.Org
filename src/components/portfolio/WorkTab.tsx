@@ -1,38 +1,64 @@
-import { useRef, useEffect, useCallback, useState } from 'react';
-import { motion } from 'framer-motion';
-import ProjectTimeline from '@/components/ProjectTimeline';
-import Experience from '@/components/Experience';
-import { useKeyboardFocus } from '@/lib/keyboard-focus';
-import { useSupabaseClient } from '@/lib/supabase';
-import { getCaseStudies, type CaseStudy } from '@/lib/supabase-queries';
-import { captureException } from '@/lib/sentry';
-import { toError } from '@/lib/errors';
-import { Loader2 } from 'lucide-react';
-import { useReducedMotion } from '@/lib/reduced-motion';
-import type { TimelineTrackId } from '@/data/timeline-tracks';
+import { useRef, useEffect, useCallback, useState } from "react";
+import { motion } from "framer-motion";
+import ProjectTimeline from "@/components/ProjectTimeline";
+import Experience from "@/components/Experience";
+import { useKeyboardFocus } from "@/lib/keyboard-focus";
+import { useSupabaseClient } from "@/lib/supabase";
+import { getCaseStudies, type CaseStudy } from "@/lib/supabase-queries";
+import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
+import { Loader2 } from "lucide-react";
+import { useReducedMotion } from "@/lib/reduced-motion";
+import type { TimelineTrackId } from "@/data/timeline-tracks";
 
-// Fallback case studies if database is empty
-const defaultCaseStudies = [
-  {
-    metric: "70%",
-    title: "Provisioning Automation",
-    before: "Manual parsing of intake forms across 20+ client domains",
-    after: "End-to-end OCR + Graph API pipeline with zero manual parsing",
-  },
-  {
-    metric: "2→0",
-    title: "Shipping Automation",
-    before: "Manual inventory matching and label generation (2 days)",
-    after: "Same-day: auto-matched devices, ShipEngine labels, Teams notifications",
-  },
-];
-
-interface CaseStudyItem {
+export interface CaseStudyItem {
   metric: string;
   title: string;
   before: string;
   after: string;
 }
+
+/** Subtitle under the huge metric. Percent / +delta → improvement; minutes → baseline; else omit. */
+export function metricSubtitle(metric: string): string | null {
+  const value = metric.trim();
+  if (value.includes("%") || value.startsWith("+")) return "improvement";
+  if (/min/i.test(value)) return "from 45 min";
+  return null;
+}
+
+// Fallback if public.case_studies is empty. Copy matches the 20260822040000 seed.
+export const defaultCaseStudies: CaseStudyItem[] = [
+  {
+    metric: "+133%",
+    title: "Automation hours, same billed labor",
+    before:
+      "More automations used to mean more engineer hours. The desk was already busy.",
+    after:
+      "Governed automations and agents carry the extra load. Automation hours are up 133% while billed hours stayed essentially flat. Humans still approve writeback and anything that spends money.",
+  },
+  {
+    metric: "2 min",
+    title: "User provisioning",
+    before:
+      "A fresh machine was 45 minutes of manual onboarding, config, and babysitting.",
+    after:
+      "Plug in, run the playbook, QC. About two minutes. Immy.Bot and Rewst are the stack; people still do the check.",
+  },
+  {
+    metric: "clean",
+    title: "Inventory billing",
+    before:
+      "Month-end billing lived in Excel. Fields were optional, access was whoever had the file, and a missed row meant a missed invoice.",
+    after:
+      "A governed SharePoint list with required fields and role-based access. The close is a process, not a hunt through a spreadsheet.",
+  },
+  {
+    metric: "50%",
+    title: "Faster inventory updates",
+    before: "Finding a device meant hunting through SharePoint folders.",
+    after: "A three-digit lookup in Teams. Half the time.",
+  },
+];
 
 interface WorkTabProps {
   onRequestFocusUp: () => void;
@@ -49,11 +75,12 @@ export default function WorkTab({
   const { focusLevel, setFocusLevel } = useKeyboardFocus();
   const supabase = useSupabaseClient();
   const prefersReducedMotion = useReducedMotion();
-  const [caseStudies, setCaseStudies] = useState<CaseStudyItem[]>(defaultCaseStudies);
+  const [caseStudies, setCaseStudies] =
+    useState<CaseStudyItem[]>(defaultCaseStudies);
   const [isLoading, setIsLoading] = useState(true);
 
-  const timelineFocused = focusLevel === 'timeline';
-  const workHistoryFocused = focusLevel === 'workHistory';
+  const timelineFocused = focusLevel === "timeline";
+  const workHistoryFocused = focusLevel === "workHistory";
 
   // Fetch case studies from database
   useEffect(() => {
@@ -61,22 +88,23 @@ export default function WorkTab({
       try {
         const data = await getCaseStudies(supabase);
         if (data && data.length > 0) {
-          setCaseStudies(data.map((study: CaseStudy) => ({
-            metric: study.metric,
-            title: study.title,
-            before: study.before_content,
-            after: study.after_content,
-          })));
+          setCaseStudies(
+            data.map((study: CaseStudy) => ({
+              metric: study.metric,
+              title: study.title,
+              before: study.before_content,
+              after: study.after_content,
+            })),
+          );
         }
       } catch (err) {
-        captureException(toError(err), { context: 'WorkTab.fetchCaseStudies' });
+        captureException(toError(err), { context: "WorkTab.fetchCaseStudies" });
         // Keep default case studies on error
       } finally {
         setIsLoading(false);
       }
     }
     fetchData();
-     
   }, [supabase]);
 
   const timelineRequestFocusUp = useCallback(() => {
@@ -84,15 +112,18 @@ export default function WorkTab({
   }, [onRequestFocusUp]);
 
   const focusWorkHistory = useCallback(() => {
-    setFocusLevel('workHistory');
-    workHistoryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setFocusLevel("workHistory");
+    workHistoryRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
   }, [setFocusLevel]);
 
   const workHistoryRequestFocusUp = useCallback(() => {
-    setFocusLevel('timeline');
-    const mainEl = document.querySelector('main');
+    setFocusLevel("timeline");
+    const mainEl = document.querySelector("main");
     if (mainEl) {
-      mainEl.scrollTo({ top: 0, behavior: 'smooth' });
+      mainEl.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [setFocusLevel]);
 
@@ -100,18 +131,21 @@ export default function WorkTab({
     if (!workHistoryFocused) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
         return;
       }
-      if (e.key === 'ArrowUp') {
+      if (e.key === "ArrowUp") {
         e.preventDefault();
         e.stopImmediatePropagation();
         workHistoryRequestFocusUp();
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown, true);
-    return () => window.removeEventListener('keydown', handleKeyDown, true);
+    window.addEventListener("keydown", handleKeyDown, true);
+    return () => window.removeEventListener("keydown", handleKeyDown, true);
   }, [workHistoryFocused, workHistoryRequestFocusUp]);
 
   return (
@@ -120,7 +154,10 @@ export default function WorkTab({
       initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: -24 }}
       animate={{ opacity: 1, x: 0 }}
       exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: 24 }}
-      transition={{ duration: prefersReducedMotion ? 0 : 0.3, ease: 'easeInOut' }}
+      transition={{
+        duration: prefersReducedMotion ? 0 : 0.3,
+        ease: "easeInOut",
+      }}
     >
       <div className="mb-12">
         <span className="font-mono text-sm text-primary uppercase tracking-widest">
@@ -130,9 +167,10 @@ export default function WorkTab({
           AI products and endpoint logistics
         </h2>
         <p className="text-muted-foreground max-w-3xl">
-          Two tracks on one roadmap. AI Products is the latest portfolio item —
-          governed MSP apps John owns or leads. Endpoint Logistics keeps the
-          provisioning story from COVID backlog through Autopilot and 3PL.
+          Two tracks on one roadmap. AI Products is the latest work I led or
+          shipped — governed agents and evidence-preserving workflows; accessAI
+          is still pre-GA. Endpoint Logistics keeps the provisioning story from
+          COVID backlog through Autopilot and 3PL.
         </p>
       </div>
 
@@ -163,35 +201,50 @@ export default function WorkTab({
         </div>
       ) : (
         <div className="space-y-12">
-          {caseStudies.map((study, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 + index * 0.1 }}
-              className="grid md:grid-cols-[200px_1fr] gap-8 items-start"
-            >
-              <div>
-                <div className="font-mono text-5xl md:text-6xl font-black text-primary leading-none">
-                  {study.metric}
-                </div>
-                <div className="text-sm text-muted-foreground mt-2">improvement</div>
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-foreground mb-4">{study.title}</h3>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="border-l-2 border-muted pl-4">
-                    <div className="font-mono text-xs text-muted-foreground uppercase tracking-wider mb-1">Before</div>
-                    <p className="text-muted-foreground text-sm">{study.before}</p>
+          {caseStudies.map((study, index) => {
+            const subtitle = metricSubtitle(study.metric);
+            return (
+              <motion.div
+                key={study.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 + index * 0.1 }}
+                className="grid md:grid-cols-[200px_1fr] gap-8 items-start"
+              >
+                <div>
+                  <div className="font-mono text-5xl md:text-6xl font-black text-primary leading-none">
+                    {study.metric}
                   </div>
-                  <div className="border-l-2 border-primary pl-4">
-                    <div className="font-mono text-xs text-primary uppercase tracking-wider mb-1">After</div>
-                    <p className="text-foreground text-sm">{study.after}</p>
+                  {subtitle && (
+                    <div className="text-sm text-muted-foreground mt-2">
+                      {subtitle}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-foreground mb-4">
+                    {study.title}
+                  </h3>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="border-l-2 border-muted pl-4">
+                      <div className="font-mono text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                        Before
+                      </div>
+                      <p className="text-muted-foreground text-sm">
+                        {study.before}
+                      </p>
+                    </div>
+                    <div className="border-l-2 border-primary pl-4">
+                      <div className="font-mono text-xs text-primary uppercase tracking-wider mb-1">
+                        After
+                      </div>
+                      <p className="text-foreground text-sm">{study.after}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </div>
       )}
 

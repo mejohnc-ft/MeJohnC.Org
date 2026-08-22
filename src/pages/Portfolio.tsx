@@ -62,7 +62,7 @@ const Portfolio = () => {
       return {
         title: 'AI Products',
         description:
-          'centrexIT AI products John Christensen owns or leads: Client Toolbox, Iris, Proxima, accessAI, and Service Desk Toolbox. Governed agents, evidence-preserving workflows, and honest pre-GA claims.',
+          'AI work John Christensen led or shipped: Client Toolbox, Iris, Proxima, accessAI, and Service Desk Toolbox. Governed agents and evidence-preserving workflows; accessAI is pre-GA.',
         url: '/portfolio?track=ai-products',
         keywords: RECRUITING_KEYWORDS,
       };

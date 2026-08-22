@@ -15,18 +15,18 @@ John builds governed AI products and MSP operations systems. Background in enter
 
 ## AI Products (most recent portfolio item)
 
-centrexIT’s portfolio is a developing operating system for how an MSP senses demand, chooses investments, governs AI, builds safely, completes work, and learns.
+Personal recruiting portfolio of AI work John led or shipped at centrexIT — not a company product catalog.
 
-Products with full briefs:
-- Client Toolbox (owner: John) — evidence-backed vITM workspace
-- Service Desk Toolbox + Incident Buddy (owner: Toby) — technician automations and 10-domain investigations
-- Iris (owner: John) — governed employee AI / agent OS
-- Proxima (shared platform) — governed agentic engineering, draft-mode
-- accessAI (R&D) — AI control plane, pre-GA as a universal control plane
+Products:
+- Client Toolbox — evidence-preserving client reviews a vITM can explain
+- Service Desk Toolbox + Incident Buddy — technician automations and an investigation assistant, built with the service desk team
+- Iris — company-grounded assistant with approval-gated action
+- Proxima — draft-mode delivery: reviewed branches, draft PRs, green CI
+- accessAI — AI control plane, pre-GA as a universal control plane
 
-Named seams without full briefs: Cadre, Spark, Spot, Navigate, Vantage, Knowledge, AI Triage.
+Also in the loop (not full product pages): Cadre, Spark, Spot, Navigate, Vantage, Knowledge, AI Triage.
 
-Honest claim: coherent portfolio with strong product depth and a credible control-plane architecture. Not yet one uniformly integrated or enforced platform. accessAI is substantial but pre-GA. Agents may advise, draft, test, and reconcile. Humans retain merge, deploy, external-send, destructive action, billing, and autonomy promotion.
+Honest claim: a developing set of substantial products, not yet one uniformly integrated platform. accessAI is substantial but pre-GA. Agents advise, draft, and test. People keep merge, deploy, and production authority.
 
 ## Endpoint Logistics
 
