@@ -73,7 +73,7 @@ const Portfolio = () => {
       return {
         title: "AI Products",
         description:
-          "AI work John Christensen led or shipped: Client Toolbox, Iris, Proxima, accessAI, and Service Desk Toolbox. Governed agents and evidence-preserving workflows.",
+          "Governed AI for the Enterprise work I ship. Categories: Service Delivery, Portfolio Management, Deep Research / Technical investigations, Multimodal Enterprise Agent, Agentic Application OS Platform, Agent and Compute Federation Platform, and DevOps Teammate.",
         url: "/portfolio?track=ai-products",
         keywords: RECRUITING_KEYWORDS,
       };
