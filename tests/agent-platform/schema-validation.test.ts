@@ -455,4 +455,46 @@ describe("Schema Validation: Migration SQL vs Code", () => {
       expect(params).toContain("p_max_requests");
     });
   });
+
+  describe("audit_log partition RLS", () => {
+    const partitionRlsPath = path.join(
+      MIGRATIONS_DIR,
+      "20260822000001_audit_log_partition_rls.sql",
+    );
+    const partitionRlsSql = fs.readFileSync(partitionRlsPath, "utf-8");
+
+    // Last CREATE OR REPLACE of create_audit_log_partition wins in concatenated SQL.
+    function lastFunctionBody(sql: string, fnName: string): string {
+      const re = new RegExp(
+        `CREATE\\s+OR\\s+REPLACE\\s+FUNCTION\\s+(?:public\\.)?${fnName}\\s*\\([^)]*\\)[\\s\\S]*?\\$\\$[\\s\\S]*?\\$\\$`,
+        "gi",
+      );
+      const matches = sql.match(re);
+      return matches?.[matches.length - 1] ?? "";
+    }
+
+    it("should ship a dedicated partition RLS migration", () => {
+      expect(fs.existsSync(partitionRlsPath)).toBe(true);
+      expect(partitionRlsSql).toContain("ENABLE ROW LEVEL SECURITY");
+      expect(partitionRlsSql).toContain(
+        "Admins can do everything with audit_log",
+      );
+      expect(partitionRlsSql).toMatch(
+        /REVOKE ALL ON TABLE public\.%I FROM PUBLIC, anon, authenticated/,
+      );
+    });
+
+    it("create_audit_log_partition should secure future months", () => {
+      const body = lastFunctionBody(allSql, "create_audit_log_partition");
+      expect(body).toContain("PERFORM public.secure_audit_log_partition");
+    });
+
+    it("secure_audit_log_partition should enable RLS and deny anon grants", () => {
+      const body = lastFunctionBody(allSql, "secure_audit_log_partition");
+      expect(body).toContain("ENABLE ROW LEVEL SECURITY");
+      expect(body).toContain("CREATE POLICY");
+      expect(body).toContain("REVOKE ALL ON TABLE");
+      expect(body).toContain("anon");
+    });
+  });
 });
