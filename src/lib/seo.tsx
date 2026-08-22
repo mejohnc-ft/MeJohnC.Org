@@ -587,9 +587,9 @@ export const occupationSchema: OccupationSchema = {
 
 export const softwareSchema: CreativeWorkSchema = {
   type: "CreativeWork",
-  name: "centrexIT AI Products",
+  name: "AI products John Christensen led or shipped",
   description:
-    "A developing operating system for how an MSP senses demand, chooses investments, governs AI, builds safely, and completes work. Substantial products today; not yet one uniformly integrated platform. accessAI is pre-GA as a universal control plane.",
+    "Governed AI for MSP work: evidence-preserving client reviews, technician assistance, a company-grounded assistant, and draft-mode delivery. Substantial products today; not yet one uniformly integrated platform. accessAI is pre-GA as a universal control plane.",
   url: "/portfolio?track=ai-products",
   creator: "Jonathan Christensen",
   keywords: [
@@ -613,7 +613,7 @@ export const aboutFaqSchema: FAQSchema = {
     {
       question: "Are the centrexIT AI products a single integrated platform?",
       answer:
-        "No. The portfolio is a coherent set of substantial products with a credible control-plane architecture. Common contracts, package adoption, and several cross-product governance seams remain pre-GA or target state. accessAI is substantial but pre-GA as a universal control plane.",
+        "No. They are a developing set of substantial products John led or shipped — client reviews, technician assistance, a company-grounded assistant, draft-mode delivery, and a pre-GA control plane. accessAI is not yet a universal control plane, and the portfolio is not yet one uniformly integrated platform.",
     },
     {
       question: "Where is Jonathan based?",
