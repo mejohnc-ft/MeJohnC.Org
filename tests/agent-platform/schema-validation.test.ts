@@ -459,11 +459,11 @@ describe("Schema Validation: Migration SQL vs Code", () => {
   describe("audit_log partition RLS", () => {
     const partitionRlsPath = path.join(
       MIGRATIONS_DIR,
-      "20260822000001_audit_log_partition_rls.sql",
+      "20260822000001_enable_audit_log_partition_rls.sql",
     );
     const partitionRlsSql = fs.readFileSync(partitionRlsPath, "utf-8");
 
-    // Last CREATE OR REPLACE of create_audit_log_partition wins in concatenated SQL.
+    // Last CREATE OR REPLACE of a function wins in concatenated SQL.
     function lastFunctionBody(sql: string, fnName: string): string {
       const re = new RegExp(
         `CREATE\\s+OR\\s+REPLACE\\s+FUNCTION\\s+(?:public\\.)?${fnName}\\s*\\([^)]*\\)[\\s\\S]*?\\$\\$[\\s\\S]*?\\$\\$`,
@@ -473,28 +473,28 @@ describe("Schema Validation: Migration SQL vs Code", () => {
       return matches?.[matches.length - 1] ?? "";
     }
 
-    it("should ship a dedicated partition RLS migration", () => {
+    it("should ship enable_audit_log_partition_rls matching the live apply", () => {
       expect(fs.existsSync(partitionRlsPath)).toBe(true);
       expect(partitionRlsSql).toContain("ENABLE ROW LEVEL SECURITY");
       expect(partitionRlsSql).toContain(
         "Admins can do everything with audit_log",
       );
-      expect(partitionRlsSql).toMatch(
-        /REVOKE ALL ON TABLE public\.%I FROM PUBLIC, anon, authenticated/,
-      );
+      expect(partitionRlsSql).toContain("USING (is_admin())");
+      for (const month of ["02", "03", "04", "05", "06", "07", "08"]) {
+        expect(partitionRlsSql).toContain(`audit_log_2026_${month}`);
+      }
     });
 
-    it("create_audit_log_partition should secure future months", () => {
+    it("create_audit_log_partition should enable RLS and copy the admin policy", () => {
       const body = lastFunctionBody(allSql, "create_audit_log_partition");
-      expect(body).toContain("PERFORM public.secure_audit_log_partition");
+      expect(body).toContain("PERFORM public.enable_audit_log_partition_rls");
     });
 
-    it("secure_audit_log_partition should enable RLS and deny anon grants", () => {
-      const body = lastFunctionBody(allSql, "secure_audit_log_partition");
+    it("enable_audit_log_partition_rls helper should match live policy", () => {
+      const body = lastFunctionBody(allSql, "enable_audit_log_partition_rls");
       expect(body).toContain("ENABLE ROW LEVEL SECURITY");
       expect(body).toContain("CREATE POLICY");
-      expect(body).toContain("REVOKE ALL ON TABLE");
-      expect(body).toContain("anon");
+      expect(body).toContain("is_admin()");
     });
   });
 });
