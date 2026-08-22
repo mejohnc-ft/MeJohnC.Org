@@ -22,8 +22,16 @@ const staticRoutes = [
   { path: "/about", priority: 0.8, changefreq: "monthly" },
   { path: "/projects/territories", priority: 0.7, changefreq: "monthly" },
   { path: "/portfolio?tab=work", priority: 0.8, changefreq: "weekly" },
-  { path: "/portfolio?track=ai-products", priority: 0.85, changefreq: "weekly" },
-  { path: "/portfolio?track=endpoint-logistics", priority: 0.8, changefreq: "weekly" },
+  {
+    path: "/portfolio?track=ai-products",
+    priority: 0.85,
+    changefreq: "weekly",
+  },
+  {
+    path: "/portfolio?track=endpoint-logistics",
+    priority: 0.8,
+    changefreq: "weekly",
+  },
   { path: "/portfolio?tab=projects", priority: 0.8, changefreq: "weekly" },
   { path: "/portfolio?tab=software", priority: 0.8, changefreq: "weekly" },
   { path: "/portfolio?tab=content", priority: 0.8, changefreq: "daily" },
@@ -82,7 +90,8 @@ function generateSitemapXml(routes) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urlEntries}
-</urlset>`;
+</urlset>
+`;
 }
 
 async function main() {
