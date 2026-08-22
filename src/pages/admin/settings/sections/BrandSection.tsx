@@ -6,6 +6,7 @@ import { uploadFile } from "@/lib/supabase-queries";
 import { useTenantSupabase } from "@/lib/supabase";
 import { useTenant } from "@/lib/tenant";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import type { TenantBranding } from "@/lib/tenant-settings";
 
 const BrandSection = () => {
@@ -32,7 +33,7 @@ const BrandSection = () => {
       const url = await uploadFile(file, path, supabase, tenant.id);
       setBranding((prev) => ({ ...prev, [field]: url }));
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: `BrandSection.upload.${field}`,
       });
     } finally {

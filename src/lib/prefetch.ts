@@ -6,6 +6,7 @@ import {
   getBlogPosts,
 } from "./supabase-queries";
 import { captureException } from "./sentry";
+import { toError } from "./errors";
 
 // Cache for prefetched data
 const prefetchCache = new Map<string, { data: unknown; timestamp: number }>();
@@ -34,7 +35,7 @@ const prefetchFunctions: Record<PrefetchKey, () => Promise<void>> = {
         timestamp: Date.now(),
       });
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "prefetch.projects",
       });
     }
@@ -52,7 +53,7 @@ const prefetchFunctions: Record<PrefetchKey, () => Promise<void>> = {
         timestamp: Date.now(),
       });
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "prefetch.software",
       });
     }
@@ -67,7 +68,7 @@ const prefetchFunctions: Record<PrefetchKey, () => Promise<void>> = {
         timestamp: Date.now(),
       });
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "prefetch.content",
       });
     }

@@ -16,6 +16,7 @@ import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { getSupabaseTableStats, type SupabaseTableStats } from '@/lib/metrics-queries';
 import { MetricsBarChart } from '@/components/admin/charts';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 
 interface SupabaseStatsCardProps {
   showChart?: boolean;
@@ -43,7 +44,7 @@ export default function SupabaseStatsCard({ showChart = true }: SupabaseStatsCar
       const data = await getSupabaseTableStats(supabase);
       setStats(data);
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: 'SupabaseStatsCard.fetchStats',
       });
     } finally {

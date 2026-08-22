@@ -9,6 +9,7 @@
  */
 
 import * as Sentry from "@sentry/react";
+import { toError } from "./errors";
 
 // Log levels
 export type LogLevel = "debug" | "info" | "warn" | "error";
@@ -166,7 +167,7 @@ class Logger {
   /**
    * Output log entry
    */
-  private output(entry: LogEntry): void {
+  private output(entry: LogEntry, originalError?: Error): void {
     if (!this.shouldLog(entry.level)) return;
 
     // In production, output structured JSON
@@ -184,9 +185,10 @@ class Logger {
           console.log(output);
       }
 
-      // Send errors to Sentry
-      if (entry.level === "error" && entry.error) {
-        Sentry.captureException(new Error(entry.error.message), {
+      // Send errors to Sentry. Prefer the original Error instance so we keep
+      // name/stack/type instead of wrapping a possibly-non-string message.
+      if (entry.level === "error" && (originalError || entry.error)) {
+        Sentry.captureException(originalError ?? toError(entry.error), {
           extra: {
             ...entry.metadata,
             correlationId: entry.correlationId,
@@ -236,10 +238,14 @@ class Logger {
 
   error(
     message: string,
-    error?: Error,
+    error?: unknown,
     metadata?: Record<string, unknown>,
   ): void {
-    this.output(this.formatEntry("error", message, metadata, error));
+    const normalized = error !== undefined ? toError(error) : undefined;
+    this.output(
+      this.formatEntry("error", message, metadata, normalized),
+      normalized,
+    );
   }
 
   /**
@@ -260,7 +266,7 @@ class Logger {
       return result;
     } catch (error) {
       const duration = Math.round(performance.now() - start);
-      this.error(`Failed: ${action}`, error as Error, {
+      this.error(`Failed: ${action}`, error, {
         ...metadata,
         duration,
       });
@@ -294,8 +300,11 @@ export const log = {
     logger.info(message, metadata),
   warn: (message: string, metadata?: Record<string, unknown>) =>
     logger.warn(message, metadata),
-  error: (message: string, error?: Error, metadata?: Record<string, unknown>) =>
-    logger.error(message, error, metadata),
+  error: (
+    message: string,
+    error?: unknown,
+    metadata?: Record<string, unknown>,
+  ) => logger.error(message, error, metadata),
   time: <T>(
     action: string,
     fn: () => Promise<T>,

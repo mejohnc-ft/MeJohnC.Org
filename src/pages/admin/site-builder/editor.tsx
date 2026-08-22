@@ -29,6 +29,7 @@ import type {
   SiteBuilderPageVersion,
 } from "@/lib/schemas";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import { PageCanvas } from "@/components/site-builder/PageCanvas";
 import { ComponentLibrary } from "@/components/site-builder/ComponentLibrary";
 import { PropertyEditor } from "@/components/site-builder/PropertyEditor";
@@ -92,7 +93,7 @@ export default function SiteBuilderEditor() {
       }
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "SiteBuilderEditor.loadData",
         },
@@ -149,7 +150,7 @@ export default function SiteBuilderEditor() {
       toast.success("Page saved successfully!");
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "SiteBuilderEditor.handleSave",
         },
@@ -185,7 +186,7 @@ export default function SiteBuilderEditor() {
       setComponents([...components, newComponent]);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "SiteBuilderEditor.handleAddComponent",
         },
@@ -212,7 +213,7 @@ export default function SiteBuilderEditor() {
       setSelectedComponent(updated);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "SiteBuilderEditor.handleUpdateComponent",
         },
@@ -232,7 +233,7 @@ export default function SiteBuilderEditor() {
       }
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "SiteBuilderEditor.handleDeleteComponent",
         },
@@ -252,7 +253,7 @@ export default function SiteBuilderEditor() {
       setComponents([...components, duplicated]);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "SiteBuilderEditor.handleDuplicateComponent",
         },
@@ -274,7 +275,7 @@ export default function SiteBuilderEditor() {
       setComponents(reorderedComponents);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "SiteBuilderEditor.handleReorder",
         },
@@ -292,7 +293,7 @@ export default function SiteBuilderEditor() {
       loadData();
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "SiteBuilderEditor.handleCreateVersion",
         },

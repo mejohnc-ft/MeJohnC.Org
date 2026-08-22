@@ -18,6 +18,7 @@ import {
 import { renderMarkdown } from '@/lib/markdown';
 import { useSEO, useJsonLd, personSchema, aboutFaqSchema, RECRUITING_KEYWORDS } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 import DOMPurify from 'dompurify';
 
 // Icon mapping for contact links
@@ -114,7 +115,7 @@ Background in enterprise IT—Azure, Intune, M365 at scale. Now applying that sy
           setContactLinks(linksData);
         }
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), { context: 'About.fetchData' });
+        captureException(toError(err), { context: 'About.fetchData' });
       } finally {
         setIsLoading(false);
       }
@@ -228,7 +229,7 @@ Background in enterprise IT—Azure, Intune, M365 at scale. Now applying that sy
       setContent(saved);
       setIsEditing(false);
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'About.save' });
+      captureException(toError(err), { context: 'About.save' });
     } finally {
       setIsSaving(false);
     }

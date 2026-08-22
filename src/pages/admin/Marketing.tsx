@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import AdminLayout from '@/components/AdminLayout';
 import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 import { getMarketingStats } from '@/lib/marketing-queries';
 import { emailService, sendTestEmail } from '@/lib/email-service';
 import type { MarketingStats } from '@/lib/schemas';
@@ -33,7 +34,7 @@ const Marketing = () => {
         const data = await getMarketingStats(supabase);
         setStats(data);
       } catch (error) {
-        captureException(error instanceof Error ? error : new Error(String(error)), {
+        captureException(toError(error), {
           context: 'Marketing.fetchStats',
         });
       } finally {
@@ -61,7 +62,7 @@ const Marketing = () => {
         setTestResult({ success: false, message: result.error || 'Failed to send test email' });
       }
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'Marketing.handleSendTestEmail',
       });
       setTestResult({ success: false, message: 'Error sending test email' });

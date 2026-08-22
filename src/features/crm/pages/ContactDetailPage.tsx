@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { useAuthenticatedSupabase } from "@/lib/supabase";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import { ContactDetail } from "../components/ContactDetail";
 import { InteractionLog } from "../components/InteractionLog";
 import { InteractionForm } from "../components/InteractionForm";
@@ -72,7 +73,7 @@ const ContactDetailPage = () => {
       setFollowUps(followUpsData);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "ContactDetailPage.loadContactData",
         },
@@ -104,7 +105,7 @@ const ContactDetailPage = () => {
       loadContactData();
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "ContactDetailPage.createInteraction",
         },
@@ -135,7 +136,7 @@ const ContactDetailPage = () => {
       loadContactData();
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "ContactDetailPage.createFollowUp",
         },
@@ -150,7 +151,7 @@ const ContactDetailPage = () => {
       loadContactData();
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "ContactDetailPage.completeFollowUp",
         },

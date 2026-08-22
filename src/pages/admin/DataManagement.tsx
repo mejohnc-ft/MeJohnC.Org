@@ -16,6 +16,7 @@ import { Card } from "@/components/ui/card";
 import { useSEO } from "@/lib/seo";
 import { useTenant } from "@/lib/tenant";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 
 interface DataType {
   id: string;
@@ -164,7 +165,7 @@ export default function DataManagement() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Export failed";
       setError(errorMessage);
-      captureException(err instanceof Error ? err : new Error(errorMessage));
+      captureException(toError(err));
     } finally {
       setExporting(false);
     }
@@ -236,9 +237,7 @@ export default function DataManagement() {
       } catch (err) {
         setError("Invalid JSON file or unsupported format");
         setSelectedFile(null);
-        captureException(
-          err instanceof Error ? err : new Error("Import preview failed"),
-        );
+        captureException(toError(err));
       }
     };
     reader.readAsText(file);
@@ -273,7 +272,7 @@ export default function DataManagement() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Import failed";
       setError(errorMessage);
-      captureException(err instanceof Error ? err : new Error(errorMessage));
+      captureException(toError(err));
     } finally {
       setImporting(false);
     }

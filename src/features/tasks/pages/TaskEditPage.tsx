@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import AdminLayout from "@/components/AdminLayout";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import { TaskForm, TaskComments, TaskReminders } from "../components";
 
 const TaskEditPage = () => {
@@ -50,7 +51,7 @@ const TaskEditPage = () => {
       }
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         { context: "TaskEditPage.fetchData" },
       );
       navigate("/admin/tasks");
@@ -77,7 +78,7 @@ const TaskEditPage = () => {
       navigate("/admin/tasks");
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         { context: "TaskEditPage.handleSubmit" },
       );
       toast.error("Failed to save task. Please try again.");

@@ -6,6 +6,7 @@ import { useKeyboardFocus } from '@/lib/keyboard-focus';
 import { useSupabaseClient } from '@/lib/supabase';
 import { getCaseStudies, type CaseStudy } from '@/lib/supabase-queries';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 import { Loader2 } from 'lucide-react';
 import { useReducedMotion } from '@/lib/reduced-motion';
 import type { TimelineTrackId } from '@/data/timeline-tracks';
@@ -68,7 +69,7 @@ export default function WorkTab({
           })));
         }
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), { context: 'WorkTab.fetchCaseStudies' });
+        captureException(toError(err), { context: 'WorkTab.fetchCaseStudies' });
         // Keep default case studies on error
       } finally {
         setIsLoading(false);

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import AdminLayout from "@/components/AdminLayout";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import {
   getEmailTemplateById,
   createEmailTemplate,
@@ -68,7 +69,7 @@ const TemplateEditor = () => {
         }
       } catch (error) {
         captureException(
-          error instanceof Error ? error : new Error(String(error)),
+          toError(error),
           {
             context: "TemplateEditor.fetchTemplate",
           },
@@ -125,7 +126,7 @@ const TemplateEditor = () => {
       navigate("/admin/marketing/templates");
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "TemplateEditor.handleSubmit",
         },
@@ -145,7 +146,7 @@ const TemplateEditor = () => {
       navigate("/admin/marketing/templates");
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "TemplateEditor.handleDelete",
         },

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import AdminLayout from '@/components/AdminLayout';
 import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 import { getEmailCampaigns } from '@/lib/marketing-queries';
 import type { EmailCampaign } from '@/lib/schemas';
 
@@ -30,7 +31,7 @@ const MarketingCampaigns = () => {
         );
         setCampaigns(data);
       } catch (error) {
-        captureException(error instanceof Error ? error : new Error(String(error)), {
+        captureException(toError(error), {
           context: 'MarketingCampaigns.fetchCampaigns',
         });
       } finally {

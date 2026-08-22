@@ -44,6 +44,7 @@ import {
 } from "../services/genui-queries";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import {
   CENTREX_BRAND_COLORS,
   CENTREX_COMPONENT_CATALOG,
@@ -115,7 +116,7 @@ export default function GenerativePage() {
       setDataSources(dataSourcesData);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "GenerativePage.fetchData",
         },
@@ -163,7 +164,7 @@ export default function GenerativePage() {
       setStats(statsData);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "GenerativePage.handleDeletePanel",
         },
@@ -185,7 +186,7 @@ export default function GenerativePage() {
       );
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "GenerativePage.handlePublishPanel",
         },
@@ -237,7 +238,7 @@ export default function GenerativePage() {
       setDataSources((prev) => prev.filter((s) => s.id !== id));
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "GenerativePage.handleSourceDelete",
         },

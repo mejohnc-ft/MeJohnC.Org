@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import AdminLayout from "@/components/AdminLayout";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import {
   getEmailSubscriberById,
   createEmailSubscriber,
@@ -75,7 +76,7 @@ const SubscriberDetail = () => {
         }
       } catch (error) {
         captureException(
-          error instanceof Error ? error : new Error(String(error)),
+          toError(error),
           {
             context: "SubscriberDetail.fetchData",
           },
@@ -136,7 +137,7 @@ const SubscriberDetail = () => {
       navigate("/admin/marketing/subscribers");
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "SubscriberDetail.handleSubmit",
         },
@@ -156,7 +157,7 @@ const SubscriberDetail = () => {
       navigate("/admin/marketing/subscribers");
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "SubscriberDetail.handleDelete",
         },

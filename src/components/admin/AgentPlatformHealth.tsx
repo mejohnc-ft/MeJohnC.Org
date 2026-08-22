@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { getAgentPlatformStats, type AgentPlatformStats } from '@/lib/agent-platform-queries';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 
 export default function AgentPlatformHealth() {
   const { supabase } = useAuthenticatedSupabase();
@@ -23,7 +24,7 @@ export default function AgentPlatformHealth() {
         const data = await getAgentPlatformStats(supabase);
         setStats(data);
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        captureException(toError(err), {
           context: 'AgentPlatformHealth.fetchStats',
         });
       } finally {

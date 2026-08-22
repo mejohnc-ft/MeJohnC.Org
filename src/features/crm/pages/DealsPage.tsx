@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useAuthenticatedSupabase } from "@/lib/supabase";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import { DealCard } from "../components/DealCard";
 import { DealForm } from "../components/DealForm";
 import type { DealWithDetails, Deal } from "../schemas";
@@ -41,7 +42,7 @@ const DealsPage = () => {
       setDeals(data);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "DealsPage.loadDeals",
         },

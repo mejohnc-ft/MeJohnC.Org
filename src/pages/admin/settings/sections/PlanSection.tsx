@@ -14,6 +14,7 @@ import { useAIUsage } from "@/hooks/useAIUsage";
 import { useTenant } from "@/lib/tenant";
 import { type PlanTier } from "@/lib/billing";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 
 const PLAN_DISPLAY: Record<PlanTier, { label: string; color: string }> = {
   free: { label: "Free", color: "bg-gray-500/20 text-gray-400" },
@@ -56,7 +57,7 @@ const PlanSection = () => {
         throw new Error(data.error || "Failed to open portal");
       }
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "PlanSection.openStripePortal",
       });
     } finally {
@@ -81,7 +82,7 @@ const PlanSection = () => {
         window.location.href = data.url;
       }
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "PlanSection.openCheckout",
       });
     }

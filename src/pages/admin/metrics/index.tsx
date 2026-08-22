@@ -34,6 +34,7 @@ import {
 } from "@/lib/metrics-queries";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import { ANIMATION } from "@/lib/constants";
 
 const TIME_RANGES: { label: string; value: TimeRange }[] = [
@@ -79,7 +80,7 @@ export default function AdminMetrics() {
       setMetricNames(names);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "AdminMetrics.loadData",
         },

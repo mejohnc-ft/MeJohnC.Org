@@ -30,6 +30,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 import {
   getContacts,
   getContactLists,
@@ -151,7 +152,7 @@ const AdminContacts = () => {
       setFollowUps(upcomingFollowUps);
       setOverdueFollowUps(overdueData);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'AdminContacts.loadData',
       });
     } finally {
@@ -218,7 +219,7 @@ const AdminContacts = () => {
       setShowContactForm(false);
       loadData();
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'AdminContacts.saveContact',
       });
     } finally {
@@ -233,7 +234,7 @@ const AdminContacts = () => {
       await deleteContact(id, supabase);
       loadData();
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'AdminContacts.deleteContact',
       });
     }
@@ -246,7 +247,7 @@ const AdminContacts = () => {
       await completeFollowUp(id, undefined, undefined, supabase);
       loadData();
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'AdminContacts.completeFollowUp',
       });
     }

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { getAppsBySlug, type App, type AppSuite } from '@/lib/supabase-queries';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 import { useSEO, useJsonLd, personSchema } from '@/lib/seo';
 
 const AppDetail = () => {
@@ -37,7 +38,7 @@ const AppDetail = () => {
         const data = await getAppsBySlug(slug);
         setApp(data);
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), { context: 'AppDetail.fetchApp', slug });
+        captureException(toError(err), { context: 'AppDetail.fetchApp', slug });
         setError('App not found');
       } finally {
         setIsLoading(false);

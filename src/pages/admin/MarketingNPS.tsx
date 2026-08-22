@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import AdminLayout from '@/components/AdminLayout';
 import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 import { getNPSSurveys } from '@/lib/marketing-queries';
 import type { NPSSurvey } from '@/lib/schemas';
 
@@ -26,7 +27,7 @@ const MarketingNPS = () => {
         const data = await getNPSSurveys(undefined, supabase);
         setSurveys(data);
       } catch (error) {
-        captureException(error instanceof Error ? error : new Error(String(error)), {
+        captureException(toError(error), {
           context: 'MarketingNPS.fetchSurveys',
         });
       } finally {

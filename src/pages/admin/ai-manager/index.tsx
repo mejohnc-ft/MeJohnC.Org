@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import AdminLayout from "@/components/AdminLayout";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import ReactMarkdown from "react-markdown";
 
 // Backend modes for AI interaction
@@ -180,7 +181,7 @@ const AIManager = () => {
       setMessages(allMessages);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "AIManager.loadSession",
         },
@@ -419,7 +420,7 @@ Note: In API mode, you don't have access to tools like file operations or git co
         ]);
       } catch (error) {
         captureException(
-          error instanceof Error ? error : new Error(String(error)),
+          toError(error),
           {
             context: "AIManager.sendMessage.api",
           },
@@ -473,7 +474,7 @@ Note: In API mode, you don't have access to tools like file operations or git co
         clearTimeout(responseTimeoutRef.current);
       }
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "AIManager.sendMessage",
         },
@@ -506,7 +507,7 @@ Note: In API mode, you don't have access to tools like file operations or git co
       setPendingConfirmation(null);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "AIManager.handleConfirmation",
         },

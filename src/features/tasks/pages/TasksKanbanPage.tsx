@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import AdminLayout from '@/components/AdminLayout';
 import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 import { KanbanBoard } from '../components';
 
 const TasksKanbanPage = () => {
@@ -33,7 +34,7 @@ const TasksKanbanPage = () => {
       const tasksData = await getTasks({}, supabase);
       setTasks(tasksData);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), { context: 'TasksKanbanPage.fetchData' });
+      captureException(toError(error), { context: 'TasksKanbanPage.fetchData' });
     } finally {
       setIsLoading(false);
     }
@@ -50,7 +51,7 @@ const TasksKanbanPage = () => {
     try {
       await updateTaskStatus(taskId, newStatus, supabase);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), { context: 'TasksKanbanPage.handleTaskMove' });
+      captureException(toError(error), { context: 'TasksKanbanPage.handleTaskMove' });
       // Revert on error
       fetchData();
     }
@@ -63,7 +64,7 @@ const TasksKanbanPage = () => {
       await deleteTask(taskId, supabase);
       setTasks(tasks.filter((t) => t.id !== taskId));
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), { context: 'TasksKanbanPage.handleDelete' });
+      captureException(toError(error), { context: 'TasksKanbanPage.handleDelete' });
     }
   };
 

@@ -31,6 +31,7 @@ import {
 } from "@/lib/supabase-queries";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 
 const statusLabels: Record<string, string> = {
   planned: "Planned",
@@ -69,7 +70,7 @@ const AdminAppsList = () => {
       setApps(appsData);
       setSuites(suitesData);
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "AdminApps.fetchData",
       });
     } finally {
@@ -89,7 +90,7 @@ const AdminAppsList = () => {
       await deleteApp(id, supabase);
       setApps(apps.filter((a) => a.id !== id));
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "AdminApps.deleteApp",
       });
     } finally {
@@ -113,7 +114,7 @@ const AdminAppsList = () => {
       await deleteAppSuite(id, supabase);
       setSuites(suites.filter((s) => s.id !== id));
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "AdminApps.deleteSuite",
       });
     } finally {
@@ -150,7 +151,7 @@ const AdminAppsList = () => {
       setApps(apps.filter((a) => !selectedIds.has(a.id)));
       setSelectedIds(new Set());
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "AdminApps.bulkDelete",
       });
     } finally {
@@ -169,7 +170,7 @@ const AdminAppsList = () => {
       );
       setSelectedIds(new Set());
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "AdminApps.bulkUpdate",
       });
     } finally {
@@ -188,7 +189,7 @@ const AdminAppsList = () => {
       );
       setSelectedIds(new Set());
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "AdminApps.bulkArchive",
       });
     } finally {

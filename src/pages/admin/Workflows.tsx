@@ -24,6 +24,7 @@ import WorkflowTemplateGallery from "@/components/admin/WorkflowTemplateGallery"
 import { useAuthenticatedSupabase } from "@/lib/supabase";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import {
   getWorkflows,
   createWorkflow,
@@ -73,7 +74,7 @@ const Workflows = () => {
       setWorkflows(data);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         { context: "Workflows.fetchWorkflows" },
       );
     } finally {
@@ -110,7 +111,7 @@ const Workflows = () => {
       );
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         { context: "Workflows.toggleActive", workflowId: workflow.id },
       );
     }
@@ -155,7 +156,7 @@ const Workflows = () => {
       navigate(`/admin/workflows/${created.id}`);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         { context: "Workflows.createWorkflow" },
       );
     } finally {
@@ -207,7 +208,7 @@ const Workflows = () => {
       navigate(`/admin/workflows/${created.id}`);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         { context: "Workflows.installTemplate", templateId: template.id },
       );
       toast.error("Failed to install template");
@@ -237,7 +238,7 @@ const Workflows = () => {
       toast.success(`Workflow "${workflow.name}" started`);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         { context: "Workflows.runNow", workflowId: workflow.id },
       );
       toast.error("Failed to run workflow");

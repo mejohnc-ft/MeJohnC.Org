@@ -19,6 +19,7 @@ import {
   type AppSuite
 } from '@/lib/supabase-queries';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 import { useSEO } from '@/lib/seo';
 
 type AppFormData = Omit<App, 'id' | 'created_at' | 'updated_at' | 'suite'>;
@@ -60,7 +61,7 @@ const AppEditor = () => {
       const data = await getAppSuites(supabase);
       setSuites(data);
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'AppEditor.fetchSuites' });
+      captureException(toError(err), { context: 'AppEditor.fetchSuites' });
     }
   }, [supabase]);
 
@@ -86,7 +87,7 @@ const AppEditor = () => {
       });
       setAutoSlug(false);
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'AppEditor.fetchApp' });
+      captureException(toError(err), { context: 'AppEditor.fetchApp' });
       setError('App not found');
     } finally {
       setIsLoading(false);
@@ -148,7 +149,7 @@ const AppEditor = () => {
         }));
       }
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'AppEditor.saveApp' });
+      captureException(toError(err), { context: 'AppEditor.saveApp' });
       setError('Failed to save app. Make sure you have permission.');
     } finally {
       setIsSaving(false);

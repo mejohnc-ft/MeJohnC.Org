@@ -27,6 +27,7 @@ import { Input } from '@/components/ui/input';
 import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 import {
   getAuditEvents,
   exportAuditEvents,
@@ -207,7 +208,7 @@ export default function AuditLog() {
         setTotalCount((prev) => (reset ? data.length : prev + data.length));
         setHasNewEvents(false);
       } catch (error) {
-        captureException(error instanceof Error ? error : new Error(String(error)));
+        captureException(toError(error));
         console.error('Failed to load audit events:', error);
       } finally {
         setLoading(false);
@@ -313,7 +314,7 @@ export default function AuditLog() {
       a.click();
       URL.revokeObjectURL(url);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)));
+      captureException(toError(error));
       console.error('Failed to export audit events:', error);
     }
   };

@@ -24,6 +24,7 @@ import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 import { ANIMATION } from '@/lib/constants';
 import { WidgetCard } from './WidgetCard';
 import { ChartWidget } from './ChartWidget';
@@ -81,7 +82,7 @@ export function MetricsDashboard({ onAddSource, onSourceClick }: MetricsDashboar
       setMetricsData(dataPoints);
       setMetricNames(names);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'MetricsDashboard.loadData',
       });
     } finally {

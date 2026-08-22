@@ -7,6 +7,7 @@ import AppCard from '@/components/AppCard';
 import { Button } from '@/components/ui/button';
 import { getAppsBySuiteSlug, type App, type AppSuite as AppSuiteType } from '@/lib/supabase-queries';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 
 const AppSuite = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -24,7 +25,7 @@ const AppSuite = () => {
         setSuite(data.suite);
         setApps(data.apps);
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), { context: 'AppSuite.fetchSuite', slug });
+        captureException(toError(err), { context: 'AppSuite.fetchSuite', slug });
         setError('Suite not found');
       } finally {
         setIsLoading(false);

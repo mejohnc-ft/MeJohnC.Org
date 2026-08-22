@@ -33,6 +33,7 @@ import {
 } from "@/lib/supabase-queries";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 
 type PostFormData = Omit<BlogPost, "id" | "created_at" | "updated_at">;
 
@@ -87,7 +88,7 @@ const BlogEditor = () => {
         });
         setAutoSlug(false);
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        captureException(toError(err), {
           context: "BlogEditor.fetchPost",
         });
         setError("Post not found");
@@ -179,7 +180,7 @@ const BlogEditor = () => {
         published_at: publishedAt,
       }));
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "BlogEditor.savePost",
       });
       setError("Failed to save post. Make sure you have permission.");

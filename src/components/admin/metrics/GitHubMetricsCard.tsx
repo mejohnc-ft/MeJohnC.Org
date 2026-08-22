@@ -21,6 +21,7 @@ import {
 } from '@/lib/github-metrics';
 import { MetricsAreaChart } from '@/components/admin/charts';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 
 interface GitHubMetricsCardProps {
   owner: string;
@@ -48,7 +49,7 @@ export default function GitHubMetricsCard({
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch GitHub metrics';
       setError(message);
-      captureException(err instanceof Error ? err : new Error(message), {
+      captureException(toError(err), {
         context: 'GitHubMetricsCard.fetchMetrics',
         extra: { owner, repo },
       });

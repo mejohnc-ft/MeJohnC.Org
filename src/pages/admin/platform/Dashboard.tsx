@@ -14,6 +14,7 @@ import AdminLayout from "@/components/AdminLayout";
 import { useAuthenticatedSupabase } from "@/lib/supabase";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 
 interface PlatformStats {
   total_tenants: number;
@@ -38,7 +39,7 @@ const PlatformDashboard = () => {
         if (error) throw error;
         setStats(data as PlatformStats);
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        captureException(toError(err), {
           context: "PlatformDashboard.fetchStats",
         });
       } finally {

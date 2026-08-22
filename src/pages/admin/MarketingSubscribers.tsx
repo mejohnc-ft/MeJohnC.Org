@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import AdminLayout from "@/components/AdminLayout";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import {
   getEmailSubscribers,
   bulkImportSubscribers,
@@ -57,7 +58,7 @@ const MarketingSubscribers = () => {
         setSubscribers(data);
       } catch (error) {
         captureException(
-          error instanceof Error ? error : new Error(String(error)),
+          toError(error),
           {
             context: "MarketingSubscribers.fetchSubscribers",
           },
@@ -225,7 +226,7 @@ const MarketingSubscribers = () => {
       setSubscribers(data);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "MarketingSubscribers.handleImport",
         },

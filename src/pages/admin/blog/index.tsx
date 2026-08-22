@@ -36,6 +36,7 @@ import {
 import { formatDate } from "@/lib/markdown";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 
 type ContentTab = "all" | "me" | "news";
 type ArticleWithSource = NewsArticle & { source: NewsSource | null };
@@ -115,7 +116,7 @@ const AdminContentList = () => {
       setLocalPosts(posts);
       setCuratedNews(curated);
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "AdminContent.fetchData",
       });
     } finally {
@@ -172,7 +173,7 @@ const AdminContentList = () => {
       await deleteBlogPost(id, supabase);
       setLocalPosts(localPosts.filter((p) => p.id !== id));
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "AdminContent.deletePost",
       });
     } finally {
@@ -186,7 +187,7 @@ const AdminContentList = () => {
       await curateArticle(id, false, undefined, supabase!);
       setCuratedNews(curatedNews.filter((a) => a.id !== id));
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "AdminContent.uncurate",
       });
     } finally {
@@ -226,7 +227,7 @@ const AdminContentList = () => {
       setLocalPosts(localPosts.filter((p) => !selectedIds.has(p.id)));
       setSelectedIds(new Set());
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "AdminContent.bulkDelete",
       });
     } finally {
@@ -255,7 +256,7 @@ const AdminContentList = () => {
       );
       setSelectedIds(new Set());
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "AdminContent.bulkPublish",
       });
     } finally {
@@ -278,7 +279,7 @@ const AdminContentList = () => {
       );
       setSelectedIds(new Set());
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "AdminContent.bulkUnpublish",
       });
     } finally {

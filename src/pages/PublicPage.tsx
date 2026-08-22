@@ -7,6 +7,7 @@ import { getSiteBuilderPageBySlug, getSiteBuilderPageComponents } from '@/lib/si
 import type { SiteBuilderPage, SiteBuilderPageComponent } from '@/lib/schemas';
 import { BLOCK_COMPONENTS } from '@/components/site-builder/blocks';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 
 export default function PublicPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -45,7 +46,7 @@ export default function PublicPage() {
       const componentsData = await getSiteBuilderPageComponents(pageData.id, supabase);
       setComponents(componentsData);
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: 'PublicPage.loadPage',
       });
       setError('Page not found');

@@ -2,6 +2,7 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { useSession, useOrganization } from "@clerk/clerk-react";
 import { useMemo, useCallback, useEffect, useRef } from "react";
 import { captureException } from "./sentry";
+import { toError } from "./errors";
 import { STORAGE_KEYS } from "./constants";
 import { useTenant } from "./tenant";
 
@@ -62,7 +63,7 @@ export function getSupabaseSettings(): SupabaseSettings {
         }
       }
     } catch (e) {
-      captureException(e instanceof Error ? e : new Error(String(e)), {
+      captureException(toError(e), {
         context: "Supabase.parseSettings",
       });
     }
@@ -212,7 +213,7 @@ export function useAuthenticatedSupabase(): {
       const token = await session.getToken({ template: "supabase" });
       return token;
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "useAuthenticatedSupabase.getToken",
       });
       return null;
@@ -276,7 +277,7 @@ export function useTenantSupabase(): {
     try {
       return await session.getToken({ template: "supabase" });
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "useTenantSupabase.getToken",
       });
       return null;

@@ -17,6 +17,7 @@ import {
   type ContentVersion,
 } from "@/lib/audit";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 
 interface VersionHistoryProps {
   tableName: string;
@@ -41,7 +42,7 @@ export default function VersionHistory({
         const data = await getContentVersions(tableName, recordId);
         setVersions(data);
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        captureException(toError(err), {
           context: "VersionHistory.fetchVersions",
         });
       } finally {
@@ -71,7 +72,7 @@ export default function VersionHistory({
       setVersions(data);
       onRestore?.();
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "VersionHistory.restore",
       });
       toast.error("Failed to restore version");

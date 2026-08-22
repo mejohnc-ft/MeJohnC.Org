@@ -14,6 +14,7 @@ import { NewsServiceSupabase } from "@/services/news";
 import { useTenantSupabase } from "@/lib/supabase";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import { type NewsSource, type NewsCategory } from "../schemas";
 
 const newsService = new NewsServiceSupabase();
@@ -41,7 +42,7 @@ export default function SourcesPage() {
       setCategories(categoriesData);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "SourcesPage.fetchData",
         },
@@ -75,7 +76,7 @@ export default function SourcesPage() {
       setSources((prev) => [...prev, created]);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "SourcesPage.handleSourceCreate",
         },
@@ -93,7 +94,7 @@ export default function SourcesPage() {
       setSources((prev) => prev.map((s) => (s.id === id ? updated : s)));
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "SourcesPage.handleSourceUpdate",
         },
@@ -115,7 +116,7 @@ export default function SourcesPage() {
       setSources((prev) => prev.filter((s) => s.id !== id));
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "SourcesPage.handleSourceDelete",
         },

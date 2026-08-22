@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import AdminLayout from "@/components/AdminLayout";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import {
   getNPSSurveyById,
   createNPSSurvey,
@@ -80,7 +81,7 @@ const NPSSurveyDetail = () => {
         }
       } catch (error) {
         captureException(
-          error instanceof Error ? error : new Error(String(error)),
+          toError(error),
           {
             context: "NPSSurveyDetail.fetchData",
           },
@@ -118,7 +119,7 @@ const NPSSurveyDetail = () => {
       navigate("/admin/marketing/nps");
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "NPSSurveyDetail.handleSubmit",
         },
@@ -143,7 +144,7 @@ const NPSSurveyDetail = () => {
       navigate("/admin/marketing/nps");
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "NPSSurveyDetail.handleDelete",
         },
@@ -163,7 +164,7 @@ const NPSSurveyDetail = () => {
       }
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "NPSSurveyDetail.handleStatusChange",
         },
