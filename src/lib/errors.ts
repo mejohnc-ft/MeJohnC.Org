@@ -15,6 +15,35 @@ function formatErrorField(value: unknown): string {
   }
 }
 
+function stringifyUnknown(value: unknown, fallback: string): string {
+  try {
+    const json = JSON.stringify(value);
+    return json ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function errorFromObject(obj: Record<string, unknown>): Error {
+  const message = typeof obj.message === 'string' ? obj.message.trim() : '';
+  const extras: string[] = [];
+
+  for (const field of POSTGREST_ERROR_FIELDS) {
+    const fieldValue = obj[field];
+    if (fieldValue === undefined || fieldValue === null || fieldValue === '') {
+      continue;
+    }
+    extras.push(`${field}: ${formatErrorField(fieldValue)}`);
+  }
+
+  if (message || extras.length > 0) {
+    const extraSuffix = extras.length > 0 ? ` (${extras.join(', ')})` : '';
+    return new Error(`${message || 'Unknown error'}${extraSuffix}`);
+  }
+
+  return new Error(stringifyUnknown(obj, 'Unserializable error object'));
+}
+
 /**
  * Convert any thrown value into an `Error` with a useful `.message`.
  *
@@ -45,35 +74,10 @@ export function toError(value: unknown): Error {
   }
 
   if (valueType === 'object') {
-    const obj = value as Record<string, unknown>;
-    const message = typeof obj.message === 'string' ? obj.message.trim() : '';
-    const extras: string[] = [];
-
-    for (const field of POSTGREST_ERROR_FIELDS) {
-      const fieldValue = obj[field];
-      if (fieldValue === undefined || fieldValue === null || fieldValue === '') {
-        continue;
-      }
-      extras.push(`${field}: ${formatErrorField(fieldValue)}`);
-    }
-
-    if (message || extras.length > 0) {
-      const extraSuffix = extras.length > 0 ? ` (${extras.join(', ')})` : '';
-      return new Error(`${message || 'Unknown error'}${extraSuffix}`);
-    }
-
-    try {
-      return new Error(JSON.stringify(obj));
-    } catch {
-      return new Error('Unserializable error object');
-    }
+    return errorFromObject(value as Record<string, unknown>);
   }
 
-  try {
-    return new Error(JSON.stringify(value));
-  } catch {
-    return new Error('Unknown error');
-  }
+  return new Error(stringifyUnknown(value, 'Unknown error'));
 }
 
 /**
