@@ -459,7 +459,7 @@ describe("Schema Validation: Migration SQL vs Code", () => {
   describe("audit_log partition RLS", () => {
     const partitionRlsPath = path.join(
       MIGRATIONS_DIR,
-      "20260822000001_enable_audit_log_partition_rls.sql",
+      "20260822023818_enable_audit_log_partition_rls.sql",
     );
     const partitionRlsSql = fs.readFileSync(partitionRlsPath, "utf-8");
 
