@@ -1,0 +1,256 @@
+import { describe, it, expect, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { ThemeProvider } from "@/lib/theme";
+import { KeyboardFocusProvider } from "@/lib/keyboard-focus";
+import ProjectTimeline from "@/components/ProjectTimeline";
+import AiProductsPanel from "@/components/portfolio/AiProductsPanel";
+import {
+  DEFAULT_TIMELINE_TRACK,
+  TIMELINE_TRACKS,
+  defaultTimelineData,
+  entriesForTrack,
+  normalizeTimelineTrack,
+  resolveTimelineTrack,
+} from "@/data/timeline-tracks";
+import { orderProductBriefs, portfolioThesis, productBriefs } from "@/data/ai-products";
+import { formatTalkTimestamp, sortTalksByDateDesc, talks, type Talk } from "@/data/talks";
+import TalksSection from "@/components/portfolio/TalksSection";
+import {
+  buildCreativeWorkJsonLd,
+  buildOccupationJsonLd,
+  buildPersonJsonLd,
+  buildWebsiteJsonLd,
+  personSchema,
+  softwareSchema,
+  occupationSchema,
+} from "@/lib/seo";
+
+vi.mock("@/lib/supabase", () => ({
+  useSupabaseClient: () => null,
+}));
+
+vi.mock("@/lib/supabase-queries", () => ({
+  getTimelineWithEntries: vi.fn(),
+}));
+
+vi.mock("@/lib/sentry", () => ({
+  captureException: vi.fn(),
+}));
+
+vi.mock("framer-motion", async () => {
+  const actual = await vi.importActual<typeof import("react")>("react");
+  const passThrough = actual.forwardRef(function Motion(
+    {
+      children,
+      ...props
+    }: {
+      children?: actual.ReactNode;
+      [key: string]: unknown;
+    },
+    ref,
+  ) {
+    const rest = { ...props } as Record<string, unknown>;
+    delete rest.initial;
+    delete rest.animate;
+    delete rest.exit;
+    delete rest.transition;
+    delete rest.whileHover;
+    delete rest.whileTap;
+    delete rest.variants;
+    delete rest.layout;
+    return actual.createElement("div", { ...rest, ref }, children);
+  });
+
+  return {
+    motion: new Proxy(
+      {},
+      {
+        get: () => passThrough,
+      },
+    ),
+    AnimatePresence: ({ children }: { children: actual.ReactNode }) => children,
+  };
+});
+
+function renderTimeline() {
+  return render(
+    <ThemeProvider>
+      <KeyboardFocusProvider>
+        <ProjectTimeline />
+      </KeyboardFocusProvider>
+    </ThemeProvider>,
+  );
+}
+
+describe("Success Roadmap tracks", () => {
+  it("lists AI Products first and Endpoint Logistics second", () => {
+    expect(TIMELINE_TRACKS.map((track) => track.id)).toEqual([
+      "ai-products",
+      "endpoint-logistics",
+    ]);
+    expect(DEFAULT_TIMELINE_TRACK).toBe("ai-products");
+  });
+
+  it("defaults unknown track query values to AI Products", () => {
+    expect(resolveTimelineTrack(null)).toBe("ai-products");
+    expect(resolveTimelineTrack("nope")).toBe("ai-products");
+    expect(resolveTimelineTrack("endpoint-logistics")).toBe("endpoint-logistics");
+  });
+
+  it("treats missing DB track as endpoint logistics so live year pills stay on that track", () => {
+    expect(normalizeTimelineTrack(undefined)).toBe("endpoint-logistics");
+    expect(normalizeTimelineTrack("ai-products")).toBe("ai-products");
+  });
+
+  it("keeps the provisioning year history on Endpoint Logistics", () => {
+    const years = entriesForTrack(defaultTimelineData, "endpoint-logistics").map(
+      (entry) => entry.label,
+    );
+    expect(years).toEqual(["2022-2023", "2024", "2025", "2026+"]);
+  });
+
+  it("renders AI Products selected by default", async () => {
+    renderTimeline();
+    const ai = screen.getByRole("tab", { name: "AI Products" });
+    const logistics = screen.getByRole("tab", { name: "Endpoint Logistics" });
+    expect(ai).toHaveAttribute("aria-selected", "true");
+    expect(logistics).toHaveAttribute("aria-selected", "false");
+    expect(
+      await screen.findByRole("heading", {
+        name: /developing operating system/i,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("switches to Endpoint Logistics and shows year pills", async () => {
+    const user = userEvent.setup();
+    renderTimeline();
+    await user.click(screen.getByRole("tab", { name: "Endpoint Logistics" }));
+    expect(screen.getByRole("tab", { name: "2022-2023" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "2024" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "2025" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "2026+" })).toBeInTheDocument();
+    expect(
+      screen.getByText(/inherited a provisioning backlog/i),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("AI Products briefs", () => {
+  it("includes the portfolio thesis and Client Toolbox", () => {
+    expect(portfolioThesis.lead).toMatch(/developing operating system/i);
+    expect(portfolioThesis.honestClaim).toMatch(/not yet one uniformly integrated/i);
+    const toolbox = productBriefs.find((brief) => brief.id === "client-toolbox");
+    expect(toolbox?.owner).toBe("John");
+    expect(toolbox?.capabilities).toHaveLength(6);
+    expect(toolbox?.flow).toHaveLength(5);
+  });
+
+  it("does not invent full briefs for named seams", () => {
+    const ids = productBriefs.map((brief) => brief.id);
+    expect(ids).toEqual([
+      "client-toolbox",
+      "service-desk-toolbox",
+      "iris",
+      "proxima",
+      "accessai",
+    ]);
+    expect(portfolioThesis.namedSeams).toContain("Vantage");
+    expect(portfolioThesis.namedSeams).toContain("Cadre");
+  });
+
+  it("orders briefs from timeline entry keys when present", () => {
+    const ordered = orderProductBriefs([
+      {
+        id: "x",
+        label: "Iris",
+        phase: "AI",
+        summary: null,
+        content: null,
+        dot_position: 1,
+        track: "ai-products",
+        entry_key: "iris",
+      },
+    ]);
+    expect(ordered[0].id).toBe("iris");
+    expect(ordered.map((brief) => brief.id)).toContain("client-toolbox");
+  });
+
+  it("renders thesis copy and at least one product brief", async () => {
+    render(
+      <ThemeProvider>
+        <AiProductsPanel />
+      </ThemeProvider>,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: /developing operating system/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/14 normalized briefs/i)).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Client Toolbox" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(
+      screen.getByText(/Evidence-backed vITM workspace/i),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("Talks timestamps", () => {
+  it("has no invented talks in the typed source", () => {
+    expect(talks).toEqual([]);
+  });
+
+  it("sorts talks newest first by occurredAt", () => {
+    const sample: Talk[] = [
+      { id: "old", title: "Older talk", occurredAt: "2024-01-15" },
+      { id: "new", title: "Newer talk", occurredAt: "2026-03-02" },
+      { id: "mid", title: "Middle talk", occurredAt: "2025-11-01" },
+    ];
+    expect(sortTalksByDateDesc(sample).map((talk) => talk.id)).toEqual([
+      "new",
+      "mid",
+      "old",
+    ]);
+  });
+
+  it("formats UTC timestamps for display", () => {
+    expect(formatTalkTimestamp("2026-03-02")).toBe("Mar 2, 2026");
+  });
+
+  it("renders a Talks section that does not invent titles", () => {
+    render(<TalksSection />);
+    expect(screen.getByRole("heading", { name: "Talks" })).toBeInTheDocument();
+    expect(screen.getByText(/No talks posted yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/nothing here is invented/i)).toBeInTheDocument();
+  });
+});
+
+describe("SEO helpers", () => {
+  it("builds Person JSON-LD with recruiting-relevant knowsAbout", () => {
+    const json = buildPersonJsonLd(personSchema, "https://mejohnc.org");
+    expect(json["@type"]).toBe("Person");
+    expect(json.jobTitle).toBe("AI Automation Engineer");
+    expect(json.knowsAbout).toEqual(
+      expect.arrayContaining(["Governed agents", "MSP operations"]),
+    );
+    expect(json.worksFor).toEqual({
+      "@type": "Organization",
+      name: "centrexIT",
+    });
+  });
+
+  it("builds Website, Occupation, and CreativeWork JSON-LD", () => {
+    expect(buildWebsiteJsonLd({ type: "Website", name: "MeJohnC", url: "https://mejohnc.org" })["@type"]).toBe(
+      "WebSite",
+    );
+    expect(buildOccupationJsonLd(occupationSchema).name).toBe(
+      "AI Automation Engineer",
+    );
+    const work = buildCreativeWorkJsonLd(softwareSchema, "https://mejohnc.org");
+    expect(work.url).toBe("https://mejohnc.org/portfolio?track=ai-products");
+    expect(String(work.description)).toMatch(/pre-GA/i);
+  });
+});

@@ -8,3 +8,6 @@ Disallow: /admin/*
 
 # Sitemap location
 Sitemap: https://mejohnc.org/sitemap.xml
+
+# Concise machine-readable summary for AI crawlers
+# https://mejohnc.org/llms.txt

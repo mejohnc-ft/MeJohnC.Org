@@ -16,7 +16,7 @@ import {
   type ContactIcon,
 } from '@/lib/supabase-queries';
 import { renderMarkdown } from '@/lib/markdown';
-import { useSEO, useJsonLd, personSchema } from '@/lib/seo';
+import { useSEO, useJsonLd, personSchema, aboutFaqSchema, RECRUITING_KEYWORDS } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
 import DOMPurify from 'dompurify';
 
@@ -68,12 +68,13 @@ const About = () => {
 
   useSEO({
     title: 'About',
-    description: 'AI Automation Engineer obsessed with making AI agents actually useful. Building agentic systems, automation pipelines, and AI-powered workflows.',
+    description: 'AI Automation Engineer in San Diego obsessed with making governed agents actually useful. Building agentic systems, MSP automation, and AI-powered workflows for lab and production IT.',
     url: '/about',
     type: 'profile',
+    keywords: RECRUITING_KEYWORDS,
   });
 
-  useJsonLd(personSchema);
+  useJsonLd([personSchema, aboutFaqSchema]);
 
   const [content, setContent] = useState<SiteContent | null>(null);
   const [isLoading, setIsLoading] = useState(true);

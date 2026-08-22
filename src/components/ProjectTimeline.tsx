@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Pause, Play, Loader2 } from 'lucide-react';
 import { useTheme } from '@/lib/theme';
@@ -6,6 +6,19 @@ import { useKeyboardFocus } from '@/lib/keyboard-focus';
 import { useSupabaseClient } from '@/lib/supabase';
 import { getTimelineWithEntries, type TimelineEntry } from '@/lib/supabase-queries';
 import { captureException } from '@/lib/sentry';
+import { useReducedMotion } from '@/lib/reduced-motion';
+import {
+  DEFAULT_TIMELINE_SLUG,
+  DEFAULT_TIMELINE_TRACK,
+  TIMELINE_TRACKS,
+  defaultTimelineData,
+  entriesForTrack,
+  normalizeTimelineTrack,
+  type TimelineItem,
+  type TimelineTrackId,
+} from '@/data/timeline-tracks';
+
+const AiProductsPanel = lazy(() => import('@/components/portfolio/AiProductsPanel'));
 
 // Theme color definitions
 const themes = {
@@ -83,49 +96,35 @@ const themes = {
   },
 };
 
-// Fallback timeline data
-const defaultTimelineData = [
-  {
-    id: '2022-2023',
-    label: '2022-2023',
-    phase: 'Recovery & Foundation',
-    summary: 'Cleared COVID backlog, created inventory sheets, standardized SOPs & SLAs',
-    content: `Starting in 2022, I inherited a provisioning backlog of over 72,000 tickets accumulated during the COVID-19 pandemic. Within 6 months, I systematically cleared this backlog by implementing standardized workflows and creating comprehensive inventory tracking sheets. I reintroduced media sanitization protocols that had lapsed and established the SOPs and SLAs that would become the foundation for all future automation work. This phase was about building trust, understanding the systems, and laying groundwork for what was to come.`,
-    dot_position: 13,
-  },
-  {
-    id: '2024',
-    label: '2024',
-    phase: 'Automation & Knowledge',
-    summary: 'Completed Immy.Bot buildout, standardized Provisioning KB',
-    content: `2024 marked the shift from manual processes to intelligent automation. I completed the full Immy.Bot buildout, enabling automated software deployments and configurations across our entire client base. The Provisioning Knowledge Base was standardized and made accessible, transforming tribal knowledge into documented, searchable resources. This year laid the technical foundation that would enable the dramatic improvements seen in 2025.`,
-    dot_position: 24,
-  },
-  {
-    id: '2025',
-    label: '2025',
-    phase: 'Optimization & Growth',
-    summary: 'One-touch provisions for 75%+ clients, <5 day turnaround, record-breaking October',
-    content: `2025 was the year everything came together. We achieved in-house one-touch provisioning for over 75% of our clients. Provisioning turnaround dropped to under 5 business days—a dramatic improvement from the weeks-long timelines of previous years. October 2025 became our largest provisioning month ever, and we launched a brand-new Inventory system with enhanced UX. I successfully handed off operations to a new hire, established the Provisioning ToolBox with 15 knowledge pieces, and ended the year with fully automated provisioning and inventory intake systems.`,
-    dot_position: 41,
-  },
-  {
-    id: '2026+',
-    label: '2026+',
-    phase: 'Future State',
-    summary: 'Autopilot/White glove for all clients, 3PL integration, office-free logistics',
-    content: `Looking ahead, the vision is complete automation independence. Every client will have Autopilot or White Glove configuration ready from day one. Third-party logistics (3PL) integration will reduce costs while maintaining our rigorous SLAs. The ultimate goal: eliminate any reliance on physical office space for inventory and logistics, enabling a fully distributed, resilient provisioning operation.`,
-    dot_position: 75,
-  },
-];
+function mapEntry(entry: TimelineEntry, index: number): TimelineItem {
+  return {
+    id: entry.id,
+    label: entry.label,
+    phase: entry.phase,
+    summary: entry.summary,
+    content: entry.content,
+    dot_position: entry.dot_position,
+    track: normalizeTimelineTrack(entry.track),
+    entry_key: entry.entry_key ?? entry.label ?? `entry-${index}`,
+  };
+}
+
+function mergeTimelineEntries(fetched: TimelineItem[]): TimelineItem[] {
+  const logistics = entriesForTrack(fetched, 'endpoint-logistics');
+  const aiProducts = entriesForTrack(fetched, 'ai-products');
+  const fallbackLogistics = entriesForTrack(defaultTimelineData, 'endpoint-logistics');
+  const fallbackAi = entriesForTrack(defaultTimelineData, 'ai-products');
+
+  return [
+    ...(aiProducts.length > 0 ? aiProducts : fallbackAi),
+    ...(logistics.length > 0 ? logistics : fallbackLogistics),
+  ];
+}
 
 // Convert dot_position (0-100) to chart coordinates
 function getDotPosition(dotPosition: number, entryCount: number, index: number) {
-  // X position: distribute evenly across the chart
   const segmentWidth = 100 / entryCount;
   const left = `${segmentWidth * index + segmentWidth / 2}%`;
-
-  // Y position: map dot_position (0=bottom, 100=top) to chart (92=bottom, 15=top)
   const top = `${92 - (dotPosition / 100) * 77}%`;
 
   return { left, top };
@@ -138,14 +137,12 @@ function generateCurvePath(entries: { dot_position: number }[]) {
   const count = entries.length;
   const segmentWidth = 100 / count;
 
-  // Calculate points
   const points = entries.map((entry, i) => {
     const x = segmentWidth * i + segmentWidth / 2;
     const y = 92 - (entry.dot_position / 100) * 77;
     return { x, y };
   });
 
-  // Build path with bezier curves
   let path = `M 0,${92 - (entries[0].dot_position / 100) * 77 + 5}`;
 
   points.forEach((point, i) => {
@@ -159,32 +156,26 @@ function generateCurvePath(entries: { dot_position: number }[]) {
     }
   });
 
-  // Extend to edge
   const lastPoint = points[points.length - 1];
   path += ` C ${lastPoint.x + 5},${lastPoint.y - 3} ${98},${lastPoint.y - 8} 100,${lastPoint.y - 10}`;
 
   return path;
 }
 
-interface TimelineItem {
-  id: string;
-  label: string;
-  phase: string;
-  summary: string | null;
-  content: string | null;
-  dot_position: number;
-}
-
 interface ProjectTimelineProps {
   slug?: string;
   focused?: boolean;
+  activeTrack?: TimelineTrackId;
+  onTrackChange?: (track: TimelineTrackId) => void;
   onRequestFocusUp?: () => void;
   onRequestFocusDown?: () => void;
 }
 
 const ProjectTimeline = ({
-  slug = 'provisioning-roadmap',
+  slug = DEFAULT_TIMELINE_SLUG,
   focused = false,
+  activeTrack: controlledTrack,
+  onTrackChange,
   onRequestFocusUp,
   onRequestFocusDown
 }: ProjectTimelineProps) => {
@@ -192,58 +183,91 @@ const ProjectTimeline = ({
   const theme = themes[currentTheme];
   const supabase = useSupabaseClient();
   const { setFocusLevel } = useKeyboardFocus();
+  const prefersReducedMotion = useReducedMotion();
 
   const [timelineData, setTimelineData] = useState<TimelineItem[]>(defaultTimelineData);
-  const [isLoading, setIsLoading] = useState(true);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [internalTrack, setInternalTrack] = useState<TimelineTrackId>(
+    controlledTrack ?? DEFAULT_TIMELINE_TRACK
+  );
+  const [expandedId, setExpandedId] = useState<string | null>(
+    entriesForTrack(defaultTimelineData, 'endpoint-logistics')[0]?.id ?? null
+  );
+  const [isAutoPlaying, setIsAutoPlaying] = useState(!prefersReducedMotion);
 
-  // Fetch timeline data
+  const activeTrack = controlledTrack ?? internalTrack;
+
+  const setActiveTrack = useCallback((track: TimelineTrackId) => {
+    if (onTrackChange) {
+      onTrackChange(track);
+    } else {
+      setInternalTrack(track);
+    }
+    setIsAutoPlaying(false);
+    setFocusLevel('timeline');
+  }, [onTrackChange, setFocusLevel]);
+
   useEffect(() => {
+    if (controlledTrack) {
+      setInternalTrack(controlledTrack);
+    }
+  }, [controlledTrack]);
+
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      setIsAutoPlaying(false);
+    }
+  }, [prefersReducedMotion]);
+
+  // Fetch timeline data without blocking on a spinner (fallback already rendered)
+  useEffect(() => {
+    let cancelled = false;
+
     async function fetchTimeline() {
+      if (!supabase) return;
       try {
         const data = await getTimelineWithEntries(slug, supabase);
+        if (cancelled) return;
         if (data && data.entries.length > 0) {
-          const items: TimelineItem[] = data.entries.map((entry: TimelineEntry) => ({
-            id: entry.id,
-            label: entry.label,
-            phase: entry.phase,
-            summary: entry.summary,
-            content: entry.content,
-            dot_position: entry.dot_position,
-          }));
+          const items = mergeTimelineEntries(data.entries.map(mapEntry));
           setTimelineData(items);
-          setExpandedId(items[0].id);
-        } else {
-          setExpandedId(defaultTimelineData[0].id);
+          const logistics = entriesForTrack(items, 'endpoint-logistics');
+          if (logistics[0]) {
+            setExpandedId((current) => {
+              const stillThere = logistics.some((item) => item.id === current);
+              return stillThere ? current : logistics[0].id;
+            });
+          }
         }
       } catch (err) {
         captureException(err instanceof Error ? err : new Error(String(err)), {
           context: 'ProjectTimeline.fetchTimeline',
           slug,
         });
-        setExpandedId(defaultTimelineData[0].id);
-      } finally {
-        setIsLoading(false);
       }
     }
     fetchTimeline();
-     
+    return () => {
+      cancelled = true;
+    };
   }, [slug, supabase]);
 
+  const logisticsEntries = entriesForTrack(timelineData, 'endpoint-logistics');
+  const aiProductEntries = entriesForTrack(timelineData, 'ai-products');
+  const trackMeta = TIMELINE_TRACKS.find((track) => track.id === activeTrack) ?? TIMELINE_TRACKS[0];
+
   const goToNext = useCallback(() => {
-    const currentIndex = timelineData.findIndex(item => item.id === expandedId);
-    const nextIndex = (currentIndex + 1) % timelineData.length;
-    setExpandedId(timelineData[nextIndex].id);
+    const currentIndex = logisticsEntries.findIndex(item => item.id === expandedId);
+    const nextIndex = (currentIndex + 1) % logisticsEntries.length;
+    setExpandedId(logisticsEntries[nextIndex]?.id ?? null);
     setIsAutoPlaying(false);
-  }, [expandedId, timelineData]);
+  }, [expandedId, logisticsEntries]);
 
   const goToPrev = useCallback(() => {
-    const currentIndex = timelineData.findIndex(item => item.id === expandedId);
-    const prevIndex = (currentIndex - 1 + timelineData.length) % timelineData.length;
-    setExpandedId(timelineData[prevIndex].id);
+    const currentIndex = logisticsEntries.findIndex(item => item.id === expandedId);
+    const prevIndex = (currentIndex - 1 + logisticsEntries.length) % logisticsEntries.length;
+    setExpandedId(logisticsEntries[prevIndex]?.id ?? null);
     setIsAutoPlaying(false);
-  }, [expandedId, timelineData]);
+  }, [expandedId, logisticsEntries]);
 
   // Keyboard navigation when focused
   useEffect(() => {
@@ -256,11 +280,23 @@ const ProjectTimeline = ({
       if (e.key === 'ArrowRight') {
         e.preventDefault();
         e.stopImmediatePropagation();
-        goToNext();
+        if (activeTrack === 'endpoint-logistics') {
+          goToNext();
+        } else {
+          const currentIndex = TIMELINE_TRACKS.findIndex((track) => track.id === activeTrack);
+          const next = TIMELINE_TRACKS[(currentIndex + 1) % TIMELINE_TRACKS.length];
+          setActiveTrack(next.id);
+        }
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
         e.stopImmediatePropagation();
-        goToPrev();
+        if (activeTrack === 'endpoint-logistics') {
+          goToPrev();
+        } else {
+          const currentIndex = TIMELINE_TRACKS.findIndex((track) => track.id === activeTrack);
+          const prev = TIMELINE_TRACKS[(currentIndex - 1 + TIMELINE_TRACKS.length) % TIMELINE_TRACKS.length];
+          setActiveTrack(prev.id);
+        }
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
         e.stopImmediatePropagation();
@@ -274,14 +310,14 @@ const ProjectTimeline = ({
 
     window.addEventListener('keydown', handleKeyDown, true);
     return () => window.removeEventListener('keydown', handleKeyDown, true);
-  }, [focused, goToNext, goToPrev, onRequestFocusUp, onRequestFocusDown]);
+  }, [focused, goToNext, goToPrev, onRequestFocusUp, onRequestFocusDown, activeTrack, setActiveTrack]);
 
-  // Auto-rotation timer (20 seconds per slide)
+  // Auto-rotation timer (20 seconds per slide) — logistics years only
   useEffect(() => {
-    if (!isAutoPlaying || isLoading) return;
+    if (!isAutoPlaying || activeTrack !== 'endpoint-logistics' || prefersReducedMotion) return;
     const timer = setInterval(goToNext, 20000);
     return () => clearInterval(timer);
-  }, [isAutoPlaying, isLoading, goToNext]);
+  }, [isAutoPlaying, goToNext, activeTrack, prefersReducedMotion]);
 
   const handleSegmentClick = (id: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -290,31 +326,135 @@ const ProjectTimeline = ({
     setFocusLevel('timeline');
   };
 
-  if (isLoading) {
-    return (
-      <div className="mb-12 flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  const curvePath = generateCurvePath(timelineData);
+  const motionDuration = prefersReducedMotion ? 0 : 0.4;
 
   return (
     <div
-      className="mb-12 cursor-pointer"
+      className="mb-12"
       onClick={() => setFocusLevel('timeline')}
       role="region"
-      aria-label="Project timeline"
+      aria-label="Success roadmap"
     >
-      {/* Growth Curve Graph */}
+      <div
+        role="tablist"
+        aria-label="Success roadmap tracks"
+        className="flex flex-wrap gap-2 mb-6"
+      >
+        {TIMELINE_TRACKS.map((track) => {
+          const selected = activeTrack === track.id;
+          return (
+            <motion.button
+              key={track.id}
+              type="button"
+              role="tab"
+              id={`roadmap-track-${track.id}`}
+              aria-selected={selected}
+              aria-controls={`roadmap-panel-${track.id}`}
+              tabIndex={selected ? 0 : -1}
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveTrack(track.id);
+              }}
+              onKeyDown={(e) => {
+                if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+                e.preventDefault();
+                const index = TIMELINE_TRACKS.findIndex((item) => item.id === track.id);
+                const delta = e.key === 'ArrowRight' ? 1 : -1;
+                const next = TIMELINE_TRACKS[(index + delta + TIMELINE_TRACKS.length) % TIMELINE_TRACKS.length];
+                setActiveTrack(next.id);
+                document.getElementById(`roadmap-track-${next.id}`)?.focus();
+              }}
+              className={`font-mono text-sm uppercase tracking-wider px-4 py-2 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                selected
+                  ? 'border-primary text-primary bg-primary/10'
+                  : 'border-border text-muted-foreground hover:text-foreground hover:border-current'
+              }`}
+              whileHover={prefersReducedMotion ? undefined : { y: -1 }}
+              whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
+            >
+              {track.label}
+            </motion.button>
+          );
+        })}
+      </div>
+
+      <div className="mb-8">
+        <h3 className="text-2xl md:text-3xl font-black text-foreground">
+          {trackMeta.heading}
+        </h3>
+        <p className="text-muted-foreground mt-2 max-w-3xl">{trackMeta.summary}</p>
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTrack}
+          id={`roadmap-panel-${activeTrack}`}
+          role="tabpanel"
+          aria-labelledby={`roadmap-track-${activeTrack}`}
+          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
+          transition={{ duration: motionDuration, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
+          {activeTrack === 'ai-products' ? (
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+              }
+            >
+              <AiProductsPanel entries={aiProductEntries} />
+            </Suspense>
+          ) : (
+            <LogisticsTimeline
+              timelineData={logisticsEntries}
+              theme={theme}
+              focused={focused}
+              expandedId={expandedId}
+              isAutoPlaying={isAutoPlaying}
+              prefersReducedMotion={prefersReducedMotion}
+              onSegmentClick={handleSegmentClick}
+              onToggleAutoPlay={() => setIsAutoPlaying(!isAutoPlaying)}
+            />
+          )}
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+};
+
+interface LogisticsTimelineProps {
+  timelineData: TimelineItem[];
+  theme: (typeof themes)['warm'];
+  focused: boolean;
+  expandedId: string | null;
+  isAutoPlaying: boolean;
+  prefersReducedMotion: boolean;
+  onSegmentClick: (id: string, e?: React.MouseEvent) => void;
+  onToggleAutoPlay: () => void;
+}
+
+function LogisticsTimeline({
+  timelineData,
+  theme,
+  focused,
+  expandedId,
+  isAutoPlaying,
+  prefersReducedMotion,
+  onSegmentClick,
+  onToggleAutoPlay,
+}: LogisticsTimelineProps) {
+  const curvePath = generateCurvePath(timelineData);
+  const motionDuration = prefersReducedMotion ? 0 : 0.4;
+
+  return (
+    <div>
       <div className="relative h-32 mb-6">
         <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-          {/* Grid lines */}
           <line x1="0" y1="74" x2="100" y2="74" stroke={theme.gridLine} strokeWidth="0.1" opacity="0.3" />
           <line x1="0" y1="53" x2="100" y2="53" stroke={theme.gridLine} strokeWidth="0.1" opacity="0.3" />
 
-          {/* Dynamic curve */}
           <motion.path
             d={curvePath}
             fill="none"
@@ -323,18 +463,18 @@ const ProjectTimeline = ({
             strokeLinecap="round"
             shapeRendering="geometricPrecision"
             style={{ filter: `drop-shadow(0 0 2px ${theme.primary})` }}
-            initial={{ pathLength: 0 }}
+            initial={{ pathLength: prefersReducedMotion ? 1 : 0 }}
             animate={{ pathLength: 1 }}
-            transition={{ duration: 1.5, ease: 'easeOut' }}
+            transition={{ duration: prefersReducedMotion ? 0 : 1.5, ease: 'easeOut' }}
           />
         </svg>
 
-        {/* Dots */}
         {timelineData.map((item, i) => {
           const pos = getDotPosition(item.dot_position, timelineData.length, i);
           return (
             <motion.button
               key={item.id}
+              type="button"
               className="absolute w-[18px] h-[18px] rounded-full"
               style={{
                 left: pos.left,
@@ -346,16 +486,18 @@ const ProjectTimeline = ({
                   ? `drop-shadow(0 0 12px ${theme.primary}) drop-shadow(0 0 20px ${theme.primary})`
                   : 'none',
               }}
-              initial={{ scale: 0, opacity: 0 }}
+              initial={{ scale: prefersReducedMotion ? 1 : 0, opacity: prefersReducedMotion ? 1 : 0 }}
               animate={{
                 scale: expandedId === item.id ? 1 : 0.667,
                 opacity: 1
               }}
               transition={{
-                scale: { type: 'spring', stiffness: 400, damping: 25 },
-                opacity: { delay: 0.3 + i * 0.2 }
+                scale: prefersReducedMotion
+                  ? { duration: 0 }
+                  : { type: 'spring', stiffness: 400, damping: 25 },
+                opacity: { delay: prefersReducedMotion ? 0 : 0.3 + i * 0.2, duration: motionDuration }
               }}
-              onClick={(e) => handleSegmentClick(item.id, e)}
+              onClick={(e) => onSegmentClick(item.id, e)}
               aria-label={`Timeline point: ${item.label} - ${item.phase}`}
               aria-pressed={expandedId === item.id}
             />
@@ -363,20 +505,20 @@ const ProjectTimeline = ({
         })}
       </div>
 
-      {/* Timeline Bar */}
       <div className="relative mb-4" role="tablist" aria-label="Timeline phases">
         <div className="flex h-12 rounded overflow-hidden">
           {timelineData.map((item, index) => (
             <motion.button
               key={item.id}
-              onClick={(e) => handleSegmentClick(item.id, e)}
+              type="button"
+              onClick={(e) => onSegmentClick(item.id, e)}
               className="flex-1 flex items-center justify-center font-mono text-sm font-semibold cursor-pointer transition-all"
               style={{
                 background: theme.segments[index % theme.segments.length],
                 color: theme.segmentText[index % theme.segmentText.length],
               }}
-              whileHover={{ scale: 1.02, zIndex: 10 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={prefersReducedMotion ? undefined : { scale: 1.02, zIndex: 10 }}
+              whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
               role="tab"
               aria-selected={expandedId === item.id}
               aria-controls={`timeline-content-${item.id}`}
@@ -386,9 +528,12 @@ const ProjectTimeline = ({
           ))}
         </div>
 
-        {/* Auto-play toggle */}
         <button
-          onClick={() => setIsAutoPlaying(!isAutoPlaying)}
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleAutoPlay();
+          }}
           className="absolute -right-12 top-1/2 -translate-y-1/2 p-2 rounded border border-border hover:border-current transition-colors"
           style={{ color: theme.primary }}
           aria-label={isAutoPlaying ? 'Pause auto-play' : 'Resume auto-play'}
@@ -398,12 +543,12 @@ const ProjectTimeline = ({
         </button>
       </div>
 
-      {/* Phase Labels */}
       <div className={`grid gap-4 mb-6 ${timelineData.length <= 4 ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2 md:grid-cols-' + timelineData.length}`}>
         {timelineData.map((item) => (
           <button
             key={item.id}
-            onClick={(e) => handleSegmentClick(item.id, e)}
+            type="button"
+            onClick={(e) => onSegmentClick(item.id, e)}
             className={`text-center font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer ${
               expandedId === item.id ? '' : 'text-muted-foreground hover:text-foreground'
             }`}
@@ -416,16 +561,15 @@ const ProjectTimeline = ({
         ))}
       </div>
 
-      {/* Expanded Content */}
       <div className="relative min-h-[200px]">
         <AnimatePresence mode="wait">
           {expandedId && (
             <motion.div
               key={expandedId}
-              initial={{ opacity: 0, x: 100 }}
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: 24 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -100 }}
-              transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+              exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: -16 }}
+              transition={{ duration: motionDuration, ease: [0.25, 0.46, 0.45, 0.94] }}
             >
               <div
                 className="p-6 pb-8 rounded border bg-card/50 backdrop-blur-sm"
@@ -433,6 +577,8 @@ const ProjectTimeline = ({
                   borderColor: theme.primary,
                   boxShadow: `0 0 20px ${theme.glow}`,
                 }}
+                id={`timeline-content-${expandedId}`}
+                role="tabpanel"
               >
                 {timelineData
                   .filter((item) => item.id === expandedId)
@@ -457,24 +603,25 @@ const ProjectTimeline = ({
         </AnimatePresence>
       </div>
 
-      {/* Progress indicator */}
       {isAutoPlaying && (
         <div className="mt-4 flex justify-center gap-2">
           {timelineData.map((item) => (
             <button
               key={item.id}
-              onClick={(e) => handleSegmentClick(item.id, e)}
+              type="button"
+              onClick={(e) => onSegmentClick(item.id, e)}
               className="w-2 h-2 rounded-full transition-all"
               style={{
                 background: expandedId === item.id ? theme.primary : theme.progressInactive,
                 boxShadow: expandedId === item.id ? `0 0 8px ${theme.primary}` : 'none',
               }}
+              aria-label={`Show ${item.label}`}
             />
           ))}
         </div>
       )}
     </div>
   );
-};
+}
 
 export default ProjectTimeline;

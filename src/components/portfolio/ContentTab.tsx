@@ -11,6 +11,7 @@ import {
 import { BlogCardSkeleton } from "@/components/Skeleton";
 import { Badge } from "@/components/ui/badge";
 import BlogCard from "@/components/BlogCard";
+import TalksSection from "@/components/portfolio/TalksSection";
 import {
   getBlogPosts,
   getCuratedArticles,
@@ -19,6 +20,7 @@ import {
   type NewsSource,
 } from "@/lib/supabase-queries";
 import { captureException } from "@/lib/sentry";
+import { useReducedMotion } from "@/lib/reduced-motion";
 
 type ContentSource = "all" | "me" | "news";
 type ArticleWithSource = NewsArticle & { source: NewsSource | null };
@@ -71,6 +73,7 @@ function newsToUnified(article: ArticleWithSource): UnifiedPost {
 }
 
 export default function ContentTab() {
+  const prefersReducedMotion = useReducedMotion();
   const [localPosts, setLocalPosts] = useState<BlogPost[]>([]);
   const [curatedNews, setCuratedNews] = useState<ArticleWithSource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -147,10 +150,10 @@ export default function ContentTab() {
   return (
     <motion.div
       key="content"
-      initial={{ opacity: 0, x: -50 }}
+      initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: -24 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 50 }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
+      exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: 24 }}
+      transition={{ duration: prefersReducedMotion ? 0 : 0.3, ease: "easeInOut" }}
     >
       <div className="mb-12">
         <span className="font-mono text-sm text-primary uppercase tracking-widest">
@@ -161,9 +164,11 @@ export default function ContentTab() {
         </h2>
         <p className="text-lg text-muted-foreground mt-4 max-w-2xl">
           Thoughts on AI, automation, engineering, and curated news from around
-          the web.
+          the web. Talks are listed with timestamps when they exist.
         </p>
       </div>
+
+      <TalksSection />
 
       {/* Source Tabs */}
       <div className="flex items-center gap-1 mb-6 border-b border-border">

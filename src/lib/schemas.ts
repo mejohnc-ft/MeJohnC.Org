@@ -231,6 +231,8 @@ export const TimelineEntrySchema = z.object({
   content: z.string().nullable(),
   dot_position: z.number(),
   order_index: z.number(),
+  track: z.string().nullable().optional(),
+  entry_key: z.string().nullable().optional(),
   created_at: z.string(),
   updated_at: z.string(),
 });
