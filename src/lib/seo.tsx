@@ -29,7 +29,7 @@ const DEFAULT_SEO: SEOSettings = {
   siteUrl: import.meta.env.VITE_SITE_URL || "https://mejohnc.org",
   defaultDescription:
     import.meta.env.VITE_SITE_DESCRIPTION ||
-    "Jonathan Christensen is an AI Automation Engineer in San Diego building governed agents, MSP automation, and evidence-preserving IT workflows for lab and production environments.",
+    "Jonathan Christensen is an AI Automation Engineer in San Diego building governed agents, evidence-preserving IT workflows, and lab-ready systems for production environments.",
   ogImage: "/og-image.png",
   twitterHandle: import.meta.env.VITE_TWITTER_HANDLE || "",
   linkedinUrl: import.meta.env.VITE_LINKEDIN_URL || "",
@@ -76,10 +76,7 @@ export function SEOProvider({ children }: { children: ReactNode }) {
             return merged;
           }
         } catch (err) {
-          captureException(
-            toError(err),
-            { context: "SEO.loadSettings" },
-          );
+          captureException(toError(err), { context: "SEO.loadSettings" });
         }
         cachedSEO = DEFAULT_SEO;
         return DEFAULT_SEO;
@@ -250,7 +247,7 @@ export function useSEO({
 export const PERSON_KNOWS_ABOUT = [
   "AI automation",
   "Governed agents",
-  "MSP operations",
+  "IT operations",
   "Endpoint logistics",
   "Microsoft 365",
   "Azure",
@@ -258,7 +255,7 @@ export const PERSON_KNOWS_ABOUT = [
 ] as const;
 
 export const RECRUITING_KEYWORDS =
-  "AI automation engineer, governed agents, MSP, lab IT, Microsoft 365, Azure, endpoint provisioning, centrexIT";
+  "AI automation engineer, governed agents, IT operations, lab IT, Microsoft 365, Azure, endpoint provisioning, centrexIT";
 
 interface PersonSchema {
   type: "Person";
@@ -360,7 +357,9 @@ export function buildPersonJsonLd(
   };
 }
 
-export function buildWebsiteJsonLd(site: WebsiteSchema): Record<string, unknown> {
+export function buildWebsiteJsonLd(
+  site: WebsiteSchema,
+): Record<string, unknown> {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
@@ -551,7 +550,7 @@ export function useWebsiteSchema(): WebsiteSchema {
 }
 
 const PERSON_DESCRIPTION =
-  "AI Automation Engineer building governed agents, evidence-preserving MSP workflows, and endpoint logistics systems. Background in Azure, Intune, and Microsoft 365 at scale.";
+  "AI Automation Engineer building governed agents, evidence-preserving IT workflows, and endpoint logistics systems. Background in Azure, Intune, and Microsoft 365 at scale.";
 
 export const personSchema: PersonSchema = {
   type: "Person",
@@ -581,7 +580,7 @@ export const occupationSchema: OccupationSchema = {
   type: "Occupation",
   name: "AI Automation Engineer",
   description:
-    "Designs governed AI products, MSP automation, and lab-ready IT systems. Agents advise and draft; humans retain merge, deploy, and production authority.",
+    "Designs governed AI products for IT operations and lab-ready IT systems. Agents advise and draft; humans retain merge, deploy, and production authority.",
   occupationalCategory: "15-1252.00",
 };
 
@@ -589,7 +588,7 @@ export const softwareSchema: CreativeWorkSchema = {
   type: "CreativeWork",
   name: "AI products John Christensen led or shipped",
   description:
-    "Governed AI for MSP work: evidence-preserving client reviews, technician assistance, a company-grounded assistant, and draft-mode delivery. Substantial products today; not yet one uniformly integrated platform. accessAI is pre-GA as a universal control plane.",
+    "Governed AI for the Enterprise work I ship. I built an app platform, several individual apps, and an agent and compute federation platform. Two of the app platforms I stewarded from idea through scoping, iteration, and review, and saw through to completion. Substantial products; not yet one uniformly integrated platform.",
   url: "/portfolio?track=ai-products",
   creator: "Jonathan Christensen",
   keywords: [
@@ -613,13 +612,12 @@ export const aboutFaqSchema: FAQSchema = {
     {
       question: "Are the centrexIT AI products a single integrated platform?",
       answer:
-        "No. They are a developing set of substantial products John led or shipped — client reviews, technician assistance, a company-grounded assistant, draft-mode delivery, and a pre-GA control plane. accessAI is not yet a universal control plane, and the portfolio is not yet one uniformly integrated platform.",
+        "No. They are a developing set of substantial products John led or shipped — an app platform, individual apps, and an agent and compute federation platform. The portfolio is not yet one uniformly integrated platform.",
     },
     {
       question: "Where is Jonathan based?",
       answer:
-        "San Diego, California. Open to AI automation, governed-agent, MSP, lab, and IT roles that value evidence-preserving systems over chatbot demos.",
+        "San Diego, California. Open to AI automation, governed-agent, lab, and IT roles that value evidence-preserving systems over chatbot demos.",
     },
   ],
 };
-

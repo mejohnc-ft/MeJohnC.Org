@@ -10,7 +10,7 @@ export const TIMELINE_TRACKS = [
     label: "AI Products",
     heading: "AI products I lead or ship",
     summary:
-      "Work I led or shipped at centrexIT: evidence-preserving workflows, governed agents, and a pre-GA control plane. Not yet one platform.",
+      "I built an app platform, several individual apps, and an agent and compute federation platform. Two of the app platforms I stewarded from idea through to completion. Not yet one platform.",
   },
   {
     id: "endpoint-logistics",
@@ -26,7 +26,9 @@ export type TimelineTrackId = (typeof TIMELINE_TRACKS)[number]["id"];
 export const DEFAULT_TIMELINE_TRACK: TimelineTrackId = "ai-products";
 export const DEFAULT_TIMELINE_SLUG = "provisioning-roadmap";
 
-export function isTimelineTrackId(value: string | null | undefined): value is TimelineTrackId {
+export function isTimelineTrackId(
+  value: string | null | undefined,
+): value is TimelineTrackId {
   return TIMELINE_TRACKS.some((track) => track.id === value);
 }
 
@@ -135,8 +137,7 @@ export const defaultAiProductEntries: TimelineItem[] = [
     id: "ai-proxima",
     label: "Proxima",
     phase: "Governed agentic engineering",
-    summary:
-      "Draft PRs and green CI for approved work; humans still merge.",
+    summary: "Draft PRs and green CI for approved work; humans still merge.",
     content: null,
     dot_position: 64,
     track: "ai-products",
@@ -145,9 +146,8 @@ export const defaultAiProductEntries: TimelineItem[] = [
   {
     id: "ai-accessai",
     label: "accessAI",
-    phase: "AI control plane (pre-GA)",
-    summary:
-      "Pre-GA control plane for models, agents, policy, cost, and audit.",
+    phase: "AI control plane",
+    summary: "Control plane for models, agents, policy, cost, and audit.",
     content: null,
     dot_position: 58,
     track: "ai-products",

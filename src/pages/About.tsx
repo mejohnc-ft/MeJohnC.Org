@@ -69,7 +69,7 @@ const About = () => {
 
   useSEO({
     title: 'About',
-    description: 'AI Automation Engineer in San Diego obsessed with making governed agents actually useful. Building agentic systems, MSP automation, and AI-powered workflows for lab and production IT.',
+    description: 'AI Automation Engineer in San Diego obsessed with making governed agents actually useful. Building agentic systems and AI-powered workflows for lab and production IT.',
     url: '/about',
     type: 'profile',
     keywords: RECRUITING_KEYWORDS,

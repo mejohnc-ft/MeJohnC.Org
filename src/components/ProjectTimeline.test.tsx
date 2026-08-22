@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -6,18 +7,19 @@ import { KeyboardFocusProvider } from "@/lib/keyboard-focus";
 import ProjectTimeline from "@/components/ProjectTimeline";
 import AiProductsPanel from "@/components/portfolio/AiProductsPanel";
 import {
+  orderProductBriefs,
+  portfolioThesis,
+  productBriefs,
+} from "@/data/ai-products";
+import {
   DEFAULT_TIMELINE_TRACK,
   TIMELINE_TRACKS,
+  defaultAiProductEntries,
   defaultTimelineData,
   entriesForTrack,
   normalizeTimelineTrack,
   resolveTimelineTrack,
 } from "@/data/timeline-tracks";
-import {
-  orderProductBriefs,
-  portfolioThesis,
-  productBriefs,
-} from "@/data/ai-products";
 import {
   formatTalkTimestamp,
   sortTalksByDateDesc,
@@ -26,6 +28,7 @@ import {
 } from "@/data/talks";
 import TalksSection from "@/components/portfolio/TalksSection";
 import {
+  aboutFaqSchema,
   buildCreativeWorkJsonLd,
   buildOccupationJsonLd,
   buildPersonJsonLd,
@@ -130,7 +133,7 @@ describe("Success Roadmap tracks", () => {
     expect(logistics).toHaveAttribute("aria-selected", "false");
     expect(
       await screen.findByRole("heading", {
-        name: /governed ai for the msp work i ship/i,
+        name: "Governed AI for the Enterprise work I ship",
       }),
     ).toBeInTheDocument();
   });
@@ -151,8 +154,19 @@ describe("Success Roadmap tracks", () => {
 
 describe("AI Products briefs", () => {
   it("includes the portfolio thesis and Client Toolbox", () => {
+    expect(portfolioThesis.lead).toMatch(/app platform/i);
+    expect(portfolioThesis.lead).toMatch(/individual apps/i);
+    expect(portfolioThesis.lead).toMatch(/federation/i);
+    expect(portfolioThesis.lead).toMatch(/stewarded/i);
+    expect(portfolioThesis.lead).toMatch(/idea/i);
+    expect(portfolioThesis.lead).toMatch(/completion/i);
     expect(portfolioThesis.lead).toMatch(/not yet one uniformly integrated/i);
-    expect(portfolioThesis.lead).toMatch(/pre-GA/i);
+    expect(portfolioThesis.lead).toMatch(/IT leaders/i);
+    expect(portfolioThesis.title).toBe(
+      "Governed AI for the Enterprise work I ship",
+    );
+    expect(portfolioThesis.title).not.toMatch(/MSP|managed.?service/i);
+    expect(portfolioThesis.lead).not.toMatch(/MSP|managed.?service/i);
     expect(portfolioThesis.honestClaim).toMatch(
       /not yet one uniformly integrated/i,
     );
@@ -165,7 +179,7 @@ describe("AI Products briefs", () => {
     expect(toolbox?.capabilities.length).toBeLessThanOrEqual(5);
   });
 
-  it("keeps recruiter-length briefs and an honest pre-GA split", () => {
+  it("keeps recruiter-length briefs without launch-status or internal sequels", () => {
     const leadWords = portfolioThesis.lead.trim().split(/\s+/).length;
     expect(leadWords).toBeGreaterThanOrEqual(40);
     expect(leadWords).toBeLessThanOrEqual(80);
@@ -177,11 +191,32 @@ describe("AI Products briefs", () => {
       expect(brief.stack.length).toBeLessThanOrEqual(8);
       expect(brief).not.toHaveProperty("owner");
       expect(brief).not.toHaveProperty("readiness");
+      expect(brief).not.toHaveProperty("preGa");
+      expect(brief).not.toHaveProperty("target");
     }
 
     const accessAi = productBriefs.find((brief) => brief.id === "accessai");
-    expect(accessAi?.preGa.length).toBeGreaterThan(0);
-    expect(accessAi?.tagline).toMatch(/pre-GA/i);
+    expect(accessAi?.tagline).toMatch(/control plane/i);
+    expect(accessAi?.tagline).not.toMatch(/pre-GA|preGA|general.?availab/i);
+  });
+
+  it("keeps internal process language off public product copy", () => {
+    const publicCopy = [
+      JSON.stringify(portfolioThesis),
+      JSON.stringify(productBriefs),
+      JSON.stringify(TIMELINE_TRACKS),
+      JSON.stringify(defaultAiProductEntries),
+      softwareSchema.description,
+      occupationSchema.description,
+      aboutFaqSchema.questions.map((item) => item.answer).join(" "),
+      readFileSync("public/llms.txt", "utf8"),
+    ].join("\n");
+
+    expect(publicCopy).not.toMatch(/pre-GA|preGA|general.?availab/i);
+    expect(publicCopy).not.toMatch(
+      /\b(Cadre|Spark|Spot|Vantage|Navigate|AI Triage)\b/,
+    );
+    expect(publicCopy).not.toMatch(/Still coming/i);
   });
 
   it("only briefs the five public products", () => {
@@ -222,7 +257,7 @@ describe("AI Products briefs", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: /governed ai for the msp work i ship/i,
+        name: "Governed AI for the Enterprise work I ship",
       }),
     ).toBeInTheDocument();
     expect(screen.queryByText(/14 normalized briefs/i)).not.toBeInTheDocument();
@@ -242,6 +277,11 @@ describe("AI Products briefs", () => {
       screen.getByText(/vITM workspace that turns identity/i),
     ).toBeInTheDocument();
     expect(screen.getByText(/What I shipped/i)).toBeInTheDocument();
+    expect(screen.queryByText(/pre-GA/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/still coming/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Cadre|Vantage|AI Triage/i),
+    ).not.toBeInTheDocument();
   });
 });
 
@@ -281,7 +321,7 @@ describe("SEO helpers", () => {
     expect(json["@type"]).toBe("Person");
     expect(json.jobTitle).toBe("AI Automation Engineer");
     expect(json.knowsAbout).toEqual(
-      expect.arrayContaining(["Governed agents", "MSP operations"]),
+      expect.arrayContaining(["Governed agents", "IT operations"]),
     );
     expect(json.worksFor).toEqual({
       "@type": "Organization",
@@ -302,6 +342,22 @@ describe("SEO helpers", () => {
     );
     const work = buildCreativeWorkJsonLd(softwareSchema, "https://mejohnc.org");
     expect(work.url).toBe("https://mejohnc.org/portfolio?track=ai-products");
-    expect(String(work.description)).toMatch(/pre-GA/i);
+    expect(String(work.description)).toMatch(
+      /^Governed AI for the Enterprise work I ship/,
+    );
+    expect(String(work.description)).toMatch(/app platform/i);
+    expect(String(work.description)).toMatch(/federation/i);
+    expect(String(work.description)).toMatch(/stewarded/i);
+    expect(String(work.description)).toMatch(
+      /not yet one uniformly integrated/i,
+    );
+    expect(String(work.description)).not.toMatch(
+      /pre-GA|preGA|general.?availab/i,
+    );
+    expect(String(work.description)).not.toMatch(/MSP|managed.?service/i);
+    expect(occupationSchema.description).not.toMatch(/MSP|managed.?service/i);
+    expect(occupationSchema.description).not.toMatch(
+      /pre-GA|preGA|general.?availab/i,
+    );
   });
 });

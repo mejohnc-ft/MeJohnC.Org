@@ -31,7 +31,7 @@ const Home = () => {
   useSEO({
     url: '/',
     description:
-      'Jonathan Christensen — AI Automation Engineer in San Diego. Governed agents, MSP automation, endpoint logistics, and lab-ready IT systems.',
+      'Jonathan Christensen — AI Automation Engineer in San Diego. Governed agents, IT operations, endpoint logistics, and lab-ready IT systems.',
     keywords: RECRUITING_KEYWORDS,
   });
 

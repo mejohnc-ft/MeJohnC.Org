@@ -167,10 +167,10 @@ export default function WorkTab({
           AI products and endpoint logistics
         </h2>
         <p className="text-muted-foreground max-w-3xl">
-          Two tracks on one roadmap. AI Products is the latest work I led or
-          shipped — governed agents and evidence-preserving workflows; accessAI
-          is still pre-GA. Endpoint Logistics keeps the provisioning story from
-          COVID backlog through Autopilot and 3PL.
+          I built an app platform, several individual apps, and an agent and
+          compute federation platform. Two of the app platforms I stewarded from
+          idea through to completion. Endpoint Logistics keeps the provisioning
+          story from COVID backlog through Autopilot and 3PL.
         </p>
       </div>
 

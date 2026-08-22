@@ -19,9 +19,6 @@ export interface ProductBrief {
   capabilities: string[];
   shipped: string;
   stack: string[];
-  proven: string[];
-  preGa: string[];
-  target: string[];
 }
 
 export interface PortfolioThesis {
@@ -34,13 +31,13 @@ export interface PortfolioThesis {
 }
 
 export const portfolioThesis: PortfolioThesis = {
-  title: "Governed AI for the MSP work I ship",
-  lead: "I build AI products for MSP work: evidence-preserving client reviews, technician assistance, a company-grounded assistant, and a delivery agent that stays in draft until a human merges. These are substantial products I led or shipped at centrexIT — not yet one uniformly integrated platform. accessAI, the shared control plane, is pre-GA.",
+  title: "Governed AI for the Enterprise work I ship",
+  lead: "I built an app platform, several individual apps, and an agent and compute federation platform. Two of the app platforms I stewarded from idea through scoping, iteration, and review, and saw through to completion. It is governed AI that IT leaders and the people who run operations actually use. These are substantial products — not yet one uniformly integrated platform.",
   tags: [
     "Evidence-preserving workflows",
     "Governed agents",
     "Human production authority",
-    "Honest pre-GA claims",
+    "Honest product claims",
   ],
   loop: [
     {
@@ -54,8 +51,7 @@ export const portfolioThesis: PortfolioThesis = {
     },
     {
       stage: "govern",
-      detail:
-        "Decide which identities, models, and agents may run. accessAI is still pre-GA.",
+      detail: "Decide which identities, models, and agents may run.",
     },
     {
       stage: "build",
@@ -103,9 +99,6 @@ export const productBriefs: ProductBrief[] = [
       "Rewst",
       "Azure AI Foundry",
     ],
-    proven: ["Collection", "Provenance", "Scoring workspace"],
-    preGa: [],
-    target: ["Shared outcome tracking with the rest of the portfolio"],
   },
   {
     id: "service-desk-toolbox",
@@ -117,7 +110,7 @@ export const productBriefs: ProductBrief[] = [
     capabilities: [
       "Guided automations for common identity, mail, and access work",
       "Ticket context stays attached to the run",
-      "Incident Buddy investigates across the usual MSP domains",
+      "Incident Buddy investigates across the usual IT operations domains",
       "Humans review findings before anything is written back",
     ],
     shipped:
@@ -129,9 +122,6 @@ export const productBriefs: ProductBrief[] = [
       "Microsoft Teams",
       "TypeScript",
     ],
-    proven: ["Technician shell", "Ticket linking", "Incident Buddy"],
-    preGa: [],
-    target: ["Shared outcome tracking with the rest of the portfolio"],
   },
   {
     id: "iris",
@@ -158,9 +148,6 @@ export const productBriefs: ProductBrief[] = [
       "Rewst",
       "Bot Framework",
     ],
-    proven: ["Teams bot", "Iris OS"],
-    preGa: ["accessAI federation"],
-    target: ["Tighter shared-control-plane integration"],
   },
   {
     id: "proxima",
@@ -190,30 +177,22 @@ export const productBriefs: ProductBrief[] = [
       "Azure",
       "Supabase",
     ],
-    proven: ["Draft delivery loop"],
-    preGa: ["Broader autonomy"],
-    target: ["Shared delivery standard across products"],
   },
   {
     id: "accessai",
     name: "accessAI",
     tagline:
-      "Pre-GA control plane for which identities, models, agents, and tools may run — plus cost, audit, evaluation, and rollback.",
-    chips: [
-      "Multi-model governance",
-      "Tenant-safe execution",
-      "Cost + audit",
-      "Pre-GA",
-    ],
+      "Control plane for which identities, models, agents, and tools may run — plus cost, audit, evaluation, and rollback.",
+    chips: ["Multi-model governance", "Tenant-safe execution", "Cost + audit"],
     loopStages: ["govern"],
     capabilities: [
       "Routes work across Azure OpenAI, Anthropic, OpenAI, and Foundry",
       "Fail-closed identity and tenant isolation",
       "Records runs, cost, evals, and promotions",
-      "Not an end-user assistant, and not sellable-GA yet",
+      "Governs what may run; it is not an end-user assistant",
     ],
     shipped:
-      "Helped define the control-plane model — what may run, under whose authority, and how it gets promoted. Still pre-GA as a universal control plane.",
+      "Helped define the control-plane model — what may run, under whose authority, and how it gets promoted.",
     stack: [
       "TypeScript",
       "Hono",
@@ -222,9 +201,6 @@ export const productBriefs: ProductBrief[] = [
       "Azure Container Apps",
       "Key Vault",
     ],
-    proven: ["Control-plane implementation"],
-    preGa: ["Universal use"],
-    target: ["Portfolio-wide enforcement"],
   },
 ];
 
