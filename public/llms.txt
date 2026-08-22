@@ -22,9 +22,9 @@ Products:
 - Service Desk Toolbox + Incident Buddy — technician automations and an investigation assistant, built with the service desk team
 - Iris — company-grounded assistant with approval-gated action
 - Proxima — draft-mode delivery: reviewed branches, draft PRs, green CI
-- accessAI — AI control plane, pre-GA as a universal control plane
+- accessAI — control plane for identities, models, agents, and tools
 
-Honest claim: a developing set of substantial products, not yet one uniformly integrated platform. accessAI is substantial but pre-GA. Agents advise, draft, and test. People keep merge, deploy, and production authority.
+Honest claim: a developing set of substantial products, not yet one uniformly integrated platform. Agents advise, draft, and test. People keep merge, deploy, and production authority.
 
 ## Endpoint Logistics
 

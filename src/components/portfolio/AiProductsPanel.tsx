@@ -271,12 +271,6 @@ function ProductBriefCard({
           </p>
         </div>
       </div>
-
-      <div className="grid md:grid-cols-3 gap-4">
-        <MaturityColumn label="Proven today" items={brief.proven} />
-        <MaturityColumn label="Still coming" items={brief.preGa} />
-        <MaturityColumn label="Later" items={brief.target} />
-      </div>
     </article>
   );
 }
@@ -306,26 +300,5 @@ function LoopMarker({
         );
       })}
     </p>
-  );
-}
-
-function MaturityColumn({ label, items }: { label: string; items: string[] }) {
-  return (
-    <div className="rounded-lg border border-border p-4 bg-background/40">
-      <h4 className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2">
-        {label}
-      </h4>
-      {items.length === 0 ? (
-        <p className="text-xs text-muted-foreground">None claimed.</p>
-      ) : (
-        <ul className="space-y-1">
-          {items.map((item) => (
-            <li key={item} className="text-sm text-foreground">
-              {item}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
   );
 }

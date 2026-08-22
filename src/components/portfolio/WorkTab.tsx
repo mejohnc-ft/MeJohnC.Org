@@ -168,9 +168,9 @@ export default function WorkTab({
         </h2>
         <p className="text-muted-foreground max-w-3xl">
           Two tracks on one roadmap. AI Products is the latest work I led or
-          shipped — governed agents and evidence-preserving workflows; accessAI
-          is still pre-GA. Endpoint Logistics keeps the provisioning story from
-          COVID backlog through Autopilot and 3PL.
+          shipped — governed agents and evidence-preserving workflows. Endpoint
+          Logistics keeps the provisioning story from COVID backlog through
+          Autopilot and 3PL.
         </p>
       </div>
 

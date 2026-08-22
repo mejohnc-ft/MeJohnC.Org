@@ -70,6 +70,7 @@ describe("Results case studies", () => {
     expect(
       screen.getByText(/latest work I led or shipped/i),
     ).toBeInTheDocument();
+    expect(screen.queryByText(/pre-GA/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/John owns or leads/i)).not.toBeInTheDocument();
     expect(
       await screen.findByRole("heading", {
