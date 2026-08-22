@@ -76,10 +76,7 @@ export function SEOProvider({ children }: { children: ReactNode }) {
             return merged;
           }
         } catch (err) {
-          captureException(
-            toError(err),
-            { context: "SEO.loadSettings" },
-          );
+          captureException(toError(err), { context: "SEO.loadSettings" });
         }
         cachedSEO = DEFAULT_SEO;
         return DEFAULT_SEO;
@@ -360,7 +357,9 @@ export function buildPersonJsonLd(
   };
 }
 
-export function buildWebsiteJsonLd(site: WebsiteSchema): Record<string, unknown> {
+export function buildWebsiteJsonLd(
+  site: WebsiteSchema,
+): Record<string, unknown> {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
@@ -589,7 +588,7 @@ export const softwareSchema: CreativeWorkSchema = {
   type: "CreativeWork",
   name: "AI products John Christensen led or shipped",
   description:
-    "Governed AI that IT leaders actually use: evidence-preserving client reviews, technician assistance, a company-grounded assistant, and draft-mode delivery. Substantial products today; not yet one uniformly integrated platform. accessAI is pre-GA as a universal control plane.",
+    "Governed AI for the Enterprise work I ship: evidence-preserving client reviews, technician assistance, a company-grounded assistant, and draft-mode delivery. Substantial products today; not yet one uniformly integrated platform. accessAI is pre-GA as a universal control plane.",
   url: "/portfolio?track=ai-products",
   creator: "Jonathan Christensen",
   keywords: [
@@ -622,4 +621,3 @@ export const aboutFaqSchema: FAQSchema = {
     },
   ],
 };
-

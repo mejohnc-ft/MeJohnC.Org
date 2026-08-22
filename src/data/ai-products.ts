@@ -34,7 +34,7 @@ export interface PortfolioThesis {
 }
 
 export const portfolioThesis: PortfolioThesis = {
-  title: "I ship governed AI that IT leaders actually use",
+  title: "Governed AI for the Enterprise work I ship",
   lead: "I ship governed AI products that IT leaders and the people who run operations actually use: evidence-preserving client reviews, technician assistance, a company-grounded assistant, and a delivery agent that stays in draft until a human merges. These are substantial products I led or shipped at centrexIT — not yet one uniformly integrated platform. accessAI, the shared control plane, is pre-GA.",
   tags: [
     "Evidence-preserving workflows",

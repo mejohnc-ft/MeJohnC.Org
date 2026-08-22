@@ -130,7 +130,7 @@ describe("Success Roadmap tracks", () => {
     expect(logistics).toHaveAttribute("aria-selected", "false");
     expect(
       await screen.findByRole("heading", {
-        name: /i ship governed ai that it leaders actually use/i,
+        name: "Governed AI for the Enterprise work I ship",
       }),
     ).toBeInTheDocument();
   });
@@ -154,6 +154,9 @@ describe("AI Products briefs", () => {
     expect(portfolioThesis.lead).toMatch(/not yet one uniformly integrated/i);
     expect(portfolioThesis.lead).toMatch(/pre-GA/i);
     expect(portfolioThesis.lead).toMatch(/IT leaders/i);
+    expect(portfolioThesis.title).toBe(
+      "Governed AI for the Enterprise work I ship",
+    );
     expect(portfolioThesis.title).not.toMatch(/MSP|managed.?service/i);
     expect(portfolioThesis.lead).not.toMatch(/MSP|managed.?service/i);
     expect(portfolioThesis.honestClaim).toMatch(
@@ -225,7 +228,7 @@ describe("AI Products briefs", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: /i ship governed ai that it leaders actually use/i,
+        name: "Governed AI for the Enterprise work I ship",
       }),
     ).toBeInTheDocument();
     expect(screen.queryByText(/14 normalized briefs/i)).not.toBeInTheDocument();
@@ -305,6 +308,9 @@ describe("SEO helpers", () => {
     );
     const work = buildCreativeWorkJsonLd(softwareSchema, "https://mejohnc.org");
     expect(work.url).toBe("https://mejohnc.org/portfolio?track=ai-products");
+    expect(String(work.description)).toMatch(
+      /^Governed AI for the Enterprise work I ship/,
+    );
     expect(String(work.description)).toMatch(/pre-GA/i);
     expect(String(work.description)).not.toMatch(/MSP|managed.?service/i);
     expect(occupationSchema.description).not.toMatch(/MSP|managed.?service/i);
