@@ -54,17 +54,17 @@ export default function AiProductsPanel({ entries }: AiProductsPanelProps) {
         <div className="flex items-end justify-between gap-4 mb-4">
           <div>
             <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
-              Products
+              Categories
             </span>
             <p className="text-sm text-muted-foreground mt-1">
-              Five products I led or shipped.
+              Product categories I've shipped in.
             </p>
           </div>
         </div>
 
         <div
           role="tablist"
-          aria-label="AI products"
+          aria-label="AI product categories"
           className="flex flex-wrap gap-2 mb-6"
         >
           {briefs.map((brief) => {

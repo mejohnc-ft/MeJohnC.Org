@@ -101,57 +101,81 @@ We also launched a new Inventory system with a much better UX and started stacki
 /** Lightweight AI Product pills so the DB and fallback share the same track. */
 export const defaultAiProductEntries: TimelineItem[] = [
   {
-    id: "ai-client-toolbox",
-    label: "Client Toolbox",
-    phase: "Evidence-backed client reviews",
-    summary:
-      "A vITM workspace that turns identity, endpoint, and security evidence into a client book you can explain.",
-    content: null,
-    dot_position: 72,
-    track: "ai-products",
-    entry_key: "client-toolbox",
-  },
-  {
     id: "ai-service-desk-toolbox",
-    label: "Service Desk Toolbox",
-    phase: "Technician work + Incident Buddy",
+    label: "Service Delivery",
+    phase: "Technician automations",
     summary:
-      "Ticket-linked automations and an investigation assistant, built with the service desk team.",
+      "Ticket-linked automations for identity, mail, and access; humans review before writeback.",
     content: null,
-    dot_position: 68,
+    dot_position: 70,
     track: "ai-products",
     entry_key: "service-desk-toolbox",
   },
   {
+    id: "ai-client-toolbox",
+    label: "Portfolio Management",
+    phase: "Evidence-backed client reviews",
+    summary:
+      "A workspace that turns identity, endpoint, and security evidence into a client book you can explain.",
+    content: null,
+    dot_position: 78,
+    track: "ai-products",
+    entry_key: "client-toolbox",
+  },
+  {
+    id: "ai-deep-research",
+    label: "Deep Research / Technical investigations",
+    phase: "Technical investigations",
+    summary:
+      "Investigation assistant for incidents and technical questions; people review findings before writeback.",
+    content: null,
+    dot_position: 66,
+    track: "ai-products",
+    entry_key: "deep-research",
+  },
+  {
     id: "ai-iris",
-    label: "Iris",
+    label: "Multimodal Enterprise Agent",
     phase: "Governed employee AI",
     summary:
-      "Company-grounded assistant with durable skills and approval-gated action.",
+      "The assistant people talk to, with durable skills and approval-gated action.",
     content: null,
-    dot_position: 80,
+    dot_position: 82,
     track: "ai-products",
     entry_key: "iris",
   },
   {
-    id: "ai-proxima",
-    label: "Proxima",
-    phase: "Governed agentic engineering",
-    summary: "Draft PRs and green CI for approved work; humans still merge.",
+    id: "ai-iris-os",
+    label: "Agentic Application OS Platform",
+    phase: "Application OS",
+    summary:
+      "The agentic application OS I stewarded: the shell where governed agents and apps run.",
     content: null,
-    dot_position: 64,
+    dot_position: 86,
     track: "ai-products",
-    entry_key: "proxima",
+    entry_key: "iris-os",
   },
   {
     id: "ai-accessai",
-    label: "accessAI",
+    label: "Agent and Compute Federation Platform",
     phase: "AI control plane",
-    summary: "Control plane for models, agents, policy, cost, and audit.",
+    summary:
+      "Identities, models, agents, tools, cost, audit, evaluation, and rollback. Not an end-user assistant.",
     content: null,
-    dot_position: 58,
+    dot_position: 56,
     track: "ai-products",
     entry_key: "accessai",
+  },
+  {
+    id: "ai-proxima",
+    label: "DevOps Teammate",
+    phase: "Governed agentic engineering",
+    summary:
+      "Draft branch, draft PR, and green CI for approved work; humans still merge.",
+    content: null,
+    dot_position: 62,
+    track: "ai-products",
+    entry_key: "proxima",
   },
 ];
 

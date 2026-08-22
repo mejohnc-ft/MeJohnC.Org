@@ -15,14 +15,16 @@ John built an app platform, several individual apps, and an agent and compute fe
 
 ## AI Products (most recent portfolio item)
 
-Personal recruiting portfolio of AI work John led or shipped at centrexIT — not a company product catalog.
+Personal recruiting portfolio of product categories John has shipped in at centrexIT — not a company product catalog.
 
-Products:
-- Client Toolbox — evidence-preserving client reviews a vITM can explain
-- Service Desk Toolbox + Incident Buddy — technician automations and an investigation assistant, built with the service desk team
-- Iris — company-grounded assistant with approval-gated action
-- Proxima — draft-mode delivery: reviewed branches, draft PRs, green CI
-- accessAI — control plane for identities, models, agents, and tools
+Categories:
+- Service Delivery — technician automations with human writeback, built with the service desk team
+- Portfolio Management — evidence-preserving client reviews a person can explain
+- Deep Research / Technical investigations — investigation assistant; people review findings before writeback
+- Multimodal Enterprise Agent — company-grounded assistant people talk to, with approval-gated action
+- Agentic Application OS Platform — the OS he stewarded for governed agents and apps
+- Agent and Compute Federation Platform — identities, models, agents, tools, cost, audit, eval, rollback; not an end-user assistant
+- DevOps Teammate — draft-mode delivery: reviewed branches, draft PRs, green CI; never marks its own work done
 
 Honest claim: a developing set of substantial products, not yet one uniformly integrated platform. Agents advise, draft, and test. People keep merge, deploy, and production authority.
 

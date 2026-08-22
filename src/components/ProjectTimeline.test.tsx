@@ -152,8 +152,18 @@ describe("Success Roadmap tracks", () => {
   });
 });
 
+const PUBLIC_CATEGORY_TITLES = [
+  "Service Delivery",
+  "Portfolio Management",
+  "Deep Research / Technical investigations",
+  "Multimodal Enterprise Agent",
+  "Agentic Application OS Platform",
+  "Agent and Compute Federation Platform",
+  "DevOps Teammate",
+] as const;
+
 describe("AI Products briefs", () => {
-  it("includes the portfolio thesis and Client Toolbox", () => {
+  it("includes the portfolio thesis and seven public categories", () => {
     expect(portfolioThesis.lead).toMatch(/app platform/i);
     expect(portfolioThesis.lead).toMatch(/individual apps/i);
     expect(portfolioThesis.lead).toMatch(/federation/i);
@@ -170,13 +180,19 @@ describe("AI Products briefs", () => {
     expect(portfolioThesis.honestClaim).toMatch(
       /not yet one uniformly integrated/i,
     );
-    const toolbox = productBriefs.find(
+    expect(productBriefs.map((brief) => brief.name)).toEqual([
+      ...PUBLIC_CATEGORY_TITLES,
+    ]);
+    expect(defaultAiProductEntries.map((entry) => entry.label)).toEqual([
+      ...PUBLIC_CATEGORY_TITLES,
+    ]);
+    const portfolio = productBriefs.find(
       (brief) => brief.id === "client-toolbox",
     );
-    expect(toolbox).toBeDefined();
-    expect(toolbox).not.toHaveProperty("owner");
-    expect(toolbox?.capabilities.length).toBeGreaterThanOrEqual(3);
-    expect(toolbox?.capabilities.length).toBeLessThanOrEqual(5);
+    expect(portfolio?.name).toBe("Portfolio Management");
+    expect(portfolio).not.toHaveProperty("owner");
+    expect(portfolio?.capabilities.length).toBeGreaterThanOrEqual(3);
+    expect(portfolio?.capabilities.length).toBeLessThanOrEqual(5);
   });
 
   it("keeps recruiter-length briefs without launch-status or internal sequels", () => {
@@ -195,9 +211,11 @@ describe("AI Products briefs", () => {
       expect(brief).not.toHaveProperty("target");
     }
 
-    const accessAi = productBriefs.find((brief) => brief.id === "accessai");
-    expect(accessAi?.tagline).toMatch(/control plane/i);
-    expect(accessAi?.tagline).not.toMatch(/pre-GA|preGA|general.?availab/i);
+    const federation = productBriefs.find((brief) => brief.id === "accessai");
+    expect(federation?.name).toBe("Agent and Compute Federation Platform");
+    expect(federation?.tagline).toMatch(/control plane/i);
+    expect(federation?.tagline).not.toMatch(/pre-GA|preGA|general.?availab/i);
+    expect(federation?.tagline).not.toMatch(/accessAI/i);
   });
 
   it("keeps internal process language off public product copy", () => {
@@ -214,19 +232,58 @@ describe("AI Products briefs", () => {
 
     expect(publicCopy).not.toMatch(/pre-GA|preGA|general.?availab/i);
     expect(publicCopy).not.toMatch(
-      /\b(Cadre|Spark|Spot|Vantage|Navigate|AI Triage)\b/,
+      /\b(Cadre|Spark|Spot|Vantage|Navigate|Knowledge|AI Triage)\b/,
     );
     expect(publicCopy).not.toMatch(/Still coming/i);
+
+    const visibleCopy = [
+      portfolioThesis.title,
+      portfolioThesis.lead,
+      ...portfolioThesis.tags,
+      ...portfolioThesis.loop.map((step) => step.detail),
+      portfolioThesis.honestClaim,
+      portfolioThesis.agentAuthority,
+      ...productBriefs.flatMap((brief) => [
+        brief.name,
+        brief.tagline,
+        ...brief.chips,
+        ...brief.capabilities,
+        brief.shipped,
+      ]),
+      ...defaultAiProductEntries.flatMap((entry) => [
+        entry.label,
+        entry.phase,
+        entry.summary ?? "",
+      ]),
+      softwareSchema.name,
+      softwareSchema.description,
+      ...(softwareSchema.keywords ?? []),
+      occupationSchema.description,
+      aboutFaqSchema.questions.map((item) => item.answer).join(" "),
+      readFileSync("public/llms.txt", "utf8"),
+    ].join("\n");
+
+    expect(visibleCopy).not.toMatch(/Client Toolbox/);
+    expect(visibleCopy).not.toMatch(/Service Desk Toolbox/);
+    expect(visibleCopy).not.toMatch(/Incident Buddy/);
+    expect(visibleCopy).not.toMatch(/SD Toolbox/);
+    expect(visibleCopy).not.toMatch(/\bvITM\b/);
+    expect(visibleCopy).not.toMatch(/\bIris\b/);
+    expect(visibleCopy).not.toMatch(/Iris OS|irisOS/i);
+    expect(visibleCopy).not.toMatch(/\bProxima\b/);
+    expect(visibleCopy).not.toMatch(/accessAI/);
   });
 
-  it("only briefs the five public products", () => {
+  it("only briefs the seven public categories", () => {
     const ids = productBriefs.map((brief) => brief.id);
     expect(ids).toEqual([
-      "client-toolbox",
       "service-desk-toolbox",
+      "client-toolbox",
+      "deep-research",
       "iris",
-      "proxima",
+      "iris-os",
       "accessai",
+      "proxima",
     ]);
     expect(portfolioThesis).not.toHaveProperty("namedSeams");
   });
@@ -235,7 +292,7 @@ describe("AI Products briefs", () => {
     const ordered = orderProductBriefs([
       {
         id: "x",
-        label: "Iris",
+        label: "Multimodal Enterprise Agent",
         phase: "AI",
         summary: null,
         content: null,
@@ -246,6 +303,8 @@ describe("AI Products briefs", () => {
     ]);
     expect(ordered[0].id).toBe("iris");
     expect(ordered.map((brief) => brief.id)).toContain("client-toolbox");
+    expect(ordered.map((brief) => brief.id)).toContain("deep-research");
+    expect(ordered.map((brief) => brief.id)).toContain("iris-os");
   });
 
   it("renders thesis copy and at least one product brief", async () => {
@@ -263,21 +322,30 @@ describe("AI Products briefs", () => {
     expect(screen.queryByText(/14 normalized briefs/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/readiness ledger/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/owner toby/i)).not.toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Client Toolbox" })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
     expect(
-      screen.getByText("Five products I led or shipped."),
+      screen.getByRole("tab", { name: "Service Delivery" }),
+    ).toHaveAttribute("aria-selected", "true");
+    for (const title of PUBLIC_CATEGORY_TITLES) {
+      expect(screen.getByRole("tab", { name: title })).toBeInTheDocument();
+    }
+    expect(
+      screen.getByText("Product categories I've shipped in."),
     ).toBeInTheDocument();
     expect(screen.queryByText(/named seams/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/second catalog/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/also in the loop/i)).not.toBeInTheDocument();
     expect(
-      screen.getByText(/vITM workspace that turns identity/i),
+      screen.getByText(/technician workspace that routes tickets/i),
     ).toBeInTheDocument();
     expect(screen.getByText(/What I shipped/i)).toBeInTheDocument();
+    expect(screen.queryByText("Client Toolbox")).not.toBeInTheDocument();
+    expect(screen.queryByText("Iris")).not.toBeInTheDocument();
+    expect(screen.queryByText("Proxima")).not.toBeInTheDocument();
+    expect(screen.queryByText("accessAI")).not.toBeInTheDocument();
     expect(screen.queryByText(/pre-GA/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/MSP/)).not.toBeInTheDocument();
+    expect(screen.queryByText("Cadre")).not.toBeInTheDocument();
+    expect(screen.queryByText("Spark")).not.toBeInTheDocument();
     expect(screen.queryByText(/still coming/i)).not.toBeInTheDocument();
     expect(
       screen.queryByText(/Cadre|Vantage|AI Triage/i),

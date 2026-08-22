@@ -586,17 +586,19 @@ export const occupationSchema: OccupationSchema = {
 
 export const softwareSchema: CreativeWorkSchema = {
   type: "CreativeWork",
-  name: "AI products John Christensen led or shipped",
+  name: "AI product categories John Christensen has shipped in",
   description:
     "Governed AI for the Enterprise work I ship. I built an app platform, several individual apps, and an agent and compute federation platform. Two of the app platforms I stewarded from idea through scoping, iteration, and review, and saw through to completion. Substantial products; not yet one uniformly integrated platform.",
   url: "/portfolio?track=ai-products",
   creator: "Jonathan Christensen",
   keywords: [
-    "Client Toolbox",
-    "Iris",
-    "Proxima",
-    "accessAI",
-    "Service Desk Toolbox",
+    "Service Delivery",
+    "Portfolio Management",
+    "Deep Research / Technical investigations",
+    "Multimodal Enterprise Agent",
+    "Agentic Application OS Platform",
+    "Agent and Compute Federation Platform",
+    "DevOps Teammate",
     "governed agents",
   ],
 };

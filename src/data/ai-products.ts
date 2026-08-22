@@ -71,10 +71,37 @@ export const portfolioThesis: PortfolioThesis = {
 
 export const productBriefs: ProductBrief[] = [
   {
-    id: "client-toolbox",
-    name: "Client Toolbox",
+    id: "service-desk-toolbox",
+    name: "Service Delivery",
     tagline:
-      "A vITM workspace that turns identity, endpoint, and security evidence into a client book you can explain — scores, gaps, and next conversations.",
+      "A technician workspace that routes tickets into guided automations for identity, mail, and access work. Humans review before writeback.",
+    chips: [
+      "Ticket-linked automations",
+      "Guided runbooks",
+      "Human writeback",
+    ],
+    loopStages: ["sense", "operate"],
+    capabilities: [
+      "Guided automations for common identity, mail, and access work",
+      "Ticket context stays attached to the run",
+      "Humans review before anything is written back",
+      "Built with the people who close the tickets",
+    ],
+    shipped:
+      "I shipped this with the service desk team: ticket-linked automations that do not write back until a human reviews.",
+    stack: [
+      "Rewst",
+      "Halo",
+      "Azure AI Foundry",
+      "Microsoft Teams",
+      "TypeScript",
+    ],
+  },
+  {
+    id: "client-toolbox",
+    name: "Portfolio Management",
+    tagline:
+      "A workspace that turns identity, endpoint, and security evidence into a client book you can explain — scores, gaps, and next conversations.",
     chips: [
       "Assigned client book",
       "Explainable scores",
@@ -88,7 +115,7 @@ export const productBriefs: ProductBrief[] = [
       "A governed AI teammate that drafts; source systems stay authoritative",
     ],
     shipped:
-      "Designed and shipped the evidence spine: collection, scoring, and the workspace used to review a client.",
+      "I stewarded this workspace from idea through scoping, iteration, and review to completion: collection, scoring, and the client book used to review evidence.",
     stack: [
       "React",
       "TypeScript",
@@ -101,20 +128,24 @@ export const productBriefs: ProductBrief[] = [
     ],
   },
   {
-    id: "service-desk-toolbox",
-    name: "Service Desk Toolbox + Incident Buddy",
+    id: "deep-research",
+    name: "Deep Research / Technical investigations",
     tagline:
-      "Technician app, built with the service desk team, that routes tickets into guided automations and an investigation assistant. Humans review before writeback.",
-    chips: ["Ticket-linked automations", "Incident Buddy", "Human writeback"],
+      "An investigation assistant for incidents and technical questions across identity, endpoint, mail, and operations. People review findings before anything is written back.",
+    chips: [
+      "Cross-domain investigation",
+      "Cited findings",
+      "Human writeback",
+    ],
     loopStages: ["sense", "operate"],
     capabilities: [
-      "Guided automations for common identity, mail, and access work",
-      "Ticket context stays attached to the run",
-      "Incident Buddy investigates across the usual IT operations domains",
-      "Humans review findings before anything is written back",
+      "Investigates across identity, endpoint, mail, and related operations domains",
+      "Ticket and source context stay attached to the run",
+      "Findings a person can check before they act",
+      "Nothing is written back until a human reviews",
     ],
     shipped:
-      "Shipped with the service desk team: ticket-linked automations and an investigation assistant that does not write back until a human reviews.",
+      "I shipped an investigation assistant that drafts findings across the usual operations domains and waits for a human before writeback.",
     stack: [
       "Rewst",
       "Halo",
@@ -125,10 +156,10 @@ export const productBriefs: ProductBrief[] = [
   },
   {
     id: "iris",
-    name: "Iris",
+    name: "Multimodal Enterprise Agent",
     tagline:
-      "A company-grounded assistant in Teams and Iris OS. It researches, remembers, and drafts — and only acts after someone approves.",
-    chips: ["Teams + Iris OS", "Company context", "Approval-gated action"],
+      "The assistant people talk to in Teams. It researches, remembers, and drafts — and only acts after someone approves.",
+    chips: ["Teams", "Company context", "Approval-gated action"],
     loopStages: ["sense", "operate"],
     capabilities: [
       "Answers grounded in handbook, people, tickets, and approved channels",
@@ -137,7 +168,33 @@ export const productBriefs: ProductBrief[] = [
       "Specialists sit behind the same approval gate",
     ],
     shipped:
-      "Led Iris: the Teams bot, the Iris OS shell, and the approval-gated action path.",
+      "I led the assistant people talk to: the Teams bot, company-grounded answers, and the approval-gated action path.",
+    stack: [
+      "TypeScript",
+      "Azure Functions",
+      "Azure AI Foundry",
+      "Microsoft Graph",
+      "Halo",
+      "Rewst",
+      "Bot Framework",
+      "Microsoft Teams",
+    ],
+  },
+  {
+    id: "iris-os",
+    name: "Agentic Application OS Platform",
+    tagline:
+      "The agentic application OS I stewarded from idea through to completion: the shell where governed agents and apps run, with one approval path.",
+    chips: ["Application shell", "Shared context", "Approval-gated action"],
+    loopStages: ["sense", "operate"],
+    capabilities: [
+      "Hosts assistants and specialists behind one application shell",
+      "Shared company context, memory, and skills",
+      "Approval-gated action for anything that writes or spends",
+      "One OS for the agents and apps, not a pile of disconnected chat windows",
+    ],
+    shipped:
+      "I stewarded this OS platform from idea through scoping, iteration, and review to completion — the shell the assistants run in, with a single approval-gated action path.",
     stack: [
       "React",
       "TypeScript",
@@ -146,12 +203,36 @@ export const productBriefs: ProductBrief[] = [
       "Microsoft Graph",
       "Halo",
       "Rewst",
-      "Bot Framework",
+      "Microsoft Teams",
+    ],
+  },
+  {
+    id: "accessai",
+    name: "Agent and Compute Federation Platform",
+    tagline:
+      "Control plane for which identities, models, agents, and tools may run — plus cost, audit, evaluation, and rollback. Not an end-user assistant.",
+    chips: ["Multi-model governance", "Tenant-safe execution", "Cost + audit"],
+    loopStages: ["govern"],
+    capabilities: [
+      "Routes work across Azure OpenAI, Anthropic, OpenAI, and Foundry",
+      "Fail-closed identity and tenant isolation",
+      "Records runs, cost, evals, and promotions",
+      "Governs what may run; it is not an end-user assistant",
+    ],
+    shipped:
+      "I helped define the federation model — which identities, models, agents, and tools may run, under whose authority, and how a run is audited, evaluated, and rolled back.",
+    stack: [
+      "TypeScript",
+      "Hono",
+      "React",
+      "PostgreSQL",
+      "Azure Container Apps",
+      "Key Vault",
     ],
   },
   {
     id: "proxima",
-    name: "Proxima",
+    name: "DevOps Teammate",
     tagline:
       "Takes approved engineering work and returns a reviewed branch, a draft PR, and green CI. The model never marks its own work done.",
     chips: [
@@ -167,7 +248,7 @@ export const productBriefs: ProductBrief[] = [
       "Humans keep merge, deploy, and anything that spends money",
     ],
     shipped:
-      "Helped design the draft-mode delivery loop: agents implement and verify against real CI; people still merge.",
+      "I helped design the draft-mode delivery loop: a teammate that implements and verifies against real CI; people still merge.",
     stack: [
       "TypeScript",
       "Python",
@@ -176,30 +257,6 @@ export const productBriefs: ProductBrief[] = [
       "Node",
       "Azure",
       "Supabase",
-    ],
-  },
-  {
-    id: "accessai",
-    name: "accessAI",
-    tagline:
-      "Control plane for which identities, models, agents, and tools may run — plus cost, audit, evaluation, and rollback.",
-    chips: ["Multi-model governance", "Tenant-safe execution", "Cost + audit"],
-    loopStages: ["govern"],
-    capabilities: [
-      "Routes work across Azure OpenAI, Anthropic, OpenAI, and Foundry",
-      "Fail-closed identity and tenant isolation",
-      "Records runs, cost, evals, and promotions",
-      "Governs what may run; it is not an end-user assistant",
-    ],
-    shipped:
-      "Helped define the control-plane model — what may run, under whose authority, and how it gets promoted.",
-    stack: [
-      "TypeScript",
-      "Hono",
-      "React",
-      "PostgreSQL",
-      "Azure Container Apps",
-      "Key Vault",
     ],
   },
 ];
