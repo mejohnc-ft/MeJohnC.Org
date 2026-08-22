@@ -455,4 +455,46 @@ describe("Schema Validation: Migration SQL vs Code", () => {
       expect(params).toContain("p_max_requests");
     });
   });
+
+  describe("audit_log partition RLS", () => {
+    const partitionRlsPath = path.join(
+      MIGRATIONS_DIR,
+      "20260822000001_enable_audit_log_partition_rls.sql",
+    );
+    const partitionRlsSql = fs.readFileSync(partitionRlsPath, "utf-8");
+
+    // Last CREATE OR REPLACE of a function wins in concatenated SQL.
+    function lastFunctionBody(sql: string, fnName: string): string {
+      const re = new RegExp(
+        `CREATE\\s+OR\\s+REPLACE\\s+FUNCTION\\s+(?:public\\.)?${fnName}\\s*\\([^)]*\\)[\\s\\S]*?\\$\\$[\\s\\S]*?\\$\\$`,
+        "gi",
+      );
+      const matches = sql.match(re);
+      return matches?.[matches.length - 1] ?? "";
+    }
+
+    it("should ship enable_audit_log_partition_rls matching the live apply", () => {
+      expect(fs.existsSync(partitionRlsPath)).toBe(true);
+      expect(partitionRlsSql).toContain("ENABLE ROW LEVEL SECURITY");
+      expect(partitionRlsSql).toContain(
+        "Admins can do everything with audit_log",
+      );
+      expect(partitionRlsSql).toContain("USING (is_admin())");
+      for (const month of ["02", "03", "04", "05", "06", "07", "08"]) {
+        expect(partitionRlsSql).toContain(`audit_log_2026_${month}`);
+      }
+    });
+
+    it("create_audit_log_partition should enable RLS and copy the admin policy", () => {
+      const body = lastFunctionBody(allSql, "create_audit_log_partition");
+      expect(body).toContain("PERFORM public.enable_audit_log_partition_rls");
+    });
+
+    it("enable_audit_log_partition_rls helper should match live policy", () => {
+      const body = lastFunctionBody(allSql, "enable_audit_log_partition_rls");
+      expect(body).toContain("ENABLE ROW LEVEL SECURITY");
+      expect(body).toContain("CREATE POLICY");
+      expect(body).toContain("is_admin()");
+    });
+  });
 });
