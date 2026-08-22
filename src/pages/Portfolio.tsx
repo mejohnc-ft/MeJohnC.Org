@@ -53,7 +53,7 @@ const Portfolio = () => {
       return {
         title: 'Content & Talks',
         description:
-          'Writing, timestamped talks, and curated AI news from Jonathan Christensen — AI automation, governed agents, and MSP engineering.',
+          'Writing, timestamped talks, and curated AI news from Jonathan Christensen — AI automation, governed agents, and IT operations.',
         url: '/portfolio?tab=content',
         keywords: RECRUITING_KEYWORDS,
       };
@@ -79,7 +79,7 @@ const Portfolio = () => {
     return {
       title: 'Portfolio',
       description:
-        'Portfolio of Jonathan Christensen, AI Automation Engineer: governed AI products, MSP endpoint logistics, Microsoft 365, Azure, and lab-ready IT systems.',
+        'Portfolio of Jonathan Christensen, AI Automation Engineer: governed AI products, endpoint logistics, Microsoft 365, Azure, and lab-ready IT systems.',
       url: '/portfolio',
       keywords: RECRUITING_KEYWORDS,
     };

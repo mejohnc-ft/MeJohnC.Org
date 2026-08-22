@@ -130,7 +130,7 @@ describe("Success Roadmap tracks", () => {
     expect(logistics).toHaveAttribute("aria-selected", "false");
     expect(
       await screen.findByRole("heading", {
-        name: /governed ai for the msp work i ship/i,
+        name: /i ship governed ai that it leaders actually use/i,
       }),
     ).toBeInTheDocument();
   });
@@ -153,6 +153,9 @@ describe("AI Products briefs", () => {
   it("includes the portfolio thesis and Client Toolbox", () => {
     expect(portfolioThesis.lead).toMatch(/not yet one uniformly integrated/i);
     expect(portfolioThesis.lead).toMatch(/pre-GA/i);
+    expect(portfolioThesis.lead).toMatch(/IT leaders/i);
+    expect(portfolioThesis.title).not.toMatch(/MSP|managed.?service/i);
+    expect(portfolioThesis.lead).not.toMatch(/MSP|managed.?service/i);
     expect(portfolioThesis.honestClaim).toMatch(
       /not yet one uniformly integrated/i,
     );
@@ -222,7 +225,7 @@ describe("AI Products briefs", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: /governed ai for the msp work i ship/i,
+        name: /i ship governed ai that it leaders actually use/i,
       }),
     ).toBeInTheDocument();
     expect(screen.queryByText(/14 normalized briefs/i)).not.toBeInTheDocument();
@@ -281,7 +284,7 @@ describe("SEO helpers", () => {
     expect(json["@type"]).toBe("Person");
     expect(json.jobTitle).toBe("AI Automation Engineer");
     expect(json.knowsAbout).toEqual(
-      expect.arrayContaining(["Governed agents", "MSP operations"]),
+      expect.arrayContaining(["Governed agents", "IT operations"]),
     );
     expect(json.worksFor).toEqual({
       "@type": "Organization",
@@ -303,5 +306,7 @@ describe("SEO helpers", () => {
     const work = buildCreativeWorkJsonLd(softwareSchema, "https://mejohnc.org");
     expect(work.url).toBe("https://mejohnc.org/portfolio?track=ai-products");
     expect(String(work.description)).toMatch(/pre-GA/i);
+    expect(String(work.description)).not.toMatch(/MSP|managed.?service/i);
+    expect(occupationSchema.description).not.toMatch(/MSP|managed.?service/i);
   });
 });

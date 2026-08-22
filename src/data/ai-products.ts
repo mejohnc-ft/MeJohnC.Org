@@ -34,8 +34,8 @@ export interface PortfolioThesis {
 }
 
 export const portfolioThesis: PortfolioThesis = {
-  title: "Governed AI for the MSP work I ship",
-  lead: "I build AI products for MSP work: evidence-preserving client reviews, technician assistance, a company-grounded assistant, and a delivery agent that stays in draft until a human merges. These are substantial products I led or shipped at centrexIT — not yet one uniformly integrated platform. accessAI, the shared control plane, is pre-GA.",
+  title: "I ship governed AI that IT leaders actually use",
+  lead: "I ship governed AI products that IT leaders and the people who run operations actually use: evidence-preserving client reviews, technician assistance, a company-grounded assistant, and a delivery agent that stays in draft until a human merges. These are substantial products I led or shipped at centrexIT — not yet one uniformly integrated platform. accessAI, the shared control plane, is pre-GA.",
   tags: [
     "Evidence-preserving workflows",
     "Governed agents",
@@ -117,7 +117,7 @@ export const productBriefs: ProductBrief[] = [
     capabilities: [
       "Guided automations for common identity, mail, and access work",
       "Ticket context stays attached to the run",
-      "Incident Buddy investigates across the usual MSP domains",
+      "Incident Buddy investigates across the usual IT operations domains",
       "Humans review findings before anything is written back",
     ],
     shipped:
