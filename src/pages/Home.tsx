@@ -8,6 +8,7 @@ import { useSEO, useJsonLd, personSchema, websiteSchema, occupationSchema, RECRU
 import { useSupabaseClient } from '@/lib/supabase';
 import { getSiteContent } from '@/lib/supabase-queries';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 import { useReducedMotion } from '@/lib/reduced-motion';
 
 interface HeroContent {
@@ -53,7 +54,7 @@ const Home = () => {
           }
         }
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        captureException(toError(err), {
           context: 'Home.fetchHeroContent',
         });
       }

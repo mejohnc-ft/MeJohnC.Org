@@ -14,6 +14,7 @@ import {
 } from '@/lib/supabase-queries';
 import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 
 type SuiteFormData = Omit<AppSuite, 'id' | 'created_at' | 'updated_at'>;
 
@@ -56,7 +57,7 @@ const SuiteEditor = () => {
       });
       setAutoSlug(false);
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'SuiteEditor.fetchSuite' });
+      captureException(toError(err), { context: 'SuiteEditor.fetchSuite' });
       setError('Suite not found');
     } finally {
       setIsLoading(false);
@@ -104,7 +105,7 @@ const SuiteEditor = () => {
       }
       navigate('/admin/apps');
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'SuiteEditor.saveSuite' });
+      captureException(toError(err), { context: 'SuiteEditor.saveSuite' });
       setError('Failed to save suite. Make sure you have permission.');
     } finally {
       setIsSaving(false);

@@ -38,6 +38,7 @@ import { useBilling } from "@/hooks/useBilling";
 import { useTenantSupabase } from "@/lib/supabase";
 import { uploadFile } from "@/lib/supabase-queries";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import { useReducedMotion } from "@/lib/reduced-motion";
 import {
   appRegistry,
@@ -133,7 +134,7 @@ export default function OnboardingWizard({
       const url = await uploadFile(file, path, supabase, tenant.id);
       setBranding((prev) => ({ ...prev, logo_url: url }));
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "OnboardingWizard.logoUpload",
       });
     } finally {

@@ -5,6 +5,7 @@ import { useKeyboardFocus } from '@/lib/keyboard-focus';
 import { useSupabaseClient } from '@/lib/supabase';
 import { getWorkHistory, type WorkHistoryEntry } from '@/lib/supabase-queries';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 import { Loader2 } from 'lucide-react';
 
 interface ExperienceProps {
@@ -105,7 +106,7 @@ const Experience = ({ focused = false }: ExperienceProps) => {
           })));
         }
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        captureException(toError(err), {
           context: 'Experience.fetchWorkHistory',
         });
         setError('Unable to load work history');

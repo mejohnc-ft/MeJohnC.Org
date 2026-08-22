@@ -7,6 +7,7 @@
 
 import type { GeneratedUI } from "../schemas";
 import { getTenantId } from "@/lib/ai-service";
+import { toError } from '@/lib/errors';
 
 // ============================================
 // TYPES
@@ -628,7 +629,7 @@ export async function generateWithStreaming(
     callbacks?.onComplete?.(ui);
     return { success: true, ui };
   } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error));
+    const err = toError(error);
     callbacks?.onError?.(err);
 
     // Fallback

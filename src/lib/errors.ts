@@ -2,6 +2,84 @@ import { PostgrestError } from '@supabase/supabase-js';
 import { captureException } from './sentry';
 import { SUPABASE_ERROR_CODES } from './constants';
 
+const POSTGREST_ERROR_FIELDS = ['code', 'details', 'hint', 'status'] as const;
+
+function formatErrorField(value: unknown): string {
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  }
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return '[unserializable]';
+  }
+}
+
+function stringifyUnknown(value: unknown, fallback: string): string {
+  try {
+    const json = JSON.stringify(value);
+    return json ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function errorFromObject(obj: Record<string, unknown>): Error {
+  const message = typeof obj.message === 'string' ? obj.message.trim() : '';
+  const extras: string[] = [];
+
+  for (const field of POSTGREST_ERROR_FIELDS) {
+    const fieldValue = obj[field];
+    if (fieldValue === undefined || fieldValue === null || fieldValue === '') {
+      continue;
+    }
+    extras.push(`${field}: ${formatErrorField(fieldValue)}`);
+  }
+
+  if (message || extras.length > 0) {
+    const extraSuffix = extras.length > 0 ? ` (${extras.join(', ')})` : '';
+    return new Error(`${message || 'Unknown error'}${extraSuffix}`);
+  }
+
+  return new Error(stringifyUnknown(obj, 'Unserializable error object'));
+}
+
+/**
+ * Convert any thrown value into an `Error` with a useful `.message`.
+ *
+ * PostgREST / Supabase errors are plain objects (`{ message, code, details, hint }`),
+ * not `instanceof Error`. `new Error(String(obj))` becomes `"Error: [object Object]"`
+ * in Sentry — this helper never does that.
+ */
+export function toError(value: unknown): Error {
+  if (value instanceof Error) {
+    return value;
+  }
+
+  if (value === null || value === undefined) {
+    return new Error(String(value));
+  }
+
+  const valueType = typeof value;
+  if (valueType === 'string') {
+    return new Error(value);
+  }
+  if (
+    valueType === 'number' ||
+    valueType === 'boolean' ||
+    valueType === 'bigint' ||
+    valueType === 'symbol'
+  ) {
+    return new Error(String(value));
+  }
+
+  if (valueType === 'object') {
+    return errorFromObject(value as Record<string, unknown>);
+  }
+
+  return new Error(stringifyUnknown(value, 'Unknown error'));
+}
+
 /**
  * Error Handling Strategy
  *
@@ -82,7 +160,7 @@ export function formatErrorForLogging(error: unknown, context: string): string {
   if (error instanceof Error) {
     return `[${context}] ${error.message}`;
   }
-  return `[${context}] Unknown error: ${String(error)}`;
+  return `[${context}] Unknown error: ${toError(error).message}`;
 }
 
 /**

@@ -6,6 +6,7 @@
  */
 
 import { captureException } from "@/lib/sentry";
+import { toError } from "./errors";
 
 // ============================================
 // TYPES
@@ -145,7 +146,7 @@ async function callClaudeAPI(
     };
   } catch (error) {
     captureException(
-      error instanceof Error ? error : new Error(String(error)),
+      toError(error),
       {
         context: "aiService.callClaudeAPI",
       },

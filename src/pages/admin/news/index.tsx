@@ -40,6 +40,7 @@ import { Button } from '@/components/ui/button';
 import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 import {
   getNewsDashboardTabs,
   getNewsArticles,
@@ -226,7 +227,7 @@ const AdminNewsDashboard = () => {
         setActiveFeedTab(tabsData[0].slug);
       }
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'AdminNewsDashboard.fetchData',
       });
     } finally {
@@ -261,7 +262,7 @@ const AdminNewsDashboard = () => {
       const articlesData = await getNewsArticles(options, supabase);
       setArticles(articlesData);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'AdminNewsDashboard.fetchArticles',
       });
     } finally {
@@ -321,7 +322,7 @@ const AdminNewsDashboard = () => {
       results.forEach(r => newColumnArticles[r.id] = r.articles);
       setColumnArticles(newColumnArticles);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'AdminNewsDashboard.fetchAllColumnArticles',
       });
     } finally {
@@ -341,7 +342,7 @@ const AdminNewsDashboard = () => {
       const articles = await fetchColumnArticles(config);
       setColumnArticles(prev => ({ ...prev, [config.id]: articles }));
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'AdminNewsDashboard.fetchSingleColumnArticles',
       });
     } finally {
@@ -398,7 +399,7 @@ const AdminNewsDashboard = () => {
       const statsData = await getNewsStats(supabase);
       setStats(statsData);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'AdminNewsDashboard.handleMarkRead',
       });
     }
@@ -410,7 +411,7 @@ const AdminNewsDashboard = () => {
       await toggleArticleBookmark(id, !isBookmarked, supabase);
       setArticles(prev => prev.map(a => a.id === id ? { ...a, is_bookmarked: !isBookmarked } : a));
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'AdminNewsDashboard.handleToggleBookmark',
       });
     }
@@ -423,7 +424,7 @@ const AdminNewsDashboard = () => {
       setArticles(prev => prev.map(a => ids.includes(a.id) ? { ...a, is_curated: true } : a));
       setSelectedIds(new Set());
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'AdminNewsDashboard.handleCurate',
       });
     }
@@ -436,7 +437,7 @@ const AdminNewsDashboard = () => {
       setArticles(prev => prev.filter(a => !ids.includes(a.id)));
       setSelectedIds(new Set());
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'AdminNewsDashboard.handleArchive',
       });
     }
@@ -473,7 +474,7 @@ const AdminNewsDashboard = () => {
       const statsData = await getNewsStats(supabase);
       setStats(statsData);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'AdminNewsDashboard.handleCurateSingle',
       });
     }
@@ -522,7 +523,7 @@ const AdminNewsDashboard = () => {
       await deleteNewsSource(id, supabase);
       setSources(prev => prev.filter(s => s.id !== id));
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'AdminNewsDashboard.handleSourceDelete',
       });
     }
@@ -571,7 +572,7 @@ const AdminNewsDashboard = () => {
       setFilters(prev => [created, ...prev]);
       setNewFilterValue('');
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'AdminNewsDashboard.handleAddFilter',
       });
     } finally {
@@ -585,7 +586,7 @@ const AdminNewsDashboard = () => {
       const updated = await updateNewsFilter(filter.id, { is_active: !filter.is_active }, supabase);
       setFilters(prev => prev.map(f => f.id === filter.id ? updated : f));
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'AdminNewsDashboard.handleToggleFilter',
       });
     }
@@ -597,7 +598,7 @@ const AdminNewsDashboard = () => {
       await deleteNewsFilter(id, supabase);
       setFilters(prev => prev.filter(f => f.id !== id));
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'AdminNewsDashboard.handleDeleteFilter',
       });
     }
@@ -631,7 +632,7 @@ const AdminNewsDashboard = () => {
 
       resetTabForm();
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'AdminNewsDashboard.handleTabSubmit',
       });
     }
@@ -643,7 +644,7 @@ const AdminNewsDashboard = () => {
       await deleteNewsDashboardTab(tab.id, supabase);
       setFeedTabs(prev => prev.filter(t => t.id !== tab.id));
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'AdminNewsDashboard.handleTabDelete',
       });
     }
@@ -655,7 +656,7 @@ const AdminNewsDashboard = () => {
       const updated = await updateNewsDashboardTab(tab.id, { is_active: !tab.is_active }, supabase);
       setFeedTabs(prev => prev.map(t => t.id === tab.id ? updated : t));
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'AdminNewsDashboard.handleTabToggleActive',
       });
     }
@@ -703,7 +704,7 @@ const AdminNewsDashboard = () => {
     try {
       await reorderNewsDashboardTabs(feedTabs.map(t => t.id), supabase);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'AdminNewsDashboard.handleDragEnd',
       });
     }

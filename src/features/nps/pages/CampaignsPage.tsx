@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useAuthenticatedSupabase } from "@/lib/supabase";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import { useSEO } from "@/lib/seo";
 import AdminLayout from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -89,7 +90,7 @@ const CampaignsPage = () => {
       setContacts(contactsResult);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "CampaignsPage.loadData",
         },
@@ -135,7 +136,7 @@ const CampaignsPage = () => {
       loadData();
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "CampaignsPage.handleCreateCampaign",
         },

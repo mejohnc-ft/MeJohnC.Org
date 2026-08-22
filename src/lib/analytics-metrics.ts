@@ -17,6 +17,7 @@
  */
 
 import { captureException } from '@/lib/sentry';
+import { toError } from './errors';
 
 // ============================================
 // TYPES
@@ -316,7 +317,7 @@ export async function getAnalyticsOverview(
       engagementRate: parseFloat(metrics[6]?.value || '0'),
     };
   } catch (error) {
-    captureException(error instanceof Error ? error : new Error(String(error)), {
+    captureException(toError(error), {
       context: 'analytics.getAnalyticsOverview',
     });
     console.error('Failed to fetch analytics overview:', error);
@@ -358,7 +359,7 @@ export async function getTopPages(
       views: parseInt(row.metricValues?.[0]?.value || '0', 10),
     }));
   } catch (error) {
-    captureException(error instanceof Error ? error : new Error(String(error)), {
+    captureException(toError(error), {
       context: 'analytics.getTopPages',
     });
     console.error('Failed to fetch top pages:', error);
@@ -399,7 +400,7 @@ export async function getTrafficSources(
       sessions: parseInt(row.metricValues?.[0]?.value || '0', 10),
     }));
   } catch (error) {
-    captureException(error instanceof Error ? error : new Error(String(error)), {
+    captureException(toError(error), {
       context: 'analytics.getTrafficSources',
     });
     console.error('Failed to fetch traffic sources:', error);
@@ -447,7 +448,7 @@ export async function getDeviceBreakdown(
       };
     });
   } catch (error) {
-    captureException(error instanceof Error ? error : new Error(String(error)), {
+    captureException(toError(error), {
       context: 'analytics.getDeviceBreakdown',
     });
     console.error('Failed to fetch device breakdown:', error);

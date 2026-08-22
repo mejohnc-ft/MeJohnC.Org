@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 import { getWorkflowById, updateWorkflow, deleteWorkflow, getWorkflowRuns } from '@/lib/agent-platform-queries';
 import IntegrationActionForm from '@/components/admin/IntegrationActionForm';
 import type { Workflow, WorkflowRun } from '@/lib/schemas';
@@ -116,7 +117,7 @@ const WorkflowEditor = () => {
         const runs = await getWorkflowRuns(id, 20, supabase);
         setWorkflowRuns(runs);
       } catch (error) {
-        captureException(error instanceof Error ? error : new Error(String(error)), {
+        captureException(toError(error), {
           context: 'WorkflowEditor.fetchWorkflow',
         });
       } finally {
@@ -153,7 +154,7 @@ const WorkflowEditor = () => {
       setSaveMessage({ type: 'success', text: 'Workflow saved successfully' });
       setTimeout(() => setSaveMessage(null), 3000);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'WorkflowEditor.handleSubmit',
       });
       setSaveMessage({ type: 'error', text: 'Failed to save workflow. Please try again.' });
@@ -170,7 +171,7 @@ const WorkflowEditor = () => {
       await deleteWorkflow(id, supabase);
       navigate('/admin/workflows');
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'WorkflowEditor.handleDelete',
       });
       setSaveMessage({ type: 'error', text: 'Failed to delete workflow.' });
@@ -203,7 +204,7 @@ const WorkflowEditor = () => {
         setWorkflowRuns(runs);
       }, 2000);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'WorkflowEditor.handleTestRun',
       });
       setTestResult({

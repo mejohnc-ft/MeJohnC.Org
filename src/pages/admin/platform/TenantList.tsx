@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuthenticatedSupabase } from "@/lib/supabase";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import type { Tenant } from "@/lib/schemas";
 
 const PAGE_SIZE = 20;
@@ -39,7 +40,7 @@ const TenantListPage = () => {
       if (error) throw error;
       setTenants((data as Tenant[]) || []);
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "TenantList.fetch",
       });
     } finally {
@@ -68,7 +69,7 @@ const TenantListPage = () => {
         ),
       );
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "TenantList.toggleStatus",
       });
     } finally {

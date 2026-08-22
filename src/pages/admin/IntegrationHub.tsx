@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuthenticatedSupabase } from "@/lib/supabase";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import {
   getIntegrations,
   createIntegration,
@@ -216,7 +217,7 @@ export default function IntegrationHub() {
       setAgents(agentsData);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "IntegrationHub.loadData",
         },
@@ -241,7 +242,7 @@ export default function IntegrationHub() {
       );
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "IntegrationHub.loadIntegrationAgents",
         },
@@ -313,7 +314,7 @@ export default function IntegrationHub() {
       setShowAddModal(false);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "IntegrationHub.createIntegration",
         },
@@ -335,7 +336,7 @@ export default function IntegrationHub() {
       setShowDeleteModal(false);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "IntegrationHub.deleteIntegration",
         },
@@ -375,7 +376,7 @@ export default function IntegrationHub() {
       setShowGrantModal(false);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "IntegrationHub.grantAccess",
         },
@@ -396,7 +397,7 @@ export default function IntegrationHub() {
       await loadData();
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "IntegrationHub.revokeAccess",
         },
@@ -438,7 +439,7 @@ export default function IntegrationHub() {
       window.location.href = data.auth_url;
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         { context: "IntegrationHub.oauthConnect" },
       );
       console.error("Failed to initiate OAuth:", error);
@@ -461,7 +462,7 @@ export default function IntegrationHub() {
       await loadData();
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "IntegrationHub.testConnection",
         },

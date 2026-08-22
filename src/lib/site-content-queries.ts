@@ -1,6 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { getSupabase, supabase } from './supabase';
-import { handleQueryResult } from './errors';
+import { handleQueryResult, SupabaseQueryError } from './errors';
 import { SUPABASE_ERROR_CODES } from './constants';
 import {
   WorkHistoryEntrySchema,
@@ -41,9 +41,13 @@ export async function getSiteContent(key: string, client: SupabaseClient = getSu
     .from('site_content')
     .select('*')
     .eq('key', key)
-    .single();
+    .maybeSingle();
 
-  if (error && error.code !== SUPABASE_ERROR_CODES.NOT_FOUND) throw error;
+  // maybeSingle() returns 200 + null for 0 rows (no HTTP 406 / PGRST116).
+  // Still swallow PGRST116 if a client or proxy surfaces it.
+  if (error && error.code !== SUPABASE_ERROR_CODES.NOT_FOUND) {
+    throw new SupabaseQueryError(error, 'getSiteContent');
+  }
   return data as SiteContent | null;
 }
 

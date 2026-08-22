@@ -20,6 +20,7 @@ import { formatDate } from "@/lib/markdown";
 import { useSEO, useJsonLd } from "@/lib/seo";
 import { analytics } from "@/lib/analytics";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 
 // Display type
 interface DisplayPost {
@@ -99,7 +100,7 @@ const BlogPostPage = () => {
 
         setError("Post not found");
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        captureException(toError(err), {
           context: "BlogPost.fetchPost",
           slug,
         });

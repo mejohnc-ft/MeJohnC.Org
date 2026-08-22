@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 
 /**
  * Data Fetching Hooks
@@ -104,18 +105,15 @@ export function useDataFetching<T>(
         onSuccess?.(result);
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      const normalized = toError(err);
 
       if (isMountedRef.current) {
-        setError(errorMessage);
-        onError?.(err instanceof Error ? err : new Error(errorMessage));
+        setError(normalized.message);
+        onError?.(normalized);
       }
 
       // Log to Sentry
-      captureException(
-        err instanceof Error ? err : new Error(errorMessage),
-        { context: errorContext }
-      );
+      captureException(normalized, { context: errorContext });
     } finally {
       if (isMountedRef.current) {
         setIsLoading(false);
@@ -210,14 +208,11 @@ export function useMutation<TData, TVariables>(
       onSuccess?.(result, variables);
       return result;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
-      setError(errorMessage);
-      onError?.(err instanceof Error ? err : new Error(errorMessage), variables);
+      const normalized = toError(err);
+      setError(normalized.message);
+      onError?.(normalized, variables);
 
-      captureException(
-        err instanceof Error ? err : new Error(errorMessage),
-        { context: errorContext, variables }
-      );
+      captureException(normalized, { context: errorContext, variables });
 
       return undefined;
     } finally {

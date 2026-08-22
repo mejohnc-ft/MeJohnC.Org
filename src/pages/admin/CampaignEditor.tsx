@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import AdminLayout from "@/components/AdminLayout";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import {
   getEmailCampaignById,
   createEmailCampaign,
@@ -79,7 +80,7 @@ const CampaignEditor = () => {
         }
       } catch (error) {
         captureException(
-          error instanceof Error ? error : new Error(String(error)),
+          toError(error),
           {
             context: "CampaignEditor.fetchData",
           },
@@ -124,7 +125,7 @@ const CampaignEditor = () => {
       navigate("/admin/marketing/campaigns");
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "CampaignEditor.handleSubmit",
         },
@@ -144,7 +145,7 @@ const CampaignEditor = () => {
       navigate("/admin/marketing/campaigns");
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "CampaignEditor.handleDelete",
         },
@@ -161,7 +162,7 @@ const CampaignEditor = () => {
       navigate("/admin/marketing/campaigns");
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "CampaignEditor.handleSchedule",
         },
@@ -197,7 +198,7 @@ const CampaignEditor = () => {
       }
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "CampaignEditor.handleSendNow",
         },

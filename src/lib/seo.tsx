@@ -9,6 +9,7 @@ import {
 import { useSupabaseClient } from "./supabase";
 import { getSiteContent } from "./supabase-queries";
 import { captureException } from "./sentry";
+import { toError } from "./errors";
 
 // SEO Settings interface (matches Settings page)
 interface SEOSettings {
@@ -76,7 +77,7 @@ export function SEOProvider({ children }: { children: ReactNode }) {
           }
         } catch (err) {
           captureException(
-            err instanceof Error ? err : new Error(String(err)),
+            toError(err),
             { context: "SEO.loadSettings" },
           );
         }

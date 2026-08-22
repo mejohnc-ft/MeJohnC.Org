@@ -20,6 +20,7 @@ import {
   type NewsSource,
 } from "@/lib/supabase-queries";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import { useReducedMotion } from "@/lib/reduced-motion";
 
 type ContentSource = "all" | "me" | "news";
@@ -91,7 +92,7 @@ export default function ContentTab() {
         setLocalPosts(local);
         setCuratedNews(curated);
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        captureException(toError(err), {
           context: "ContentTab.fetchPosts",
         });
       } finally {

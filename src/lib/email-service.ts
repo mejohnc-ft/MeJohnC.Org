@@ -8,6 +8,7 @@
  */
 
 import { captureException } from "./sentry";
+import { toError } from "./errors";
 import type { EmailBranding } from "./email-templates";
 import {
   renderWelcomeEmail,
@@ -96,7 +97,7 @@ class EmailService {
       }
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "EmailService.send",
           provider: this.provider,
@@ -343,7 +344,7 @@ class EmailService {
       return false;
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "EmailService.verify",
         },

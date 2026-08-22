@@ -34,6 +34,7 @@ import { useAuthenticatedSupabase } from "@/lib/supabase";
 import { useSEO } from "@/lib/seo";
 import { useTheme } from "@/lib/theme";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import {
   getSiteContent,
   upsertSiteContent,
@@ -136,7 +137,7 @@ const HeroTab = () => {
           }
         }
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        captureException(toError(err), {
           context: "Profile.fetchHero",
         });
       } finally {
@@ -160,7 +161,7 @@ const HeroTab = () => {
       );
       setContent(saved);
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "Profile.saveHero",
       });
     } finally {
@@ -261,7 +262,7 @@ const AboutTab = () => {
           setBody(data.content);
         }
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        captureException(toError(err), {
           context: "Profile.fetchAbout",
         });
       } finally {
@@ -281,7 +282,7 @@ const AboutTab = () => {
       );
       setContent(saved);
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "Profile.saveAbout",
       });
     } finally {
@@ -358,7 +359,7 @@ const ContactTab = () => {
         const data = await getContactLinks(supabase);
         setLinks(data);
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        captureException(toError(err), {
           context: "Profile.fetchContacts",
         });
       } finally {
@@ -394,7 +395,7 @@ const ContactTab = () => {
       }
       resetForm();
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "Profile.saveContact",
       });
     }
@@ -417,7 +418,7 @@ const ContactTab = () => {
       await deleteContactLink(id, supabase);
       setLinks(links.filter((l) => l.id !== id));
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "Profile.deleteContact",
       });
     }
@@ -607,7 +608,7 @@ const WorkHistoryTab = () => {
         const data = await getWorkHistory(supabase);
         setEntries(data);
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        captureException(toError(err), {
           context: "Profile.fetchWorkHistory",
         });
       } finally {
@@ -648,7 +649,7 @@ const WorkHistoryTab = () => {
       }
       resetForm();
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "Profile.saveWorkHistory",
       });
       setError(
@@ -675,7 +676,7 @@ const WorkHistoryTab = () => {
       await deleteWorkHistoryEntry(id, supabase);
       setEntries(entries.filter((e) => e.id !== id));
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "Profile.deleteWorkHistory",
       });
       setError(
@@ -907,7 +908,7 @@ const CaseStudiesTab = () => {
         const data = await getCaseStudies(supabase);
         setStudies(data);
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        captureException(toError(err), {
           context: "Profile.fetchCaseStudies",
         });
       } finally {
@@ -943,7 +944,7 @@ const CaseStudiesTab = () => {
       }
       resetForm();
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "Profile.saveCaseStudy",
       });
       setError("Failed to save case study. Make sure you have permission.");
@@ -967,7 +968,7 @@ const CaseStudiesTab = () => {
       await deleteCaseStudy(id, supabase);
       setStudies(studies.filter((s) => s.id !== id));
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "Profile.deleteCaseStudy",
       });
       setError("Failed to delete case study. Make sure you have permission.");
@@ -1436,7 +1437,7 @@ const TimelinesTab = () => {
           setSelectedTimeline(data[0]);
         }
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        captureException(toError(err), {
           context: "Profile.fetchTimelines",
         });
       } finally {
@@ -1454,7 +1455,7 @@ const TimelinesTab = () => {
         const data = await getTimelineEntries(selectedTimeline.id, supabase);
         setEntries(data);
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        captureException(toError(err), {
           context: "Profile.fetchTimelineEntries",
         });
       } finally {
@@ -1512,7 +1513,7 @@ const TimelinesTab = () => {
       }
       resetTimelineForm();
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "Profile.saveTimeline",
       });
       setError("Failed to save timeline. Make sure you have permission.");
@@ -1541,7 +1542,7 @@ const TimelinesTab = () => {
         setSelectedTimeline(remaining[0] || null);
       }
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "Profile.deleteTimeline",
       });
       setError("Failed to delete timeline. Make sure you have permission.");
@@ -1572,7 +1573,7 @@ const TimelinesTab = () => {
       }
       resetEntryForm();
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "Profile.saveEntry",
       });
       setError("Failed to save entry. Make sure you have permission.");
@@ -1597,7 +1598,7 @@ const TimelinesTab = () => {
       await deleteTimelineEntry(id, supabase);
       setEntries(entries.filter((e) => e.id !== id));
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "Profile.deleteEntry",
       });
       setError("Failed to delete entry. Make sure you have permission.");

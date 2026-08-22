@@ -13,6 +13,7 @@ import {
   type AuditLog,
 } from '@/lib/audit';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 import { DEFAULT_AUDIT_LOG_LIMIT, MS_PER_MINUTE, MS_PER_HOUR, MS_PER_DAY, ANIMATION } from '@/lib/constants';
 
 interface AuditLogViewerProps {
@@ -36,7 +37,7 @@ export default function AuditLogViewer({
         const data = await getRecentAuditLogs(limit);
         setLogs(data);
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        captureException(toError(err), {
           context: 'AuditLogViewer.fetchLogs',
         });
       } finally {

@@ -50,6 +50,7 @@ import { useTenant } from "@/lib/tenant";
 import { searchFileSystem } from "@/lib/desktop-queries";
 import { getBlogPosts, getProjects } from "@/lib/supabase-queries";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import type { FileSystemNode } from "@/lib/desktop-schemas";
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -259,7 +260,7 @@ export default function Spotlight({ isOpen, onClose }: SpotlightProps) {
         ]);
         setSelectedIndex(0);
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        captureException(toError(err), {
           context: "Spotlight.search",
         });
       } finally {

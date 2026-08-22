@@ -15,6 +15,7 @@ import { NewsServiceSupabase } from '@/services/news';
 import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 import { type NewsArticleWithSource, type NewsCategory } from '../schemas';
 
 const newsService = new NewsServiceSupabase();
@@ -38,7 +39,7 @@ export default function FeedPage() {
       setArticles(articlesData);
       setCategories(categoriesData);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'FeedPage.fetchData',
       });
     } finally {
@@ -52,7 +53,7 @@ export default function FeedPage() {
       const articlesData = await newsService.getArticles({ client: supabase }, options);
       setArticles(articlesData);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'FeedPage.fetchArticles',
       });
     }
@@ -73,7 +74,7 @@ export default function FeedPage() {
       await newsService.markArticleRead({ client: supabase }, id);
       setArticles((prev) => prev.map((a) => (a.id === id ? { ...a, is_read: true } : a)));
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'FeedPage.handleArticleRead',
       });
     }
@@ -86,7 +87,7 @@ export default function FeedPage() {
         prev.map((a) => (a.id === id ? { ...a, is_bookmarked: !bookmarked } : a))
       );
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'FeedPage.handleArticleBookmark',
       });
     }
@@ -97,7 +98,7 @@ export default function FeedPage() {
       await newsService.curateArticle({ client: supabase }, id, !curated);
       setArticles((prev) => prev.map((a) => (a.id === id ? { ...a, is_curated: !curated } : a)));
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'FeedPage.handleArticleCurate',
       });
     }

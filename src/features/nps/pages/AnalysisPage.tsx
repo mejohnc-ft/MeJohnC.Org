@@ -9,6 +9,7 @@
 import { useEffect, useState } from 'react';
 import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 import { useSEO } from '@/lib/seo';
 import AdminLayout from '@/components/AdminLayout';
 import { NpsServiceSupabase } from '@/services/nps';
@@ -41,7 +42,7 @@ const AnalysisPage = () => {
         setRecentSurveys(surveysResult.data);
         setTrends(trendsData);
       } catch (error) {
-        captureException(error instanceof Error ? error : new Error(String(error)), {
+        captureException(toError(error), {
           context: 'AnalysisPage.fetchAnalysis',
         });
       } finally {

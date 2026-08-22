@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Upload, X, Link as LinkIcon, Loader2, Image } from "lucide-react";
 import { uploadFile } from "@/lib/supabase-queries";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import { Button } from "@/components/ui/button";
 import { useTenant } from "@/lib/tenant";
 
@@ -56,7 +57,7 @@ const ImageUploader = ({
       const url = await uploadFile(file, path, undefined, tenantId);
       onChange(url);
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "ImageUploader.upload",
       });
       setError("Failed to upload image");

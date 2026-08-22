@@ -14,6 +14,7 @@ import {
   type SiteContent,
 } from "@/lib/supabase-queries";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 
 export default function ProjectsTab() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -32,7 +33,7 @@ export default function ProjectsTab() {
         setProjects(projectsData);
         setProjectsContent(contentData);
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        captureException(toError(err), {
           context: "ProjectsTab.fetchProjects",
         });
       } finally {

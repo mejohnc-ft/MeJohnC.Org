@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Sparkles, Copy, Check, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 import { generateContentSuggestions, isAIConfigured, type ContentSuggestion } from '@/lib/ai-service';
 
 interface AIContentSuggestionsProps {
@@ -33,7 +34,7 @@ export function AIContentSuggestions({ contentType, context, onSelect }: AIConte
         setError('AI service not configured. Showing example suggestions.');
       }
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: 'AIContentSuggestions.generateSuggestions',
       });
       setError('Failed to generate suggestions. Please try again.');

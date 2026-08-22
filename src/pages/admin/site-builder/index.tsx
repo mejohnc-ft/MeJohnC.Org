@@ -15,6 +15,7 @@ import {
 } from "@/lib/site-builder-queries";
 import type { SiteBuilderPage } from "@/lib/schemas";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 
 export default function SiteBuilderIndex() {
   useSEO({ title: "Site Builder", noIndex: true });
@@ -37,7 +38,7 @@ export default function SiteBuilderIndex() {
       setPages(data);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "SiteBuilderIndex.loadPages",
         },
@@ -56,7 +57,7 @@ export default function SiteBuilderIndex() {
       setPages(pages.filter((p) => p.id !== id));
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "SiteBuilderIndex.handleDelete",
         },
@@ -77,7 +78,7 @@ export default function SiteBuilderIndex() {
       loadPages();
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "SiteBuilderIndex.handleTogglePublish",
         },

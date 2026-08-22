@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useAuthenticatedSupabase } from "@/lib/supabase";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import { ContactList } from "../components/ContactList";
 import { ContactForm } from "../components/ContactForm";
 import type { Contact } from "../schemas";
@@ -52,7 +53,7 @@ const ContactsPage = () => {
       setContacts(data);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "ContactsPage.loadContacts",
         },
@@ -131,7 +132,7 @@ const ContactsPage = () => {
       loadContacts();
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "ContactsPage.saveContact",
         },
@@ -147,7 +148,7 @@ const ContactsPage = () => {
       loadContacts();
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "ContactsPage.deleteContact",
         },

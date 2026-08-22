@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSupabaseClient } from '@/lib/supabase';
 import { generateSlug } from '@/lib/supabase-queries';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 
 interface UseEditorOptions<T> {
   initialData: T;
@@ -43,7 +44,7 @@ export function useEditor<T extends Record<string, unknown>>({
       setFormData(data);
       setAutoSlug(false);
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: `useEditor.fetch${entityName}`,
       });
       setError(`${entityName} not found`);
@@ -107,7 +108,7 @@ export function useEditor<T extends Record<string, unknown>>({
 
       return true;
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: `useEditor.save${entityName}`,
       });
       setError(`Failed to save ${entityName}. Make sure you have permission.`);

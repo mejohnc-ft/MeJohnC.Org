@@ -18,6 +18,7 @@ import {
 } from '@/lib/supabase-queries';
 import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 
 type ProjectFormData = Omit<Project, 'id' | 'created_at' | 'updated_at'>;
 
@@ -71,7 +72,7 @@ const ProjectEditor = () => {
       });
       setAutoSlug(false);
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'ProjectEditor.fetchProject' });
+      captureException(toError(err), { context: 'ProjectEditor.fetchProject' });
       setError('Project not found');
     } finally {
       setIsLoading(false);
@@ -141,7 +142,7 @@ const ProjectEditor = () => {
         status,
       }));
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'ProjectEditor.saveProject' });
+      captureException(toError(err), { context: 'ProjectEditor.saveProject' });
       setError('Failed to save project. Make sure you have permission.');
     } finally {
       setIsSaving(false);

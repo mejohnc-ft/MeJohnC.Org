@@ -35,6 +35,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuthenticatedSupabase } from "@/lib/supabase";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import {
   getBookmarks,
   getBookmarkStats,
@@ -182,7 +183,7 @@ const AdminBookmarks = () => {
       );
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         {
           context: "AdminBookmarks.loadData",
         },

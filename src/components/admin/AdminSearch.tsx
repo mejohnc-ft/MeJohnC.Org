@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, FileText, Package, FolderOpen, X, Command } from 'lucide-react';
 import { getBlogPosts, getApps, getProjects, type BlogPost, type App, type Project } from '@/lib/supabase-queries';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 
 interface SearchResult {
   id: string;
@@ -108,7 +109,7 @@ export default function AdminSearch() {
       setResults([...blogResults, ...appResults, ...projectResults].slice(0, 10));
       setSelectedIndex(0);
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'AdminSearch.performSearch' });
+      captureException(toError(err), { context: 'AdminSearch.performSearch' });
     } finally {
       setIsLoading(false);
     }

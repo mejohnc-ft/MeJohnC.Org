@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { captureException } from './sentry';
+import { toError } from './errors';
 import { STORAGE_KEYS } from './constants';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -83,7 +84,7 @@ export function PWAProvider({ children }: PWAProviderProps) {
         return true;
       }
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), { context: 'PWA.install' });
+      captureException(toError(error), { context: 'PWA.install' });
     }
 
     return false;

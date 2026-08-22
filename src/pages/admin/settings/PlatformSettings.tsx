@@ -35,6 +35,7 @@ import { getAnalyticsSettings, saveAnalyticsSettings } from "@/lib/analytics";
 import { useSEO, clearSEOCache } from "@/lib/seo";
 import { getSiteContent, upsertSiteContent } from "@/lib/supabase-queries";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import { useI18n } from "@/lib/i18n";
 
 interface SEOSettings {
@@ -207,7 +208,7 @@ const PlatformSettings = () => {
           setSeo({ ...defaultSEO, ...parsed });
         }
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        captureException(toError(err), {
           context: "Settings.loadSEO",
         });
       }
@@ -223,7 +224,7 @@ const PlatformSettings = () => {
           }
         }
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        captureException(toError(err), {
           context: "Settings.loadAnalytics",
         });
       }
@@ -254,7 +255,7 @@ const PlatformSettings = () => {
     } catch (err) {
       setSeoStatus("error");
       setSeoMessage("Failed");
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "Settings.saveSEO",
       });
     }
@@ -361,7 +362,7 @@ const PlatformSettings = () => {
     } catch (err) {
       setGaStatus("error");
       setGaMessage("Failed");
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      captureException(toError(err), {
         context: "Settings.saveAnalytics",
       });
     }

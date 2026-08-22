@@ -10,6 +10,7 @@ import {
   type AppSuite,
 } from '@/lib/supabase-queries';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 
 export default function SoftwareTab() {
   const [apps, setApps] = useState<(App & { suite: AppSuite | null })[]>([]);
@@ -26,7 +27,7 @@ export default function SoftwareTab() {
         setApps(appsData);
         setSuites(suitesData);
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), { context: 'SoftwareTab.fetchApps' });
+        captureException(toError(err), { context: 'SoftwareTab.fetchApps' });
       } finally {
         setIsLoading(false);
       }

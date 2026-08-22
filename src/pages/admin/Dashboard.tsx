@@ -9,6 +9,7 @@ import AuditLogViewer from '@/components/admin/AuditLogViewer';
 import AgentPlatformHealth from '@/components/admin/AgentPlatformHealth';
 import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 
 interface Stats {
   appsCount: number;
@@ -49,7 +50,7 @@ const AdminDashboard = () => {
           draftPostsCount: draftsResult.count ?? 0,
         });
       } catch (error) {
-        captureException(error instanceof Error ? error : new Error(String(error)), { context: 'Dashboard.fetchStats' });
+        captureException(toError(error), { context: 'Dashboard.fetchStats' });
       } finally {
         setIsLoading(false);
       }

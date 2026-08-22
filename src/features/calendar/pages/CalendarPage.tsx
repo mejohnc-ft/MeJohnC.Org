@@ -17,6 +17,7 @@ import {
 import type { CalendarEventSource, CalendarEventColor } from "@/lib/schemas";
 import { useSEO } from "@/lib/seo";
 import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
 import AdminLayout from "@/components/AdminLayout";
 import type { CalendarItem, CalendarView } from "../types";
 import { CalendarHeader } from "../components/CalendarHeader";
@@ -79,7 +80,7 @@ const CalendarPage = () => {
       setCalendarItems(items);
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         { context: "CalendarPage.fetchData" },
       );
     } finally {
@@ -140,7 +141,7 @@ const CalendarPage = () => {
       await fetchData();
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         { context: "CalendarPage.handleDeleteEvent" },
       );
     }
@@ -187,7 +188,7 @@ const CalendarPage = () => {
       await fetchData();
     } catch (error) {
       captureException(
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         { context: "CalendarPage.handleSubmitEvent" },
       );
     } finally {

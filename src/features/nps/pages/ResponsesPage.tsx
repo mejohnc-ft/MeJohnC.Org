@@ -11,6 +11,7 @@ import { useSearchParams } from 'react-router-dom';
 import { X, Loader2, Sparkles, Mail, Phone, ClipboardList } from 'lucide-react';
 import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 import { useSEO } from '@/lib/seo';
 import AdminLayout from '@/components/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -61,7 +62,7 @@ const ResponsesPage = () => {
         setResponses(responsesResult.data);
         setDetractors(detractorsData);
       } catch (error) {
-        captureException(error instanceof Error ? error : new Error(String(error)), {
+        captureException(toError(error), {
           context: 'ResponsesPage.fetchResponses',
         });
       } finally {
@@ -93,7 +94,7 @@ const ResponsesPage = () => {
 
       setFollowUpSuggestions(mappedSuggestions);
     } catch (error) {
-      captureException(error instanceof Error ? error : new Error(String(error)), {
+      captureException(toError(error), {
         context: 'ResponsesPage.handleFollowup',
       });
       // Provide default suggestions on error

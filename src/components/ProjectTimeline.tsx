@@ -6,6 +6,7 @@ import { useKeyboardFocus } from '@/lib/keyboard-focus';
 import { useSupabaseClient } from '@/lib/supabase';
 import { getTimelineWithEntries, type TimelineEntry } from '@/lib/supabase-queries';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 import { useReducedMotion } from '@/lib/reduced-motion';
 import {
   DEFAULT_TIMELINE_SLUG,
@@ -239,7 +240,7 @@ const ProjectTimeline = ({
           }
         }
       } catch (err) {
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        captureException(toError(err), {
           context: 'ProjectTimeline.fetchTimeline',
           slug,
         });

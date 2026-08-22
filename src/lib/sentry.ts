@@ -2,6 +2,7 @@
 // To enable: Set VITE_SENTRY_DSN in your .env file
 
 import * as Sentry from '@sentry/react';
+import { toError } from './errors';
 
 const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
 
@@ -34,16 +35,18 @@ export function initSentry(): void {
 }
 
 export function captureException(
-  error: Error,
+  error: unknown,
   context?: Record<string, unknown>
 ): void {
+  const normalized = toError(error);
+
   // Log to console only in development
   if (import.meta.env.DEV) {
-    console.error('[Error]', error, context);
+    console.error('[Error]', normalized, context);
   }
 
   if (import.meta.env.PROD && SENTRY_DSN) {
-    Sentry.captureException(error, { extra: context });
+    Sentry.captureException(normalized, { extra: context });
   }
 }
 

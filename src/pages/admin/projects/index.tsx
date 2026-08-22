@@ -10,6 +10,7 @@ import { getProjects, deleteProject, bulkDeleteProjects, bulkUpdateProjectStatus
 import { formatDate } from '@/lib/markdown';
 import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 
 const AdminProjectsList = () => {
   useSEO({ title: 'Manage Projects', noIndex: true });
@@ -31,7 +32,7 @@ const AdminProjectsList = () => {
       const data = await getProjects(true, supabase);
       setProjects(data);
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'AdminProjects.fetchProjects' });
+      captureException(toError(err), { context: 'AdminProjects.fetchProjects' });
     } finally {
       setIsLoading(false);
     }
@@ -49,7 +50,7 @@ const AdminProjectsList = () => {
       await deleteProject(id, supabase);
       setProjects(projects.filter((p) => p.id !== id));
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'AdminProjects.deleteProject' });
+      captureException(toError(err), { context: 'AdminProjects.deleteProject' });
     } finally {
       setDeletingId(null);
     }
@@ -83,7 +84,7 @@ const AdminProjectsList = () => {
       setProjects(projects.filter((p) => !selectedIds.has(p.id)));
       setSelectedIds(new Set());
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'AdminProjects.bulkDelete' });
+      captureException(toError(err), { context: 'AdminProjects.bulkDelete' });
     } finally {
       setIsBulkProcessing(false);
     }
@@ -98,7 +99,7 @@ const AdminProjectsList = () => {
       ));
       setSelectedIds(new Set());
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'AdminProjects.bulkPublish' });
+      captureException(toError(err), { context: 'AdminProjects.bulkPublish' });
     } finally {
       setIsBulkProcessing(false);
     }
@@ -113,7 +114,7 @@ const AdminProjectsList = () => {
       ));
       setSelectedIds(new Set());
     } catch (err) {
-      captureException(err instanceof Error ? err : new Error(String(err)), { context: 'AdminProjects.bulkUnpublish' });
+      captureException(toError(err), { context: 'AdminProjects.bulkUnpublish' });
     } finally {
       setIsBulkProcessing(false);
     }

@@ -12,6 +12,7 @@ import { Plus, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 import { useSEO } from '@/lib/seo';
 import AdminLayout from '@/components/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -35,7 +36,7 @@ const SurveysPage = () => {
         const result = await service.getSurveys({ client: supabase });
         setSurveys(result.data);
       } catch (error) {
-        captureException(error instanceof Error ? error : new Error(String(error)), {
+        captureException(toError(error), {
           context: 'SurveysPage.fetchSurveys',
         });
       } finally {

@@ -23,6 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuthenticatedSupabase } from '@/lib/supabase';
 import { useSEO } from '@/lib/seo';
 import { captureException } from '@/lib/sentry';
+import { toError } from '@/lib/errors';
 import {
   getScheduledWorkflows,
   getSchedulerHealth,
@@ -251,7 +252,7 @@ export default function Scheduler() {
       const message = err instanceof Error ? err.message : 'Failed to load scheduler data';
       setError(message);
       captureException(
-        err instanceof Error ? err : new Error(String(err)),
+        toError(err),
         { context: 'Scheduler.loadData' }
       );
     } finally {
@@ -268,7 +269,7 @@ export default function Scheduler() {
       setRunHistory(runs);
     } catch (err) {
       captureException(
-        err instanceof Error ? err : new Error(String(err)),
+        toError(err),
         { context: 'Scheduler.loadRunHistory', workflowId }
       );
     } finally {
@@ -299,7 +300,7 @@ export default function Scheduler() {
       setHealth(healthData);
     } catch (err) {
       captureException(
-        err instanceof Error ? err : new Error(String(err)),
+        toError(err),
         { context: 'Scheduler.handleToggleActive', workflowId: workflow.id }
       );
       setError(err instanceof Error ? err.message : 'Failed to update workflow status');
@@ -324,7 +325,7 @@ export default function Scheduler() {
       setError(null);
     } catch (err) {
       captureException(
-        err instanceof Error ? err : new Error(String(err)),
+        toError(err),
         { context: 'Scheduler.handleRunNow', workflowId: workflow.id }
       );
       setError(err instanceof Error ? err.message : 'Failed to trigger workflow');

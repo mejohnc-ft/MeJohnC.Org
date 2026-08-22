@@ -6,6 +6,7 @@ import {
   formatErrorForLogging,
   handleSupabaseError,
   handleQueryResult,
+  toError,
 } from './errors';
 import { SUPABASE_ERROR_CODES } from './constants';
 
@@ -197,6 +198,54 @@ describe('Error Utilities', () => {
       expect(() => {
         handleQueryResult(null, error, { operation: 'test', fallback: null });
       }).toThrow(SupabaseQueryError);
+    });
+  });
+
+  describe('toError', () => {
+    it('returns the same Error instance', () => {
+      const original = new Error('already an error');
+      expect(toError(original)).toBe(original);
+    });
+
+    it('serializes Postgrest-shaped objects with message, code, details, and hint', () => {
+      const result = toError({
+        message: 'JWT expired',
+        code: 'PGRST301',
+        details: 'The JWT expired',
+        hint: 'Sign in again',
+        status: 401,
+      });
+
+      expect(result).toBeInstanceOf(Error);
+      expect(result.message).toContain('JWT expired');
+      expect(result.message).toContain('PGRST301');
+      expect(result.message).toContain('The JWT expired');
+      expect(result.message).toContain('Sign in again');
+      expect(result.message).toContain('401');
+      expect(result.message).not.toContain('[object Object]');
+    });
+
+    it('JSON.stringifies nested objects that have no Postgrest fields', () => {
+      const result = toError({ nested: { a: 1, b: 'two' } });
+      expect(result.message).toBe(JSON.stringify({ nested: { a: 1, b: 'two' } }));
+      expect(result.message).not.toContain('[object Object]');
+    });
+
+    it('handles null and undefined', () => {
+      expect(toError(null).message).toBe('null');
+      expect(toError(undefined).message).toBe('undefined');
+    });
+
+    it('handles strings and numbers', () => {
+      expect(toError('Failed to fetch').message).toBe('Failed to fetch');
+      expect(toError(406).message).toBe('406');
+    });
+
+    it('does not use String(object) for a plain object', () => {
+      expect(String({ message: 'JWT expired', code: 'PGRST301' })).toBe('[object Object]');
+      expect(toError({ message: 'JWT expired', code: 'PGRST301' }).message).not.toBe(
+        '[object Object]'
+      );
     });
   });
 });
