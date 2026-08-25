@@ -1,28 +1,14 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   LOOP_STAGE_LABELS,
   orderProductBriefs,
   portfolioThesis,
   type LoopStage,
+  type ProductOrderEntry,
   type ProductBrief,
 } from "@/data/ai-products";
-import type { TimelineItem } from "@/data/timeline-tracks";
 import { useReducedMotion } from "@/lib/reduced-motion";
-import { useTheme } from "@/lib/theme";
-
-const themes = {
-  warm: { primary: "hsl(25, 95%, 53%)", glow: "hsla(25, 95%, 53%, 0.15)" },
-  crisp: { primary: "hsl(177, 94%, 21%)", glow: "hsla(177, 94%, 21%, 0.15)" },
-  "solarized-dark": {
-    primary: "hsl(175, 59%, 40%)",
-    glow: "hsla(175, 59%, 40%, 0.15)",
-  },
-  "solarized-light": {
-    primary: "hsl(175, 59%, 40%)",
-    glow: "hsla(175, 59%, 40%, 0.15)",
-  },
-};
 
 const LOOP_ORDER: LoopStage[] = [
   "sense",
@@ -33,31 +19,44 @@ const LOOP_ORDER: LoopStage[] = [
 ];
 
 interface AiProductsPanelProps {
-  entries?: TimelineItem[];
+  entries?: ProductOrderEntry[];
 }
 
 export default function AiProductsPanel({ entries }: AiProductsPanelProps) {
-  const { theme: currentTheme } = useTheme();
-  const theme = themes[currentTheme];
   const prefersReducedMotion = useReducedMotion();
   const briefs = useMemo(() => orderProductBriefs(entries), [entries]);
   const [selectedId, setSelectedId] = useState(briefs[0]?.id ?? "");
+  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const selected = briefs.find((brief) => brief.id === selectedId) ?? briefs[0];
 
   const duration = prefersReducedMotion ? 0 : 0.35;
 
   return (
-    <div className="space-y-10">
-      <ThesisCard theme={theme} duration={duration} />
+    <section aria-label="Enterprise AI product catalog" className="space-y-8">
+      <ol
+        aria-label="The operating loop each product plays a part in"
+        className="grid gap-x-6 gap-y-3 border-y border-border py-5 sm:grid-cols-2 md:grid-cols-5"
+      >
+        {portfolioThesis.loop.map((step) => (
+          <li key={step.stage}>
+            <span className="font-mono text-xs uppercase tracking-wider text-primary">
+              {LOOP_STAGE_LABELS[step.stage]}
+            </span>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              {step.detail}
+            </p>
+          </li>
+        ))}
+      </ol>
 
       <div>
         <div className="flex items-end justify-between gap-4 mb-4">
           <div>
             <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
-              Categories
+              The portfolio
             </span>
             <p className="text-sm text-muted-foreground mt-1">
-              Product categories I've shipped in.
+              One brief per product, each labeled with its maturity.
             </p>
           </div>
         </div>
@@ -78,6 +77,9 @@ export default function AiProductsPanel({ entries }: AiProductsPanelProps) {
                 aria-selected={selectedBrief}
                 aria-controls={`product-panel-${brief.id}`}
                 tabIndex={selectedBrief ? 0 : -1}
+                ref={(element) => {
+                  tabRefs.current[brief.id] = element;
+                }}
                 onClick={() => setSelectedId(brief.id)}
                 onKeyDown={(event) => {
                   if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") {
@@ -91,7 +93,7 @@ export default function AiProductsPanel({ entries }: AiProductsPanelProps) {
                   const next =
                     briefs[(index + delta + briefs.length) % briefs.length];
                   setSelectedId(next.id);
-                  document.getElementById(`product-tab-${next.id}`)?.focus();
+                  tabRefs.current[next.id]?.focus();
                 }}
                 className={`font-mono text-xs uppercase tracking-wider px-3 py-2 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                   selectedBrief
@@ -123,107 +125,27 @@ export default function AiProductsPanel({ entries }: AiProductsPanelProps) {
               }
               transition={{ duration, ease: [0.25, 0.46, 0.45, 0.94] }}
             >
-              <ProductBriefCard brief={selected} theme={theme} />
+              <ProductBriefCard brief={selected} />
             </motion.div>
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </section>
   );
 }
 
-function ThesisCard({
-  theme,
-  duration,
-}: {
-  theme: { primary: string; glow: string };
-  duration: number;
-}) {
-  const thesis = portfolioThesis;
-
+function ProductBriefCard({ brief }: { brief: ProductBrief }) {
   return (
-    <motion.section
-      aria-labelledby="ai-products-thesis"
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="p-6 md:p-8 rounded-xl border bg-card/50 backdrop-blur-sm"
-      style={{
-        borderColor: theme.primary,
-        boxShadow: `0 0 24px ${theme.glow}`,
-      }}
-    >
-      <span className="font-mono text-xs text-primary uppercase tracking-widest">
-        What I build
-      </span>
-      <h3
-        id="ai-products-thesis"
-        className="text-2xl md:text-3xl font-black text-foreground mt-2 mb-4"
-      >
-        {thesis.title}
-      </h3>
-      <p className="text-muted-foreground leading-relaxed mb-6 max-w-3xl">
-        {thesis.lead}
-      </p>
-
-      <ul className="flex flex-wrap gap-2 mb-8">
-        {thesis.tags.map((tag) => (
-          <li
-            key={tag}
-            className="font-mono text-xs px-2.5 py-1 rounded-full border border-border text-foreground"
-          >
-            {tag}
-          </li>
-        ))}
-      </ul>
-
-      <div className="mb-8">
-        <h4 className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-3">
-          Operating loop
-        </h4>
-        <ol className="grid gap-3 md:grid-cols-5">
-          {thesis.loop.map((step, index) => (
-            <li
-              key={step.stage}
-              className="rounded-lg border border-border p-3 bg-background/40"
-            >
-              <div
-                className="font-mono text-xs font-semibold mb-2"
-                style={{ color: theme.primary }}
-              >
-                {index + 1}. {LOOP_STAGE_LABELS[step.stage]}
-              </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {step.detail}
-              </p>
-            </li>
-          ))}
-        </ol>
+    <article className="p-6 md:p-8 rounded-xl border border-border bg-card/50 backdrop-blur-sm">
+      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <h3 className="text-2xl font-black text-foreground">{brief.name}</h3>
+        <span className="w-fit rounded-full border border-border px-2.5 py-1 font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
+          {brief.status}
+        </span>
       </div>
-
-      <p className="text-foreground leading-relaxed mb-3">
-        {thesis.honestClaim}
+      <p className="mb-3 font-mono text-xs uppercase tracking-wider text-primary">
+        My role · {brief.role}
       </p>
-      <p className="text-sm text-muted-foreground leading-relaxed">
-        {thesis.agentAuthority}
-      </p>
-    </motion.section>
-  );
-}
-
-function ProductBriefCard({
-  brief,
-  theme,
-}: {
-  brief: ProductBrief;
-  theme: { primary: string; glow: string };
-}) {
-  return (
-    <article
-      className="p-6 md:p-8 rounded-xl border bg-card/50 backdrop-blur-sm"
-      style={{ borderColor: "hsl(var(--border))" }}
-    >
-      <h3 className="text-2xl font-black text-foreground mb-3">{brief.name}</h3>
       <p className="text-muted-foreground leading-relaxed mb-4">
         {brief.tagline}
       </p>
@@ -239,10 +161,10 @@ function ProductBriefCard({
         ))}
       </ul>
 
-      <LoopMarker stages={brief.loopStages} primary={theme.primary} />
+      <LoopMarker stages={brief.loopStages} />
 
       <p className="text-sm text-foreground leading-relaxed my-6">
-        <span className="font-semibold">What I shipped. </span>
+        <span className="font-semibold">Evidence. </span>
         {brief.shipped}
       </p>
 
@@ -275,13 +197,7 @@ function ProductBriefCard({
   );
 }
 
-function LoopMarker({
-  stages,
-  primary,
-}: {
-  stages: LoopStage[];
-  primary: string;
-}) {
+function LoopMarker({ stages }: { stages: LoopStage[] }) {
   return (
     <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
       Loop{" "}
@@ -289,10 +205,7 @@ function LoopMarker({
         const active = stages.includes(stage);
         return (
           <span key={stage}>
-            <span
-              style={{ color: active ? primary : undefined }}
-              className={active ? "font-semibold" : ""}
-            >
+            <span className={active ? "font-semibold text-primary" : ""}>
               {LOOP_STAGE_LABELS[stage]}
             </span>
             {index < LOOP_ORDER.length - 1 ? " → " : ""}

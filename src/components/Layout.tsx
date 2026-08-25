@@ -1,21 +1,40 @@
-import { ReactNode, useRef, useState, useEffect, useCallback } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Settings } from 'lucide-react';
-import GeometricBackground from './GeometricBackground';
-import { ThemeToggleMinimal } from './ThemeToggle';
-import { LeftArrowHint, RightArrowHint } from './ArrowHints';
-import { useKeyboardFocus } from '@/lib/keyboard-focus';
+import { ReactNode, useRef, useState, useEffect, useCallback } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { Settings } from "lucide-react";
+import GeometricBackground from "./GeometricBackground";
+import { ThemeToggleMinimal } from "./ThemeToggle";
+import { LeftArrowHint, RightArrowHint } from "./ArrowHints";
+import { useKeyboardFocus } from "@/lib/keyboard-focus";
 
 interface LayoutProps {
   children: ReactNode;
 }
 
 const navItems = [
-  { label: 'Home', path: '/' },
-  { label: 'Portfolio', path: '/portfolio' },
-  { label: 'Collab', path: '/about' },
+  { label: "Home", path: "/" },
+  { label: "Work", path: "/work" },
+  { label: "About", path: "/about" },
 ];
+
+const workPaths = [
+  "/work",
+  "/portfolio",
+  "/products",
+  "/projects",
+  "/speaking",
+] as const;
+
+function isWorkPath(pathname: string): boolean {
+  return workPaths.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  );
+}
+
+function isNavItemActive(pathname: string, itemPath: string): boolean {
+  if (itemPath === "/work") return isWorkPath(pathname);
+  return pathname === itemPath;
+}
 
 // Secret portal codes
 const PORTAL_CODES = [106, 119, 99]; // jwc
@@ -41,66 +60,71 @@ const Layout = ({ children }: LayoutProps) => {
     clicks: 0,
     lastClick: 0,
     listening: false,
-    buffer: '',
+    buffer: "",
   });
 
   // Get current nav index based on location
   const getCurrentNavIndex = useCallback(() => {
-    const index = navItems.findIndex(item =>
-      location.pathname === item.path ||
-      (item.path === '/portfolio' && location.pathname.startsWith('/portfolio'))
+    const index = navItems.findIndex((item) =>
+      isNavItemActive(location.pathname, item.path),
     );
     return index >= 0 ? index : 0;
   }, [location.pathname]);
 
   // Navigate to adjacent page
-  const navigateToPage = useCallback((direction: 'next' | 'prev') => {
-    const currentIndex = getCurrentNavIndex();
-    let newIndex: number;
-    if (direction === 'next') {
-      newIndex = (currentIndex + 1) % navItems.length;
-    } else {
-      newIndex = (currentIndex - 1 + navItems.length) % navItems.length;
-    }
-    navigate(navItems[newIndex].path);
-  }, [getCurrentNavIndex, navigate]);
+  const navigateToPage = useCallback(
+    (direction: "next" | "prev") => {
+      const currentIndex = getCurrentNavIndex();
+      let newIndex: number;
+      if (direction === "next") {
+        newIndex = (currentIndex + 1) % navItems.length;
+      } else {
+        newIndex = (currentIndex - 1 + navItems.length) % navItems.length;
+      }
+      navigate(navItems[newIndex].path);
+    },
+    [getCurrentNavIndex, navigate],
+  );
 
   // Keyboard navigation for navbar (only when focused on nav)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
         return;
       }
 
       // Only handle left/right for page navigation when focused on nav
-      if (focusLevel === 'nav') {
-        if (e.key === 'ArrowRight') {
+      if (focusLevel === "nav") {
+        if (e.key === "ArrowRight") {
           e.preventDefault();
-          navigateToPage('next');
-        } else if (e.key === 'ArrowLeft') {
+          navigateToPage("next");
+        } else if (e.key === "ArrowLeft") {
           e.preventDefault();
-          navigateToPage('prev');
-        } else if (e.key === 'ArrowDown') {
+          navigateToPage("prev");
+        } else if (e.key === "ArrowDown") {
           // Arrow down from nav enters page content
           e.preventDefault();
           // On About/Collab page, focus contact cards
-          if (location.pathname === '/about') {
-            setFocusLevel('contactCards');
-          } else if (location.pathname === '/portfolio') {
-            setFocusLevel('tabs');
+          if (location.pathname === "/about") {
+            setFocusLevel("contactCards");
+          } else if (isWorkPath(location.pathname)) {
+            setFocusLevel("tabs");
           }
         }
       }
 
       // Arrow up from any sub-level returns to nav
-      if (focusLevel !== 'nav' && e.key === 'ArrowUp') {
+      if (focusLevel !== "nav" && e.key === "ArrowUp") {
         // Let the specific component handle it first if it wants to
         // This is a fallback - components can prevent this by stopping propagation
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [navigateToPage, focusLevel, location.pathname, setFocusLevel]);
 
   const handleLogoClick = (e: React.MouseEvent) => {
@@ -120,7 +144,7 @@ const Layout = ({ children }: LayoutProps) => {
 
     if (portal.clicks >= 3 && !portal.listening) {
       portal.listening = true;
-      portal.buffer = '';
+      portal.buffer = "";
       setPortalActive(true);
 
       const keyHandler = (ke: KeyboardEvent) => {
@@ -147,21 +171,21 @@ const Layout = ({ children }: LayoutProps) => {
             portal.listening = false;
             portal.clicks = 0;
             setPortalActive(false);
-            window.removeEventListener('keydown', keyHandler);
+            window.removeEventListener("keydown", keyHandler);
             setShowSettings(true);
           }
         }
       };
 
-      window.addEventListener('keydown', keyHandler);
+      window.addEventListener("keydown", keyHandler);
 
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => {
         portal.listening = false;
         portal.clicks = 0;
-        portal.buffer = '';
+        portal.buffer = "";
         setPortalActive(false);
-        window.removeEventListener('keydown', keyHandler);
+        window.removeEventListener("keydown", keyHandler);
       }, 5000);
     }
   };
@@ -193,8 +217,8 @@ const Layout = ({ children }: LayoutProps) => {
             onClick={handleLogoClick}
             className={`font-mono text-lg transition-colors select-none ${
               portalActive
-                ? 'text-primary animate-pulse'
-                : 'text-foreground hover:text-primary'
+                ? "text-primary animate-pulse"
+                : "text-foreground hover:text-primary"
             }`}
           >
             <motion.span
@@ -209,37 +233,36 @@ const Layout = ({ children }: LayoutProps) => {
           <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-4">
             <LeftArrowHint />
             <div className="flex items-center gap-8">
-            {navItems.map((item) => {
-              const isActive = location.pathname === item.path ||
-                (item.path === '/portfolio' && location.pathname.startsWith('/portfolio'));
-              const isGlowing = isActive && focusLevel === 'nav';
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setFocusLevel('nav')}
-                  className="relative"
-                  aria-current={isActive ? 'page' : undefined}
-                >
-                  <motion.span
-                    className={`text-sm font-mono uppercase tracking-wider transition-all ${
-                      isActive
-                        ? 'text-primary'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                    style={{
-                      textShadow: isGlowing
-                        ? '0 0 8px hsl(var(--primary)), 0 0 16px hsl(var(--primary))'
-                        : 'none',
-                    }}
-                    whileHover={{ y: -2 }}
-                    whileTap={{ y: 0 }}
+              {navItems.map((item) => {
+                const isActive = isNavItemActive(location.pathname, item.path);
+                const isGlowing = isActive && focusLevel === "nav";
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setFocusLevel("nav")}
+                    className="relative"
+                    aria-current={isActive ? "page" : undefined}
                   >
-                    {item.label}
-                  </motion.span>
-                </Link>
-              );
-            })}
+                    <motion.span
+                      className={`text-sm font-mono uppercase tracking-wider transition-all ${
+                        isActive
+                          ? "text-primary"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                      style={{
+                        textShadow: isGlowing
+                          ? "0 0 8px hsl(var(--primary)), 0 0 16px hsl(var(--primary))"
+                          : "none",
+                      }}
+                      whileHover={{ y: -2 }}
+                      whileTap={{ y: 0 }}
+                    >
+                      {item.label}
+                    </motion.span>
+                  </Link>
+                );
+              })}
             </div>
             <RightArrowHint />
           </div>
@@ -253,7 +276,7 @@ const Layout = ({ children }: LayoutProps) => {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ duration: 0.5, ease: 'easeOut' }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
                 >
                   <Link to="/admin/login">
                     <motion.div
@@ -272,7 +295,10 @@ const Layout = ({ children }: LayoutProps) => {
       </motion.nav>
 
       {/* Main content */}
-      <main id="main-content" className="relative z-10 pt-16 flex-1 overflow-y-auto">
+      <main
+        id="main-content"
+        className="relative z-10 pt-16 flex-1 overflow-y-auto"
+      >
         {children}
       </main>
     </div>

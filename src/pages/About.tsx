@@ -1,12 +1,24 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { Mail, Linkedin, Github, Calendar, Twitter, ArrowUpRight, Edit2, Loader2, Save, X, type LucideIcon } from 'lucide-react';
-import { ContentSkeleton } from '@/components/Skeleton';
-import { Button } from '@/components/ui/button';
-import PageTransition, { fadeInUp } from '@/components/PageTransition';
-import { useAuth, SignedIn } from '@/lib/auth';
-import { useSupabaseClient } from '@/lib/supabase';
-import { useKeyboardFocus } from '@/lib/keyboard-focus';
+import { useState, useEffect, useRef, useCallback } from "react";
+import { motion } from "framer-motion";
+import {
+  Mail,
+  Linkedin,
+  Github,
+  Calendar,
+  Twitter,
+  ArrowUpRight,
+  Edit2,
+  Loader2,
+  Save,
+  X,
+  type LucideIcon,
+} from "lucide-react";
+import { ContentSkeleton } from "@/components/Skeleton";
+import { Button } from "@/components/ui/button";
+import PageTransition, { fadeInUp } from "@/components/PageTransition";
+import { useAuth, SignedIn } from "@/lib/auth";
+import { useSupabaseClient } from "@/lib/supabase";
+import { useKeyboardFocus } from "@/lib/keyboard-focus";
 import {
   getSiteContent,
   upsertSiteContent,
@@ -14,12 +26,18 @@ import {
   type SiteContent,
   type ContactLink,
   type ContactIcon,
-} from '@/lib/supabase-queries';
-import { renderMarkdown } from '@/lib/markdown';
-import { useSEO, useJsonLd, personSchema, aboutFaqSchema, RECRUITING_KEYWORDS } from '@/lib/seo';
-import { captureException } from '@/lib/sentry';
-import { toError } from '@/lib/errors';
-import DOMPurify from 'dompurify';
+} from "@/lib/supabase-queries";
+import { renderMarkdown } from "@/lib/markdown";
+import {
+  useSEO,
+  useJsonLd,
+  personSchema,
+  aboutFaqSchema,
+  RECRUITING_KEYWORDS,
+} from "@/lib/seo";
+import { captureException } from "@/lib/sentry";
+import { toError } from "@/lib/errors";
+import DOMPurify from "dompurify";
 
 // Icon mapping for contact links
 const iconComponents: Record<ContactIcon, LucideIcon> = {
@@ -35,31 +53,31 @@ const defaultContactLinks = [
   {
     label: "Email",
     href: "mailto:mejohnwc@gmail.com",
-    icon: 'email' as ContactIcon,
+    icon: "email" as ContactIcon,
     value: "mejohnwc@gmail.com",
-    description: "Best way to reach me"
+    description: "Best way to reach me",
   },
   {
     label: "LinkedIn",
     href: "https://www.linkedin.com/in/mejohnc/",
-    icon: 'linkedin' as ContactIcon,
+    icon: "linkedin" as ContactIcon,
     value: "/in/mejohnc",
-    description: "Let's connect"
+    description: "Let's connect",
   },
   {
     label: "GitHub",
     href: "https://github.com/mejohnc-ft",
-    icon: 'github' as ContactIcon,
+    icon: "github" as ContactIcon,
     value: "@mejohnc-ft",
-    description: "See my code"
+    description: "See my code",
   },
   {
     label: "Calendar",
     href: "https://calendly.com/jonathan-christensen",
-    icon: 'calendar' as ContactIcon,
+    icon: "calendar" as ContactIcon,
     value: "Book a call",
-    description: "Schedule time to chat"
-  }
+    description: "Schedule time to chat",
+  },
 ];
 
 const About = () => {
@@ -68,10 +86,11 @@ const About = () => {
   const { focusLevel, setFocusLevel } = useKeyboardFocus();
 
   useSEO({
-    title: 'About',
-    description: 'AI Automation Engineer in San Diego obsessed with making governed agents actually useful. Building agentic systems and AI-powered workflows for lab and production IT.',
-    url: '/about',
-    type: 'profile',
+    title: "About",
+    description:
+      "About Jonathan Christensen, an AI Automation Engineer who works forward-deployed across service and client teams to turn operational constraints into governed systems.",
+    url: "/about",
+    type: "profile",
     keywords: RECRUITING_KEYWORDS,
   });
 
@@ -81,27 +100,30 @@ const About = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [editTitle, setEditTitle] = useState('');
-  const [editContent, setEditContent] = useState('');
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
 
   // Contact links state
-  const [contactLinks, setContactLinks] = useState<(ContactLink | typeof defaultContactLinks[0])[]>(defaultContactLinks);
+  const [contactLinks, setContactLinks] =
+    useState<(ContactLink | (typeof defaultContactLinks)[0])[]>(
+      defaultContactLinks,
+    );
   const [contactFocusedIndex, setContactFocusedIndex] = useState(-1);
   const contactLinksRef = useRef<(HTMLAnchorElement | null)[]>([]);
 
   // Default content if nothing in Supabase
-  const defaultTitle = "I build systems that work.";
-  const defaultContent = `AI Automation Engineer obsessed with making AI agents actually useful. Not the "slap an LLM on it" kind of useful—the kind where you measure token costs, benchmark latency, and ship workflows that survive production.
+  const defaultTitle = "I work where operations meet the system.";
+  const defaultContent = `I started close to the work—field support, provisioning, and service operations—then rebuilt the operating model for my own function. I now apply that method across service and client teams in a forward-deployed capacity.
 
-Currently focused on **agentic systems**, **agent management planes**, and the infrastructure that makes autonomous AI reliable. I care about evals, cost tracking, and knowing when an agent is actually doing its job.
+My work combines **AI and automation**, **service design**, **UX/UI/DX**, governance, and product strategy. The goal is not another isolated tool. It is a system people can trust, adopt, measure, and reuse.
 
-Background in enterprise IT—Azure, Intune, M365 at scale. Now applying that systems thinking to AI workflows.`;
+I set direction, contribute hands-on, and orchestrate delivery with the operators, engineers, and leaders responsible for the outcome.`;
 
   useEffect(() => {
     async function fetchData() {
       try {
         const [aboutData, linksData] = await Promise.all([
-          getSiteContent('about', supabase),
+          getSiteContent("about", supabase),
           getContactLinks(supabase).catch(() => []),
         ]);
 
@@ -115,99 +137,109 @@ Background in enterprise IT—Azure, Intune, M365 at scale. Now applying that sy
           setContactLinks(linksData);
         }
       } catch (err) {
-        captureException(toError(err), { context: 'About.fetchData' });
+        captureException(toError(err), { context: "About.fetchData" });
       } finally {
         setIsLoading(false);
       }
     }
     fetchData();
-     
   }, [supabase]);
 
   // Keyboard navigation for contact cards
-  const handleContactKeyDown = useCallback((e: KeyboardEvent) => {
-    // Only handle if we're focused on contact cards
-    if (focusLevel !== 'contactCards') return;
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-
-    const cols = 2;
-    const total = contactLinks.length;
-
-    // If no card is focused yet
-    if (contactFocusedIndex === -1) {
-      if (e.key === 'ArrowUp') {
-        // Go back to nav
-        e.preventDefault();
-        setFocusLevel('nav');
+  const handleContactKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      // Only handle if we're focused on contact cards
+      if (focusLevel !== "contactCards") return;
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      )
         return;
-      }
-      if (['ArrowRight', 'ArrowLeft', 'ArrowDown'].includes(e.key)) {
-        // Focus the first card
-        e.preventDefault();
-        setContactFocusedIndex(0);
-        contactLinksRef.current[0]?.focus();
-        return;
-      }
-    }
 
-    switch (e.key) {
-      case 'ArrowRight': {
-        e.preventDefault();
-        const nextRight = (contactFocusedIndex + 1) % total;
-        setContactFocusedIndex(nextRight);
-        contactLinksRef.current[nextRight]?.focus();
-        break;
+      const cols = 2;
+      const total = contactLinks.length;
+
+      // If no card is focused yet
+      if (contactFocusedIndex === -1) {
+        if (e.key === "ArrowUp") {
+          // Go back to nav
+          e.preventDefault();
+          setFocusLevel("nav");
+          return;
+        }
+        if (["ArrowRight", "ArrowLeft", "ArrowDown"].includes(e.key)) {
+          // Focus the first card
+          e.preventDefault();
+          setContactFocusedIndex(0);
+          contactLinksRef.current[0]?.focus();
+          return;
+        }
       }
-      case 'ArrowLeft': {
-        e.preventDefault();
-        const nextLeft = (contactFocusedIndex - 1 + total) % total;
-        setContactFocusedIndex(nextLeft);
-        contactLinksRef.current[nextLeft]?.focus();
-        break;
-      }
-      case 'ArrowDown': {
-        e.preventDefault();
-        const nextDown = Math.min(contactFocusedIndex + cols, total - 1);
-        setContactFocusedIndex(nextDown);
-        contactLinksRef.current[nextDown]?.focus();
-        break;
-      }
-      case 'ArrowUp': {
-        e.preventDefault();
-        if (contactFocusedIndex < cols) {
+
+      switch (e.key) {
+        case "ArrowRight": {
+          e.preventDefault();
+          const nextRight = (contactFocusedIndex + 1) % total;
+          setContactFocusedIndex(nextRight);
+          contactLinksRef.current[nextRight]?.focus();
+          break;
+        }
+        case "ArrowLeft": {
+          e.preventDefault();
+          const nextLeft = (contactFocusedIndex - 1 + total) % total;
+          setContactFocusedIndex(nextLeft);
+          contactLinksRef.current[nextLeft]?.focus();
+          break;
+        }
+        case "ArrowDown": {
+          e.preventDefault();
+          const nextDown = Math.min(contactFocusedIndex + cols, total - 1);
+          setContactFocusedIndex(nextDown);
+          contactLinksRef.current[nextDown]?.focus();
+          break;
+        }
+        case "ArrowUp": {
+          e.preventDefault();
+          if (contactFocusedIndex < cols) {
+            setContactFocusedIndex(-1);
+            setFocusLevel("nav");
+          } else {
+            const nextUp = Math.max(contactFocusedIndex - cols, 0);
+            setContactFocusedIndex(nextUp);
+            contactLinksRef.current[nextUp]?.focus();
+          }
+          break;
+        }
+        case "Enter":
+        case " ":
+          e.preventDefault();
+          if (contactFocusedIndex >= 0) {
+            window.open(
+              contactLinks[contactFocusedIndex]?.href,
+              contactLinks[contactFocusedIndex]?.href.startsWith("mailto")
+                ? "_self"
+                : "_blank",
+            );
+          }
+          break;
+        case "Escape":
+          e.preventDefault();
           setContactFocusedIndex(-1);
-          setFocusLevel('nav');
-        } else {
-          const nextUp = Math.max(contactFocusedIndex - cols, 0);
-          setContactFocusedIndex(nextUp);
-          contactLinksRef.current[nextUp]?.focus();
-        }
-        break;
+          setFocusLevel("nav");
+          break;
       }
-      case 'Enter':
-      case ' ':
-        e.preventDefault();
-        if (contactFocusedIndex >= 0) {
-          window.open(contactLinks[contactFocusedIndex]?.href,
-            contactLinks[contactFocusedIndex]?.href.startsWith('mailto') ? '_self' : '_blank');
-        }
-        break;
-      case 'Escape':
-        e.preventDefault();
-        setContactFocusedIndex(-1);
-        setFocusLevel('nav');
-        break;
-    }
-  }, [focusLevel, contactFocusedIndex, contactLinks, setFocusLevel]);
+    },
+    [focusLevel, contactFocusedIndex, contactLinks, setFocusLevel],
+  );
 
   useEffect(() => {
-    window.addEventListener('keydown', handleContactKeyDown);
-    return () => window.removeEventListener('keydown', handleContactKeyDown);
+    window.addEventListener("keydown", handleContactKeyDown);
+    return () => window.removeEventListener("keydown", handleContactKeyDown);
   }, [handleContactKeyDown]);
 
   // Auto-focus first card when entering contactCards level from nav
   useEffect(() => {
-    if (focusLevel === 'contactCards' && contactFocusedIndex === -1) {
+    if (focusLevel === "contactCards" && contactFocusedIndex === -1) {
       setContactFocusedIndex(0);
       contactLinksRef.current[0]?.focus();
     }
@@ -216,20 +248,24 @@ Background in enterprise IT—Azure, Intune, M365 at scale. Now applying that sy
   // Handle focus entering the contact cards section (via Tab)
   const handleContactCardFocus = (index: number) => {
     setContactFocusedIndex(index);
-    setFocusLevel('contactCards');
+    setFocusLevel("contactCards");
   };
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const saved = await upsertSiteContent('about', {
-        title: editTitle,
-        content: editContent,
-      }, supabase);
+      const saved = await upsertSiteContent(
+        "about",
+        {
+          title: editTitle,
+          content: editContent,
+        },
+        supabase,
+      );
       setContent(saved);
       setIsEditing(false);
     } catch (err) {
-      captureException(toError(err), { context: 'About.save' });
+      captureException(toError(err), { context: "About.save" });
     } finally {
       setIsSaving(false);
     }
@@ -240,7 +276,6 @@ Background in enterprise IT—Azure, Intune, M365 at scale. Now applying that sy
     setEditContent(content?.content || defaultContent);
     setIsEditing(false);
   };
-
 
   const displayTitle = content?.title || defaultTitle;
   const displayContent = content?.content || defaultContent;
@@ -257,7 +292,11 @@ Background in enterprise IT—Azure, Intune, M365 at scale. Now applying that sy
               </span>
               <SignedIn>
                 {!isEditing ? (
-                  <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsEditing(true)}
+                  >
                     <Edit2 className="w-4 h-4 mr-2" />
                     Edit
                   </Button>
@@ -308,7 +347,9 @@ Background in enterprise IT—Azure, Intune, M365 at scale. Now applying that sy
                 </h1>
                 <div
                   className="prose prose-lg prose-invert max-w-none text-muted-foreground [&_strong]:text-foreground [&_a]:text-primary"
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(renderMarkdown(displayContent)) }}
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(renderMarkdown(displayContent)),
+                  }}
                 />
               </>
             )}
@@ -338,38 +379,53 @@ Background in enterprise IT—Azure, Intune, M365 at scale. Now applying that sy
           <div className="grid md:grid-cols-2 gap-4">
             {contactLinks.map((link, index) => {
               const IconComponent = iconComponents[link.icon] || Mail;
-              const isFocused = focusLevel === 'contactCards' && contactFocusedIndex === index;
+              const isFocused =
+                focusLevel === "contactCards" && contactFocusedIndex === index;
 
               if (!link.href || !link.label) return null;
 
               return (
                 <motion.a
-                  key={'id' in link ? link.id : index}
-                  ref={(el) => { contactLinksRef.current[index] = el; }}
+                  key={"id" in link ? link.id : index}
+                  ref={(el) => {
+                    contactLinksRef.current[index] = el;
+                  }}
                   href={link.href}
-                  target={link.href.startsWith('mailto') ? undefined : '_blank'}
-                  rel={link.href.startsWith('mailto') ? undefined : 'noopener noreferrer'}
+                  target={link.href.startsWith("mailto") ? undefined : "_blank"}
+                  rel={
+                    link.href.startsWith("mailto")
+                      ? undefined
+                      : "noopener noreferrer"
+                  }
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  transition={{
+                    duration: 0.4,
+                    delay: index * 0.1,
+                    ease: [0.25, 0.46, 0.45, 0.94],
+                  }}
                   whileHover={{ scale: 1.02, x: 4 }}
                   whileTap={{ scale: 0.98 }}
                   onFocus={() => handleContactCardFocus(index)}
                   tabIndex={0}
                   className={`flex items-center gap-4 p-6 border-2 border-border group bg-card/50 backdrop-blur-sm rounded-lg outline-none transition-[border-color,box-shadow] duration-200 ${
-                    isFocused ? 'contact-card-glow' : 'hover:border-primary/50'
+                    isFocused ? "contact-card-glow" : "hover:border-primary/50"
                   }`}
                 >
                   <motion.div
-                    className={`p-3 rounded-lg transition-colors ${isFocused ? 'bg-primary/20' : 'bg-secondary group-hover:bg-primary/10'}`}
+                    className={`p-3 rounded-lg transition-colors ${isFocused ? "bg-primary/20" : "bg-secondary group-hover:bg-primary/10"}`}
                     whileHover={{ rotate: [0, -10, 10, 0] }}
                     transition={{ duration: 0.4 }}
                   >
-                    <IconComponent className={`w-5 h-5 transition-colors ${isFocused ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'}`} />
+                    <IconComponent
+                      className={`w-5 h-5 transition-colors ${isFocused ? "text-primary" : "text-muted-foreground group-hover:text-primary"}`}
+                    />
                   </motion.div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className={`font-mono text-xs uppercase tracking-wider transition-colors ${isFocused ? 'text-primary' : 'text-muted-foreground'}`}>
+                      <span
+                        className={`font-mono text-xs uppercase tracking-wider transition-colors ${isFocused ? "text-primary" : "text-muted-foreground"}`}
+                      >
                         {link.label}
                       </span>
                       <motion.span
@@ -377,10 +433,14 @@ Background in enterprise IT—Azure, Intune, M365 at scale. Now applying that sy
                         whileHover={{ opacity: 1, x: 0 }}
                         className="inline-block"
                       >
-                        <ArrowUpRight className={`w-3 h-3 transition-all ${isFocused ? 'text-primary opacity-100' : 'text-muted-foreground opacity-0 group-hover:opacity-100'}`} />
+                        <ArrowUpRight
+                          className={`w-3 h-3 transition-all ${isFocused ? "text-primary opacity-100" : "text-muted-foreground opacity-0 group-hover:opacity-100"}`}
+                        />
                       </motion.span>
                     </div>
-                    <div className={`font-medium transition-colors ${isFocused ? 'text-primary' : 'text-foreground group-hover:text-primary'}`}>
+                    <div
+                      className={`font-medium transition-colors ${isFocused ? "text-primary" : "text-foreground group-hover:text-primary"}`}
+                    >
                       {link.value}
                     </div>
                     <div className="text-sm text-muted-foreground">
@@ -391,7 +451,6 @@ Background in enterprise IT—Azure, Intune, M365 at scale. Now applying that sy
               );
             })}
           </div>
-
         </div>
       </section>
     </PageTransition>

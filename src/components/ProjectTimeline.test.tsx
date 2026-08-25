@@ -14,7 +14,7 @@ import {
 import {
   DEFAULT_TIMELINE_TRACK,
   TIMELINE_TRACKS,
-  defaultAiProductEntries,
+  defaultAiAutomationEntries,
   defaultTimelineData,
   entriesForTrack,
   normalizeTimelineTrack,
@@ -26,6 +26,7 @@ import {
   talks,
   type Talk,
 } from "@/data/talks";
+import { defaultPortfolioExperiences } from "@/data/work-history";
 import TalksSection from "@/components/portfolio/TalksSection";
 import {
   aboutFaqSchema,
@@ -95,18 +96,22 @@ function renderTimeline() {
   );
 }
 
-describe("Success Roadmap tracks", () => {
-  it("lists AI Products first and Endpoint Logistics second", () => {
+describe("Career progress tracks", () => {
+  it("restores provisioning first and keeps AI automation as the second view", () => {
     expect(TIMELINE_TRACKS.map((track) => track.id)).toEqual([
-      "ai-products",
       "endpoint-logistics",
+      "ai-products",
     ]);
-    expect(DEFAULT_TIMELINE_TRACK).toBe("ai-products");
+    expect(TIMELINE_TRACKS.map((track) => track.label)).toEqual([
+      "Provisioning & Logistics",
+      "AI & Automation",
+    ]);
+    expect(DEFAULT_TIMELINE_TRACK).toBe("endpoint-logistics");
   });
 
-  it("defaults unknown track query values to AI Products", () => {
-    expect(resolveTimelineTrack(null)).toBe("ai-products");
-    expect(resolveTimelineTrack("nope")).toBe("ai-products");
+  it("defaults unknown track query values to provisioning", () => {
+    expect(resolveTimelineTrack(null)).toBe("endpoint-logistics");
+    expect(resolveTimelineTrack("nope")).toBe("endpoint-logistics");
     expect(resolveTimelineTrack("endpoint-logistics")).toBe(
       "endpoint-logistics",
     );
@@ -122,32 +127,44 @@ describe("Success Roadmap tracks", () => {
       defaultTimelineData,
       "endpoint-logistics",
     ).map((entry) => entry.label);
-    expect(years).toEqual(["2022-2023", "2024", "2025", "2026+"]);
+    expect(years).toEqual(["2022", "2022–2023", "2024", "2025"]);
   });
 
-  it("renders AI Products selected by default", async () => {
+  it("renders the original provisioning roadmap selected by default", () => {
     renderTimeline();
-    const ai = screen.getByRole("tab", { name: "AI Products" });
-    const logistics = screen.getByRole("tab", { name: "Endpoint Logistics" });
-    expect(ai).toHaveAttribute("aria-selected", "true");
-    expect(logistics).toHaveAttribute("aria-selected", "false");
+    const ai = screen.getByRole("tab", { name: "AI & Automation" });
+    const logistics = screen.getByRole("tab", {
+      name: "Provisioning & Logistics",
+    });
+    expect(ai).toHaveAttribute("aria-selected", "false");
+    expect(logistics).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: "2022" })).toBeInTheDocument();
     expect(
-      await screen.findByRole("heading", {
-        name: "Governed AI for the Enterprise work I ship",
-      }),
+      screen.getByText(/started with three months in Tier 1/i),
     ).toBeInTheDocument();
   });
 
-  it("switches to Endpoint Logistics and shows year pills", async () => {
+  it("switches to AI and Automation with an honest 2023-to-2025 role transition", async () => {
     const user = userEvent.setup();
     renderTimeline();
-    await user.click(screen.getByRole("tab", { name: "Endpoint Logistics" }));
-    expect(screen.getByRole("tab", { name: "2022-2023" })).toBeInTheDocument();
+    await user.click(screen.getByRole("tab", { name: "AI & Automation" }));
+    expect(screen.getByRole("tab", { name: "2023" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "2024" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "2025" })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "2026+" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "2026 YTD" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "2026 YTD" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
     expect(
-      screen.getByText(/inherited a provisioning backlog/i),
+      screen.getByText(/returned 836\.3 hours in 2026 year to date/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/not a cash-savings or headcount-reduction claim/i),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("tab", { name: "2023" }));
+    expect(
+      screen.getByText(/The formal full-time role followed in 2025/i),
     ).toBeInTheDocument();
   });
 });
@@ -164,12 +181,11 @@ const PUBLIC_CATEGORY_TITLES = [
 
 describe("AI Products briefs", () => {
   it("includes the portfolio thesis and seven public categories", () => {
-    expect(portfolioThesis.lead).toMatch(/app platform/i);
-    expect(portfolioThesis.lead).toMatch(/individual apps/i);
+    expect(portfolioThesis.lead).toMatch(/application platform/i);
+    expect(portfolioThesis.lead).toMatch(/working apps/i);
     expect(portfolioThesis.lead).toMatch(/federation/i);
     expect(portfolioThesis.lead).toMatch(/stewarded/i);
-    expect(portfolioThesis.lead).toMatch(/idea/i);
-    expect(portfolioThesis.lead).toMatch(/completion/i);
+    expect(portfolioThesis.lead).toMatch(/idea to completion/i);
     expect(portfolioThesis.lead).toMatch(/not yet one uniformly integrated/i);
     expect(portfolioThesis.lead).toMatch(/IT leaders/i);
     expect(portfolioThesis.title).toBe(
@@ -183,8 +199,11 @@ describe("AI Products briefs", () => {
     expect(productBriefs.map((brief) => brief.name)).toEqual([
       ...PUBLIC_CATEGORY_TITLES,
     ]);
-    expect(defaultAiProductEntries.map((entry) => entry.label)).toEqual([
-      ...PUBLIC_CATEGORY_TITLES,
+    expect(defaultAiAutomationEntries.map((entry) => entry.label)).toEqual([
+      "2023",
+      "2024",
+      "2025",
+      "2026 YTD",
     ]);
     const portfolio = productBriefs.find(
       (brief) => brief.id === "client-toolbox",
@@ -202,6 +221,8 @@ describe("AI Products briefs", () => {
 
     for (const brief of productBriefs) {
       expect(brief.tagline.trim().split(/\s+/).length).toBeLessThanOrEqual(40);
+      expect(brief.role.length).toBeGreaterThan(0);
+      expect(brief.status.length).toBeGreaterThan(0);
       expect(brief.capabilities.length).toBeLessThanOrEqual(5);
       expect(brief.stack.length).toBeGreaterThanOrEqual(4);
       expect(brief.stack.length).toBeLessThanOrEqual(8);
@@ -223,7 +244,10 @@ describe("AI Products briefs", () => {
       JSON.stringify(portfolioThesis),
       JSON.stringify(productBriefs),
       JSON.stringify(TIMELINE_TRACKS),
-      JSON.stringify(defaultAiProductEntries),
+      JSON.stringify(defaultAiAutomationEntries),
+      defaultPortfolioExperiences
+        .flatMap((experience) => experience.highlights)
+        .join(" "),
       softwareSchema.description,
       occupationSchema.description,
       aboutFaqSchema.questions.map((item) => item.answer).join(" "),
@@ -231,8 +255,10 @@ describe("AI Products briefs", () => {
     ].join("\n");
 
     expect(publicCopy).not.toMatch(/pre-GA|preGA|general.?availab/i);
+    // "Cadre" is no longer banned: it is the name of Jonathan's public
+    // personal open-source project (github.com/mejohnc-ft/cadre).
     expect(publicCopy).not.toMatch(
-      /\b(Cadre|Spark|Spot|Vantage|Navigate|Knowledge|AI Triage)\b/,
+      /\b(Spark|Spot|Vantage|Navigate|Knowledge|AI Triage)\b/,
     );
     expect(publicCopy).not.toMatch(/Still coming/i);
 
@@ -250,7 +276,7 @@ describe("AI Products briefs", () => {
         ...brief.capabilities,
         brief.shipped,
       ]),
-      ...defaultAiProductEntries.flatMap((entry) => [
+      ...defaultAiAutomationEntries.flatMap((entry) => [
         entry.label,
         entry.phase,
         entry.summary ?? "",
@@ -291,13 +317,6 @@ describe("AI Products briefs", () => {
   it("orders briefs from timeline entry keys when present", () => {
     const ordered = orderProductBriefs([
       {
-        id: "x",
-        label: "Multimodal Enterprise Agent",
-        phase: "AI",
-        summary: null,
-        content: null,
-        dot_position: 1,
-        track: "ai-products",
         entry_key: "iris",
       },
     ]);
@@ -307,7 +326,7 @@ describe("AI Products briefs", () => {
     expect(ordered.map((brief) => brief.id)).toContain("iris-os");
   });
 
-  it("renders thesis copy and at least one product brief", async () => {
+  it("renders the product catalog and at least one role-specific brief", async () => {
     render(
       <ThemeProvider>
         <AiProductsPanel />
@@ -315,8 +334,8 @@ describe("AI Products briefs", () => {
     );
 
     expect(
-      screen.getByRole("heading", {
-        name: "Governed AI for the Enterprise work I ship",
+      screen.getByRole("region", {
+        name: "Enterprise AI product catalog",
       }),
     ).toBeInTheDocument();
     expect(screen.queryByText(/14 normalized briefs/i)).not.toBeInTheDocument();
@@ -329,7 +348,9 @@ describe("AI Products briefs", () => {
       expect(screen.getByRole("tab", { name: title })).toBeInTheDocument();
     }
     expect(
-      screen.getByText("Product categories I've shipped in."),
+      screen.getByText(
+        "One brief per product, each labeled with its maturity.",
+      ),
     ).toBeInTheDocument();
     expect(screen.queryByText(/named seams/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/second catalog/i)).not.toBeInTheDocument();
@@ -337,7 +358,13 @@ describe("AI Products briefs", () => {
     expect(
       screen.getByText(/technician workspace that routes tickets/i),
     ).toBeInTheDocument();
-    expect(screen.getByText(/What I shipped/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Co-builder and delivery lead/i),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText(/Evidence/i).length).toBeGreaterThan(0);
+    expect(
+      screen.getByText(/Deployed internal capability/i),
+    ).toBeInTheDocument();
     expect(screen.queryByText("Client Toolbox")).not.toBeInTheDocument();
     expect(screen.queryByText("Iris")).not.toBeInTheDocument();
     expect(screen.queryByText("Proxima")).not.toBeInTheDocument();
@@ -354,8 +381,13 @@ describe("AI Products briefs", () => {
 });
 
 describe("Talks timestamps", () => {
-  it("has no invented talks in the typed source", () => {
-    expect(talks).toEqual([]);
+  it("publishes the three verified Rewst appearances newest first", () => {
+    expect(sortTalksByDateDesc(talks).map((talk) => talk.id)).toEqual([
+      "centrex-it-automation-adoption-webinar",
+      "rewst-flow-2026-community-live",
+      "rewst-m365-license-reporting-community-contribution",
+    ]);
+    expect(talks.every((talk) => talk.url?.startsWith("https://"))).toBe(true);
   });
 
   it("sorts talks newest first by occurredAt", () => {
@@ -373,13 +405,28 @@ describe("Talks timestamps", () => {
 
   it("formats UTC timestamps for display", () => {
     expect(formatTalkTimestamp("2026-03-02")).toBe("Mar 2, 2026");
+    expect(formatTalkTimestamp("2026-06")).toBe("Jun 2026");
   });
 
-  it("renders a Talks section that does not invent titles", () => {
+  it("renders the supplied talks with public artwork and links", () => {
     render(<TalksSection />);
-    expect(screen.getByRole("heading", { name: "Talks" })).toBeInTheDocument();
-    expect(screen.getByText(/No talks posted yet/i)).toBeInTheDocument();
-    expect(screen.getByText(/nothing here is invented/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("region", { name: "Speaking appearances" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", {
+        name: /^Stop waiting, start now, scale fast/i,
+      }),
+    ).toHaveAttribute(
+      "href",
+      "https://rewst.io/resources/webinar/stop-waiting-start-now-scale-fast-centrexits-playbook",
+    );
+    expect(
+      screen.getByRole("img", {
+        name: /Microsoft 365 license cost reports/i,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/No talks posted yet/i)).not.toBeInTheDocument();
   });
 });
 
@@ -409,9 +456,9 @@ describe("SEO helpers", () => {
       "AI Automation Engineer",
     );
     const work = buildCreativeWorkJsonLd(softwareSchema, "https://mejohnc.org");
-    expect(work.url).toBe("https://mejohnc.org/portfolio?track=ai-products");
+    expect(work.url).toBe("https://mejohnc.org/products");
     expect(String(work.description)).toMatch(
-      /^Governed AI for the Enterprise work I ship/,
+      /^Governed systems I have led or shipped/,
     );
     expect(String(work.description)).toMatch(/app platform/i);
     expect(String(work.description)).toMatch(/federation/i);

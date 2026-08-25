@@ -3,8 +3,8 @@
  * Database operations for contacts, interactions, follow-ups, and deals
  */
 
-import { SupabaseClient } from '@supabase/supabase-js';
-import { getSupabase } from './supabase';
+import { SupabaseClient } from "@supabase/supabase-js";
+import { getSupabase } from "./supabase";
 import {
   ContactSchema,
   InteractionSchema,
@@ -19,7 +19,7 @@ import {
   type PipelineStage,
   type Deal,
   type CRMStats,
-} from './schemas';
+} from "./schemas";
 
 // Re-export types
 export type {
@@ -33,14 +33,11 @@ export type {
   CRMStats,
 };
 
-// Supabase instance
-const supabase = getSupabase();
-
 // Helper for handling query results
 function handleQueryResult<T>(
   data: T | null,
   error: { message: string } | null,
-  options: { operation: string; returnFallback?: boolean; fallback?: T }
+  options: { operation: string; returnFallback?: boolean; fallback?: T },
 ): T {
   if (error) {
     console.error(`[${options.operation}] Error:`, error.message);
@@ -58,68 +55,72 @@ function handleQueryResult<T>(
 
 export interface ContactQueryOptions {
   search?: string;
-  contactType?: Contact['contact_type'];
-  status?: Contact['status'];
+  contactType?: Contact["contact_type"];
+  status?: Contact["status"];
   tags?: string[];
   hasFollowUp?: boolean;
   limit?: number;
   offset?: number;
-  orderBy?: 'created_at' | 'last_contacted_at' | 'next_follow_up_at' | 'company';
-  orderDirection?: 'asc' | 'desc';
+  orderBy?:
+    | "created_at"
+    | "last_contacted_at"
+    | "next_follow_up_at"
+    | "company";
+  orderDirection?: "asc" | "desc";
 }
 
 export async function getContacts(
   options: ContactQueryOptions = {},
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<Contact[]> {
   const {
     search,
     contactType,
-    status = 'active',
+    status = "active",
     tags,
     hasFollowUp,
     limit = 50,
     offset = 0,
-    orderBy = 'created_at',
-    orderDirection = 'desc',
+    orderBy = "created_at",
+    orderDirection = "desc",
   } = options;
 
   let query = client
-    .from('contacts')
-    .select('*')
-    .order(orderBy, { ascending: orderDirection === 'asc' })
+    .from("contacts")
+    .select("*")
+    .order(orderBy, { ascending: orderDirection === "asc" })
     .range(offset, offset + limit - 1);
 
   if (status) {
-    query = query.eq('status', status);
+    query = query.eq("status", status);
   }
 
   if (contactType) {
-    query = query.eq('contact_type', contactType);
+    query = query.eq("contact_type", contactType);
   }
 
   if (tags && tags.length > 0) {
-    query = query.overlaps('tags', tags);
+    query = query.overlaps("tags", tags);
   }
 
   if (hasFollowUp !== undefined) {
     if (hasFollowUp) {
-      query = query.not('next_follow_up_at', 'is', null);
+      query = query.not("next_follow_up_at", "is", null);
     } else {
-      query = query.is('next_follow_up_at', null);
+      query = query.is("next_follow_up_at", null);
     }
   }
 
   if (search) {
     query = query.or(
-      `first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%,company.ilike.%${search}%`
+      `first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%,company.ilike.%${search}%`,
     );
   }
 
   const { data, error } = await query;
 
   return handleQueryResult(data, error, {
-    operation: 'getContacts',
+    operation: "getContacts",
     returnFallback: true,
     fallback: [] as Contact[],
   });
@@ -127,61 +128,64 @@ export async function getContacts(
 
 export async function getContactById(
   id: string,
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<Contact> {
   const { data, error } = await client
-    .from('contacts')
-    .select('*')
-    .eq('id', id)
+    .from("contacts")
+    .select("*")
+    .eq("id", id)
     .single();
 
   if (error) throw error;
-  return parseResponse(ContactSchema, data, 'getContactById');
+  return parseResponse(ContactSchema, data, "getContactById");
 }
 
 export async function createContact(
-  contact: Omit<Contact, 'id' | 'created_at' | 'updated_at' | 'last_contacted_at'>,
-  client: SupabaseClient = supabase
+  contact: Omit<
+    Contact,
+    "id" | "created_at" | "updated_at" | "last_contacted_at"
+  >,
+  client: SupabaseClient = getSupabase(),
 ): Promise<Contact> {
   const { data, error } = await client
-    .from('contacts')
+    .from("contacts")
     .insert(contact)
     .select()
     .single();
 
   if (error) throw error;
-  return parseResponse(ContactSchema, data, 'createContact');
+  return parseResponse(ContactSchema, data, "createContact");
 }
 
 export async function updateContact(
   id: string,
   updates: Partial<Contact>,
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<Contact> {
   const { data, error } = await client
-    .from('contacts')
+    .from("contacts")
     .update({ ...updates, updated_at: new Date().toISOString() })
-    .eq('id', id)
+    .eq("id", id)
     .select()
     .single();
 
   if (error) throw error;
-  return parseResponse(ContactSchema, data, 'updateContact');
+  return parseResponse(ContactSchema, data, "updateContact");
 }
 
 export async function deleteContact(
   id: string,
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<void> {
-  const { error } = await client.from('contacts').delete().eq('id', id);
+  const { error } = await client.from("contacts").delete().eq("id", id);
   if (error) throw error;
 }
 
 export async function archiveContact(
   id: string,
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<Contact> {
-  return updateContact(id, { status: 'archived' }, client);
+  return updateContact(id, { status: "archived" }, client);
 }
 
 // ============================================
@@ -191,41 +195,41 @@ export async function archiveContact(
 export async function getInteractions(
   contactId: string,
   limit = 50,
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<Interaction[]> {
   const { data, error } = await client
-    .from('interactions')
-    .select('*')
-    .eq('contact_id', contactId)
-    .order('occurred_at', { ascending: false })
+    .from("interactions")
+    .select("*")
+    .eq("contact_id", contactId)
+    .order("occurred_at", { ascending: false })
     .limit(limit);
 
   return handleQueryResult(data, error, {
-    operation: 'getInteractions',
+    operation: "getInteractions",
     returnFallback: true,
     fallback: [] as Interaction[],
   });
 }
 
 export async function createInteraction(
-  interaction: Omit<Interaction, 'id' | 'created_at'>,
-  client: SupabaseClient = supabase
+  interaction: Omit<Interaction, "id" | "created_at">,
+  client: SupabaseClient = getSupabase(),
 ): Promise<Interaction> {
   const { data, error } = await client
-    .from('interactions')
+    .from("interactions")
     .insert(interaction)
     .select()
     .single();
 
   if (error) throw error;
-  return parseResponse(InteractionSchema, data, 'createInteraction');
+  return parseResponse(InteractionSchema, data, "createInteraction");
 }
 
 export async function deleteInteraction(
   id: string,
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<void> {
-  const { error } = await client.from('interactions').delete().eq('id', id);
+  const { error } = await client.from("interactions").delete().eq("id", id);
   if (error) throw error;
 }
 
@@ -236,80 +240,85 @@ export async function deleteInteraction(
 export async function getFollowUps(
   options: {
     contactId?: string;
-    status?: FollowUp['status'];
+    status?: FollowUp["status"];
     upcoming?: boolean;
     overdue?: boolean;
     limit?: number;
   } = {},
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<FollowUp[]> {
   const { contactId, status, upcoming, overdue, limit = 50 } = options;
 
   let query = client
-    .from('follow_ups')
-    .select('*')
-    .order('due_at', { ascending: true })
+    .from("follow_ups")
+    .select("*")
+    .order("due_at", { ascending: true })
     .limit(limit);
 
   if (contactId) {
-    query = query.eq('contact_id', contactId);
+    query = query.eq("contact_id", contactId);
   }
 
   if (status) {
-    query = query.eq('status', status);
+    query = query.eq("status", status);
   }
 
   if (overdue) {
-    query = query.eq('status', 'pending').lt('due_at', new Date().toISOString());
+    query = query
+      .eq("status", "pending")
+      .lt("due_at", new Date().toISOString());
   } else if (upcoming) {
     query = query
-      .eq('status', 'pending')
-      .gte('due_at', new Date().toISOString());
+      .eq("status", "pending")
+      .gte("due_at", new Date().toISOString());
   }
 
   const { data, error } = await query;
 
   return handleQueryResult(data, error, {
-    operation: 'getFollowUps',
+    operation: "getFollowUps",
     returnFallback: true,
     fallback: [] as FollowUp[],
   });
 }
 
 export async function getOverdueFollowUps(
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<FollowUp[]> {
   return getFollowUps({ overdue: true }, client);
 }
 
 export async function getUpcomingFollowUps(
   days = 7,
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<FollowUp[]> {
   const endDate = new Date();
   endDate.setDate(endDate.getDate() + days);
 
   const { data, error } = await client
-    .from('follow_ups')
-    .select('*')
-    .eq('status', 'pending')
-    .gte('due_at', new Date().toISOString())
-    .lte('due_at', endDate.toISOString())
-    .order('due_at', { ascending: true });
+    .from("follow_ups")
+    .select("*")
+    .eq("status", "pending")
+    .gte("due_at", new Date().toISOString())
+    .lte("due_at", endDate.toISOString())
+    .order("due_at", { ascending: true });
 
   return handleQueryResult(data, error, {
-    operation: 'getUpcomingFollowUps',
+    operation: "getUpcomingFollowUps",
     returnFallback: true,
     fallback: [] as FollowUp[],
   });
 }
 
 export async function createFollowUp(
-  followUp: Omit<FollowUp, 'id' | 'created_at' | 'completed_at' | 'completed_by' | 'completion_notes'>,
-  client: SupabaseClient = supabase
+  followUp: Omit<
+    FollowUp,
+    "id" | "created_at" | "completed_at" | "completed_by" | "completion_notes"
+  >,
+  client: SupabaseClient = getSupabase(),
 ): Promise<FollowUp> {
   const { data, error } = await client
-    .from('follow_ups')
+    .from("follow_ups")
     .insert(followUp)
     .select()
     .single();
@@ -317,34 +326,34 @@ export async function createFollowUp(
   if (error) throw error;
 
   // Update contact's next_follow_up_at
-  if (followUp.status === 'pending') {
+  if (followUp.status === "pending") {
     await updateContactNextFollowUp(followUp.contact_id, client);
   }
 
-  return parseResponse(FollowUpSchema, data, 'createFollowUp');
+  return parseResponse(FollowUpSchema, data, "createFollowUp");
 }
 
 export async function completeFollowUp(
   id: string,
   notes?: string,
   completedBy?: string,
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<FollowUp> {
   const { data, error } = await client
-    .from('follow_ups')
+    .from("follow_ups")
     .update({
-      status: 'completed',
+      status: "completed",
       completed_at: new Date().toISOString(),
       completed_by: completedBy,
       completion_notes: notes,
     })
-    .eq('id', id)
+    .eq("id", id)
     .select()
     .single();
 
   if (error) throw error;
 
-  const followUp = parseResponse(FollowUpSchema, data, 'completeFollowUp');
+  const followUp = parseResponse(FollowUpSchema, data, "completeFollowUp");
 
   // Update contact's next_follow_up_at
   await updateContactNextFollowUp(followUp.contact_id, client);
@@ -355,31 +364,31 @@ export async function completeFollowUp(
 export async function snoozeFollowUp(
   id: string,
   newDueAt: string,
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<FollowUp> {
   const { data, error } = await client
-    .from('follow_ups')
-    .update({ due_at: newDueAt, status: 'pending' })
-    .eq('id', id)
+    .from("follow_ups")
+    .update({ due_at: newDueAt, status: "pending" })
+    .eq("id", id)
     .select()
     .single();
 
   if (error) throw error;
-  return parseResponse(FollowUpSchema, data, 'snoozeFollowUp');
+  return parseResponse(FollowUpSchema, data, "snoozeFollowUp");
 }
 
 export async function deleteFollowUp(
   id: string,
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<void> {
   // Get contact_id before deleting
   const { data: followUp } = await client
-    .from('follow_ups')
-    .select('contact_id')
-    .eq('id', id)
+    .from("follow_ups")
+    .select("contact_id")
+    .eq("id", id)
     .single();
 
-  const { error } = await client.from('follow_ups').delete().eq('id', id);
+  const { error } = await client.from("follow_ups").delete().eq("id", id);
   if (error) throw error;
 
   // Update contact's next_follow_up_at
@@ -391,24 +400,24 @@ export async function deleteFollowUp(
 // Helper to update contact's next_follow_up_at
 async function updateContactNextFollowUp(
   contactId: string,
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<void> {
   const { data: nextFollowUp } = await client
-    .from('follow_ups')
-    .select('due_at')
-    .eq('contact_id', contactId)
-    .eq('status', 'pending')
-    .order('due_at', { ascending: true })
+    .from("follow_ups")
+    .select("due_at")
+    .eq("contact_id", contactId)
+    .eq("status", "pending")
+    .order("due_at", { ascending: true })
     .limit(1)
     .single();
 
   await client
-    .from('contacts')
+    .from("contacts")
     .update({
       next_follow_up_at: nextFollowUp?.due_at || null,
       updated_at: new Date().toISOString(),
     })
-    .eq('id', contactId);
+    .eq("id", contactId);
 }
 
 // ============================================
@@ -416,15 +425,15 @@ async function updateContactNextFollowUp(
 // ============================================
 
 export async function getContactLists(
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<ContactList[]> {
   const { data, error } = await client
-    .from('contact_lists')
-    .select('*')
-    .order('name', { ascending: true });
+    .from("contact_lists")
+    .select("*")
+    .order("name", { ascending: true });
 
   return handleQueryResult(data, error, {
-    operation: 'getContactLists',
+    operation: "getContactLists",
     returnFallback: true,
     fallback: [] as ContactList[],
   });
@@ -432,12 +441,12 @@ export async function getContactLists(
 
 export async function getContactListMembers(
   listId: string,
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<Contact[]> {
   const { data, error } = await client
-    .from('contact_list_members')
-    .select('contacts(*)')
-    .eq('list_id', listId);
+    .from("contact_list_members")
+    .select("contacts(*)")
+    .eq("list_id", listId);
 
   if (error) throw error;
   return (data || []).map((item: { contacts: Contact }) => item.contacts);
@@ -447,26 +456,26 @@ export async function addContactToList(
   contactId: string,
   listId: string,
   addedBy?: string,
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<void> {
-  const { error } = await client.from('contact_list_members').insert({
+  const { error } = await client.from("contact_list_members").insert({
     contact_id: contactId,
     list_id: listId,
     added_by: addedBy,
   });
-  if (error && !error.message.includes('duplicate')) throw error;
+  if (error && !error.message.includes("duplicate")) throw error;
 }
 
 export async function removeContactFromList(
   contactId: string,
   listId: string,
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<void> {
   const { error } = await client
-    .from('contact_list_members')
+    .from("contact_list_members")
     .delete()
-    .eq('contact_id', contactId)
-    .eq('list_id', listId);
+    .eq("contact_id", contactId)
+    .eq("list_id", listId);
   if (error) throw error;
 }
 
@@ -475,15 +484,15 @@ export async function removeContactFromList(
 // ============================================
 
 export async function getPipelines(
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<Pipeline[]> {
   const { data, error } = await client
-    .from('pipelines')
-    .select('*')
-    .order('is_default', { ascending: false });
+    .from("pipelines")
+    .select("*")
+    .order("is_default", { ascending: false });
 
   return handleQueryResult(data, error, {
-    operation: 'getPipelines',
+    operation: "getPipelines",
     returnFallback: true,
     fallback: [] as Pipeline[],
   });
@@ -491,16 +500,16 @@ export async function getPipelines(
 
 export async function getPipelineStages(
   pipelineId: string,
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<PipelineStage[]> {
   const { data, error } = await client
-    .from('pipeline_stages')
-    .select('*')
-    .eq('pipeline_id', pipelineId)
-    .order('sort_order', { ascending: true });
+    .from("pipeline_stages")
+    .select("*")
+    .eq("pipeline_id", pipelineId)
+    .order("sort_order", { ascending: true });
 
   return handleQueryResult(data, error, {
-    operation: 'getPipelineStages',
+    operation: "getPipelineStages",
     returnFallback: true,
     fallback: [] as PipelineStage[],
   });
@@ -511,51 +520,54 @@ export async function getDeals(
     pipelineId?: string;
     stageId?: string;
     contactId?: string;
-    status?: Deal['status'];
+    status?: Deal["status"];
     limit?: number;
   } = {},
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<Deal[]> {
   const { pipelineId, stageId, contactId, status, limit = 50 } = options;
 
   let query = client
-    .from('deals')
-    .select('*')
-    .order('created_at', { ascending: false })
+    .from("deals")
+    .select("*")
+    .order("created_at", { ascending: false })
     .limit(limit);
 
-  if (pipelineId) query = query.eq('pipeline_id', pipelineId);
-  if (stageId) query = query.eq('stage_id', stageId);
-  if (contactId) query = query.eq('contact_id', contactId);
-  if (status) query = query.eq('status', status);
+  if (pipelineId) query = query.eq("pipeline_id", pipelineId);
+  if (stageId) query = query.eq("stage_id", stageId);
+  if (contactId) query = query.eq("contact_id", contactId);
+  if (status) query = query.eq("status", status);
 
   const { data, error } = await query;
 
   return handleQueryResult(data, error, {
-    operation: 'getDeals',
+    operation: "getDeals",
     returnFallback: true,
     fallback: [] as Deal[],
   });
 }
 
 export async function createDeal(
-  deal: Omit<Deal, 'id' | 'created_at' | 'updated_at' | 'closed_at' | 'expected_revenue'>,
-  client: SupabaseClient = supabase
+  deal: Omit<
+    Deal,
+    "id" | "created_at" | "updated_at" | "closed_at" | "expected_revenue"
+  >,
+  client: SupabaseClient = getSupabase(),
 ): Promise<Deal> {
   const { data, error } = await client
-    .from('deals')
+    .from("deals")
     .insert(deal)
     .select()
     .single();
 
   if (error) throw error;
-  return parseResponse(DealSchema, data, 'createDeal');
+  return parseResponse(DealSchema, data, "createDeal");
 }
 
 export async function updateDeal(
   id: string,
   updates: Partial<Deal>,
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<Deal> {
   const updateData: Partial<Deal> & { updated_at: string } = {
     ...updates,
@@ -563,36 +575,39 @@ export async function updateDeal(
   };
 
   // Set closed_at if status changed to won/lost
-  if (updates.status && (updates.status === 'won' || updates.status === 'lost')) {
+  if (
+    updates.status &&
+    (updates.status === "won" || updates.status === "lost")
+  ) {
     updateData.closed_at = new Date().toISOString();
   }
 
   const { data, error } = await client
-    .from('deals')
+    .from("deals")
     .update(updateData)
-    .eq('id', id)
+    .eq("id", id)
     .select()
     .single();
 
   if (error) throw error;
-  return parseResponse(DealSchema, data, 'updateDeal');
+  return parseResponse(DealSchema, data, "updateDeal");
 }
 
 export async function moveDealToStage(
   dealId: string,
   stageId: string,
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<Deal> {
   // Check if stage is won/lost
   const { data: stage } = await client
-    .from('pipeline_stages')
-    .select('is_won, is_lost')
-    .eq('id', stageId)
+    .from("pipeline_stages")
+    .select("is_won, is_lost")
+    .eq("id", stageId)
     .single();
 
   const updates: Partial<Deal> = { stage_id: stageId };
-  if (stage?.is_won) updates.status = 'won';
-  if (stage?.is_lost) updates.status = 'lost';
+  if (stage?.is_won) updates.status = "won";
+  if (stage?.is_lost) updates.status = "lost";
 
   return updateDeal(dealId, updates, client);
 }
@@ -602,16 +617,15 @@ export async function moveDealToStage(
 // ============================================
 
 export async function getCRMStats(
-  client: SupabaseClient = supabase
+  client: SupabaseClient = getSupabase(),
 ): Promise<CRMStats> {
-  const [
-    contactsResult,
-    dealsResult,
-    followUpsResult,
-  ] = await Promise.all([
-    client.from('contacts').select('contact_type, status', { count: 'exact' }),
-    client.from('deals').select('status, value', { count: 'exact' }),
-    client.from('follow_ups').select('status, due_at', { count: 'exact' }).eq('status', 'pending'),
+  const [contactsResult, dealsResult, followUpsResult] = await Promise.all([
+    client.from("contacts").select("contact_type, status", { count: "exact" }),
+    client.from("deals").select("status, value", { count: "exact" }),
+    client
+      .from("follow_ups")
+      .select("status, due_at", { count: "exact" })
+      .eq("status", "pending"),
   ]);
 
   const contacts = contactsResult.data || [];
@@ -622,14 +636,14 @@ export async function getCRMStats(
 
   return {
     total_contacts: contacts.length,
-    active_contacts: contacts.filter(c => c.status === 'active').length,
-    leads: contacts.filter(c => c.contact_type === 'lead').length,
-    clients: contacts.filter(c => c.contact_type === 'client').length,
-    open_deals: deals.filter(d => d.status === 'open').length,
+    active_contacts: contacts.filter((c) => c.status === "active").length,
+    leads: contacts.filter((c) => c.contact_type === "lead").length,
+    clients: contacts.filter((c) => c.contact_type === "client").length,
+    open_deals: deals.filter((d) => d.status === "open").length,
     total_deal_value: deals
-      .filter(d => d.status === 'open')
+      .filter((d) => d.status === "open")
       .reduce((sum, d) => sum + (d.value || 0), 0),
     pending_follow_ups: followUps.length,
-    overdue_follow_ups: followUps.filter(f => f.due_at < now).length,
+    overdue_follow_ups: followUps.filter((f) => f.due_at < now).length,
   };
 }

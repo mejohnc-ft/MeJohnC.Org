@@ -30,6 +30,7 @@ const PricingPage = lazy(() => import("./pages/PricingPage"));
 
 // Lazy load heavy pages for code splitting
 const Portfolio = lazy(() => import("./pages/Portfolio"));
+const ServiceDeliveryCase = lazy(() => import("./pages/ServiceDeliveryCase"));
 const About = lazy(() => import("./pages/About"));
 const AppDetail = lazy(() => import("./pages/AppDetail"));
 const AppSuite = lazy(() => import("./pages/AppSuite"));
@@ -318,6 +319,11 @@ function RouteTracker() {
     const getPageTitle = (pathname: string): string => {
       if (pathname === "/") return "Home";
       if (pathname === "/portfolio") return "Portfolio";
+      if (pathname === "/work") return "Work";
+      if (pathname.startsWith("/work/")) return "Work Case Study";
+      if (pathname === "/products") return "Products";
+      if (pathname === "/projects") return "Projects";
+      if (pathname === "/speaking") return "Speaking";
       if (pathname === "/about") return "About";
       if (pathname.startsWith("/blog/")) return "Blog Post";
       if (pathname.startsWith("/apps/suite/")) return "App Suite";
@@ -411,6 +417,46 @@ function AnimatedRoutes() {
           }
         />
         <Route
+          path="/work"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <Portfolio initialTab="work" />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/work/service-delivery-automation"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <ServiceDeliveryCase />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/projects"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <Portfolio initialTab="projects" />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/products"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <Portfolio initialTab="software" />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/speaking"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <Portfolio initialTab="content" />
+            </Suspense>
+          }
+        />
+        <Route
           path="/about"
           element={
             <Suspense fallback={<PageLoader />}>
@@ -496,13 +542,9 @@ function AnimatedRoutes() {
         />
 
         {/* Redirects for old routes */}
-        <Route path="/work" element={<Navigate to="/portfolio" replace />} />
-        <Route path="/apps" element={<Navigate to="/portfolio" replace />} />
+        <Route path="/apps" element={<Navigate to="/products" replace />} />
         <Route path="/contact" element={<Navigate to="/about" replace />} />
-        <Route
-          path="/blog"
-          element={<Navigate to="/portfolio?tab=content" replace />}
-        />
+        <Route path="/blog" element={<Navigate to="/speaking" replace />} />
       </Routes>
     </AnimatePresence>
   );

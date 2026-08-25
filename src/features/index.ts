@@ -28,7 +28,7 @@ export { featureRegistry, createFeatureRegistry } from "./types";
 // ============================================
 
 // Import all feature modules
-import { taskModule } from "./tasks";
+import { taskModule } from "./tasks/module";
 import { calendarModule } from "./calendar/module";
 import { crmModule } from "./crm/module";
 import { npsModule } from "./nps/module";
@@ -38,7 +38,7 @@ import { styleGuideModule } from "./style-guide/module";
 import { generativeUIModule } from "./generative-ui/module";
 
 // Re-export modules for direct access
-export { taskModule } from "./tasks";
+export { taskModule } from "./tasks/module";
 export { calendarModule } from "./calendar/module";
 export { crmModule } from "./crm/module";
 export { npsModule } from "./nps/module";

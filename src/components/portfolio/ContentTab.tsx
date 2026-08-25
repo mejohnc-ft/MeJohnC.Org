@@ -154,113 +154,125 @@ export default function ContentTab() {
       initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: -24 }}
       animate={{ opacity: 1, x: 0 }}
       exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: 24 }}
-      transition={{ duration: prefersReducedMotion ? 0 : 0.3, ease: "easeInOut" }}
+      transition={{
+        duration: prefersReducedMotion ? 0 : 0.3,
+        ease: "easeInOut",
+      }}
     >
       <div className="mb-12">
         <span className="font-mono text-sm text-primary uppercase tracking-widest">
-          Writing & Ideas
+          Public work
         </span>
-        <h2 className="text-3xl md:text-4xl font-black text-foreground mt-2">
-          Content
-        </h2>
+        <h1
+          id="content-heading"
+          className="text-3xl md:text-4xl font-black text-foreground mt-2"
+        >
+          Speaking &amp; Writing
+        </h1>
         <p className="text-lg text-muted-foreground mt-4 max-w-2xl">
-          Thoughts on AI, automation, engineering, and curated news from around
-          the web. Talks are listed with timestamps when they exist.
+          Talks, technical walkthroughs, and writing on governed AI, automation,
+          and IT operations.
         </p>
       </div>
 
       <TalksSection />
 
-      {/* Source Tabs */}
-      <div className="flex items-center gap-1 mb-6 border-b border-border">
-        <button
-          onClick={() => {
-            setActiveSource("all");
-            setSelectedTag(null);
-          }}
-          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-            activeSource === "all"
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <FileText className="w-4 h-4" />
-          All
-          <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
-            {allCount}
-          </span>
-        </button>
-        <button
-          onClick={() => {
-            setActiveSource("me");
-            setSelectedTag(null);
-          }}
-          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-            activeSource === "me"
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <PenTool className="w-4 h-4" />
-          My Posts
-          <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
-            {meCount}
-          </span>
-        </button>
-        <button
-          onClick={() => {
-            setActiveSource("news");
-            setSelectedTag(null);
-          }}
-          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-            activeSource === "news"
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <Newspaper className="w-4 h-4" />
-          AI News
-          <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
-            {newsCount}
-          </span>
-        </button>
-      </div>
-
-      {/* Search & Filters */}
-      <div className="mb-8 space-y-4">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search content..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-card border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-          />
-        </div>
-
-        {allTags.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            <Badge
-              variant={selectedTag === null ? "default" : "secondary"}
-              className="cursor-pointer"
-              onClick={() => setSelectedTag(null)}
+      {!isLoading && allCount > 0 && (
+        <>
+          {/* Source Tabs */}
+          <div className="flex items-center gap-1 mb-6 border-b border-border">
+            <button
+              onClick={() => {
+                setActiveSource("all");
+                setSelectedTag(null);
+              }}
+              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                activeSource === "all"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
             >
+              <FileText className="w-4 h-4" />
               All
-            </Badge>
-            {allTags.map((tag) => (
-              <Badge
-                key={tag}
-                variant={selectedTag === tag ? "default" : "secondary"}
-                className="cursor-pointer"
-                onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
-              >
-                {tag}
-              </Badge>
-            ))}
+              <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                {allCount}
+              </span>
+            </button>
+            <button
+              onClick={() => {
+                setActiveSource("me");
+                setSelectedTag(null);
+              }}
+              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                activeSource === "me"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <PenTool className="w-4 h-4" />
+              My Posts
+              <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                {meCount}
+              </span>
+            </button>
+            <button
+              onClick={() => {
+                setActiveSource("news");
+                setSelectedTag(null);
+              }}
+              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                activeSource === "news"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Newspaper className="w-4 h-4" />
+              AI News
+              <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                {newsCount}
+              </span>
+            </button>
           </div>
-        )}
-      </div>
+
+          {/* Search & Filters */}
+          <div className="mb-8 space-y-4">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search content..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-card border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+            </div>
+
+            {allTags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                <Badge
+                  variant={selectedTag === null ? "default" : "secondary"}
+                  className="cursor-pointer"
+                  onClick={() => setSelectedTag(null)}
+                >
+                  All
+                </Badge>
+                {allTags.map((tag) => (
+                  <Badge
+                    key={tag}
+                    variant={selectedTag === tag ? "default" : "secondary"}
+                    className="cursor-pointer"
+                    onClick={() =>
+                      setSelectedTag(tag === selectedTag ? null : tag)
+                    }
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
       {/* Loading State */}
       {isLoading && (
@@ -275,20 +287,16 @@ export default function ContentTab() {
       )}
 
       {/* Empty State */}
-      {!isLoading && filteredPosts.length === 0 && (
+      {!isLoading && allCount > 0 && filteredPosts.length === 0 && (
         <div className="text-center py-20">
           <div className="inline-flex p-4 bg-muted rounded-full mb-4">
             <FileText className="w-8 h-8 text-muted-foreground" />
           </div>
           <h3 className="text-xl font-semibold text-foreground mb-2">
-            {searchQuery || selectedTag
-              ? "No matching content"
-              : "No content yet"}
+            No matching content
           </h3>
           <p className="text-muted-foreground">
-            {searchQuery || selectedTag
-              ? "Try adjusting your search or filters."
-              : "Check back soon for new content."}
+            Try adjusting your search or filters.
           </p>
         </div>
       )}
