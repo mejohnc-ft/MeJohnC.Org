@@ -53,11 +53,6 @@ export default function SoftwareTab() {
     (app) => !app.suite_id && app.status === "available",
   );
 
-  // Planned apps for Coming Soon
-  const plannedApps = apps.filter(
-    (app) => app.status === "planned" || app.status === "in_development",
-  );
-
   return (
     <motion.div
       key="software"
@@ -115,58 +110,6 @@ export default function SoftwareTab() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                   {standaloneApps.map((app, index) => (
                     <AppCard key={app.id} app={app} index={index} />
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Coming Soon */}
-            {plannedApps.length > 0 && (
-              <section className="space-y-4 pt-8 border-t border-border">
-                <div className="flex items-center gap-2 mb-6">
-                  <h3 className="text-xl font-bold text-foreground">
-                    Coming Soon
-                  </h3>
-                  <span className="px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full">
-                    Roadmap
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {plannedApps.map((app) => (
-                    <div
-                      key={app.id}
-                      className="group relative p-6 bg-card/50 border border-border/50 border-dashed rounded-2xl hover:bg-card hover:border-border hover:border-solid transition-all duration-300"
-                    >
-                      <div className="flex flex-col h-full">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center text-2xl group-hover:bg-primary/10 group-hover:scale-110 transition-all duration-300 overflow-hidden">
-                            {app.icon_url ? (
-                              <img
-                                src={app.icon_url}
-                                alt=""
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <span>📱</span>
-                            )}
-                          </div>
-                          <span className="px-2 py-1 text-[10px] uppercase tracking-wider font-semibold bg-muted text-muted-foreground rounded-lg">
-                            {app.status === "in_development"
-                              ? "In Dev"
-                              : "Planned"}
-                          </span>
-                        </div>
-                        <h4 className="text-lg font-bold text-foreground mb-1 group-hover:text-primary transition-colors">
-                          {app.name}
-                        </h4>
-                        <div className="text-xs font-medium text-primary/80 mb-2">
-                          {app.tagline || app.suite?.name || "App"}
-                        </div>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                          {app.description || "Coming soon..."}
-                        </p>
-                      </div>
-                    </div>
                   ))}
                 </div>
               </section>
