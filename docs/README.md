@@ -1,6 +1,6 @@
 # MeJohnC.Org
 
-A full-featured personal portfolio and resume website for Jonathan Christensen, AI Automation Engineer II specializing in agentic systems, Microsoft 365, Azure, and automation workflows.
+A full-featured personal portfolio and résumé website for Jonathan Christensen, an AI Automation Engineer specializing in governed systems, Microsoft 365, Azure, and automation workflows.
 
 **Live Site:** [mejohnc.org](https://mejohnc.org/)
 

@@ -1,40 +1,48 @@
 # Jonathan Christensen / MeJohnC.org
 
-> Personal site of John Christensen (Jonathan Christensen), AI Automation Engineer at centrexIT, based in San Diego.
+> Personal career site of Jonathan Christensen, an AI Automation Engineer at centrexIT based in the San Diego area.
 
 Site: https://mejohnc.org
-Portfolio: https://mejohnc.org/portfolio
-AI Products: https://mejohnc.org/portfolio?track=ai-products
-Endpoint Logistics: https://mejohnc.org/portfolio?track=endpoint-logistics
-About / Collab: https://mejohnc.org/about
-Content: https://mejohnc.org/portfolio?tab=content
+Career narrative: https://mejohnc.org/work
+Products and public builds: https://mejohnc.org/products
+Open-source projects: https://mejohnc.org/projects
+Speaking: https://mejohnc.org/speaking
+About: https://mejohnc.org/about
 
-## Who
+## Career focus
 
-John built an app platform, several individual apps, and an agent and compute federation platform. Two of the app platforms he stewarded from idea through scoping, iteration, and review, and saw through to completion. Governed AI that IT leaders and the people who run operations actually use. Background in enterprise IT (Azure, Intune, Microsoft 365) applied to agentic workflows that preserve evidence and keep humans in production authority.
+Jonathan works forward-deployed across service and client teams. He finds operational constraints, redesigns workflows and control models, contributes hands-on to governed AI and automation systems, drives adoption, and turns field learning into reusable products and standards.
 
-## AI Products (most recent portfolio item)
+His background spans field support, provisioning, service operations, Azure, Intune, Microsoft 365, multi-tenant automation, product strategy, service design, UX/UI/DX, and governed agents.
 
-Personal recruiting portfolio of product categories John has shipped in at centrexIT — not a company product catalog.
+His automation practice began inside provisioning in 2023 after roughly 18 months learning and redesigning the manual operation. He accelerated that work on Immy.Bot while carrying concurrent Field Support Engineer, Provisioning Lead, and primary logistics-coordination responsibilities. AI Automation Engineer became his formal full-time role in 2025.
 
-Categories:
-- Service Delivery — technician automations with human writeback, built with the service desk team
-- Portfolio Management — evidence-preserving client reviews a person can explain
-- Deep Research / Technical investigations — investigation assistant; people review findings before writeback
-- Multimodal Enterprise Agent — company-grounded assistant people talk to, with approval-gated action
-- Agentic Application OS Platform — the OS he stewarded for governed agents and apps
-- Agent and Compute Federation Platform — identities, models, agents, tools, cost, audit, eval, rollback; not an end-user assistant
-- DevOps Teammate — draft-mode delivery: reviewed branches, draft PRs, green CI; never marks its own work done
+## Publicly presented outcomes
 
-Honest claim: a developing set of substantial products, not yet one uniformly integrated platform. Agents advise, draft, and test. People keep merge, deploy, and production authority.
+- 836.3 service-delivery hours returned in 2026 year to date. Forecast capacity from unreleased tools is excluded.
+- Fresh-machine provisioning active work reduced from roughly 45 minutes to about two while human quality control remained.
+- A 72-ticket provisioning backlog cleared within six months while the operating model was rebuilt.
+- Automation hours increased 133% while billed labor remained essentially flat. This remains supporting evidence until the exact comparison window is published.
 
-## Endpoint Logistics
+## Product portfolio
 
-Provisioning transformation at centrexIT: COVID backlog → Immy.Bot → one-touch provisioning → Autopilot / 3PL.
+The portfolio includes service-delivery automation, portfolio and client-management tools, technical-research assistants, a multimodal enterprise assistant, an agentic application platform, agent and compute federation, and a DevOps teammate.
 
-## Talks
+These have different maturity levels. They are substantial systems and capabilities, not one uniformly integrated product. People retain authority over writeback, merge, deployment, production changes, and spending.
 
-Talks appear under Content with timestamps when posted. None are listed yet; do not invent titles or dates.
+## Open-source projects
+
+- Cadre — a personal agent control plane: every agent gets a real computer of its own, and every action is decided by policy before it happens and recorded after. https://github.com/mejohnc-ft/cadre
+- Shot Pill — visual-context delivery for agentic coding fleets over SSH. https://github.com/mejohnc-ft/pill-shot
+- Rewst M365 Utilization Report — the public workflow behind the multi-tenant Microsoft 365 reporting evidence. https://github.com/mejohnc-ft/Rewst-M365-Utilization-Report
+- NotMyRouter — a network evidence dashboard that proves whether the ISP or the router is the problem. https://github.com/mejohnc-ft/NotMyRouter
+- TerminalBrain — Apple Notes, Drafts, and Obsidian exposed to agents over MCP. https://github.com/mejohnc-ft/TerminalBrain
+
+## Speaking
+
+- Aug. 20, 2026 — Rewst webinar interview: “Stop waiting, start now, scale fast: CentrexIT's playbook for automation adoption.”
+- June 2026 — Rewst Community Live Open Mic at FLOW 2026 in Nashville, Tennessee.
+- May 13, 2026 — Rewst Community Creations: “How to automate M365 license cost reports in Rewst.”
 
 ## Contact
 

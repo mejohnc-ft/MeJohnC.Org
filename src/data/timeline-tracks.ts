@@ -1,29 +1,35 @@
 /**
- * Success Roadmap tracks for the Work tab timeline.
- * AI Products is first and selected by default. Endpoint Logistics
- * preserves the existing provisioning / Immy.Bot / Autopilot story.
+ * Career progress tracks for the Work tab. The legacy `ai-products` id is
+ * retained for compatibility with existing timeline rows, but the public
+ * track now tells the AI and automation adoption story. Product briefs live
+ * on the Products tab.
  */
+
+import {
+  SERVICE_HOURS_RETURNED,
+  SERVICE_HOURS_PERIOD,
+} from "./career-evidence";
 
 export const TIMELINE_TRACKS = [
   {
-    id: "ai-products",
-    label: "AI Products",
-    heading: "AI products I lead or ship",
+    id: "endpoint-logistics",
+    label: "Provisioning & Logistics",
+    heading: "From frontline support to an automated operating model",
     summary:
-      "I built an app platform, several individual apps, and an agent and compute federation platform. Two of the app platforms I stewarded from idea through to completion. Not yet one platform.",
+      "Three months in Tier 1, 18 months learning provisioning manually, then process redesign, platform automation, and concurrent lead, logistics, and field-support responsibility.",
   },
   {
-    id: "endpoint-logistics",
-    label: "Endpoint Logistics",
-    heading: "Provisioning: Automation & Logistics Transformation",
+    id: "ai-products",
+    label: "AI & Automation",
+    heading: "From in-role automation to full-time AI engineering",
     summary:
-      "COVID backlog through Immy.Bot, one-touch provisioning, and Autopilot / 3PL.",
+      "Automation began inside provisioning in 2023, accelerated on a platform in 2024, became the primary role in 2025, and expanded into measured team adoption in 2026.",
   },
 ] as const;
 
 export type TimelineTrackId = (typeof TIMELINE_TRACKS)[number]["id"];
 
-export const DEFAULT_TIMELINE_TRACK: TimelineTrackId = "ai-products";
+export const DEFAULT_TIMELINE_TRACK: TimelineTrackId = "endpoint-logistics";
 export const DEFAULT_TIMELINE_SLUG = "provisioning-roadmap";
 
 export function isTimelineTrackId(
@@ -52,136 +58,109 @@ export interface TimelineItem {
 /** Live Endpoint Logistics copy (Supabase fallback when the DB is empty). */
 export const defaultLogisticsEntries: TimelineItem[] = [
   {
-    id: "2022-2023",
-    label: "2022-2023",
-    phase: "Recovery & Foundation",
+    id: "2022",
+    label: "2022",
+    phase: "Tier 1 to Provisioning",
     summary:
-      "Cleared COVID backlog, created inventory sheets, standardized SOPs & SLAs",
-    content: `Starting at centrexIT in 2022, I inherited a provisioning backlog of over 72 tickets accumulated during the COVID-19 pandemic. It had blown our teams, office, and operational standards apart. Within 6 months, I systematically cleared this backlog by implementing standardized workflows and creating comprehensive inventory tracking sheets. I partnered with the Director of Operations to reintroduce media sanitization protocols that had lapsed and established the SOPs and SLAs that would become the foundation for all future automation work. This phase was about building trust, understanding the systems, and laying the groundwork for what was to come.`,
+      "Three months in frontline support, then into hands-on provisioning and backlog recovery.",
+    content: `I started with three months in Tier 1 before moving into provisioning. The work was still highly manual, which gave me direct exposure to technician handoffs, client needs, inventory movement, configuration work, and quality-control failure points. Within six months I cleared a 72-ticket COVID backlog while rebuilding SOPs, SLAs, inventory tracking, knowledge, and media-sanitization controls.`,
     dot_position: 15,
+    track: "endpoint-logistics",
+    entry_key: "2022",
+  },
+  {
+    id: "2022-2023",
+    label: "2022–2023",
+    phase: "Manual Process Transformed",
+    summary:
+      "Used roughly 18 months of hands-on provisioning context to redesign the process end to end.",
+    content: `After roughly 18 months performing provisioning manually, I had enough operating context to redesign the process rather than automate assumptions. I standardized the knowledge, controls, and handoffs first, then began automation work inside the provisioning role in 2023. That is where my automation practice began.`,
+    dot_position: 32,
     track: "endpoint-logistics",
     entry_key: "2022-2023",
   },
   {
     id: "2024",
     label: "2024",
-    phase: "Automation & Knowledge",
-    summary: "Completed Immy.Bot buildout, standardized Provisioning KB",
-    content: `2024 marked the shift from manual processes to intelligent automation. I completed the full Immy.Bot buildout, enabling automated software deployments and configurations across our entire client base. The Provisioning Knowledge Base was standardized and made accessible, transforming tribal knowledge into documented, searchable resources. This year laid the technical foundation that would enable the dramatic improvements seen in 2025.`,
-    dot_position: 24,
+    phase: "Platform Acceleration & Dual Lead",
+    summary:
+      "Accelerated the redesigned process on Immy.Bot while carrying provisioning, logistics, and field-support scope.",
+    content: `I accelerated software deployment and configuration work on Immy.Bot while continuing to manage the provisioning operating model. Field Support Engineer and Provisioning Lead were concurrent functions: provisioning determined much of the equipment, configuration, inventory, and readiness required by onsite engineers, and I served as the primary logistics coordinator across that handoff. Automation increased the leverage of the role while people retained quality control.`,
+    dot_position: 55,
     track: "endpoint-logistics",
     entry_key: "2024",
   },
   {
     id: "2025",
     label: "2025",
-    phase: "Optimization & Growth",
+    phase: "Handoff & Scaled Model",
     summary:
-      "One-touch provisions for 75%+ clients, <2 day turnaround, record-breaking October, systems automation & observability",
-    content: `2025 was the year it all clicked. We delivered in-house, one-touch provisioning for 75%+ of our clients and cut turnaround to under two business days—down from weeks in prior years. October 2025 was our biggest provisioning month ever.
-
-We also launched a new Inventory system with a much better UX and started stacking automations on top of Immy.Bot—tying inventory, ticketing, and provisioning into a single, measurable workflow form in Rewst for our Provisioning Engineer. I handed off day-to-day provisioning to a new hire, built the Provisioning ToolBox (15 KB pieces), and closed out the year with fully automated provisioning plus inventory intake.`,
-    dot_position: 50,
+      "Moved into AI Automation Engineering full-time while the provisioning system continued through handoff and reuse.",
+    content: `In 2025, AI Automation Engineer became my full-time role. Day-to-day provisioning moved to a new owner while the operating model, knowledge, controls, and automation patterns remained. This is the transition point from transforming the operation I owned to applying the same method across other teams and departments.`,
+    dot_position: 78,
     track: "endpoint-logistics",
     entry_key: "2025",
   },
-  {
-    id: "2026+",
-    label: "2026+",
-    phase: "Future State",
-    summary:
-      "Autopilot/White glove for all clients, 3PL integration, office-free logistics",
-    content: `Looking ahead, the vision is complete automation independence. Every client will have Autopilot or White Glove configuration ready from day one. Third-party logistics (3PL) integration will reduce costs while maintaining our rigorous SLAs. The ultimate goal: eliminate any reliance on physical office space for inventory and logistics, enabling a fully distributed, resilient provisioning operation.`,
-    dot_position: 75,
-    track: "endpoint-logistics",
-    entry_key: "2026+",
-  },
 ];
 
-/** Lightweight AI Product pills so the DB and fallback share the same track. */
-export const defaultAiProductEntries: TimelineItem[] = [
+/**
+ * AI and automation adoption history. `ai-products` is the legacy persisted
+ * track id; public labels and copy intentionally describe role progress rather
+ * than the product catalog.
+ */
+export const defaultAiAutomationEntries: TimelineItem[] = [
   {
-    id: "ai-service-desk-toolbox",
-    label: "Service Delivery",
-    phase: "Technician automations",
+    id: "ai-automation-in-role",
+    label: "2023",
+    phase: "Automation Began In-Role",
     summary:
-      "Ticket-linked automations for identity, mail, and access; humans review before writeback.",
-    content: null,
-    dot_position: 70,
+      "Began applying automation inside provisioning after redesigning the manual process.",
+    content:
+      "Automation started as part of my provisioning responsibility in 2023. The sequence is important: I first learned the work manually, redesigned the operating process, and then automated the stable parts. The formal full-time role followed in 2025.",
+    dot_position: 18,
     track: "ai-products",
-    entry_key: "service-desk-toolbox",
+    entry_key: "ai-automation-in-role",
   },
   {
-    id: "ai-client-toolbox",
-    label: "Portfolio Management",
-    phase: "Evidence-backed client reviews",
+    id: "ai-automation-platform",
+    label: "2024",
+    phase: "Platform Acceleration",
     summary:
-      "A workspace that turns identity, endpoint, and security evidence into a client book you can explain.",
-    content: null,
-    dot_position: 78,
+      "Used Immy.Bot to scale repeatable deployment and configuration work while retaining operating ownership.",
+    content:
+      "The work accelerated on Immy.Bot in 2024. I was still carrying provisioning-lead, logistics, and field-support responsibilities, so the automation was grounded in the full delivery chain rather than built from outside the operation. People retained quality control while the platform carried more repeatable work.",
+    dot_position: 38,
     track: "ai-products",
-    entry_key: "client-toolbox",
+    entry_key: "ai-automation-platform",
   },
   {
-    id: "ai-deep-research",
-    label: "Deep Research / Technical investigations",
-    phase: "Technical investigations",
+    id: "ai-automation-full-time",
+    label: "2025",
+    phase: "Full-Time AI Automation Engineer",
     summary:
-      "Investigation assistant for incidents and technical questions; people review findings before writeback.",
-    content: null,
-    dot_position: 66,
+      "Made AI and automation the primary role and extended the operating method across teams.",
+    content:
+      "In 2025, AI Automation Engineer became my formal full-time role. I moved from transforming provisioning to working forward-deployed across service and client teams: finding constraints, designing the workflow and authority model, contributing hands-on, driving adoption, and turning proven field patterns into reusable standards and products.",
+    dot_position: 60,
     track: "ai-products",
-    entry_key: "deep-research",
+    entry_key: "ai-automation-full-time",
   },
   {
-    id: "ai-iris",
-    label: "Multimodal Enterprise Agent",
-    phase: "Governed employee AI",
+    id: "ai-automation-adoption",
+    label: "2026 YTD",
+    phase: "Adoption at Scale",
     summary:
-      "The assistant people talk to, with durable skills and approval-gated action.",
-    content: null,
-    dot_position: 82,
+      "Expanded governed tools across a 15-person service team and measured service time returned.",
+    content: `Service-delivery automation returned ${SERVICE_HOURS_RETURNED} hours in ${SERVICE_HOURS_PERIOD}. That is measured operational time returned, not a cash-savings or headcount-reduction claim. The service toolset is trending toward roughly one FTE of capacity across a team of 15; additional portfolio and strategy capacity remains explicitly labeled as projection.`,
+    dot_position: 85,
     track: "ai-products",
-    entry_key: "iris",
-  },
-  {
-    id: "ai-iris-os",
-    label: "Agentic Application OS Platform",
-    phase: "Application OS",
-    summary:
-      "The agentic application OS I stewarded: the shell where governed agents and apps run.",
-    content: null,
-    dot_position: 86,
-    track: "ai-products",
-    entry_key: "iris-os",
-  },
-  {
-    id: "ai-accessai",
-    label: "Agent and Compute Federation Platform",
-    phase: "AI control plane",
-    summary:
-      "Identities, models, agents, tools, cost, audit, evaluation, and rollback. Not an end-user assistant.",
-    content: null,
-    dot_position: 56,
-    track: "ai-products",
-    entry_key: "accessai",
-  },
-  {
-    id: "ai-proxima",
-    label: "DevOps Teammate",
-    phase: "Governed agentic engineering",
-    summary:
-      "Draft branch, draft PR, and green CI for approved work; humans still merge.",
-    content: null,
-    dot_position: 62,
-    track: "ai-products",
-    entry_key: "proxima",
+    entry_key: "ai-automation-adoption",
   },
 ];
 
 export const defaultTimelineData: TimelineItem[] = [
-  ...defaultAiProductEntries,
   ...defaultLogisticsEntries,
+  ...defaultAiAutomationEntries,
 ];
 
 export function normalizeTimelineTrack(
@@ -195,10 +174,4 @@ export function entriesForTrack(
   track: TimelineTrackId,
 ): TimelineItem[] {
   return entries.filter((entry) => entry.track === track);
-}
-
-export function productOrderKeys(entries: TimelineItem[]): string[] {
-  return entries
-    .filter((entry) => entry.track === "ai-products" && entry.entry_key)
-    .map((entry) => entry.entry_key as string);
 }

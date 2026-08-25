@@ -17,24 +17,18 @@ const BASE_URL = "https://mejohnc.org";
 // Static routes with their priorities and change frequencies
 const staticRoutes = [
   { path: "/", priority: 1.0, changefreq: "weekly" },
-  { path: "/pricing", priority: 0.9, changefreq: "monthly" },
-  { path: "/portfolio", priority: 0.9, changefreq: "weekly" },
+  { path: "/work", priority: 0.9, changefreq: "weekly" },
+  {
+    path: "/work/service-delivery-automation",
+    priority: 0.9,
+    changefreq: "monthly",
+  },
+  { path: "/products", priority: 0.85, changefreq: "weekly" },
+  { path: "/projects", priority: 0.8, changefreq: "weekly" },
+  { path: "/speaking", priority: 0.8, changefreq: "monthly" },
   { path: "/about", priority: 0.8, changefreq: "monthly" },
   { path: "/projects/territories", priority: 0.7, changefreq: "monthly" },
-  { path: "/portfolio?tab=work", priority: 0.8, changefreq: "weekly" },
-  {
-    path: "/portfolio?track=ai-products",
-    priority: 0.85,
-    changefreq: "weekly",
-  },
-  {
-    path: "/portfolio?track=endpoint-logistics",
-    priority: 0.8,
-    changefreq: "weekly",
-  },
-  { path: "/portfolio?tab=projects", priority: 0.8, changefreq: "weekly" },
-  { path: "/portfolio?tab=software", priority: 0.8, changefreq: "weekly" },
-  { path: "/portfolio?tab=content", priority: 0.8, changefreq: "daily" },
+  { path: "/projects/business-os", priority: 0.7, changefreq: "monthly" },
 ];
 
 async function fetchDynamicRoutes() {

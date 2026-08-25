@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { KeyboardFocusProvider } from "@/lib/keyboard-focus";
-import WorkTab, {
-  defaultCaseStudies,
-  metricSubtitle,
-} from "@/components/portfolio/WorkTab";
+import { ThemeProvider } from "@/lib/theme";
+import WorkTab from "@/components/portfolio/WorkTab";
+import { careerClaims, headlineCareerClaims } from "@/data/career-evidence";
 
 vi.mock("@/lib/supabase", () => ({
   useSupabaseClient: () => null,
@@ -18,68 +18,116 @@ vi.mock("@/lib/sentry", () => ({
   captureException: vi.fn(),
 }));
 
-vi.mock("@/components/ProjectTimeline", () => ({
-  default: () => null,
-}));
-
 vi.mock("@/components/Experience", () => ({
   default: () => null,
 }));
 
 function renderWorkTab() {
   return render(
-    <KeyboardFocusProvider>
-      <WorkTab onRequestFocusUp={() => undefined} />
-    </KeyboardFocusProvider>,
+    <MemoryRouter>
+      <ThemeProvider>
+        <KeyboardFocusProvider>
+          <WorkTab />
+        </KeyboardFocusProvider>
+      </ThemeProvider>
+    </MemoryRouter>,
   );
 }
 
-describe("Results case studies", () => {
-  it("leads with the sanctioned +133% card and keeps four public-safe stories", () => {
-    expect(defaultCaseStudies.map((study) => study.metric)).toEqual([
-      "+133%",
-      "2 min",
-      "clean",
-      "50%",
+describe("Career evidence", () => {
+  it("keeps the headline proof stable, bounded, and free of forecasts", () => {
+    expect(headlineCareerClaims.map((claim) => claim.metric)).toEqual([
+      "836.3h",
+      "45 → ~2 min",
+      "72",
     ]);
-    expect(defaultCaseStudies[0].title).toMatch(/automation hours/i);
-    expect(defaultCaseStudies[1].after).toMatch(/Immy\.Bot/);
-    expect(defaultCaseStudies[1].after).toMatch(/Rewst/);
-    expect(defaultCaseStudies.some((study) => study.metric === "100%")).toBe(
-      false,
-    );
+    expect(
+      headlineCareerClaims.every(
+        (claim) => claim.evidenceClass !== "Projection",
+      ),
+    ).toBe(true);
+    expect(
+      careerClaims.find((claim) => claim.id === "automation-throughput")
+        ?.headline,
+    ).toBe(false);
+    expect(
+      careerClaims.find((claim) => claim.id === "strategy-capacity")
+        ?.exclusions,
+    ).toMatch(/not included in measured/i);
   });
 
-  it("does not leak internal strategy notes", () => {
-    const blob = JSON.stringify(defaultCaseStudies);
-    expect(blob).not.toMatch(/184|429|700k|coworker|acquisition|promotion/i);
-    expect(blob).not.toMatch(/no one else performs/i);
-    expect(blob).not.toMatch(/manaual|iommy/i);
-  });
-
-  it("derives the metric subtitle instead of always saying improvement", () => {
-    expect(metricSubtitle("+133%")).toBe("improvement");
-    expect(metricSubtitle("50%")).toBe("improvement");
-    expect(metricSubtitle("2 min")).toBe("from 45 min");
-    expect(metricSubtitle("clean")).toBeNull();
-  });
-
-  it("renders first-person Work intro and the four Results cards", async () => {
+  it("renders one calm career narrative with detail progressively disclosed", () => {
     renderWorkTab();
 
     expect(
-      screen.getByText(/app platform, several individual apps/i),
+      screen.getByRole("heading", {
+        name: /I learned the work from the inside\. Now I redesign it at scale/i,
+      }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByText(/AI Automation Engineer · centrexIT/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/giving people room to think/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/The work changed\. The method did not/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        name: /What changed/i,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText("836.3h").length).toBeGreaterThan(0);
+    expect(screen.getByText("45 → ~2 min")).toBeInTheDocument();
+    expect(screen.getAllByText("72").length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Measurement note/i)).toHaveLength(3);
+    expect(
+      screen.getByRole("heading", {
+        name: /A service team needed leverage, not another tool/i,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Read the service-delivery case/i }),
+    ).toHaveAttribute("href", "/work/service-delivery-automation");
+    expect(
+      screen.getByRole("link", { name: /Watch the Rewst interview/i }),
+    ).toHaveAttribute(
+      "href",
+      "https://rewst.io/resources/webinar/stop-waiting-start-now-scale-fast-centrexits-playbook",
+    );
+    expect(
+      screen.getByRole("heading", {
+        name: /Go deeper when the detail is useful/i,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Two progress histories/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /Role chronology/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("tab", { name: /Provisioning & Logistics/i }),
+    ).toHaveAttribute("aria-selected", "true");
+    expect(
+      screen.getByRole("tab", { name: /AI & Automation/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Public talks and walkthroughs/i }),
+    ).toHaveAttribute("href", "/speaking");
+    expect(
+      screen.getByRole("link", { name: /Product portfolio/i }),
+    ).toHaveAttribute("href", "/products");
     expect(screen.queryByText(/pre-GA/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/John owns or leads/i)).not.toBeInTheDocument();
     expect(
-      await screen.findByRole("heading", {
-        name: "Automation hours, same billed labor",
-      }),
-    ).toBeInTheDocument();
-    expect(screen.getByText("2 min")).toBeInTheDocument();
-    expect(screen.getByText("from 45 min")).toBeInTheDocument();
-    expect(screen.getByText("clean")).toBeInTheDocument();
+      screen.queryByRole("heading", { name: /Browse all 14 outcomes/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("article", { name: /Outcome window/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Pause outcome window/i }),
+    ).not.toBeInTheDocument();
     expect(screen.queryByText(/never been higher/i)).not.toBeInTheDocument();
   });
 });

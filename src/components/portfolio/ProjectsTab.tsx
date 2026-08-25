@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { Edit2 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -15,6 +15,7 @@ import {
 } from "@/lib/supabase-queries";
 import { captureException } from "@/lib/sentry";
 import { toError } from "@/lib/errors";
+import { publicBuilds } from "@/data/public-builds";
 
 export default function ProjectsTab() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -58,9 +59,9 @@ export default function ProjectsTab() {
             <span className="font-mono text-sm text-primary uppercase tracking-widest">
               Experiments
             </span>
-            <h2 className="text-3xl md:text-4xl font-black text-foreground mt-2">
+            <h1 className="text-3xl md:text-4xl font-black text-foreground mt-2">
               {projectsContent?.title || "Side Projects"}
-            </h2>
+            </h1>
           </div>
           <SignedIn>
             <Button asChild variant="ghost" size="sm">
@@ -134,48 +135,63 @@ export default function ProjectsTab() {
             </Link>
           </motion.div>
 
-          {/* Business OS Platform - Static Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <Link to="/projects/business-os">
-              <Card className="overflow-hidden border border-border hover:border-primary transition-all duration-300 bg-card/50 group cursor-pointer">
-                <div className="aspect-video overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5">
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span className="font-mono text-5xl font-bold text-primary tracking-tight">
-                      BOS
-                    </span>
+          {/* Public open-source builds - Static Cards */}
+          {publicBuilds.map((build, index) => (
+            <motion.div
+              key={build.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: (index + 1) * 0.1 }}
+            >
+              <a
+                href={build.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${build.name} on GitHub`}
+              >
+                <Card className="overflow-hidden border border-border hover:border-primary transition-all duration-300 bg-card/50 group cursor-pointer">
+                  <div className="aspect-video overflow-hidden bg-gradient-to-br from-primary/15 to-primary/5">
+                    {build.image ? (
+                      <img
+                        src={build.image}
+                        alt={`${build.name} preview`}
+                        loading="lazy"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="font-mono text-4xl font-bold text-primary tracking-tight">
+                          {build.glyph}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                </div>
-                <div className="p-6">
-                  <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors mb-2">
-                    Business OS
-                  </h3>
-                  <p className="text-sm text-primary mb-2">
-                    Website & Business Platform
-                  </p>
-                  <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                    A full-stack platform for building your website with
-                    integrated business tools — CRM, AI agents, metrics, site
-                    builder, and multi-tenant support.
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline" className="font-mono text-xs">
-                      React
-                    </Badge>
-                    <Badge variant="outline" className="font-mono text-xs">
-                      Supabase
-                    </Badge>
-                    <Badge variant="outline" className="font-mono text-xs">
-                      Multi-Tenant
-                    </Badge>
+                  <div className="p-6">
+                    <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors mb-2">
+                      {build.name}
+                    </h3>
+                    <p className="text-sm text-primary mb-2">
+                      {build.category} · {build.status}
+                    </p>
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                      {build.description}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {build.tech.map((t) => (
+                        <Badge
+                          key={t}
+                          variant="outline"
+                          className="font-mono text-xs"
+                        >
+                          {t}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </Card>
-            </Link>
-          </motion.div>
+                </Card>
+              </a>
+            </motion.div>
+          ))}
 
           {/* Dynamic Projects from Supabase */}
           {projects.map((project, index) => (
@@ -183,9 +199,11 @@ export default function ProjectsTab() {
               key={project.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: (index + 2) * 0.1 }}
+              transition={{
+                delay: (index + publicBuilds.length + 1) * 0.1,
+              }}
             >
-              <Card className="overflow-hidden border border-border hover:border-primary transition-all duration-300 bg-card/50 group">
+              <ProjectCardShell url={project.external_url}>
                 {project.cover_image && (
                   <div className="aspect-video overflow-hidden">
                     <img
@@ -223,11 +241,37 @@ export default function ProjectsTab() {
                     </div>
                   )}
                 </div>
-              </Card>
+              </ProjectCardShell>
             </motion.div>
           ))}
         </div>
       )}
     </motion.div>
+  );
+}
+
+/** Card wrapper that becomes an external link when the project has one. */
+function ProjectCardShell({
+  url,
+  children,
+}: {
+  url: string | null;
+  children: ReactNode;
+}) {
+  const card = (
+    <Card
+      className={`overflow-hidden border border-border hover:border-primary transition-all duration-300 bg-card/50 group ${
+        url ? "cursor-pointer" : ""
+      }`}
+    >
+      {children}
+    </Card>
+  );
+
+  if (!url) return card;
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer">
+      {card}
+    </a>
   );
 }

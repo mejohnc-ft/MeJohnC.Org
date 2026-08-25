@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import {
   Bookmark,
   ExternalLink,
@@ -9,42 +9,43 @@ import {
   Tag,
   Sparkles,
   Loader2,
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { useSEO } from '@/lib/seo';
-import PageTransition from '@/components/PageTransition';
-import { supabase as getSupabase } from '@/lib/supabase';
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useSEO } from "@/lib/seo";
+import PageTransition from "@/components/PageTransition";
+import { getSupabase } from "@/lib/supabase";
 import {
   getPublicBookmarks,
   getBookmarkCategories,
   type Bookmark as BookmarkType,
   type BookmarkCategory,
-} from '@/lib/bookmark-queries';
+} from "@/lib/bookmark-queries";
 
 const categoryColors: Record<string, string> = {
-  articles: 'bg-blue-500/10 text-blue-500',
-  tools: 'bg-purple-500/10 text-purple-500',
-  repos: 'bg-gray-500/10 text-gray-400',
-  videos: 'bg-red-500/10 text-red-500',
-  threads: 'bg-sky-500/10 text-sky-500',
-  papers: 'bg-green-500/10 text-green-500',
-  news: 'bg-orange-500/10 text-orange-500',
-  reference: 'bg-yellow-500/10 text-yellow-500',
-  inspiration: 'bg-pink-500/10 text-pink-500',
-  other: 'bg-slate-500/10 text-slate-500',
+  articles: "bg-blue-500/10 text-blue-500",
+  tools: "bg-purple-500/10 text-purple-500",
+  repos: "bg-gray-500/10 text-gray-400",
+  videos: "bg-red-500/10 text-red-500",
+  threads: "bg-sky-500/10 text-sky-500",
+  papers: "bg-green-500/10 text-green-500",
+  news: "bg-orange-500/10 text-orange-500",
+  reference: "bg-yellow-500/10 text-yellow-500",
+  inspiration: "bg-pink-500/10 text-pink-500",
+  other: "bg-slate-500/10 text-slate-500",
 };
 
 const PublicBookmarks = () => {
   useSEO({
-    title: 'Bookmarks',
-    description: 'A curated collection of interesting articles, tools, and resources.',
+    title: "Bookmarks",
+    description:
+      "A curated collection of interesting articles, tools, and resources.",
   });
 
   const [bookmarks, setBookmarks] = useState<BookmarkType[]>([]);
   const [categories, setCategories] = useState<BookmarkCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
 
   useEffect(() => {
     const loadBookmarks = async () => {
@@ -58,7 +59,7 @@ const PublicBookmarks = () => {
         setBookmarks(bookmarksData);
         setCategories(categoriesData);
       } catch (error) {
-        console.error('Failed to load bookmarks:', error);
+        console.error("Failed to load bookmarks:", error);
       } finally {
         setIsLoading(false);
       }
@@ -68,13 +69,15 @@ const PublicBookmarks = () => {
   }, []);
 
   // Filter bookmarks
-  const filteredBookmarks = bookmarks.filter(bookmark => {
-    const matchesSearch = !searchQuery ||
+  const filteredBookmarks = bookmarks.filter((bookmark) => {
+    const matchesSearch =
+      !searchQuery ||
       bookmark.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       bookmark.ai_summary?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       bookmark.content?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesCategory = !selectedCategory ||
+    const matchesCategory =
+      !selectedCategory ||
       bookmark.ai_category === selectedCategory ||
       bookmark.category === selectedCategory;
 
@@ -82,12 +85,15 @@ const PublicBookmarks = () => {
   });
 
   // Group by category for display
-  const bookmarksByCategory = filteredBookmarks.reduce((acc, bookmark) => {
-    const cat = bookmark.ai_category || bookmark.category || 'other';
-    if (!acc[cat]) acc[cat] = [];
-    acc[cat].push(bookmark);
-    return acc;
-  }, {} as Record<string, BookmarkType[]>);
+  const bookmarksByCategory = filteredBookmarks.reduce(
+    (acc, bookmark) => {
+      const cat = bookmark.ai_category || bookmark.category || "other";
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(bookmark);
+      return acc;
+    },
+    {} as Record<string, BookmarkType[]>,
+  );
 
   return (
     <PageTransition>
@@ -108,7 +114,8 @@ const PublicBookmarks = () => {
             transition={{ delay: 0.1 }}
             className="text-lg text-muted-foreground max-w-2xl mx-auto"
           >
-            A curated collection of interesting articles, tools, and resources I've found useful.
+            A curated collection of interesting articles, tools, and resources
+            I've found useful.
           </motion.p>
         </div>
 
@@ -134,23 +141,23 @@ const PublicBookmarks = () => {
           {/* Category Filter */}
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => setSelectedCategory('')}
+              onClick={() => setSelectedCategory("")}
               className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
                 !selectedCategory
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:text-foreground'
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:text-foreground"
               }`}
             >
               All
             </button>
-            {categories.map(cat => (
+            {categories.map((cat) => (
               <button
                 key={cat.slug}
                 onClick={() => setSelectedCategory(cat.slug)}
                 className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
                   selectedCategory === cat.slug
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground hover:text-foreground'
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {cat.name}
@@ -161,7 +168,8 @@ const PublicBookmarks = () => {
 
         {/* Results Count */}
         <div className="mb-6 text-sm text-muted-foreground">
-          {filteredBookmarks.length} bookmark{filteredBookmarks.length !== 1 ? 's' : ''}
+          {filteredBookmarks.length} bookmark
+          {filteredBookmarks.length !== 1 ? "s" : ""}
         </div>
 
         {/* Loading State */}
@@ -178,8 +186,8 @@ const PublicBookmarks = () => {
             <h3 className="text-lg font-medium mb-2">No bookmarks found</h3>
             <p className="text-muted-foreground">
               {searchQuery || selectedCategory
-                ? 'Try adjusting your filters'
-                : 'Check back soon for curated content'}
+                ? "Try adjusting your filters"
+                : "Check back soon for curated content"}
             </p>
           </div>
         )}
@@ -191,7 +199,11 @@ const PublicBookmarks = () => {
               // Single category view
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {filteredBookmarks.map((bookmark, index) => (
-                  <BookmarkCard key={bookmark.id} bookmark={bookmark} index={index} />
+                  <BookmarkCard
+                    key={bookmark.id}
+                    bookmark={bookmark}
+                    index={index}
+                  />
                 ))}
               </div>
             ) : (
@@ -200,14 +212,22 @@ const PublicBookmarks = () => {
                 <div key={category}>
                   <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                     <Tag className="w-5 h-5" />
-                    {categories.find(c => c.slug === category)?.name || category}
-                    <Badge variant="outline" className={categoryColors[category] || 'bg-gray-500/10'}>
+                    {categories.find((c) => c.slug === category)?.name ||
+                      category}
+                    <Badge
+                      variant="outline"
+                      className={categoryColors[category] || "bg-gray-500/10"}
+                    >
                       {items.length}
                     </Badge>
                   </h2>
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {items.map((bookmark, index) => (
-                      <BookmarkCard key={bookmark.id} bookmark={bookmark} index={index} />
+                      <BookmarkCard
+                        key={bookmark.id}
+                        bookmark={bookmark}
+                        index={index}
+                      />
                     ))}
                   </div>
                 </div>
@@ -240,7 +260,7 @@ const BookmarkCard = ({ bookmark, index }: BookmarkCardProps) => (
       {/* Title */}
       <div className="flex items-start gap-2 mb-2">
         <h3 className="font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2 flex-1">
-          {bookmark.title || 'Untitled'}
+          {bookmark.title || "Untitled"}
         </h3>
         <ExternalLink className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
       </div>
@@ -256,8 +276,7 @@ const BookmarkCard = ({ bookmark, index }: BookmarkCardProps) => (
       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
         {bookmark.author_handle && (
           <span className="flex items-center gap-1">
-            <Twitter className="w-3 h-3" />
-            @{bookmark.author_handle}
+            <Twitter className="w-3 h-3" />@{bookmark.author_handle}
           </span>
         )}
         {bookmark.is_favorite && (
@@ -269,10 +288,14 @@ const BookmarkCard = ({ bookmark, index }: BookmarkCardProps) => (
       </div>
 
       {/* Tags */}
-      {((bookmark.ai_tags && bookmark.ai_tags.length > 0) || (bookmark.tags && bookmark.tags.length > 0)) && (
+      {((bookmark.ai_tags && bookmark.ai_tags.length > 0) ||
+        (bookmark.tags && bookmark.tags.length > 0)) && (
         <div className="flex flex-wrap gap-1 mt-3">
-          {(bookmark.ai_tags || bookmark.tags || []).slice(0, 3).map(tag => (
-            <span key={tag} className="px-2 py-0.5 text-xs bg-muted rounded-full">
+          {(bookmark.ai_tags || bookmark.tags || []).slice(0, 3).map((tag) => (
+            <span
+              key={tag}
+              className="px-2 py-0.5 text-xs bg-muted rounded-full"
+            >
               {tag}
             </span>
           ))}

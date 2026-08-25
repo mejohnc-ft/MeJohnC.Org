@@ -1,11 +1,17 @@
-import { useState, useEffect, useCallback, lazy, Suspense } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  lazy,
+  Suspense,
+} from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
-import { DownArrowHint } from "@/components/ArrowHints";
 import { useAuth } from "@/lib/auth";
 import { useKeyboardFocus } from "@/lib/keyboard-focus";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
   useSEO,
   useJsonLd,
@@ -17,10 +23,6 @@ import {
 } from "@/lib/seo";
 import { prefetchTabData } from "@/lib/prefetch";
 import { analytics } from "@/lib/analytics";
-import {
-  resolveTimelineTrack,
-  type TimelineTrackId,
-} from "@/data/timeline-tracks";
 
 // Eager load Work tab (most common landing)
 import { WorkTab } from "@/components/portfolio";
@@ -32,11 +34,18 @@ const ContentTab = lazy(() => import("@/components/portfolio/ContentTab"));
 
 type TabId = "work" | "projects" | "software" | "content";
 
+const TAB_PATHS: Record<TabId, string> = {
+  work: "/work",
+  projects: "/projects",
+  software: "/products",
+  content: "/speaking",
+};
+
 const tabs: { id: TabId; label: string }[] = [
-  { id: "work", label: "Work" },
+  { id: "work", label: "Career" },
   { id: "projects", label: "Projects" },
-  { id: "software", label: "Software" },
-  { id: "content", label: "Content" },
+  { id: "software", label: "Products" },
+  { id: "content", label: "Speaking" },
 ];
 
 // Tab loading fallback
@@ -48,50 +57,70 @@ function TabLoader() {
   );
 }
 
-const Portfolio = () => {
+interface PortfolioProps {
+  initialTab?: TabId;
+}
+
+const Portfolio = ({ initialTab = "work" }: PortfolioProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const tabFromUrl = searchParams.get("tab") as TabId | null;
   const [activeTab, setActiveTab] = useState<TabId>(
-    tabFromUrl && tabs.some((t) => t.id === tabFromUrl) ? tabFromUrl : "work",
+    tabFromUrl && tabs.some((t) => t.id === tabFromUrl)
+      ? tabFromUrl
+      : initialTab,
   );
-  const [activeTrack, setActiveTrack] = useState<TimelineTrackId>(() =>
-    resolveTimelineTrack(searchParams.get("track")),
-  );
+  const tabRefs = useRef<Record<TabId, HTMLButtonElement | null>>({
+    work: null,
+    projects: null,
+    software: null,
+    content: null,
+  });
   useAuth(); // Keep auth context active
+
+  useEffect(() => {
+    const nextTab = searchParams.get("tab");
+    setActiveTab(
+      nextTab && tabs.some((tab) => tab.id === nextTab)
+        ? (nextTab as TabId)
+        : initialTab,
+    );
+  }, [initialTab, searchParams]);
 
   const seoForTab = (() => {
     if (activeTab === "content") {
       return {
-        title: "Content & Talks",
+        title: "Speaking & Writing",
         description:
           "Writing, timestamped talks, and curated AI news from Jonathan Christensen — AI automation, governed agents, and IT operations.",
-        url: "/portfolio?tab=content",
+        url: "/speaking",
         keywords: RECRUITING_KEYWORDS,
       };
     }
-    if (activeTab === "work" && activeTrack === "ai-products") {
+    if (activeTab === "software") {
       return {
-        title: "AI Products",
+        title: "AI Products & Software",
         description:
-          "Governed AI for the Enterprise work I ship. Categories: Service Delivery, Portfolio Management, Deep Research / Technical investigations, Multimodal Enterprise Agent, Agentic Application OS Platform, Agent and Compute Federation Platform, and DevOps Teammate.",
-        url: "/portfolio?track=ai-products",
+          "Products and software Jonathan Christensen has led or shipped: governed enterprise AI, service-delivery automation, application platforms, and public builds.",
+        url: "/products",
         keywords: RECRUITING_KEYWORDS,
       };
     }
-    if (activeTab === "work" && activeTrack === "endpoint-logistics") {
+    if (activeTab === "projects") {
       return {
-        title: "Endpoint Logistics",
+        title: "Side Projects",
         description:
-          "Provisioning roadmap: COVID backlog, Immy.Bot, one-touch provisioning, Autopilot and 3PL. Endpoint logistics transformation at centrexIT.",
-        url: "/portfolio?track=endpoint-logistics",
+          "Side projects and public builds from Jonathan Christensen, alongside the professional AI automation portfolio.",
+        url: "/projects",
         keywords: RECRUITING_KEYWORDS,
       };
     }
     return {
-      title: "Portfolio",
+      title: "AI Automation Experience",
       description:
-        "Portfolio of Jonathan Christensen, AI Automation Engineer: governed AI products, endpoint logistics, Microsoft 365, Azure, and lab-ready IT systems.",
-      url: "/portfolio",
+        "Jonathan Christensen's forward-deployed engineering impact: operational transformation, governed AI automation, product strategy, measurable time returned, and cross-department delivery.",
+      url: "/work",
       keywords: RECRUITING_KEYWORDS,
     };
   })();
@@ -107,63 +136,53 @@ const Portfolio = () => {
   const tabsFocused = focusLevel === "tabs";
 
   // Focus tabs explicitly (via down arrow or tab click)
-  const focusTabs = useCallback(() => {
-    setFocusLevel("tabs");
-  }, [setFocusLevel]);
+  const focusTabs = useCallback(
+    (tabId: TabId = activeTab) => {
+      setFocusLevel("tabs");
+      tabRefs.current[tabId]?.focus();
+    },
+    [activeTab, setFocusLevel],
+  );
 
   // Unfocus tabs (via up arrow - return to main nav level)
   const unfocusTabs = useCallback(() => {
     setFocusLevel("nav");
   }, [setFocusLevel]);
 
-  // Focus timeline (via down arrow from tabs, only on Work tab)
-  const focusTimeline = useCallback(() => {
-    setFocusLevel("timeline");
-  }, [setFocusLevel]);
-
-  const handleTrackChange = useCallback(
-    (trackId: TimelineTrackId) => {
-      setActiveTrack(trackId);
-      if (activeTab !== "work") return;
-      if (trackId === "ai-products") {
-        setSearchParams({});
-      } else {
-        setSearchParams({ track: trackId });
-      }
-    },
-    [activeTab, setSearchParams],
-  );
-
   // Update URL when tab changes
   const handleTabChange = useCallback(
     (tabId: TabId) => {
       setActiveTab(tabId);
-      focusTabs(); // Clicking a tab focuses the tabs
+      focusTabs(tabId);
       analytics.trackTabChange(tabId);
-      if (tabId === "work") {
-        if (activeTrack === "ai-products") {
+      if (location.pathname === "/portfolio") {
+        if (tabId === "work") {
           setSearchParams({});
         } else {
-          setSearchParams({ track: activeTrack });
+          setSearchParams({ tab: tabId });
         }
       } else {
-        setSearchParams({ tab: tabId });
+        navigate(TAB_PATHS[tabId]);
       }
     },
-    [setSearchParams, focusTabs, activeTrack],
+    [focusTabs, location.pathname, navigate, setSearchParams],
   );
 
   // Navigate to next/previous tab
   const goToNextTab = useCallback(() => {
     const currentIndex = tabs.findIndex((t) => t.id === activeTab);
     const nextIndex = (currentIndex + 1) % tabs.length;
-    handleTabChange(tabs[nextIndex].id);
+    const nextTab = tabs[nextIndex].id;
+    handleTabChange(nextTab);
+    tabRefs.current[nextTab]?.focus();
   }, [activeTab, handleTabChange]);
 
   const goToPrevTab = useCallback(() => {
     const currentIndex = tabs.findIndex((t) => t.id === activeTab);
     const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
-    handleTabChange(tabs[prevIndex].id);
+    const previousTab = tabs[prevIndex].id;
+    handleTabChange(previousTab);
+    tabRefs.current[previousTab]?.focus();
   }, [activeTab, handleTabChange]);
 
   // Keyboard navigation for tabs - only when tabs are explicitly focused
@@ -178,36 +197,24 @@ const Portfolio = () => {
         return;
       }
       if (e.key === "ArrowRight") {
+        e.preventDefault();
         e.stopImmediatePropagation(); // Prevent Layout from also navigating
         goToNextTab();
       } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
         e.stopImmediatePropagation(); // Prevent Layout from also navigating
         goToPrevTab();
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
         e.stopImmediatePropagation();
         unfocusTabs(); // Return to main nav level
-      } else if (e.key === "ArrowDown") {
-        // Only go to timeline if on Work tab
-        if (activeTab === "work") {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-          focusTimeline();
-        }
       }
     };
 
     // Use capture phase to handle before Layout
     window.addEventListener("keydown", handleKeyDown, true);
     return () => window.removeEventListener("keydown", handleKeyDown, true);
-  }, [
-    goToNextTab,
-    goToPrevTab,
-    tabsFocused,
-    unfocusTabs,
-    activeTab,
-    focusTimeline,
-  ]);
+  }, [goToNextTab, goToPrevTab, tabsFocused, unfocusTabs]);
 
   // Down arrow to focus tabs (only when at nav level)
   useEffect(() => {
@@ -222,7 +229,7 @@ const Portfolio = () => {
       }
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        focusTabs(); // Focus the tab bar
+        focusTabs();
       }
     };
 
@@ -245,19 +252,19 @@ const Portfolio = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-[calc(100vh-4rem)] py-8 px-6">
+      <div className="min-h-[calc(100vh-4rem)] px-6 pb-10 pt-4">
         <div className="max-w-6xl mx-auto">
           {/* Tab Navigation */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="flex flex-col items-center mb-12"
+            className="mb-10 border-b border-border/70"
           >
             <div
               role="tablist"
               aria-label="Portfolio sections"
-              className="flex justify-center items-center gap-8"
+              className="flex items-center justify-center gap-5 sm:gap-8"
             >
               {tabs.map((tab) => (
                 <button
@@ -267,6 +274,9 @@ const Portfolio = () => {
                   aria-selected={activeTab === tab.id}
                   aria-controls={`tabpanel-${tab.id}`}
                   tabIndex={activeTab === tab.id ? 0 : -1}
+                  ref={(element) => {
+                    tabRefs.current[tab.id] = element;
+                  }}
                   onClick={() => handleTabChange(tab.id)}
                   onMouseEnter={() =>
                     tab.id !== "work" &&
@@ -280,52 +290,22 @@ const Portfolio = () => {
                       tab.id as "projects" | "software" | "content",
                     )
                   }
-                  className="flex flex-col items-center gap-3 group"
+                  className={`relative px-1 pb-3 pt-2 font-mono text-xs tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                    activeTab === tab.id
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
                 >
-                  {/* Dot indicator */}
-                  <motion.div
-                    className={`w-4 h-4 rounded-full transition-all duration-300 ${
-                      activeTab === tab.id
-                        ? "bg-primary scale-125"
-                        : "bg-muted-foreground/30 group-hover:bg-muted-foreground/50"
-                    }`}
-                    style={{
-                      filter:
-                        activeTab === tab.id && tabsFocused
-                          ? "drop-shadow(0 0 8px hsl(var(--primary))) drop-shadow(0 0 16px hsl(var(--primary)))"
-                          : "none",
-                    }}
-                    animate={{
-                      scale: activeTab === tab.id ? [1, 1.2, 1] : 1,
-                    }}
-                    transition={{
-                      duration: 0.5,
-                      repeat: activeTab === tab.id ? Infinity : 0,
-                      repeatDelay: 2,
-                    }}
-                  />
-                  {/* Label */}
-                  <span
-                    className={`font-mono text-sm uppercase tracking-wider transition-all ${
-                      activeTab === tab.id
-                        ? "text-primary"
-                        : "text-muted-foreground group-hover:text-foreground"
-                    }`}
-                    style={{
-                      textShadow:
-                        activeTab === tab.id && tabsFocused
-                          ? "0 0 8px hsl(var(--primary)), 0 0 16px hsl(var(--primary))"
-                          : "none",
-                    }}
-                  >
-                    {tab.label}
-                  </span>
+                  {tab.label}
+                  {activeTab === tab.id && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute inset-x-0 -bottom-px h-px bg-primary"
+                    />
+                  )}
                 </button>
               ))}
             </div>
-
-            {/* Down arrow hint below tabs */}
-            <DownArrowHint />
           </motion.div>
 
           {/* Tab Content with slide animation and swipe support */}
@@ -340,14 +320,7 @@ const Portfolio = () => {
             onDragEnd={handleDragEnd}
           >
             <AnimatePresence mode="wait">
-              {activeTab === "work" && (
-                <WorkTab
-                  key="work"
-                  onRequestFocusUp={focusTabs}
-                  activeTrack={activeTrack}
-                  onTrackChange={handleTrackChange}
-                />
-              )}
+              {activeTab === "work" && <WorkTab key="work" />}
               {activeTab === "projects" && (
                 <Suspense key="projects" fallback={<TabLoader />}>
                   <ProjectsTab />
