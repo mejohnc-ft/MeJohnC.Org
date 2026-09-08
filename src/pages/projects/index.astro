@@ -1,0 +1,5 @@
+---
+import Base from '../../layouts/Base.astro';
+import { publicBuilds } from '../../data/public-builds';
+---
+<Base title="Projects" description="Public software and experiments by Jonathan Christensen, including Territories, M365 reporting, Shot Pill, and Cadre."><h1>Projects</h1><p><a href="/projects/service-toolbox/">Service Toolbox</a> · <a href="/projects/client-toolbox/">Client Toolbox</a> · <a href="/projects/vantage/">Vantage</a> — interactive replicas of my work.</p><p>Public tools, source code, and experiments.</p><ul class="work-list"><li><a href="/projects/territories/">Territories</a><p>A standalone design reference explorer: visual styles, comparisons, and design history. Runs in your browser.</p></li>{publicBuilds.map(project => <li><a href={`/projects/${project.id}/`}>{project.name}</a>{project.status === 'Alpha' && <span class="tag">Alpha</span>}<p>{project.description}</p></li>)}</ul><h2>Work at centrexIT</h2><p><a href="/years/2026/">Service desk automation</a> · <a href="/products/">Product archive</a></p></Base>

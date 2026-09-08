@@ -1,0 +1,615 @@
+{
+  "aurora": {
+    "projects": [
+      "portfolio",
+      "publication"
+    ],
+    "tone": "bold",
+    "density": "spacious",
+    "expression": "atmospheric",
+    "effort": "medium",
+    "imagery": "Atmosphere comes from a gradient; custom images are optional.",
+    "treatment": "glow"
+  },
+  "pixel-art": {
+    "projects": [
+      "portfolio",
+      "store"
+    ],
+    "tone": "bold",
+    "density": "compact",
+    "expression": "illustrated",
+    "effort": "medium",
+    "imagery": "A small original sprite set gives this direction its identity.",
+    "treatment": "pixel"
+  },
+  "japandi": {
+    "projects": [
+      "store",
+      "portfolio"
+    ],
+    "tone": "quiet",
+    "density": "spacious",
+    "expression": "restrained",
+    "effort": "low",
+    "imagery": "Material or product photographs do much of the expressive work.",
+    "treatment": "quiet"
+  },
+  "bauhaus": {
+    "projects": [
+      "publication",
+      "portfolio"
+    ],
+    "tone": "bold",
+    "density": "compact",
+    "expression": "geometric",
+    "effort": "low",
+    "imagery": "Simple geometric artwork can be made with CSS or SVG.",
+    "treatment": "geometric"
+  },
+  "brutalism": {
+    "projects": [
+      "portfolio",
+      "publication",
+      "internal-tool"
+    ],
+    "tone": "bold",
+    "density": "compact",
+    "expression": "structural",
+    "effort": "low",
+    "imagery": "Type, rules, and content can carry the page without images.",
+    "treatment": "hard"
+  },
+  "bento-box": {
+    "projects": [
+      "portfolio",
+      "store",
+      "internal-tool"
+    ],
+    "tone": "quiet",
+    "density": "compact",
+    "expression": "structural",
+    "effort": "medium",
+    "imagery": "Choose a useful preview or summary for each card.",
+    "treatment": "grid"
+  },
+  "utilitarian": {
+    "projects": [
+      "internal-tool",
+      "publication"
+    ],
+    "tone": "quiet",
+    "density": "compact",
+    "expression": "structural",
+    "effort": "low",
+    "imagery": "Real labels, units, and status data matter more than imagery.",
+    "treatment": "quiet"
+  },
+  "neo-frutiger-aero": {
+    "projects": [
+      "portfolio",
+      "store"
+    ],
+    "tone": "bold",
+    "density": "spacious",
+    "expression": "atmospheric",
+    "effort": "medium",
+    "imagery": "Glossy objects or nature imagery help establish the mood.",
+    "treatment": "glow"
+  },
+  "glassmorphism": {
+    "projects": [
+      "portfolio",
+      "internal-tool"
+    ],
+    "tone": "quiet",
+    "density": "spacious",
+    "expression": "atmospheric",
+    "effort": "medium",
+    "imagery": "Glass needs a background with enough variation to reveal it.",
+    "treatment": "glass"
+  },
+  "neo-brutalism": {
+    "projects": [
+      "portfolio",
+      "store",
+      "internal-tool"
+    ],
+    "tone": "bold",
+    "density": "compact",
+    "expression": "structural",
+    "effort": "low",
+    "imagery": "Flat fills, borders, and hard shadows work without illustration.",
+    "treatment": "hard"
+  },
+  "luxury-typography": {
+    "projects": [
+      "store",
+      "publication",
+      "portfolio"
+    ],
+    "tone": "quiet",
+    "density": "spacious",
+    "expression": "editorial",
+    "effort": "low",
+    "imagery": "Strong photography is valuable for a product-led treatment.",
+    "treatment": "editorial"
+  },
+  "memphis": {
+    "projects": [
+      "portfolio",
+      "store"
+    ],
+    "tone": "bold",
+    "density": "spacious",
+    "expression": "geometric",
+    "effort": "medium",
+    "imagery": "A small set of original patterns gives the page coherence.",
+    "treatment": "geometric"
+  },
+  "art-deco": {
+    "projects": [
+      "store",
+      "publication"
+    ],
+    "tone": "bold",
+    "density": "spacious",
+    "expression": "ornamental",
+    "effort": "medium",
+    "imagery": "A repeatable geometric frame is more useful than many stock ornaments.",
+    "treatment": "ornate"
+  },
+  "pop-art": {
+    "projects": [
+      "publication",
+      "store",
+      "portfolio"
+    ],
+    "tone": "bold",
+    "density": "compact",
+    "expression": "illustrated",
+    "effort": "medium",
+    "imagery": "Recognizable subject imagery is central to the effect.",
+    "treatment": "collage"
+  },
+  "mid-century": {
+    "projects": [
+      "store",
+      "portfolio",
+      "publication"
+    ],
+    "tone": "quiet",
+    "density": "spacious",
+    "expression": "geometric",
+    "effort": "medium",
+    "imagery": "Simple organic illustration supports the warm palette.",
+    "treatment": "geometric"
+  },
+  "modular-typography": {
+    "projects": [
+      "portfolio",
+      "publication"
+    ],
+    "tone": "bold",
+    "density": "compact",
+    "expression": "structural",
+    "effort": "medium",
+    "imagery": "Constructed display lettering needs intentional letterform work.",
+    "treatment": "grid"
+  },
+  "retro-y2k": {
+    "projects": [
+      "portfolio",
+      "store"
+    ],
+    "tone": "bold",
+    "density": "spacious",
+    "expression": "atmospheric",
+    "effort": "medium",
+    "imagery": "A single original chrome or translucent object can anchor the page.",
+    "treatment": "glow"
+  },
+  "cybercore": {
+    "projects": [
+      "portfolio",
+      "publication"
+    ],
+    "tone": "bold",
+    "density": "compact",
+    "expression": "atmospheric",
+    "effort": "medium",
+    "imagery": "Static digital artwork works; fake live telemetry does not add value.",
+    "treatment": "neon"
+  },
+  "synthwave": {
+    "projects": [
+      "portfolio",
+      "publication",
+      "store"
+    ],
+    "tone": "bold",
+    "density": "spacious",
+    "expression": "atmospheric",
+    "effort": "medium",
+    "imagery": "A horizon or poster illustration carries the genre reference.",
+    "treatment": "neon"
+  },
+  "vaporwave": {
+    "projects": [
+      "portfolio",
+      "publication"
+    ],
+    "tone": "bold",
+    "density": "spacious",
+    "expression": "illustrated",
+    "effort": "medium",
+    "imagery": "A purposeful collage matters more than adding random retro symbols.",
+    "treatment": "collage"
+  },
+  "coquette": {
+    "projects": [
+      "store",
+      "portfolio"
+    ],
+    "tone": "quiet",
+    "density": "spacious",
+    "expression": "ornamental",
+    "effort": "medium",
+    "imagery": "A small ribbon or floral motif is sufficient to establish a theme.",
+    "treatment": "soft"
+  },
+  "dark-academia": {
+    "projects": [
+      "publication",
+      "portfolio"
+    ],
+    "tone": "quiet",
+    "density": "spacious",
+    "expression": "editorial",
+    "effort": "low",
+    "imagery": "Book and archive imagery is helpful but not required for readable notes.",
+    "treatment": "editorial"
+  },
+  "light-academia": {
+    "projects": [
+      "publication",
+      "portfolio"
+    ],
+    "tone": "quiet",
+    "density": "spacious",
+    "expression": "editorial",
+    "effort": "low",
+    "imagery": "Paper tone and typesetting can carry a text-led page.",
+    "treatment": "editorial"
+  },
+  "anthropomorphic": {
+    "projects": [
+      "store",
+      "portfolio"
+    ],
+    "tone": "bold",
+    "density": "spacious",
+    "expression": "illustrated",
+    "effort": "medium",
+    "imagery": "An original character and a few consistent expressions are needed.",
+    "treatment": "soft"
+  },
+  "bohemian": {
+    "projects": [
+      "store",
+      "portfolio"
+    ],
+    "tone": "quiet",
+    "density": "spacious",
+    "expression": "illustrated",
+    "effort": "medium",
+    "imagery": "Specific, credited material imagery is more useful than generic patterns.",
+    "treatment": "collage"
+  },
+  "shabby-chic": {
+    "projects": [
+      "store",
+      "publication"
+    ],
+    "tone": "quiet",
+    "density": "spacious",
+    "expression": "ornamental",
+    "effort": "medium",
+    "imagery": "Use a restrained floral or worn-paper image treatment.",
+    "treatment": "ornate"
+  },
+  "cottagecore": {
+    "projects": [
+      "publication",
+      "store",
+      "portfolio"
+    ],
+    "tone": "quiet",
+    "density": "spacious",
+    "expression": "illustrated",
+    "effort": "medium",
+    "imagery": "Garden, craft, or process photography grounds the visual mood.",
+    "treatment": "soft"
+  },
+  "wabi-sabi": {
+    "projects": [
+      "portfolio",
+      "store",
+      "publication"
+    ],
+    "tone": "quiet",
+    "density": "spacious",
+    "expression": "restrained",
+    "effort": "low",
+    "imagery": "Real material variation is difficult to replace with a generic texture.",
+    "treatment": "quiet"
+  },
+  "neoclassical": {
+    "projects": [
+      "publication",
+      "store"
+    ],
+    "tone": "quiet",
+    "density": "spacious",
+    "expression": "editorial",
+    "effort": "low",
+    "imagery": "A balanced layout can work with a single object or architectural image.",
+    "treatment": "editorial"
+  },
+  "baroque": {
+    "projects": [
+      "publication",
+      "store"
+    ],
+    "tone": "bold",
+    "density": "spacious",
+    "expression": "ornamental",
+    "effort": "medium",
+    "imagery": "One dramatic artwork and a controlled frame establish the direction.",
+    "treatment": "ornate"
+  },
+  "victorian": {
+    "projects": [
+      "publication",
+      "store"
+    ],
+    "tone": "bold",
+    "density": "compact",
+    "expression": "ornamental",
+    "effort": "medium",
+    "imagery": "One period-inspired title or border needs careful drawing or sourcing.",
+    "treatment": "ornate"
+  },
+  "art-nouveau": {
+    "projects": [
+      "publication",
+      "store",
+      "portfolio"
+    ],
+    "tone": "quiet",
+    "density": "spacious",
+    "expression": "ornamental",
+    "effort": "medium",
+    "imagery": "A coherent botanical line drawing is the main asset investment.",
+    "treatment": "ornate"
+  },
+  "gothic": {
+    "projects": [
+      "publication",
+      "portfolio"
+    ],
+    "tone": "bold",
+    "density": "spacious",
+    "expression": "ornamental",
+    "effort": "medium",
+    "imagery": "Architectural or genre artwork helps clarify which interpretation you mean.",
+    "treatment": "ornate"
+  },
+  "steampunk": {
+    "projects": [
+      "portfolio",
+      "publication"
+    ],
+    "tone": "bold",
+    "density": "compact",
+    "expression": "ornamental",
+    "effort": "high",
+    "imagery": "Coherent fictional machinery takes more work than decorative gears.",
+    "treatment": "ornate"
+  },
+  "ethereal": {
+    "projects": [
+      "portfolio",
+      "publication"
+    ],
+    "tone": "quiet",
+    "density": "spacious",
+    "expression": "atmospheric",
+    "effort": "medium",
+    "imagery": "Luminous photography or illustration carries the effect.",
+    "treatment": "glow"
+  },
+  "filigree": {
+    "projects": [
+      "store",
+      "publication"
+    ],
+    "tone": "quiet",
+    "density": "spacious",
+    "expression": "ornamental",
+    "effort": "high",
+    "imagery": "Intricate vector ornament needs attention at multiple display sizes.",
+    "treatment": "ornate"
+  },
+  "acanthus": {
+    "projects": [
+      "publication",
+      "store"
+    ],
+    "tone": "quiet",
+    "density": "spacious",
+    "expression": "ornamental",
+    "effort": "medium",
+    "imagery": "A specific, reusable leaf motif is preferable to generic florals.",
+    "treatment": "ornate"
+  },
+  "conceptual-sketch": {
+    "projects": [
+      "portfolio",
+      "internal-tool"
+    ],
+    "tone": "quiet",
+    "density": "compact",
+    "expression": "structural",
+    "effort": "low",
+    "imagery": "Original annotations or a simple diagram can supply the sketch layer.",
+    "treatment": "sketch"
+  },
+  "tenebrism": {
+    "projects": [
+      "portfolio",
+      "publication"
+    ],
+    "tone": "bold",
+    "density": "spacious",
+    "expression": "atmospheric",
+    "effort": "medium",
+    "imagery": "A strongly lit subject image is essential to a full treatment.",
+    "treatment": "editorial"
+  },
+  "pointillism": {
+    "projects": [
+      "publication",
+      "portfolio"
+    ],
+    "tone": "bold",
+    "density": "spacious",
+    "expression": "illustrated",
+    "effort": "high",
+    "imagery": "An actual dotted illustration is needed beyond the neutral interface layer.",
+    "treatment": "dots"
+  },
+  "mixed-media": {
+    "projects": [
+      "portfolio",
+      "publication"
+    ],
+    "tone": "bold",
+    "density": "spacious",
+    "expression": "illustrated",
+    "effort": "medium",
+    "imagery": "Prepare a small set of photographs and drawn or cut-paper overlays.",
+    "treatment": "collage"
+  },
+  "surrealism": {
+    "projects": [
+      "portfolio",
+      "publication"
+    ],
+    "tone": "bold",
+    "density": "spacious",
+    "expression": "illustrated",
+    "effort": "high",
+    "imagery": "One meaningful impossible image is the main creative investment.",
+    "treatment": "collage"
+  },
+  "mystical-western": {
+    "projects": [
+      "publication",
+      "store"
+    ],
+    "tone": "bold",
+    "density": "spacious",
+    "expression": "illustrated",
+    "effort": "medium",
+    "imagery": "Landscape and symbol choices need to form a coherent scene.",
+    "treatment": "ornate"
+  },
+  "kitsch": {
+    "projects": [
+      "store",
+      "portfolio",
+      "publication"
+    ],
+    "tone": "bold",
+    "density": "compact",
+    "expression": "illustrated",
+    "effort": "medium",
+    "imagery": "A clear subject for the excess keeps the imagery purposeful.",
+    "treatment": "collage"
+  },
+  "graffiti": {
+    "projects": [
+      "portfolio",
+      "publication"
+    ],
+    "tone": "bold",
+    "density": "compact",
+    "expression": "illustrated",
+    "effort": "high",
+    "imagery": "Original or credited lettering is central; a texture alone is insufficient.",
+    "treatment": "hard"
+  },
+  "scrapbook": {
+    "projects": [
+      "portfolio",
+      "publication"
+    ],
+    "tone": "quiet",
+    "density": "spacious",
+    "expression": "illustrated",
+    "effort": "medium",
+    "imagery": "Personal photographs and nearby captions give the layers a reason to exist.",
+    "treatment": "collage"
+  },
+  "southwest": {
+    "projects": [
+      "publication",
+      "store",
+      "portfolio"
+    ],
+    "tone": "quiet",
+    "density": "spacious",
+    "expression": "illustrated",
+    "effort": "medium",
+    "imagery": "Place-specific photographs and material references are useful.",
+    "treatment": "editorial"
+  },
+  "nautical": {
+    "projects": [
+      "publication",
+      "store",
+      "internal-tool"
+    ],
+    "tone": "quiet",
+    "density": "compact",
+    "expression": "structural",
+    "effort": "low",
+    "imagery": "Clear markings can work without decorative sailing imagery.",
+    "treatment": "quiet"
+  },
+  "rebus": {
+    "projects": [
+      "publication",
+      "portfolio"
+    ],
+    "tone": "bold",
+    "density": "compact",
+    "expression": "illustrated",
+    "effort": "medium",
+    "imagery": "Create a coherent image-word puzzle and a text equivalent.",
+    "treatment": "grid"
+  },
+  "kawaii": {
+    "projects": [
+      "store",
+      "portfolio"
+    ],
+    "tone": "bold",
+    "density": "spacious",
+    "expression": "illustrated",
+    "effort": "medium",
+    "imagery": "A consistent character or sticker set provides the expressive layer.",
+    "treatment": "soft"
+  }
+}

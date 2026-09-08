@@ -1,0 +1,1558 @@
+{
+  "aurora": {
+    "overview": "A lighting treatment built from broad, luminous color fields. It supplies atmosphere behind an interface rather than a navigation model.",
+    "cues": [
+      "Diffuse gradients",
+      "Dark grounding surface",
+      "Sparse luminous accents"
+    ],
+    "steps": [
+      "Keep the gradient behind the header",
+      "Put body text on an opaque panel",
+      "Use one accent for the primary action"
+    ],
+    "avoid": "Animating the entire background or placing small text over changing colors.",
+    "example": "A music discovery page with an aurora header and solid album rows.",
+    "type": "sans",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Use a medium-weight sans-serif. Keep luminous effects off the letterforms.",
+    "palette": {
+      "surface": "#101024",
+      "accent": "#9d72d9"
+    },
+    "referenceNote": "Look at the large blue light fields and soft-edged color transitions. These poster treatments suggest atmosphere; they do not demonstrate a complete interface.",
+    "timeMachine": {
+      "family": "Contemporary interfaces",
+      "familyOrder": 7,
+      "position": 0,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "pixel-art": {
+    "overview": "An image-making approach where the placement of individual pixels is visible and deliberate. Pixel illustration does not require pixel-sized interface controls.",
+    "cues": [
+      "Visible pixel grid",
+      "Restricted palette",
+      "Stepped silhouettes"
+    ],
+    "steps": [
+      "Draw icons on a consistent source grid",
+      "Scale artwork by whole-number multiples",
+      "Pair display lettering with normal body text"
+    ],
+    "avoid": "Blurry scaling, tiny bitmap paragraphs, or controls whose hit areas are only as large as their sprites.",
+    "example": "A game library with pixel cover art and readable save-file details.",
+    "type": "mono",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "A bitmap display face can work for a short title; use a normal-width monospace or sans-serif for descriptions.",
+    "palette": {
+      "surface": "#151525",
+      "accent": "#f8b800"
+    },
+    "referenceNote": "Compare the deliberately stepped silhouettes and limited colors. Some tiles are broader retro illustration references, so inspect the pixel construction rather than assuming every tile uses the same technique.",
+    "timeMachine": {
+      "family": "Digital nostalgia",
+      "familyOrder": 6,
+      "position": 0,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "japandi": {
+    "overview": "A contemporary interiors-inspired blend of restrained Japanese and Scandinavian references. For screens, the useful translation is material warmth and economical composition.",
+    "cues": [
+      "Warm neutrals",
+      "Uncluttered arrangement",
+      "Natural material imagery"
+    ],
+    "steps": [
+      "Use one quiet surface color",
+      "Align content to a simple grid",
+      "Make product photography carry the texture"
+    ],
+    "avoid": "Treating beige as the whole concept or reducing text contrast to create calm.",
+    "example": "A furniture catalog with oak photography, generous gutters, and direct product information.",
+    "type": "sans",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Choose an understated sans-serif with open counters. Avoid excessive tracking in body copy.",
+    "palette": {
+      "surface": "#faf8f5",
+      "accent": "#677a65"
+    },
+    "referenceNote": "Notice the warm paper tones, simplified objects, and generous margins. The board is an interiors-and-print interpretation rather than an example of Japanese interface conventions.",
+    "timeMachine": {
+      "family": "Craft, place & natural materials",
+      "familyOrder": 4,
+      "position": 1,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "bauhaus": {
+    "overview": "A modern screen interpretation of the Bauhaus school, which operated from 1919 to 1933. Geometric studies are a useful reference, but red-yellow-blue graphics are only one part of its varied output.",
+    "cues": [
+      "Geometric composition",
+      "Visible hierarchy",
+      "Economical forms"
+    ],
+    "steps": [
+      "Use a modular grid",
+      "Let one geometric form anchor the composition",
+      "Assign primary colors distinct visual roles"
+    ],
+    "avoid": "Reducing the school to decorative circles or claiming every Bauhaus work rejected ornament in the same way.",
+    "example": "An exhibition index with a geometric title panel and disciplined event rows.",
+    "type": "sans",
+    "source": {
+      "label": "The Met: The Bauhaus, 1919–1933",
+      "url": "https://www.metmuseum.org/essays/the-bauhaus-1919-1933"
+    },
+    "context": "1919–1933",
+    "typeAdvice": "Use a geometric sans-serif for display and a readable sans-serif for details; geometry should not distort long text.",
+    "timelineYear": 1919,
+    "palette": {
+      "surface": "#ffffff",
+      "accent": "#e53935"
+    },
+    "referenceNote": "Compare the geometric balance, color blocks, and directional lettering. These are contemporary poster references, not a catalog of original Bauhaus works.",
+    "timeMachine": {
+      "family": "Modernism & structure",
+      "familyOrder": 2,
+      "position": 0,
+      "period": "1919–1933",
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "brutalism": {
+    "overview": "A web approach that exposes structure through plain typography, hard boundaries, and direct links. Its architectural namesake is an analogy, not a prescription for bad usability.",
+    "cues": [
+      "Visible structure",
+      "Hard edges",
+      "Unembellished controls"
+    ],
+    "steps": [
+      "Use explicit link text",
+      "Separate sections with rules",
+      "Make every action respond immediately"
+    ],
+    "avoid": "Confusing deliberate roughness with broken navigation, tiny text, or inaccessible contrast.",
+    "example": "A project archive with oversized titles, underlined links, and no entrance sequence.",
+    "type": "mono",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "System sans-serif or monospace works well. Large size and explicit links matter more than a novelty font.",
+    "palette": {
+      "surface": "#ffffff",
+      "accent": "#000000"
+    },
+    "referenceNote": "The board combines architectural imagery and forceful print typography. Translate its visible structure into web layout; a concrete building photograph alone does not demonstrate web brutalism.",
+    "timeMachine": {
+      "family": "Modernism & structure",
+      "familyOrder": 2,
+      "position": 5,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "bento-box": {
+    "overview": "A layout pattern using differently sized cards within a shared grid. The hierarchy comes from card size and grouping rather than from a particular color palette.",
+    "cues": [
+      "Modular cards",
+      "Shared gutters",
+      "Unequal emphasis"
+    ],
+    "steps": [
+      "Choose one lead card",
+      "Give each card a single purpose",
+      "Define the mobile reading order before adding spans"
+    ],
+    "avoid": "Making everything a card, cropping essential content to fixed heights, or changing the reading order on mobile.",
+    "example": "A product overview with one demonstration, two capabilities, and a compact release note.",
+    "type": "sans",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Keep one sans-serif family across cards. Use size and weight to distinguish the lead card from supporting information.",
+    "palette": {
+      "surface": "#f5f5f5",
+      "accent": "#0066cc"
+    },
+    "referenceNote": "Notice how different image and text blocks fit a shared grid. Check which block leads each composition and how the smaller blocks support it.",
+    "timeMachine": {
+      "family": "Contemporary interfaces",
+      "familyOrder": 7,
+      "position": 3,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "utilitarian": {
+    "overview": "A task-oriented approach that makes information easy to compare and actions easy to repeat. Density is useful only when it reduces work for the reader.",
+    "cues": [
+      "Explicit labels",
+      "Aligned data",
+      "Predictable controls"
+    ],
+    "steps": [
+      "Align numbers and show units",
+      "Keep filters near the results",
+      "Use status text alongside color"
+    ],
+    "avoid": "Hiding important actions in icon-only menus or showing more metrics than a decision needs.",
+    "example": "An operations queue with owner, state, age, and one clear next action per row.",
+    "type": "sans",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Use a legible sans-serif and tabular numerals for comparable values. Reserve monospace for identifiers.",
+    "palette": {
+      "surface": "#f5f5f5",
+      "accent": "#1565c0"
+    },
+    "referenceNote": "The examples use restrained grids, alignment, and clear numerical detail. They are mostly graphic layouts; a useful operational interface also needs task-specific information and controls.",
+    "timeMachine": {
+      "family": "Modernism & structure",
+      "familyOrder": 2,
+      "position": 4,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "neo-frutiger-aero": {
+    "overview": "A contemporary revival of glossy, nature-and-technology imagery associated with Frutiger Aero. This is a visual vocabulary, not a native operating-system specification.",
+    "cues": [
+      "Gloss and translucency",
+      "Blue-green imagery",
+      "Rounded dimensional forms"
+    ],
+    "steps": [
+      "Use one environmental illustration",
+      "Add restrained highlights to prominent controls",
+      "Keep content surfaces stable and readable"
+    ],
+    "avoid": "Assuming every glossy interface belongs to the same movement or adding reflective effects to every element.",
+    "example": "A weather concept with sky imagery and a solid forecast table.",
+    "type": "sans",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Use a humanist sans-serif with open shapes. Gloss belongs to surfaces rather than text.",
+    "palette": {
+      "surface": "#ecf7fc",
+      "accent": "#087f9c"
+    },
+    "referenceNote": "Look for the glossy blue forms, green landscapes, and bright skies. The shared cue is optimistic nature-and-technology imagery rather than a single operating system.",
+    "timeMachine": {
+      "family": "Digital nostalgia",
+      "familyOrder": 6,
+      "position": 6,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "glassmorphism": {
+    "overview": "A surface treatment that suggests frosted glass through translucency, blur, and a visible edge. Its success depends on what is behind the surface.",
+    "cues": [
+      "Translucent layer",
+      "Background blur",
+      "Subtle edge highlight"
+    ],
+    "steps": [
+      "Use glass for a small overlay or toolbar",
+      "Provide an opaque fallback",
+      "Test text over the lightest and darkest background regions"
+    ],
+    "avoid": "Stacking many blurred layers or assuming blur automatically supplies enough contrast.",
+    "example": "A photo viewer with one translucent toolbar and opaque menus.",
+    "type": "sans",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Use medium-weight text on translucent surfaces. Thin strokes are vulnerable to changing backgrounds.",
+    "palette": {
+      "surface": "#f4f3fa",
+      "accent": "#6750a4"
+    },
+    "referenceNote": "The board includes glass-like distortion and refracted print effects. Those are related material references, but not all demonstrate the frosted, blurred surface used in interface glassmorphism.",
+    "timeMachine": {
+      "family": "Contemporary interfaces",
+      "familyOrder": 7,
+      "position": 1,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "neo-brutalism": {
+    "overview": "A contemporary web treatment combining assertive borders, flat color, and hard offset shadows. Its visual weight comes from outlines, spacing, and sharply separated color areas.",
+    "cues": [
+      "Heavy outlines",
+      "Flat saturated fills",
+      "Offset shadows"
+    ],
+    "steps": [
+      "Choose a consistent border weight",
+      "Use a hard shadow to signal elevation",
+      "Keep labels literal and states distinct"
+    ],
+    "avoid": "Copying one brand as the definition of the style or using hard shadows on noninteractive decoration indiscriminately.",
+    "example": "A workshop registration page with outlined tickets and a high-contrast booking button.",
+    "type": "sans",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Use assertive sans-serif headings with plain sentence-case control labels. Borders already provide emphasis.",
+    "palette": {
+      "surface": "#fff8dc",
+      "accent": "#ff6b35"
+    },
+    "referenceNote": "Look at the black outlines, flat fills, and offset panel shapes. Several examples use playful pastel color, showing why orange is not a required palette.",
+    "timeMachine": {
+      "family": "Contemporary interfaces",
+      "familyOrder": 7,
+      "position": 2,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "luxury-typography": {
+    "overview": "An editorial treatment in which proportion, type detail, and spacing carry most of the identity. It does not require microscopic text or excessive empty space.",
+    "cues": [
+      "Refined display type",
+      "Controlled measure",
+      "Restrained accents"
+    ],
+    "steps": [
+      "Use a high-contrast serif only at display sizes",
+      "Keep body copy in a sturdier face",
+      "Reserve tracked capitals for short labels"
+    ],
+    "avoid": "Thin strokes at small sizes, extreme tracking in paragraphs, or making price and availability difficult to find.",
+    "example": "A small jewelry catalog with large product names and plainly stated materials and prices.",
+    "type": "serif",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Try a high-contrast display serif such as Playfair Display for headings, paired with a sturdier reading face.",
+    "palette": {
+      "surface": "#faf8f5",
+      "accent": "#40342b"
+    },
+    "referenceNote": "Notice how the serif titles, material photography, and restrained copy work together. The surrounding space gives the type emphasis without requiring every label to be small.",
+    "timeMachine": {
+      "family": "Modernism & structure",
+      "familyOrder": 2,
+      "position": 6,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "memphis": {
+    "overview": "A graphic interpretation of the Memphis design group's playful clashes of shape, pattern, and color. It is intentionally more unruly than a modernist geometric system.",
+    "cues": [
+      "Clashing patterns",
+      "Playful geometry",
+      "Bold color blocks"
+    ],
+    "steps": [
+      "Choose a limited set of patterns",
+      "Place them in margins or illustration",
+      "Keep the reading area comparatively quiet"
+    ],
+    "avoid": "Putting competing patterns behind text or treating every bright geometric layout as Memphis.",
+    "example": "A festival program with patterned section dividers and clean schedule cards.",
+    "type": "sans",
+    "source": {
+      "label": "Design Museum: Memphis",
+      "url": "https://designmuseum.org/memphis"
+    },
+    "context": "1980s design group",
+    "typeAdvice": "Bold geometric sans-serif lettering complements the shapes. Keep body text free of pattern and rotation.",
+    "timelineYear": 1981,
+    "palette": {
+      "surface": "#fff9ed",
+      "accent": "#ff6b6b"
+    },
+    "referenceNote": "Compare the patterned fields, clashing shapes, and deliberately playful compositions. The references are modern graphics drawing on the vocabulary of the design group.",
+    "timeMachine": {
+      "family": "Pop & playful graphics",
+      "familyOrder": 3,
+      "position": 1,
+      "period": "1981 onward",
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "art-deco": {
+    "overview": "A decorative vocabulary of stepped geometry, symmetry, and stylized luxury. Its screen adaptation works best as a frame around content rather than an all-over effect.",
+    "cues": [
+      "Stepped forms",
+      "Symmetry",
+      "Geometric ornament"
+    ],
+    "steps": [
+      "Build a symmetrical title composition",
+      "Use metallic color as a flat accent",
+      "Pair a decorative heading with restrained body text"
+    ],
+    "avoid": "Gold-on-gold text, excessive hairlines, or substituting generic luxury styling for the geometric structure.",
+    "example": "A cinema program with stepped borders and a clear screening schedule.",
+    "type": "serif",
+    "source": {
+      "label": "V&A: Art Deco",
+      "url": "https://www.vam.ac.uk/collections/art-deco"
+    },
+    "context": "Early twentieth century",
+    "typeAdvice": "Use short geometric display lettering, with controlled symmetry. A neutral body face prevents the page becoming a poster at every scale.",
+    "timelineYear": 1920,
+    "palette": {
+      "surface": "#171d24",
+      "accent": "#d4af37"
+    },
+    "referenceNote": "Look for stepped borders, symmetrical framing, and geometric lettering. The metallic-looking accents reinforce the structure rather than defining it by themselves.",
+    "timeMachine": {
+      "family": "Modernism & structure",
+      "familyOrder": 2,
+      "position": 1,
+      "period": "1920s–1930s",
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "pop-art": {
+    "overview": "An approach that draws on commercial imagery and popular culture. Repetition, enlarged everyday objects, and comic-print devices are possible techniques, not universal requirements.",
+    "cues": [
+      "Mass-culture imagery",
+      "Repetition",
+      "Bold print effects"
+    ],
+    "steps": [
+      "Choose one recognizable everyday subject",
+      "Use repeated panels deliberately",
+      "Keep halftone away from small labels"
+    ],
+    "avoid": "Reducing the movement to comic dots or using copyrighted characters without considering their source.",
+    "example": "A cultural magazine cover with repeated object photography and a plain article index.",
+    "type": "sans",
+    "source": {
+      "label": "MoMA: Pop art",
+      "url": "https://www.moma.org/collection/terms/pop-art"
+    },
+    "context": "Twentieth-century movement",
+    "typeAdvice": "Try heavy condensed headlines. Comic lettering should remain a deliberate reference rather than the default for all text.",
+    "timelineYear": 1950,
+    "palette": {
+      "surface": "#ffffff",
+      "accent": "#ffdf00"
+    },
+    "referenceNote": "The board mixes bold commercial lettering, comic imagery, and repeated graphic devices. These are contemporary popular-culture references rather than a survey of the historical movement.",
+    "timeMachine": {
+      "family": "Pop & playful graphics",
+      "familyOrder": 3,
+      "position": 0,
+      "period": "1950s onward",
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "mid-century": {
+    "overview": "A screen interpretation of mid-century modern graphics and objects: economical forms, warm materials, and playful but controlled abstraction.",
+    "cues": [
+      "Organic geometry",
+      "Warm contrasting colors",
+      "Simple illustration"
+    ],
+    "steps": [
+      "Pair one organic shape with a clear grid",
+      "Use muted colors with a darker text anchor",
+      "Choose a small family of repeatable motifs"
+    ],
+    "avoid": "Turning every section into a retro poster or using period decoration where users need precise controls.",
+    "example": "A homewares catalog with abstract shapes around straightforward product photography.",
+    "type": "sans",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "A geometric sans-serif or warm editorial serif can work. Let the illustration decide which feels coherent.",
+    "palette": {
+      "surface": "#f8efdb",
+      "accent": "#a54d31"
+    },
+    "referenceNote": "Compare the flattened organic shapes and economical color combinations. The figures and abstract forms remain readable because the compositions use a few strong relationships.",
+    "timeMachine": {
+      "family": "Modernism & structure",
+      "familyOrder": 2,
+      "position": 2,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "modular-typography": {
+    "overview": "A lettering approach built from repeated geometric units. The system is in the construction of the letters, not simply in using a grid for page layout.",
+    "cues": [
+      "Repeated letter parts",
+      "Consistent module",
+      "Systematic variation"
+    ],
+    "steps": [
+      "Define a small set of strokes or tiles",
+      "Use constructed lettering for short headings",
+      "Use a conventional face for reading and controls"
+    ],
+    "avoid": "Forcing modular display letters into paragraphs or calling any sans-serif grid layout modular typography.",
+    "example": "An exhibition identity whose title is constructed from repeatable tiles above a readable program.",
+    "type": "sans",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Construct a title from repeated units, then use a conventional text face below it. Show the module if construction is the subject.",
+    "palette": {
+      "surface": "#f5f5f0",
+      "accent": "#2b4795"
+    },
+    "referenceNote": "Look at the repeated shapes and constructed letter parts. A grid is only the starting point: the defining question is whether the letterforms share a repeatable module.",
+    "timeMachine": {
+      "family": "Modernism & structure",
+      "familyOrder": 2,
+      "position": 3,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "retro-y2k": {
+    "overview": "A contemporary reading of late-1990s and early-2000s digital futurism. Chrome, translucent plastics, and inflated forms distinguish it from a 1980s synthwave scene.",
+    "cues": [
+      "Chrome and gloss",
+      "Inflated shapes",
+      "Digital futurism"
+    ],
+    "steps": [
+      "Choose one metallic focal object",
+      "Pair experimental display type with simple labels",
+      "Use a limited bright accent palette"
+    ],
+    "avoid": "Mixing every retro decade together or applying metallic gradients to body text.",
+    "example": "A music release page with a chrome title object and simple track listings.",
+    "type": "sans",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Extended or rounded display lettering can supply the period reference. Keep chrome out of body text.",
+    "palette": {
+      "surface": "#111124",
+      "accent": "#ef65db"
+    },
+    "referenceNote": "Notice the metallic objects, translucent forms, and shiny digital surfaces. The board mixes millennium-era references with later revival graphics.",
+    "timeMachine": {
+      "family": "Digital nostalgia",
+      "familyOrder": 6,
+      "position": 1,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "cybercore": {
+    "overview": "A broad internet aesthetic drawing on fictional hacker interfaces and digital dystopia. It is expressive fiction, not evidence that a product is technically sophisticated.",
+    "cues": [
+      "Dark field",
+      "Neon accents",
+      "Terminal-like detail"
+    ],
+    "steps": [
+      "Use monospace for actual structured information",
+      "Keep glitch effects in static artwork",
+      "Give real system states explicit labels"
+    ],
+    "avoid": "Fake telemetry, flashing warnings, or presenting decorative code as real diagnostic data.",
+    "example": "A fiction anthology with terminal-inspired chapter labels and normal reading typography.",
+    "type": "mono",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Use monospace for structured labels and a simple sans-serif for longer reading. Do not replace letters with unreadable symbols.",
+    "palette": {
+      "surface": "#09120c",
+      "accent": "#4bfb87"
+    },
+    "referenceNote": "Look at the metallic lettering, dark surfaces, and electric purple-blue accents. These are fictional digital moods, not demonstrations of actual cybersecurity tools.",
+    "timeMachine": {
+      "family": "Digital nostalgia",
+      "familyOrder": 6,
+      "position": 3,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "synthwave": {
+    "overview": "A retro-futurist visual vocabulary associated with synthwave music, drawing heavily on imagined 1980s nightscapes. It differs from vaporwave's collage and corporate nostalgia.",
+    "cues": [
+      "Neon horizon",
+      "Sunset bands",
+      "Perspective grid"
+    ],
+    "steps": [
+      "Keep the horizon in an illustration",
+      "Choose two neon accents",
+      "Use a dark solid surface for track and event details"
+    ],
+    "avoid": "Continuous glowing animation, unreadable outlined text, or calling it an original 1980s interface standard.",
+    "example": "A concert page with a sunset poster and a clean date-and-ticket panel.",
+    "type": "sans",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "An italic or angular display title can suggest speed. Use solid, unglowing text for event details.",
+    "palette": {
+      "surface": "#190a2c",
+      "accent": "#ff63d8"
+    },
+    "referenceNote": "The board includes sunset, palm, neon, and retro display cues. Separate the imagined 1980s atmosphere from the more recent music and graphic culture using it.",
+    "timeMachine": {
+      "family": "Digital nostalgia",
+      "familyOrder": 6,
+      "position": 4,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "vaporwave": {
+    "overview": "An internet-era collage aesthetic associated with vaporwave music, combining commercial nostalgia, surreal space, and degraded digital media. Its tone can be ambiguous rather than purely celebratory.",
+    "cues": [
+      "Pastel digital color",
+      "Surreal collage",
+      "Obsolete media references"
+    ],
+    "steps": [
+      "Compose one deliberate collage",
+      "Use degraded texture as an image layer",
+      "Keep navigation outside the distortion"
+    ],
+    "avoid": "Random Japanese text as decoration, inaccessible glitch effects, or assuming every work makes the same political argument.",
+    "example": "An album archive with a surreal cover collage and plainly labeled listening links.",
+    "type": "mono",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Monospace and restrained system typography can reference older software. Use meaningful language rather than decorative foreign glyphs.",
+    "palette": {
+      "surface": "#f8def4",
+      "accent": "#7553b8"
+    },
+    "referenceNote": "Compare the pastel-neon collage, floating objects, and artificial spatial depth. The examples emphasize a contemporary commercial interpretation of the mood.",
+    "timeMachine": {
+      "family": "Digital nostalgia",
+      "familyOrder": 6,
+      "position": 5,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "coquette": {
+    "overview": "A contemporary romantic aesthetic using bows, lace, soft colors, and intimate decorative details. Those visual choices do not define the gender or personality of the audience.",
+    "cues": [
+      "Ribbon motifs",
+      "Soft pinks",
+      "Delicate decorative framing"
+    ],
+    "steps": [
+      "Use one ribbon or border motif",
+      "Keep text darker than the pastel surface",
+      "Reserve script lettering for a short accent"
+    ],
+    "avoid": "Gendered assumptions, unreadable script, or decorative flourishes crowding controls.",
+    "example": "A stationery collection with ribbon photography and straightforward product descriptions.",
+    "type": "serif",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "A restrained serif with an optional short script accent works. Use plain typography for prices and controls.",
+    "palette": {
+      "surface": "#fff3f6",
+      "accent": "#b04d70"
+    },
+    "referenceNote": "Look at the romantic lettering, pink palette, and soft decorative details. Some examples overlap with broader beauty and fashion branding rather than showing a sharply bounded style.",
+    "timeMachine": {
+      "family": "Romantic worlds",
+      "familyOrder": 5,
+      "position": 0,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "dark-academia": {
+    "overview": "A contemporary scholarly mood using dark wood, books, archival imagery, and subdued light. Occult and fantasy motifs are optional variants, not the definition of academia.",
+    "cues": [
+      "Dark warm surfaces",
+      "Bookish typography",
+      "Archival imagery"
+    ],
+    "steps": [
+      "Use a sturdy serif for titles",
+      "Show real bibliographic or collection details",
+      "Keep the reading surface lighter or the text strongly contrasted"
+    ],
+    "avoid": "Equating scholarship with occult imagery or making a dark page difficult to read.",
+    "example": "A reading journal with book details, dated notes, and a restrained library palette.",
+    "type": "serif",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "A sturdy book serif suits titles and reading. Keep blackletter or occult display lettering out of ordinary paragraphs.",
+    "palette": {
+      "surface": "#28221e",
+      "accent": "#c7ac78"
+    },
+    "referenceNote": "The references include book covers, shadowed architecture, and fantasy imagery. The fantasy elements are one variation; a reading journal can use the scholarly atmosphere without them.",
+    "timeMachine": {
+      "family": "Romantic worlds",
+      "familyOrder": 5,
+      "position": 1,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "light-academia": {
+    "overview": "A contemporary scholarly mood centered on daylight, paper, and reflective reading. It shares the bookish cues of dark academia with a lighter tonal range.",
+    "cues": [
+      "Paper colors",
+      "Daylight imagery",
+      "Scholarly hierarchy"
+    ],
+    "steps": [
+      "Use clear chapter headings",
+      "Limit the text measure",
+      "Pair warm surfaces with dark ink-colored text"
+    ],
+    "avoid": "Faint beige text or decorative book imagery replacing useful information about the material.",
+    "example": "A literature notebook with quotations, sources, and spacious chapter navigation.",
+    "type": "serif",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Use a bookish serif, comfortable line-height, and clear footnotes. A light palette is no reason for faint type.",
+    "palette": {
+      "surface": "#faf5e9",
+      "accent": "#6b553d"
+    },
+    "referenceNote": "Notice the warm paper, classical image fragments, and bookish typography. Several examples overlap with religious or classical editorial graphics.",
+    "timeMachine": {
+      "family": "Romantic worlds",
+      "familyOrder": 5,
+      "position": 2,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "anthropomorphic": {
+    "overview": "A character-based treatment that gives objects human expressions or behavior. It can add identity without pretending the interface has feelings or understands the user.",
+    "cues": [
+      "Expressive characters",
+      "Human-like gestures",
+      "Consistent character rules"
+    ],
+    "steps": [
+      "Give the character a limited supporting role",
+      "Keep instructions explicit in text",
+      "Use the same expression consistently for the same state"
+    ],
+    "avoid": "Guilt-based reminders, emotional pressure, or mascots interrupting routine tasks.",
+    "example": "A language exercise with a small character illustration beside a factual answer explanation.",
+    "type": "sans",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Use a friendly but conventional sans-serif. The character can express personality without turning every label into dialogue.",
+    "palette": {
+      "surface": "#fff9ed",
+      "accent": "#437c59"
+    },
+    "referenceNote": "Look at how the illustrated objects gain expressions and gestures. Their personality is conveyed in the artwork, while the surrounding text can stay direct.",
+    "timeMachine": {
+      "family": "Pop & playful graphics",
+      "familyOrder": 3,
+      "position": 5,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "bohemian": {
+    "overview": "An eclectic composition of natural texture, collected objects, and varied patterns. Specific references matter more than a generic claim of being global or exotic.",
+    "cues": [
+      "Layered texture",
+      "Collected objects",
+      "Earthy color"
+    ],
+    "steps": [
+      "Select patterns from identifiable sources",
+      "Balance a busy image with a quiet reading area",
+      "Use a repeated spacing system"
+    ],
+    "avoid": "Treating distinct cultures as interchangeable decoration or making every layer compete for attention.",
+    "example": "An independent maker's catalog with credited textiles and direct descriptions of materials.",
+    "type": "serif",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Use a warm serif or simple sans-serif to hold the layered imagery together. Limit the number of display treatments.",
+    "palette": {
+      "surface": "#f5ecdc",
+      "accent": "#9a502f"
+    },
+    "referenceNote": "The board emphasizes botanical shapes, earthy color, and contemporary lifestyle posters. It is a narrow graphic selection, not a representation of every tradition described as bohemian.",
+    "timeMachine": {
+      "family": "Craft, place & natural materials",
+      "familyOrder": 4,
+      "position": 2,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "shabby-chic": {
+    "overview": "An interiors-inspired treatment of weathered finishes, vintage florals, and soft color. On a screen, the worn effect belongs to imagery and framing rather than text clarity.",
+    "cues": [
+      "Weathered finish",
+      "Vintage floral",
+      "Soft pastel"
+    ],
+    "steps": [
+      "Use distressing on a border or photo",
+      "Keep body type crisp",
+      "Repeat one floral motif sparingly"
+    ],
+    "avoid": "Distressing the actual text, low-contrast pastel controls, or manufacturing age as a factual provenance claim.",
+    "example": "A vintage homewares listing with condition photographs and clearly labeled item details.",
+    "type": "serif",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "A serif with a short handwritten accent can establish the mood. Do not distress the text itself.",
+    "palette": {
+      "surface": "#fbf4ee",
+      "accent": "#a65e79"
+    },
+    "referenceNote": "Look for faded color, floral decoration, and nostalgic domestic imagery. Keep the weathering in the artwork while preserving crisp captions and controls.",
+    "timeMachine": {
+      "family": "Craft, place & natural materials",
+      "familyOrder": 4,
+      "position": 3,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "cottagecore": {
+    "overview": "A contemporary pastoral aesthetic of gardens, domestic craft, and rural imagery. It is a mood and storytelling vocabulary, not evidence of how an object was produced.",
+    "cues": [
+      "Botanical detail",
+      "Domestic craft",
+      "Pastoral imagery"
+    ],
+    "steps": [
+      "Use real material or process photographs",
+      "Keep botanical framing outside the text",
+      "Let captions explain the pictured activity"
+    ],
+    "avoid": "Romantic imagery standing in for product facts or implying a handmade origin without support.",
+    "example": "A gardening notebook with seasonal photographs, plant names, and practical observations.",
+    "type": "serif",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Use a readable serif for the journal voice and a plain face for plant names, dates, and instructions.",
+    "palette": {
+      "surface": "#faf4e6",
+      "accent": "#547042"
+    },
+    "referenceNote": "Notice the garden scenes, domestic objects, and handmade-looking illustration. Captions and practical details can make this imagery more than a general rural mood.",
+    "timeMachine": {
+      "family": "Romantic worlds",
+      "familyOrder": 5,
+      "position": 3,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "wabi-sabi": {
+    "overview": "A Japanese aesthetic reference associated with transience, irregularity, and the character of materials. A restrained screen interpretation should not flatten that context into generic cozy branding.",
+    "cues": [
+      "Material character",
+      "Irregular detail",
+      "Restraint"
+    ],
+    "steps": [
+      "Use real texture with visible variation",
+      "Allow asymmetry in imagery",
+      "Keep navigation and text alignment dependable"
+    ],
+    "avoid": "Calling any beige interface wabi-sabi, treating kintsugi as its synonym, or simulating imperfection in functional controls.",
+    "example": "A ceramics archive with close photographs of surfaces and concise notes about each object.",
+    "type": "serif",
+    "source": {
+      "label": "The Met: Japanese tea and material aesthetics",
+      "url": "https://www.metmuseum.org/essays/the-japanese-tea-ceremony"
+    },
+    "context": "Japanese aesthetic reference",
+    "typeAdvice": "A quiet serif or sans-serif can work. Irregular material photography supplies the character; imitation handwriting is unnecessary.",
+    "palette": {
+      "surface": "#f7f4ef",
+      "accent": "#4a5d4b"
+    },
+    "referenceNote": "The board emphasizes quiet material imagery and restrained composition. These contemporary graphics are adjacent references; the tea-ceremony source provides more specific cultural context.",
+    "timeMachine": {
+      "family": "Craft, place & natural materials",
+      "familyOrder": 4,
+      "position": 0,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "neoclassical": {
+    "overview": "A visual reference to the ordered proportions and antique forms of Neoclassicism. A digital adaptation can borrow its symmetry without pretending a typeface is historically authentic.",
+    "cues": [
+      "Symmetrical structure",
+      "Classical proportion",
+      "Restrained ornament"
+    ],
+    "steps": [
+      "Center the main title sparingly",
+      "Use balanced margins and clear rules",
+      "Keep supporting text conventionally aligned"
+    ],
+    "avoid": "Treating all classical ornament as one period or centering long paragraphs for supposed elegance.",
+    "example": "A museum collection page with a balanced introduction and a clear object catalog.",
+    "type": "serif",
+    "source": {
+      "label": "The Met: Neoclassicism",
+      "url": "https://www.metmuseum.org/essays/neoclassicism"
+    },
+    "context": "Eighteenth- and nineteenth-century reference",
+    "typeAdvice": "Use carefully proportioned serif titles. Roman-style capitals are best kept to a short heading, not a paragraph.",
+    "timelineYear": 1760,
+    "palette": {
+      "surface": "#f5f3ed",
+      "accent": "#34495e"
+    },
+    "referenceNote": "The board mixes antique sculpture with contemporary dramatic poster design. Study the classical references while distinguishing them from an original Neoclassical composition.",
+    "timeMachine": {
+      "family": "Ornament & tradition",
+      "familyOrder": 0,
+      "position": 2,
+      "period": "c. 1760 onward",
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "baroque": {
+    "overview": "A visual reference to dramatic movement, layered composition, and rich ornament in Baroque art. Its useful digital translation is controlled emphasis rather than maximum decoration everywhere.",
+    "cues": [
+      "Dramatic focal point",
+      "Layered ornament",
+      "Strong tonal contrast"
+    ],
+    "steps": [
+      "Choose one dominant image",
+      "Concentrate ornament around its frame",
+      "Let supporting information remain quiet"
+    ],
+    "avoid": "Making every component compete for drama or describing later typefaces as authentic Baroque typography.",
+    "example": "An opera program with a dramatic production image and an uncomplicated booking panel.",
+    "type": "serif",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "A rich serif display treatment can balance the imagery. This is a modern pairing, not a claim that the typeface dates to the Baroque period.",
+    "palette": {
+      "surface": "#271c18",
+      "accent": "#c9a962"
+    },
+    "referenceNote": "Look at the ornate frames and dense decorative edges. The board is useful for framing ideas but does not capture the full range of Baroque painting, architecture, and sculpture.",
+    "timeMachine": {
+      "family": "Ornament & tradition",
+      "familyOrder": 0,
+      "position": 1,
+      "period": "1600s–mid-1700s",
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    },
+    "source": {
+      "label": "V&A: The Baroque style",
+      "url": "https://www.vam.ac.uk/articles/the-baroque-style"
+    }
+  },
+  "victorian": {
+    "overview": "A broad reference to nineteenth-century British visual culture, which contained many competing revival styles. Ornate print is one useful source, not a single universal Victorian interface language.",
+    "cues": [
+      "Decorative print",
+      "Layered borders",
+      "Mixed display lettering"
+    ],
+    "steps": [
+      "Use one period-inspired title treatment",
+      "Give metadata its own simple type style",
+      "Use ornament to mark sections"
+    ],
+    "avoid": "Stacking many novelty fonts or presenting the entire period as one dark, luxurious look.",
+    "example": "A local-history exhibition page with a poster-like title and readable artifact captions.",
+    "type": "serif",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Try one slab-serif or ornamental headline. Pair it with a quiet reading face rather than a collection of competing period fonts.",
+    "palette": {
+      "surface": "#f5e6d3",
+      "accent": "#5c302d"
+    },
+    "referenceNote": "Notice the layered borders, ornamental lettering, and printed ephemera. The examples are period-inspired graphics rather than proof of a single uniform Victorian style.",
+    "timeMachine": {
+      "family": "Ornament & tradition",
+      "familyOrder": 0,
+      "position": 3,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "art-nouveau": {
+    "overview": "A decorative approach associated with flowing lines and stylized natural forms across several media. The relationship between image, lettering, and border matters more than adding a floral icon.",
+    "cues": [
+      "Sinuous line",
+      "Botanical structure",
+      "Integrated framing"
+    ],
+    "steps": [
+      "Draw one continuous framing motif",
+      "Keep display lettering short",
+      "Use plain body text inside the frame"
+    ],
+    "avoid": "Generic flowers without the line structure or elaborate letterforms in controls and paragraphs.",
+    "example": "A botanical exhibition page whose border follows the composition of its main illustration.",
+    "type": "serif",
+    "source": {
+      "label": "V&A: Art Nouveau",
+      "url": "https://www.vam.ac.uk/collections/art-nouveau"
+    },
+    "context": "Around 1900",
+    "typeAdvice": "Use organic display lettering for a short title. Keep the smaller text conventional so the border and lettering do not compete.",
+    "timelineYear": 1890,
+    "palette": {
+      "surface": "#f5f0e6",
+      "accent": "#4a7c59"
+    },
+    "referenceNote": "Compare the continuous curves, botanical framing, and integrated figure-and-letter compositions. Those relationships are more distinctive than a floral motif on its own.",
+    "timeMachine": {
+      "family": "Ornament & tradition",
+      "familyOrder": 0,
+      "position": 4,
+      "period": "1890s–1910s",
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "gothic": {
+    "overview": "A modern graphic interpretation of Gothic architectural references, including pointed forms and tracery. Black palettes and occult motifs belong to some later reinterpretations, not all Gothic art.",
+    "cues": [
+      "Pointed forms",
+      "Vertical emphasis",
+      "Tracery"
+    ],
+    "steps": [
+      "Use the arch as an image frame",
+      "Reserve blackletter for brief titles",
+      "Keep navigation in a highly legible face"
+    ],
+    "avoid": "Conflating medieval architecture, Gothic revival, and contemporary goth culture without explanation.",
+    "example": "An architectural photo essay with arch-shaped images and clear historical captions.",
+    "type": "serif",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Blackletter may suit a short display title; use an open, readable serif or sans-serif for supporting text.",
+    "palette": {
+      "surface": "#171920",
+      "accent": "#b39cce"
+    },
+    "referenceNote": "The board combines architecture, horror covers, and later goth-associated graphics. Use the distinction between medieval form and contemporary genre imagery when choosing a reference.",
+    "timeMachine": {
+      "family": "Ornament & tradition",
+      "familyOrder": 0,
+      "position": 0,
+      "period": "Mid-1100s onward",
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    },
+    "source": {
+      "label": "The Met: Gothic by Design",
+      "url": "https://www.metmuseum.org/de/exhibitions/gothic-by-design-the-dawn-of-architectural-draftsmanship/inside-the-galleries"
+    }
+  },
+  "steampunk": {
+    "overview": "A speculative genre combining historical industrial imagery with imagined technology. Gears and brass establish fiction; they should not obscure how a real interface works.",
+    "cues": [
+      "Industrial fantasy",
+      "Mechanical detail",
+      "Antique material cues"
+    ],
+    "steps": [
+      "Give decorative mechanisms a plausible visual role",
+      "Use a simple control layout",
+      "Separate fictional gauges from real data"
+    ],
+    "avoid": "Random gears on every surface or unlabeled dials that imply nonexistent measurements.",
+    "example": "A fictional invention catalog with mechanical illustrations and readable specifications.",
+    "type": "mono",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Slab-serif display lettering can reference industrial print. Monospace is useful for actual specifications, not ornamental pseudo-data.",
+    "palette": {
+      "surface": "#30261e",
+      "accent": "#c7985c"
+    },
+    "referenceNote": "Look for invented machinery, antique print, and industrial fantasy. The examples are speculative genre graphics, not documentation of functioning historical devices.",
+    "timeMachine": {
+      "family": "Digital nostalgia",
+      "familyOrder": 6,
+      "position": 2,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "ethereal": {
+    "overview": "An atmospheric treatment using soft light, translucent imagery, and spacious composition. Softness belongs to the imagery; text and controls still need definite edges.",
+    "cues": [
+      "Diffused light",
+      "Soft layered imagery",
+      "Open space"
+    ],
+    "steps": [
+      "Use a soft image as the focal point",
+      "Place reading text on a stable surface",
+      "Keep movement optional and minimal"
+    ],
+    "avoid": "Using low contrast as the defining principle or making the cursor chase floating controls.",
+    "example": "A photography portfolio with luminous images and restrained, legible captions.",
+    "type": "serif",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Use a clear serif or sans-serif at a comfortable weight. Avoid hairline strokes that vanish into luminous imagery.",
+    "palette": {
+      "surface": "#f7f3fc",
+      "accent": "#7457a3"
+    },
+    "referenceNote": "The board uses blur, luminous color, and softened image boundaries. Some tiles are darker and more energetic than a pastel interpretation, showing that light treatment matters more than hue alone.",
+    "timeMachine": {
+      "family": "Romantic worlds",
+      "familyOrder": 5,
+      "position": 4,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "filigree": {
+    "overview": "A reference to delicate ornamental metalwork made from fine threads. In screen graphics, the useful feature is a coherent network of fine lines around a clear central subject.",
+    "cues": [
+      "Fine interlaced lines",
+      "Delicate border",
+      "Ornamental rhythm"
+    ],
+    "steps": [
+      "Use vector artwork for clean scaling",
+      "Keep detail away from small text",
+      "Reduce border complexity on narrow screens"
+    ],
+    "avoid": "Calling any flourish filigree or using hairline decoration as an essential control boundary.",
+    "example": "A craft catalog with detailed object photographs and a fine ornamental heading frame.",
+    "type": "serif",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Pair ornate borders with a restrained serif. Do not add a second layer of flourishes to every letter.",
+    "palette": {
+      "surface": "#faf7f2",
+      "accent": "#9a7421"
+    },
+    "referenceNote": "Notice the fine ornamental lines framing the titles. These are graphic interpretations of ornamental craft; use the line rhythm without treating every flourish as literal metalwork.",
+    "timeMachine": {
+      "family": "Ornament & tradition",
+      "familyOrder": 0,
+      "position": 5,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "acanthus": {
+    "overview": "An ornamental reference to stylized acanthus foliage used in classical architectural decoration. It is a specific leaf-and-scroll vocabulary rather than a synonym for all botanical ornament.",
+    "cues": [
+      "Stylized leaves",
+      "Scrolling structure",
+      "Architectural framing"
+    ],
+    "steps": [
+      "Choose a consistent leaf drawing",
+      "Use it at section openings",
+      "Leave content columns unornamented"
+    ],
+    "avoid": "Mixing unrelated botanical motifs while labeling them acanthus or overwhelming small screens with borders.",
+    "example": "An architectural detail archive with close images and a restrained leaf divider.",
+    "type": "serif",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "A balanced serif works with classical leaf ornament. Keep title spacing measured rather than excessively wide.",
+    "palette": {
+      "surface": "#f6f0df",
+      "accent": "#66764a"
+    },
+    "referenceNote": "The board includes several kinds of botanical and classical ornament. Compare the leaf shapes carefully: not every floral border is an acanthus pattern.",
+    "timeMachine": {
+      "family": "Ornament & tradition",
+      "familyOrder": 0,
+      "position": 6,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "conceptual-sketch": {
+    "overview": "A deliberately unfinished visual treatment that makes ideas and relationships easy to discuss. Sketchiness can communicate a draft state, but should not conceal the status of real functionality.",
+    "cues": [
+      "Loose line",
+      "Annotations",
+      "Visible structure"
+    ],
+    "steps": [
+      "Use annotations to explain actual decisions",
+      "Keep labels typeset and readable",
+      "Mark unfinished or hypothetical features explicitly"
+    ],
+    "avoid": "Presenting an incomplete workflow as working or making every line so irregular that relationships become ambiguous.",
+    "example": "A product concept page with an annotated flow and clearly marked open questions.",
+    "type": "sans",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Use typeset annotations or highly legible handwriting. Labels should explain the diagram without requiring deciphering.",
+    "palette": {
+      "surface": "#fffef8",
+      "accent": "#345881"
+    },
+    "referenceNote": "Look at the loose drawings and informal annotations. Much of this board is finished poster art using sketch-like marks, which differs from an actual early-stage wireframe.",
+    "timeMachine": {
+      "family": "Art & image-making",
+      "familyOrder": 1,
+      "position": 3,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "tenebrism": {
+    "overview": "A dramatic lighting approach in which concentrated illumination emerges from extensive darkness. It is more specific than a dark theme or ordinary high-contrast text.",
+    "cues": [
+      "Dominant shadow",
+      "Concentrated light",
+      "Dramatic subject"
+    ],
+    "steps": [
+      "Let one lit image establish the mood",
+      "Keep interface text evenly readable",
+      "Reserve darkness for framing rather than hiding controls"
+    ],
+    "avoid": "Equating any black background with tenebrism or obscuring navigation to create drama.",
+    "example": "A portrait gallery with one illuminated subject and unobtrusive but visible metadata.",
+    "type": "serif",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Use solid, readable text beside the dramatic image. A serif can support the mood without needing a glow or shadow.",
+    "palette": {
+      "surface": "#151312",
+      "accent": "#c8a471"
+    },
+    "referenceNote": "Notice how the faces and focal objects emerge from extensive shadow. These contemporary photographic compositions are lighting references, not historical paintings.",
+    "timeMachine": {
+      "family": "Art & image-making",
+      "familyOrder": 1,
+      "position": 0,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "pointillism": {
+    "overview": "An image-making technique using discrete dots of color. It is related to Divisionism, but the terms are not interchangeable: dots are a particular way of separating color.",
+    "cues": [
+      "Discrete color dots",
+      "Optical mixture",
+      "Distance-dependent detail"
+    ],
+    "steps": [
+      "Use dots within illustration",
+      "Preview at actual display sizes",
+      "Preserve clean typography and controls"
+    ],
+    "avoid": "Calling any dotted texture pointillism or using dense live particles where a static image would work.",
+    "example": "An art lesson showing a dotted image beside a zoomed detail and a readable explanation.",
+    "type": "sans",
+    "source": {
+      "label": "The Met: Neo-Impressionism",
+      "url": "https://www.metmuseum.org/exhibitions/listings/2001/paul-signac-circle"
+    },
+    "context": "Late nineteenth century",
+    "typeAdvice": "Use clean text as a contrast to the dotted illustration. Pixel fonts would imply a different construction method.",
+    "timelineYear": 1880,
+    "palette": {
+      "surface": "#f8f5e9",
+      "accent": "#356fa8"
+    },
+    "referenceNote": "This board mainly uses halftone and stippled print effects. Those are useful comparisons, but they do not demonstrate the color-separation technique of painted Pointillism; use the linked museum source for that distinction.",
+    "timeMachine": {
+      "family": "Art & image-making",
+      "familyOrder": 1,
+      "position": 1,
+      "period": "1880s",
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "mixed-media": {
+    "overview": "A composition combining distinct media such as photography, drawing, and cut paper. The contrast between the materials should contribute to the idea.",
+    "cues": [
+      "Multiple media",
+      "Visible layering",
+      "Material contrast"
+    ],
+    "steps": [
+      "Choose one dominant medium",
+      "Use the second to annotate or contrast",
+      "Repeat a small set of alignment points"
+    ],
+    "avoid": "Adding texture without purpose or letting overlaps cover text and links.",
+    "example": "A project case study combining process photographs with drawn annotations.",
+    "type": "sans",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Choose one dependable reading family. A second display voice should correspond to a distinct layer or speaker.",
+    "palette": {
+      "surface": "#f6f1e7",
+      "accent": "#a64636"
+    },
+    "referenceNote": "Compare the photographs, cutout shapes, and drawn additions. The strongest combinations give the added layer a specific role rather than simply adding texture.",
+    "timeMachine": {
+      "family": "Art & image-making",
+      "familyOrder": 1,
+      "position": 4,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "surrealism": {
+    "overview": "An artistic and literary movement exploring the unconscious and unexpected associations. A screen interpretation can use impossible imagery while keeping the actual interaction understandable.",
+    "cues": [
+      "Unexpected association",
+      "Dream logic",
+      "Altered scale"
+    ],
+    "steps": [
+      "Build one meaningful impossible scene",
+      "Keep navigation spatially stable",
+      "Use captions when the image needs context"
+    ],
+    "avoid": "Random visual oddity without an idea or making essential actions behave unpredictably.",
+    "example": "A literary journal with a surreal cover image and conventional article navigation.",
+    "type": "serif",
+    "source": {
+      "label": "MoMA: Surrealism",
+      "url": "https://www.moma.org/collection/terms/surrealism"
+    },
+    "context": "Twentieth-century movement",
+    "typeAdvice": "Conventional typography can make the impossible image more striking. Distort a title only when the distortion carries an idea.",
+    "timelineYear": 1924,
+    "palette": {
+      "surface": "#f0edf7",
+      "accent": "#6359a8"
+    },
+    "referenceNote": "Look at the altered scale, improbable objects, and impossible spatial relationships. These are contemporary graphic interpretations of surreal imagery.",
+    "timeMachine": {
+      "family": "Art & image-making",
+      "familyOrder": 1,
+      "position": 2,
+      "period": "1924 onward",
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "mystical-western": {
+    "overview": "A contemporary hybrid of desert imagery, Western lettering, and celestial or occult motifs. It is a constructed mood, not a single historical tradition.",
+    "cues": [
+      "Desert landscape",
+      "Western display type",
+      "Celestial motif"
+    ],
+    "steps": [
+      "Choose one landscape and one symbol family",
+      "Use display lettering only for titles",
+      "Explain symbols when they carry meaning"
+    ],
+    "avoid": "Treating sacred imagery as interchangeable decoration or asserting a shared cultural origin for the whole blend.",
+    "example": "A fictional desert festival poster with a readable itinerary and location details.",
+    "type": "serif",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "A short Western display title can establish the genre. Use a conventional serif for the itinerary or story.",
+    "palette": {
+      "surface": "#f5e8d4",
+      "accent": "#8c4831"
+    },
+    "referenceNote": "The board mixes desert scenes, celestial imagery, and ornamental framing. It illustrates the hybrid mood rather than one historical or cultural tradition.",
+    "timeMachine": {
+      "family": "Romantic worlds",
+      "familyOrder": 5,
+      "position": 5,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "kitsch": {
+    "overview": "A treatment of excess, sentimentality, and conspicuous ornament that can be affectionate, ironic, or both. Its effect depends on the subject and audience.",
+    "cues": [
+      "Deliberate excess",
+      "Sentimental imagery",
+      "Clashing decoration"
+    ],
+    "steps": [
+      "Pick a clear theme for the excess",
+      "Keep one stable content grid",
+      "Let the joke live in imagery and headlines"
+    ],
+    "avoid": "Assuming irony is obvious or making the actual transaction confusing as part of the joke.",
+    "example": "A novelty object collection with exuberant imagery and clear catalog information.",
+    "type": "sans",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Choose one exuberant display face and a plain supporting face. Deliberate excess still benefits from hierarchy.",
+    "palette": {
+      "surface": "#fff0fa",
+      "accent": "#e9409c"
+    },
+    "referenceNote": "Notice the exaggerated objects, conspicuous lettering, and cheerful excess. The compositions share an attitude more than a consistent type or color system.",
+    "timeMachine": {
+      "family": "Pop & playful graphics",
+      "familyOrder": 3,
+      "position": 2,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "graffiti": {
+    "overview": "A reference to lettering and mark-making in public space, with varied practices and local histories. A spray texture alone does not convey the structure or authorship of a piece.",
+    "cues": [
+      "Expressive lettering",
+      "Layered marks",
+      "Surface context"
+    ],
+    "steps": [
+      "Use original or credited artwork",
+      "Keep expressive lettering in large images",
+      "Typeset dates, locations, and controls plainly"
+    ],
+    "avoid": "Treating all street art as one style or using an artist's work as anonymous background texture.",
+    "example": "An artist portfolio showing complete works, detail images, and credited locations.",
+    "type": "sans",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Let original lettering remain artwork. Typeset its title, creator, and details in a separate, readable voice.",
+    "palette": {
+      "surface": "#171717",
+      "accent": "#edc535"
+    },
+    "referenceNote": "Compare the expressive letter shapes, outlines, and layered marks. Treat individual pieces as authored artwork rather than anonymous background texture.",
+    "timeMachine": {
+      "family": "Pop & playful graphics",
+      "familyOrder": 3,
+      "position": 3,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "scrapbook": {
+    "overview": "A composition that organizes photographs, notes, and keepsakes as a personal record. It becomes useful when the layering helps connect an image to its story.",
+    "cues": [
+      "Paper layering",
+      "Personal annotation",
+      "Chronological fragments"
+    ],
+    "steps": [
+      "Pair every image with nearby context",
+      "Limit rotation to decoration",
+      "Keep the reading order explicit"
+    ],
+    "avoid": "Scattering captions away from photos or turning chronology into a puzzle.",
+    "example": "A yearly journal with dated photo groups and short notes beside each event.",
+    "type": "serif",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Use a readable serif for the story and a limited handwriting accent for personal notes. Dates should be easy to scan.",
+    "palette": {
+      "surface": "#f7efdf",
+      "accent": "#926744"
+    },
+    "referenceNote": "The board layers cutouts, paper fragments, and handwritten-looking notes. A personal timeline can borrow the material relationships while keeping dates and captions orderly.",
+    "timeMachine": {
+      "family": "Craft, place & natural materials",
+      "familyOrder": 4,
+      "position": 6,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "southwest": {
+    "overview": "A regional visual reference to desert landscapes and locally specific craft and architecture. The region contains distinct living cultures; this guide uses landscape color rather than claiming a universal cultural pattern.",
+    "cues": [
+      "Desert colors",
+      "Landscape forms",
+      "Material texture"
+    ],
+    "steps": [
+      "Start with an identifiable place",
+      "Credit any craft or pattern source",
+      "Use landscape photography and plain geographic labels"
+    ],
+    "avoid": "Combining Indigenous motifs indiscriminately or describing a contemporary community only as a historical influence.",
+    "example": "A desert travel journal with place names, terrain photographs, and credited local work.",
+    "type": "sans",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "A clear sans-serif lets place and material photography speak. Avoid generic novelty lettering standing in for a specific culture.",
+    "palette": {
+      "surface": "#f8e5ce",
+      "accent": "#a84b32"
+    },
+    "referenceNote": "These examples lean heavily toward Western poster imagery and desert travel. They are not representative of all Southwestern communities or artistic traditions.",
+    "timeMachine": {
+      "family": "Craft, place & natural materials",
+      "familyOrder": 4,
+      "position": 4,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "nautical": {
+    "overview": "A maritime-inspired vocabulary of clear markings, navigational structure, and restrained material cues. Decorative stripes are optional; the stronger idea is organized information.",
+    "cues": [
+      "Marine colors",
+      "Clear markings",
+      "Navigational order"
+    ],
+    "steps": [
+      "Use blue as a controlled accent",
+      "Make headings and units explicit",
+      "Use chart-like lines only when they communicate relationships"
+    ],
+    "avoid": "Fake coordinates, unexplained flag symbols, or ornamental compasses that look like controls.",
+    "example": "A sailing journal with dated routes, weather observations, and clearly labeled maps.",
+    "type": "sans",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Use a sturdy sans-serif with clear numerals. Coordinates and measurements need consistent units and alignment.",
+    "palette": {
+      "surface": "#f8f6ed",
+      "accent": "#164b70"
+    },
+    "referenceNote": "Look at the maritime subjects, blue-and-cream combinations, and sailing imagery. A practical interface can borrow the organized markings without copying every decorative motif.",
+    "timeMachine": {
+      "family": "Craft, place & natural materials",
+      "familyOrder": 4,
+      "position": 5,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "rebus": {
+    "overview": "A visual word puzzle that substitutes pictures for words or syllables. Because its meaning depends on language and context, it is not a universal replacement for written labels.",
+    "cues": [
+      "Image-word substitution",
+      "Sequenced symbols",
+      "Wordplay"
+    ],
+    "steps": [
+      "Use the puzzle as optional content",
+      "Provide a text equivalent or reveal",
+      "Keep navigation outside the puzzle"
+    ],
+    "avoid": "Replacing essential labels with ambiguous icons or assuming the same solution works across languages.",
+    "example": "A puzzle page with a picture sequence, a labeled answer field, and an optional explanation.",
+    "type": "sans",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Use simple text around the symbols and an explicit text solution. Keep the puzzle's typography distinct from navigation.",
+    "palette": {
+      "surface": "#ffffff",
+      "accent": "#375cab"
+    },
+    "referenceNote": "The examples insert pictures into sentences and typographic layouts. Read the text and image together: the substitution depends on the specific language and phrasing.",
+    "timeMachine": {
+      "family": "Art & image-making",
+      "familyOrder": 1,
+      "position": 5,
+      "period": null,
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    }
+  },
+  "kawaii": {
+    "overview": "A reference to Japanese cute culture, expressed through compact forms, friendly characters, and playful detail. A cute appearance does not require childish language or a child audience.",
+    "cues": [
+      "Rounded silhouettes",
+      "Expressive small characters",
+      "Playful color"
+    ],
+    "steps": [
+      "Use one consistent character language",
+      "Keep supporting labels plain",
+      "Make the character secondary to the task"
+    ],
+    "avoid": "Infantilizing the reader, using emotion to pressure a decision, or letting decorative stickers obscure controls.",
+    "example": "A personal collection tracker with small character illustrations and clear item counts.",
+    "type": "sans",
+    "context": "Contemporary screen interpretation",
+    "typeAdvice": "Rounded sans-serif titles can support compact characters. Keep body copy at ordinary reading sizes and use direct labels.",
+    "palette": {
+      "surface": "#fff9fb",
+      "accent": "#d5587b"
+    },
+    "referenceNote": "The examples combine compact characters, sticker-like objects, and bright packaging compositions. Cute design can be saturated and busy; it is not restricted to pale pastels.",
+    "timeMachine": {
+      "family": "Pop & playful graphics",
+      "familyOrder": 3,
+      "position": 4,
+      "period": "Late 1960s–1970s roots",
+      "classification": "Editorial family: shared visual vocabulary, not a claim of common origin."
+    },
+    "source": {
+      "label": "Highlighting Japan: The Evolving Kawaii Culture",
+      "url": "https://www.gov-online.go.jp/hlj/en/october_2025/october_2025-00.html"
+    }
+  }
+}

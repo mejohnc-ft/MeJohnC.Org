@@ -1,0 +1,5 @@
+---
+import Base from '../layouts/Base.astro';
+import { productBriefs } from '../data/ai-products';
+---
+<Base title="Product archive" description="The centrexIT product portfolio, with deployed capabilities, pilots, prototypes, and specifications distinguished."><h1>Product archive</h1><p>The broader portfolio from my existing site. These include team projects at different stages; internal systems are described here rather than linked as public demos.</p>{productBriefs.map(product => <article class="entry"><span class="meta">{product.status}</span><h2>{product.name}</h2><p>{product.tagline}</p><details><summary>Details</summary><p>{product.shipped}</p><ul>{product.capabilities.map(capability => <li>{capability}</li>)}</ul></details></article>)}</Base>

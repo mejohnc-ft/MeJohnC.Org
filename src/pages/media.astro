@@ -1,0 +1,5 @@
+---
+import Base from '../layouts/Base.astro';
+import { talks, sortTalksByDateDesc, formatTalkTimestamp } from '../data/talks';
+---
+<Base title="Media" description="Talks, demonstrations, and the Rewst case study about centrexIT’s automation process."><h1>Media</h1><p>Talks, demos, and published features on automation, IT operations, and the tools our team builds.</p>{sortTalksByDateDesc(talks).map(talk => <article class="entry"><span class="meta"><time datetime={talk.occurredAt}>{formatTalkTimestamp(talk.occurredAt)}</time> · {talk.format}</span><h2><a href={talk.url}>{talk.title}</a></h2><p>{talk.summary}</p><p class="meta">{talk.venue}</p></article>)}</Base>

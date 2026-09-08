@@ -1,0 +1,37 @@
+---
+import '../styles/site.css';
+interface Props { title?: string; description?: string; noindex?: boolean; frontmatter?: { title?: string; description?: string }; }
+const { frontmatter, noindex = false } = Astro.props;
+const title = Astro.props.title ?? frontmatter?.title ?? 'Jonathan Christensen';
+const description = Astro.props.description ?? frontmatter?.description ?? 'Jonathan Christensen builds automation tools for IT teams. Projects, writing, and work at centrexIT.';
+const path = Astro.url.pathname;
+const socialName = /^\/years\/\d{4}\/$/.test(path) ? path.split('/')[2] : ['service-toolbox','client-toolbox','vantage'].includes(path.split('/')[2]) ? path.split('/')[2] : 'default';
+const canonical = new URL(path, Astro.site);
+const navigation = [{label:'Projects', href:'/projects/'},{label:'Years',href:'/years/'},{label:'Media',href:'/media/'},{label:'About',href:'/about/'}];
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title === 'Jonathan Christensen' ? title : `${title} — Jonathan Christensen`}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content={new URL(`/social/${socialName}.png`, Astro.site)} />
+    <meta name="twitter:card" content="summary_large_image" />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <a class="skip" href="#content">Skip to content</a>
+    <div class="page">
+      <header><a href="/" aria-label="Jonathan Christensen home">mejohnc.org</a><nav aria-label="Main navigation">{navigation.map(item => <a href={item.href} aria-current={path.startsWith(item.href) ? 'page' : undefined}>{item.label}</a>)}</nav></header>
+      <main id="content"><slot /></main>
+      <footer><span>Jonathan Christensen</span><div class="links"><a href="mailto:mejohnwc@gmail.com">Email</a><a href="https://github.com/mejohnc-ft">GitHub</a><a href="/resume/">Résumé</a></div></footer>
+    </div>
+  </body>
+</html>

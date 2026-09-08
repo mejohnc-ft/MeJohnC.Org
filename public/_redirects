@@ -1,6 +1,16 @@
-# Serve Territories app directly (before SPA catch-all)
-/projects/territories   /projects/territories/index.html   200
-/projects/territories/  /projects/territories/index.html   200
-
-# SPA catch-all for React Router
-/*    /index.html   200
+/speaking /media/ 301
+/stories/hardware-and-setups /years/ 301
+/stories/safemark /years/2018/ 301
+/stories/provisioning /years/2022/ 301
+/stories/school-election /years/2016/ 301
+/away/utah-denver /years/2019/ 301
+/away/hawaii /years/2020/ 301
+/away/nashville /years/2026/ 301
+/work/service-delivery-automation /years/2026/ 301
+/stories /years/ 301
+/contact /about/ 301
+/portfolio /work/ 301
+/apps /products/ 301
+/blog /media/ 301
+/territories /projects/territories/ 301
+/projects/business-os /products/ 301

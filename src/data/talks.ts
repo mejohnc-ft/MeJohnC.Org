@@ -1,5 +1,5 @@
 /**
- * Public talks for the Content tab.
+ * Public talks and case studies for the Content tab.
  *
  * Titles and dates are not invented. When John posts a talk, add it here
  * (or later via CMS) with an ISO `occurredAt` timestamp.
@@ -8,7 +8,11 @@ export interface Talk {
   id: string;
   title: string;
   occurredAt: string;
-  format?: "Conference session" | "Webinar" | "Community contribution";
+  format?:
+    | "Conference session"
+    | "Webinar"
+    | "Community contribution"
+    | "Case study";
   venue?: string;
   url?: string;
   summary?: string;
@@ -35,7 +39,7 @@ export const talks: Talk[] = [
   {
     id: "rewst-flow-2026-community-live",
     title: "Rewst Community Live Open Mic — FLOW 2026",
-    occurredAt: "2026-06",
+    occurredAt: "2026-06-25",
     format: "Conference session",
     venue: "FLOW 2026 · Nashville, Tennessee",
     url: "https://www.youtube.com/watch?v=EInZA_rqaYE&list=PLDWjfoX6CSp_wWBMPvS3XLEUn4GU-gWqB&index=11",
@@ -56,6 +60,20 @@ export const talks: Talk[] = [
     imageUrl: "https://i.ytimg.com/vi/458APcbS9aY/maxresdefault.jpg",
     imageAlt:
       "How to automate Microsoft 365 license cost reports in Rewst video",
+  },
+  {
+    id: "centrex-it-rewst-case-study",
+    title:
+      "How centrexIT recovered 160+ hours a month and opened a new service line using Rewst",
+    occurredAt: "2026-09-04",
+    format: "Case study",
+    venue: "Rewst Success Stories",
+    url: "https://rewst.io/success-stories/how-centrexit-recovered-160-hours-a-month-using-rewst",
+    summary:
+      "Shared our process for turning service-desk feedback into department-owned toolboxes and reusable workflows, recovering 160+ hours a month and bringing automation as a service to clients.",
+    imageUrl: "/images/speaking/centrex-it-rewst-case-study.png",
+    imageAlt:
+      "centrexIT automation case study: 160+ hours per month saved on tier-one service desk tasks",
   },
 ];
 

@@ -1,0 +1,7 @@
+import {scenarios,renderScenario} from './scenarios.js';
+const query=new URLSearchParams(location.search),project=query.get('project');
+const navigation=['top','sidebar','tabs'].includes(query.get('navigation'))?query.get('navigation'):'top';
+document.querySelector('#example').innerHTML=renderScenario(scenarios[project]?project:'internal-tool',navigation);
+document.querySelectorAll('.sample-header nav a').forEach(link=>link.addEventListener('click',()=>{document.querySelectorAll('.sample-header nav a').forEach(a=>a.removeAttribute('aria-current'));link.setAttribute('aria-current','location');}));
+document.querySelector('#sample-filter').addEventListener('input',event=>{const value=event.target.value.trim().toLowerCase();let count=0;document.querySelectorAll('.sample-item').forEach(item=>{item.hidden=!item.dataset.search.includes(value);if(!item.hidden)count++;});document.querySelector('#sample-empty').hidden=count>0;});
+document.querySelector('#sample-form').addEventListener('submit',event=>{event.preventDefault();const input=document.querySelector('#sample-email'),message=document.querySelector('#sample-message');if(!input.validity.valid){input.setAttribute('aria-invalid','true');message.textContent='Enter a complete email address, such as you@example.com.';input.focus();return;}input.removeAttribute('aria-invalid');message.textContent='Preview complete. Nothing was sent or stored.';});
