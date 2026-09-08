@@ -63,12 +63,11 @@ for (const file of files.filter(file => file.endsWith('.css'))) {
 }
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 assert.equal(digest(await readFile(join(root, 'public/resume.pdf'))), digest(await readFile(join(dist, 'resume.pdf'))), 'Résumé changed in build');
-assert.equal(digest(await readFile(join(root, 'public/Resume 2025.pdf'))), digest(await readFile(join(dist, 'resume.pdf'))), 'Old résumé URL differs');
 assert.ok((await readFile(join(dist, 'index.html'), 'utf8')).includes('Territories'), 'Homepage must expose Territories');
 assert.ok((await readFile(join(dist, 'media/index.html'), 'utf8')).includes('2026-09-04'), 'Case study date changed');
 assert.ok((await readFile(join(dist, 'media/index.html'), 'utf8')).includes('2026-05-13'), 'May talk missing');
 assert.equal(errors.length, 0, errors.join('\n'));
-console.log(`Verified ${portfolioPages} portfolio/redirect pages, ${localReferences} local references, ${paths.size} Territories gallery assets, local font files, and both résumé URLs. Only the small appearance control script is allowed in portfolio HTML; no backend dependency; interactive replicas use local browser scripts.`);
+console.log(`Verified ${portfolioPages} portfolio/redirect pages, ${localReferences} local references, ${paths.size} Territories gallery assets, local font files, and the canonical résumé PDF. Only the small appearance control script is allowed in portfolio HTML; no backend dependency; interactive replicas use local browser scripts.`);
 
 const emittedOriginals=files.filter(file=>relative(dist,file).startsWith('_astro/') && /\.(jpeg|jpg|avif)$/i.test(file));
 assert.equal(emittedOriginals.length,0,'Archival originals leaked into build');

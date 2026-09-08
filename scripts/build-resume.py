@@ -24,36 +24,37 @@ def bullet(text):
 
 def gap(n=5):
  global y;y-=n
-section('Profile')
-p=Paragraph('Automation engineer building agent tooling, governed context access, and reusable operational workflows. Experience spans customer-facing IT delivery, TypeScript/PostgreSQL systems, MCP integrations, and public technical contributions.',style);w,h=p.wrap(530,100);p.drawOn(c,46,y-h+9);y-=h+15
-section('Selected Engineering')
-role('Cadre - Agent Control Plane','Personal project | Alpha')
-bullet('Designed a versioned artifact registry for reusable agent instructions, with harness-specific projections into CLAUDE.md and AGENTS.md and assignment to agent workspaces.')
-bullet('Implemented grant-checked connection access, per-connection egress policies, and action audit records to govern agent access to external systems.')
-bullet('Identified credential exposure through browser accessibility snapshots; built a context-scrubbing layer and documented residual risks.')
-role('AMD ROCm Inference Lab','Personal infrastructure')
-bullet('Built Python inference benchmarks for single- and dual-R9700 systems; compared quantization, tensor/layer splitting, speculative decoding, and long-context behavior on llama.cpp/ROCm.')
-bullet('Investigated RCCL transport and decode regressions with controlled builds; selected serving configurations using prefill, generation, and end-to-end latency measurements.')
-role('TerminalBrain & Shot Pill','Public agent tooling')
-bullet('Built MCP access to Apple Notes, Drafts, and Obsidian with governed writeback; delivered screenshot context from macOS to remote coding workflows over SSH.')
-role('Territories','Public reference and agent resources')
-bullet('Published 50 style guides with structured tokens, versioned resource paths, and reusable agent handoffs; automated checks cover resource parity, example/token consistency, and 72 picker combinations.')
-gap(6)
 section('Experience')
-role('centrexIT','December 2021 - Present','San Diego, CA | Service desk, provisioning, field support, and automation')
-bullet('Build internal service tools, Microsoft 365 reporting, and AI-assisted workflows with the teams that use them, connecting field problems to implementation and operational handoffs.')
-bullet('Cleared an inherited 72-ticket provisioning backlog within six months and rebuilt SOPs, inventory tracking, and device preparation workflows.')
-bullet('Automated deployment with Immy.Bot while retaining human quality checks; reduced active technician effort from about 45 minutes to two minutes on the fresh-machine onboarding path.')
-bullet('Documented and handed off provisioning operations in 2025. Received the centrexIT Quality First Award in 2023.')
+role('centrexIT','December 2021 - Present','AI Automation Engineer (2025-present); previously provisioning, field support, and service desk')
+bullet('Develop service and client-facing automation from frontline requirements through implementation, rollout, and handoff; translate recurring delivery problems into shared tools, reporting, and operating standards.')
+bullet('Build Service Toolbox and Client Toolbox for service workflows and client portfolio reporting. Contribute to the automation program featured by Rewst for recovering 160+ hours monthly and opening a new service line - a team outcome.')
+bullet('Took ownership of an inherited 72-ticket provisioning backlog, cleared it within six months, and rebuilt SOPs, inventory tracking, service expectations, and media-sanitization controls.')
+bullet('Automated fresh-machine deployment and configuration with Immy.Bot, reducing active technician effort from roughly 45 minutes to two minutes while retaining human quality control.')
+bullet('Stewarded provisioning across process improvement, automation, and field logistics; documented and handed off the operation in 2025 after improving efficiency and margin. Received the Quality First Award in 2023.')
+bullet('Contributed a public multi-tenant Microsoft 365 reporting workflow combining license inventory, usage, and cost information; shared the implementation through the Rewst community.')
 role('Safemark - Service Technician I','September 2018 - April 2021')
-bullet('Delivered independent field troubleshooting and account support across major San Diego venues and interstate assignments; recognized for helping restore the Pechanga account relationship.')
-gap(6)
+bullet('Owned independent field troubleshooting and account support at major attractions and venues; recognized for helping restore the Pechanga relationship. Supported interstate assignments and maintained repair, parts, and travel records.')
+gap(2)
+section('Selected Engineering')
+role('Cadre - Agent Control Plane','TypeScript / PostgreSQL | Alpha')
+bullet('Designed a personal control plane for agents with dedicated computer environments, policy-controlled actions, and audit history; connect agent execution to explicit access and operational boundaries.')
+bullet('Built the schema and lifecycle for versioned skills and instruction artifacts, including harness-specific CLAUDE.md / AGENTS.md projections and workspace assignment, so operational knowledge can be maintained and reused across agents.')
+bullet('Implemented grant-checked connection access and per-connection egress policies. Found credential exposure through browser accessibility snapshots, built a context-scrubbing layer, and documented residual risks.')
+role('AMD ROCm Inference Lab','Python / llama.cpp / Radeon R9700')
+bullet('Built repeatable Python benchmarks for single- and dual-GPU inference: quantization, tensor/layer splitting, speculative decoding, occupied context, concurrency, and memory-capacity limits.')
+bullet('Compiled controlled RCCL-on/off builds and investigated host-bridge transport. Recorded short-request decode near 55 tokens/s with the fallback versus 6.9 with RCCL; retained the fallback for interactive serving on this topology.')
+bullet('Compared prefill, decode, and end-to-end latency rather than optimizing one headline rate; documented long-context ingestion costs, KV-cache residency, and concurrent-agent capacity.')
+role('TerminalBrain & Shot Pill','Swift / MCP / SSH')
+bullet('Built governed MCP access to local notes and screenshot delivery to remote coding environments, giving agents practical context from the tools and machines where the work happens.')
+gap(2)
 section('Technical Skills & Contributions')
-for text in ['<b>Engineering:</b> TypeScript, JavaScript, PostgreSQL, MCP, Git, GitHub Actions','<b>Automation:</b> Rewst, Immy.Bot, PowerShell, Bash, Microsoft Graph, Entra ID, Intune','<b>Inference &amp; development:</b> ROCm, llama.cpp, Python benchmarking, Swift, React','<b>Community:</b> Public Rewst Microsoft 365 reporting workflow and implementation presentation']:
+for text in ['<b>Engineering:</b> TypeScript, JavaScript, PostgreSQL, MCP, Git, GitHub Actions','<b>Automation:</b> Rewst, Immy.Bot, PowerShell, Bash, Microsoft Graph, Entra ID, Intune','<b>Inference &amp; development:</b> ROCm, llama.cpp, Python benchmarking, Swift, React',]:
  p=Paragraph(text,style);w,h=p.wrap(520,100);p.drawOn(c,46,y-h+9);y-=h+4
 gap(4)
 section('Education')
 role('University of Maine','Degree incomplete')
 p=Paragraph('BBA coursework - Project Management &amp; Information Systems; 90 of 120 credits completed.',style);w,h=p.wrap(530,100);p.drawOn(c,46,y-h+9);y-=h
+y-=14
+p=Paragraph('<b>Hemet High School</b> - Graduated 2017; Thespian Society member.',style);w,h=p.wrap(530,100);p.drawOn(c,46,y-h+9);y-=h
 assert y>25,y
 c.save();print(out);print('Bottom position:',y)
