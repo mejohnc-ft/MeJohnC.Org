@@ -1,0 +1,25 @@
+---
+import sectionData from '../data/year-sections.json';
+import Base from './Base.astro';
+import { yearWordCounts } from '../utils/year-word-counts';
+import PhotoGallery from '../components/PhotoGallery.astro';
+const { frontmatter } = Astro.props;
+const years = [2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026];
+const year = Number(Astro.url.pathname.split('/')[2]);
+const i = years.indexOf(year);
+let body = await Astro.slots.render('default');
+const sections=sectionData[String(year) as keyof typeof sectionData] ?? [];
+let sectionIndex=0;
+body=body.replace(/<h([23]) id="([^"]+)"[^>]*>([\s\S]*?)<\/h\1>/g, (full,level,oldId,text)=>{
+ const section=sections[sectionIndex++];
+ if(!section) return full;
+ return `${oldId!==section.id?`<span id="${oldId}" class="anchor-alias"></span>`:''}<h${level} id="${section.id}">${text} <a class="section-anchor" href="#${section.id}" aria-label="Link to ${section.heading}">#</a></h${level}>`;
+});
+if(sectionIndex!==sections.length) throw new Error(`Update year-sections.json for ${year}: headings changed`);
+const pieces = body.split(/<div data-year-photos="([^"]+)"><\/div>/g);
+
+---
+<Base title={frontmatter.title} description={frontmatter.description}>
+<article class="article"><p class="breadcrumbs"><a href="/years/">← All years</a></p><h1>{frontmatter.title}</h1><p class="meta year-word-count">{yearWordCounts[year].toLocaleString('en-US')} words</p><details class="year-index"><summary>In this year</summary><nav class="year-contents" aria-label="In this year">{sections.map(section=><a href={`#${section.id}`}>{section.heading}</a>)}</nav></details>{pieces.map((piece, index) => index % 2 === 0 ? <Fragment set:html={piece} /> : <PhotoGallery keys={piece.split(',')} title="" />)}
+<nav class="year-pagination" aria-label="Browse years">{i > 0 && <a class="previous" href={`/years/${years[i-1]}/`}>← {years[i-1]}</a>}<a class="all-years" href="/years/">All years</a>{i < years.length-1 && <a class="next" href={`/years/${years[i+1]}/`}>{years[i+1]} →</a>}</nav>
+</article></Base>

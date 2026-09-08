@@ -1,0 +1,4 @@
+interface:
+  display_name: "Territories design"
+  short_description: "Choose a direction and build from its guide"
+  default_prompt: "Use $territories-design to choose a visual direction and apply its guide to this project."

@@ -1,0 +1,7 @@
+---
+import Base from '../../layouts/Base.astro';
+import media from '../../generated/media.json';
+export function getStaticPaths(){return Object.entries(media).map(([slug,photo])=>({params:{slug},props:{slug,photo}}));}
+const {slug,photo}=Astro.props;
+---
+<Base title={photo.caption} description={photo.alt} noindex><p class="breadcrumbs"><a href={`${photo.owner}#photo-${slug}`}>← Back to {photo.owner.startsWith('/years/')?photo.owner.split('/')[2]:'the story'}</a></p><figure class="photo-detail"><img src={photo.src} srcset={photo.srcset} sizes={`(max-width: 600px) min(calc(100vw - 40px), ${72 * photo.width / photo.height}vh), min(calc(100vw - 56px), 784px, ${72 * photo.width / photo.height}vh)`} decoding="async" width={photo.width} height={photo.height} alt={photo.alt}/><figcaption>{photo.caption}</figcaption></figure></Base>

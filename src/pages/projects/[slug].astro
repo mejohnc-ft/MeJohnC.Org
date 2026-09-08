@@ -1,0 +1,7 @@
+---
+import Base from '../../layouts/Base.astro';
+import { publicBuilds } from '../../data/public-builds';
+export function getStaticPaths() { return publicBuilds.map(project => ({ params: { slug: project.id }, props: { project } })); }
+const { project } = Astro.props;
+---
+<Base title={project.name} description={project.description}><article class="article"><p class="breadcrumbs"><a href="/projects/">← Projects</a></p><h1>{project.name}</h1><p class="meta">{project.category} · {project.status}</p><p class="intro">{project.description}</p><p><a href={project.url}>Source &amp; documentation ↗</a></p>{project.image && <img src={project.image} alt={`${project.name} screenshot`} loading="lazy" />}<p class="meta">{project.tech.join(' · ')}</p>{project.id === 'rewst-m365-utilization' && <p><a href="https://youtu.be/458APcbS9aY">Watch the Rewst walkthrough ↗</a></p>}</article></Base>
