@@ -31,6 +31,9 @@ role('Cadre - Agent Control Plane','Personal project | Alpha')
 bullet('Designed a versioned artifact registry for reusable agent instructions, with harness-specific projections into CLAUDE.md and AGENTS.md and assignment to agent workspaces.')
 bullet('Implemented grant-checked connection access, per-connection egress policies, and action audit records to govern agent access to external systems.')
 bullet('Identified credential exposure through browser accessibility snapshots; built a context-scrubbing layer and documented residual risks.')
+role('AMD ROCm Inference Lab','Personal infrastructure')
+bullet('Built Python inference benchmarks for single- and dual-R9700 systems; compared quantization, tensor/layer splitting, speculative decoding, and long-context behavior on llama.cpp/ROCm.')
+bullet('Investigated RCCL transport and decode regressions with controlled builds; selected serving configurations using prefill, generation, and end-to-end latency measurements.')
 role('TerminalBrain & Shot Pill','Public agent tooling')
 bullet('Built MCP access to Apple Notes, Drafts, and Obsidian with governed writeback; delivered screenshot context from macOS to remote coding workflows over SSH.')
 role('Territories','Public reference and agent resources')
@@ -46,7 +49,7 @@ role('Safemark - Service Technician I','September 2018 - April 2021')
 bullet('Delivered independent field troubleshooting and account support across major San Diego venues and interstate assignments; recognized for helping restore the Pechanga account relationship.')
 gap(6)
 section('Technical Skills & Contributions')
-for text in ['<b>Engineering:</b> TypeScript, JavaScript, PostgreSQL, MCP, Git, GitHub Actions','<b>Automation:</b> Rewst, Immy.Bot, PowerShell, Bash, Microsoft Graph, Entra ID, Intune','<b>Additional development:</b> Python (NotMyRouter), Swift, React, Astro','<b>Community:</b> Public Rewst Microsoft 365 reporting workflow and implementation presentation']:
+for text in ['<b>Engineering:</b> TypeScript, JavaScript, PostgreSQL, MCP, Git, GitHub Actions','<b>Automation:</b> Rewst, Immy.Bot, PowerShell, Bash, Microsoft Graph, Entra ID, Intune','<b>Inference &amp; development:</b> ROCm, llama.cpp, Python benchmarking, Swift, React','<b>Community:</b> Public Rewst Microsoft 365 reporting workflow and implementation presentation']:
  p=Paragraph(text,style);w,h=p.wrap(520,100);p.drawOn(c,46,y-h+9);y-=h+4
 assert y>35,y
 c.save();print(out);print('Bottom position:',y)

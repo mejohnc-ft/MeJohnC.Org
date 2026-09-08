@@ -5,6 +5,10 @@ description: How Jonathan Christensen connects agent tooling, reusable knowledge
 ---
 I started with the work people were doing by hand. Now I build tools that turn that experience into repeatable workflows, shared context, and standards the next person can use.
 
+## AMD hardware and inference
+
+I build and operate a personal AMD GPU lab. [The ROCm case study](/rocm-lab/) shows my four-GPU build and preserved single- and dual-R9700 inference experiments, including Python benchmark tooling, RCCL comparisons, and context-capacity testing.
+
 ## Agent controls and reusable instructions
 
 [Cadre](/projects/cadre/) is my personal agent control plane, currently in **Alpha**. Its artifact registry versions reusable instructions and projects them into harness-specific files such as `CLAUDE.md` and `AGENTS.md`. Instructions can be assigned to agent workspaces instead of being copied independently into each one.

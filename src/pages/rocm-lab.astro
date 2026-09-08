@@ -1,0 +1,27 @@
+---
+import Base from '../layouts/Base.astro';
+import media from '../generated/media.json';
+const photo = media['export-img-0788'];
+---
+<Base title="My AMD inference lab" description="Personal AMD hardware, repeatable Python inference benchmarks, and lessons from ROCm multi-GPU serving.">
+<p class="breadcrumbs"><a href="/engineering/">← Engineering</a></p>
+<h1>My AMD inference lab</h1>
+<p class="intro">I build the machines, run the workloads, and measure where the time goes.</p>
+<figure class="photo-detail"><img src={photo.src} srcset={photo.srcset} sizes="(max-width:600px) 90vw, 520px" width={photo.width} height={photo.height} alt={photo.alt} decoding="async"/><figcaption>My four-GPU Radeon build, November 2025. The measurements below come from a separate single- and dual-R9700 configuration.</figcaption></figure>
+<h2>From hardware enthusiasm to serving experiments</h2>
+<p>My personal lab includes AMD GPU systems for local inference. I have worked on ROCm kernel tuning as well as runtime configuration. This case study focuses on the serving experiments for which I have preserved benchmark results and a Python harness.</p>
+<h2>What I tested</h2>
+<p>In August 2026, I benchmarked Qwen3.8-27B on one and two Radeon AI PRO R9700 32 GB cards. I compared quantization, tensor and layer splitting, speculative decoding depth, occupied context, and concurrent requests. The harness records actual prompt lengths, generation counts, timing, and repeated runs in JSON.</p>
+<p>The controlled ROCm 7.14 retest used llama.cpp source commit <code>daef7b6</code>, Q4_K_M weights, Q8 K/V cache, MTP depth 3, and binaries compiled with RCCL enabled and disabled. These are personal-lab measurements on Radeon hardware, not Instinct benchmarks or customer production results.</p>
+<h2>A faster collective was not a faster interactive server</h2>
+<p>The non-RCCL tensor fallback produced a median <strong>55.22 generated tokens/second</strong> across three short runs. The RCCL plus forced fine-grain PCIe configuration produced <strong>6.86–6.88 tokens/second</strong> in two recorded short runs. Both generated 256 tokens; actual prompt lengths differed slightly, at 69 and 64 tokens respectively. This is a useful diagnostic comparison, not a universal speedup claim.</p>
+<p>The lab notes recorded a host-bridge path and shared-memory transport rather than direct GPU-to-GPU access. I retained the fallback for interactive serving on this topology rather than assuming that enabling RCCL would improve every workload.</p>
+<h2>Prefill, decode, and total latency need separate measurements</h2>
+<p>At roughly 32K occupied context, the tensor fallback recorded 48.00 generated tokens/second and 45.52 seconds total wall time. The layer-split result in the experiment notes had slower decode but lower end-to-end latency because prompt ingestion was faster. Choosing a serving configuration requires measuring the whole request, not just its most flattering rate.</p>
+<h2>Context capacity is not the same as responsive context</h2>
+<p>I also tested long-context ingestion, concurrent KV sequences, and out-of-memory limits. The lab notes document cold-prefill costs and host-memory cache-restore delays. Those observations inform how I think about agent context: a context window that allocates successfully is not necessarily one that supports an interactive workload.</p>
+<h2>What this work demonstrates</h2>
+<p>Hands-on AMD serving, Python benchmark tooling, controlled build comparisons, and decisions based on measured latency and topology. My next documentation step is to recover the kernel-tuning patches and their before/after measurements so that work can be examined with the same specificity.</p>
+<p class="meta">Based on preserved August 30–31, 2026 benchmark files and experiment notes; reviewed September 8, 2026. Historical results have not been rerun for this page.</p>
+<p><a href="/engineering/">Agent systems and operational knowledge</a> · <a href="/years/2025/">The build in my yearly story</a></p>
+</Base>
