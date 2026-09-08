@@ -15,7 +15,7 @@ for(const key of selected){
  const input=await readFile(join(root,'src/assets/stories',name));const meta=await sharp(input).metadata();
  const rotated=[5,6,7,8].includes(meta.orientation);const width=rotated?meta.height:meta.width;const height=rotated?meta.width:meta.height;
  const sizes=[...new Set([400,800,1200,1800].map(n=>Math.min(n,width)))];const variants=[];
- for(const w of sizes){const output=await sharp(input).rotate().resize({width:w,withoutEnlargement:true}).webp({quality:78}).toBuffer();const hash=createHash('sha256').update(output).digest('hex').slice(0,10);const file=`${key}-${w}-${hash}.webp`;await writeFile(join(folder,file),output);variants.push({width:w,src:`/media/stories/${file}`});}
+ for(const w of sizes){const output=await sharp(input).rotate().resize({width:w,withoutEnlargement:true}).webp({quality:w >= 1200 ? 78 : 72,effort:6}).toBuffer();const hash=createHash('sha256').update(output).digest('hex').slice(0,10);const file=`${key}-${w}-${hash}.webp`;await writeFile(join(folder,file),output);variants.push({width:w,src:`/media/stories/${file}`});}
  const owner=Object.entries(galleries).find(([path,keys])=>path.startsWith('/years/')&&keys.includes(key))?.[0]??Object.entries(galleries).find(([,keys])=>keys.includes(key))[0];
  result[key]={...photos[key],width,height,src:variants.find(v=>v.width>=800)?.src??variants.at(-1).src,thumb:variants[0].src,large:variants.at(-1).src,srcset:variants.map(v=>`${v.src} ${v.width}w`).join(', '),owner};
 }

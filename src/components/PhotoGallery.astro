@@ -2,6 +2,12 @@
 import media from '../generated/media.json';
 import { galleries } from '../data/photo-galleries';
 const { keys = galleries[Astro.url.pathname] ?? [], title = "A few photographs" } = Astro.props as {keys?:string[];title?:string};
+const imageSizes = (photo: {width:number;height:number}) => {
+ const maxWidth = Math.min(784, 620 * photo.width / photo.height);
+ return entries.length === 1
+  ? `(max-width: 600px) min(calc(100vw - 40px), ${maxWidth}px), min(calc(100vw - 56px), ${maxWidth}px)`
+  : '(max-width: 600px) calc(100vw - 40px), (max-width: 840px) calc((100vw - 76px) / 2), 382px';
+};
 const entries=keys.map(key=>({key,...media[key as keyof typeof media]}));
 ---
-{entries.length>0 && <section class="photo-gallery" aria-label="Photographs">{title && <h2>{title}</h2>}<div class="photo-grid">{entries.map(photo=><figure id={`photo-${photo.key}`}><a href={`/photos/${photo.key}/`} aria-label={`Open photograph: ${photo.alt}`}><img src={photo.src} srcset={photo.srcset} sizes={entries.length===1?'(max-width: 820px) 94vw, 760px':'(max-width: 600px) 94vw, 380px'} width={photo.width} height={photo.height} alt={photo.alt} loading="lazy" decoding="async"/><figcaption>{photo.caption}</figcaption></a></figure>)}</div></section>}
+{entries.length>0 && <section class="photo-gallery" aria-label="Photographs">{title && <h2>{title}</h2>}<div class="photo-grid">{entries.map(photo=><figure id={`photo-${photo.key}`}><a href={`/photos/${photo.key}/`} aria-label={`Open photograph: ${photo.alt}`}><img src={photo.src} srcset={photo.srcset} sizes={imageSizes(photo)} width={photo.width} height={photo.height} alt={photo.alt} loading="lazy" decoding="async"/><figcaption>{photo.caption}</figcaption></a></figure>)}</div></section>}
