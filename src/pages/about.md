@@ -9,6 +9,8 @@ I joined centrexIT in 2021, starting in frontline support before moving into pro
 
 My work now spans service desk tools, Microsoft 365 reporting, and AI-assisted workflows. I work with the people using those systems, from identifying the problem through rollout and feedback.
 
+My approach is to turn field learning into reusable tools and standards. [The engineering overview](/engineering/) connects my agent tooling, operational workflows, and public reference work.
+
 I also build personal tools and experiments. [Territories](/projects/territories/) is my design reference explorer; [Shot Pill](/projects/shot-pill/) connects screenshots on my Mac to my remote coding workflow.
 
 [My story, year by year](/years/) · [Work history](/work/) · [Projects](/projects/) · [Résumé](/resume/)
