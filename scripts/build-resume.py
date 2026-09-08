@@ -51,5 +51,9 @@ gap(6)
 section('Technical Skills & Contributions')
 for text in ['<b>Engineering:</b> TypeScript, JavaScript, PostgreSQL, MCP, Git, GitHub Actions','<b>Automation:</b> Rewst, Immy.Bot, PowerShell, Bash, Microsoft Graph, Entra ID, Intune','<b>Inference &amp; development:</b> ROCm, llama.cpp, Python benchmarking, Swift, React','<b>Community:</b> Public Rewst Microsoft 365 reporting workflow and implementation presentation']:
  p=Paragraph(text,style);w,h=p.wrap(520,100);p.drawOn(c,46,y-h+9);y-=h+4
-assert y>35,y
+gap(4)
+section('Education')
+role('University of Maine','Degree incomplete')
+p=Paragraph('BBA coursework - Project Management &amp; Information Systems; 90 of 120 credits completed.',style);w,h=p.wrap(530,100);p.drawOn(c,46,y-h+9);y-=h
+assert y>25,y
 c.save();print(out);print('Bottom position:',y)
