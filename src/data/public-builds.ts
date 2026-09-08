@@ -38,8 +38,8 @@ export const publicBuilds: PublicBuild[] = [
     category: "Agent Tooling",
     status: "Public build",
     description:
-      "Screenshots that deliver themselves: auto-titled by on-device Apple OCR and sent over SSH to whichever machine your agents are on — no scripts, no uploads.",
-    tech: ["Swift", "SSH", "On-device OCR"],
+      "Capture a screenshot on your Mac and the remote path lands on an SSH-connected machine's clipboard — visual-context delivery for agentic coding fleets.",
+    tech: ["Swift", "SSH", "macOS"],
     glyph: "⌃⌥⌘S",
     image: "/projects/shot-pill.png",
     url: "https://github.com/mejohnc-ft/pill-shot",
