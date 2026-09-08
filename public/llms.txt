@@ -33,7 +33,7 @@ These have different maturity levels. They are substantial systems and capabilit
 ## Open-source projects
 
 - Cadre — a personal agent control plane: every agent gets a real computer of its own, and every action is decided by policy before it happens and recorded after. https://github.com/mejohnc-ft/cadre
-- Shot Pill — screenshots auto-titled by on-device Apple OCR and delivered over SSH to whichever machine your agents are on. https://github.com/mejohnc-ft/pill-shot
+- Shot Pill — visual-context delivery for agentic coding fleets over SSH. https://github.com/mejohnc-ft/pill-shot
 - Rewst M365 Utilization Report — the public workflow behind the multi-tenant Microsoft 365 reporting evidence. https://github.com/mejohnc-ft/Rewst-M365-Utilization-Report
 - NotMyRouter — a network evidence dashboard that proves whether the ISP or the router is the problem. https://github.com/mejohnc-ft/NotMyRouter
 - TerminalBrain — Apple Notes, Drafts, and Obsidian exposed to agents over MCP. https://github.com/mejohnc-ft/TerminalBrain
