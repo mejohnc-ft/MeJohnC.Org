@@ -1,6 +1,6 @@
 # mejohnc.org — static replacement
 
-A standalone Astro site based on direction 1. HTML and CSS are generated at build time. There is no auth, database, server adapter, API, analytics, or client framework. Main portfolio pages ship no JavaScript. Territories keeps its browser-only JavaScript.
+A standalone Astro site based on direction 1. HTML and CSS are generated at build time. There is no auth, database, server adapter, API, analytics, or client framework. Main portfolio pages use only a small appearance preference script. Territories keeps its browser-only JavaScript.
 
 ## Local review
 

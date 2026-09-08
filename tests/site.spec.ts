@@ -16,3 +16,17 @@ test('Territories navigation and image loading', async ({page}) => {
  await expect.poll(()=>page.locator('.story-photo img').first().evaluate((img:HTMLImageElement)=>img.naturalWidth)).toBeGreaterThan(0);
  expect(errors).toEqual([]);
 });
+test('appearance choice persists and active navigation has no accent strip', async ({page}) => {
+ await page.emulateMedia({colorScheme:'dark'});
+ await page.goto('/projects/');
+ await page.locator('#site-theme').selectOption('light');
+ await expect(page.locator('html')).toHaveCSS('background-color','rgb(248, 245, 237)');
+ await expect(page.locator('header nav [aria-current]')).toHaveCSS('box-shadow','none');
+ await page.goto('/years/');
+ await expect(page.locator('#site-theme')).toHaveValue('light');
+ await page.locator('#site-theme').selectOption('dark');
+ await expect(page.locator('html')).toHaveCSS('background-color','rgb(25, 31, 26)');
+ await page.locator('#site-theme').selectOption('system');
+ await page.emulateMedia({colorScheme:'light'});
+ await expect(page.locator('html')).toHaveCSS('background-color','rgb(248, 245, 237)');
+});

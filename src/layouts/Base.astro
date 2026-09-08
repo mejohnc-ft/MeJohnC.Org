@@ -13,6 +13,9 @@ const navigation = [{label:'Projects', href:'/projects/'},{label:'Years',href:'/
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script is:inline data-site-theme>
+      try { const theme = localStorage.getItem('site-theme'); if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme; } catch {}
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title === 'Jonathan Christensen' ? title : `${title} — Jonathan Christensen`}</title>
     <meta name="description" content={description} />
@@ -31,7 +34,16 @@ const navigation = [{label:'Projects', href:'/projects/'},{label:'Years',href:'/
     <div class="page">
       <header><a href="/" aria-label="Jonathan Christensen home">mejohnc.org</a><nav aria-label="Main navigation">{navigation.map(item => <a href={item.href} aria-current={path.startsWith(item.href) ? 'page' : undefined}>{item.label}</a>)}</nav></header>
       <main id="content"><slot /></main>
-      <footer><span>Jonathan Christensen</span><div class="links"><a href="mailto:mejohnwc@gmail.com">Email</a><a href="https://github.com/mejohnc-ft">GitHub</a><a href="/resume/">Résumé</a></div></footer>
+      <footer><span>Jonathan Christensen</span><label class="theme-picker">Appearance <select id="site-theme" aria-label="Appearance"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label><div class="links"><a href="mailto:mejohnwc@gmail.com">Email</a><a href="https://github.com/mejohnc-ft">GitHub</a><a href="/resume/">Résumé</a></div></footer>
     </div>
+    <script is:inline data-site-theme>
+      const picker = document.getElementById('site-theme');
+      picker.value = document.documentElement.dataset.theme || 'system';
+      picker.addEventListener('change', () => {
+        if (picker.value === 'system') delete document.documentElement.dataset.theme;
+        else document.documentElement.dataset.theme = picker.value;
+        try { localStorage.setItem('site-theme', picker.value); } catch {}
+      });
+    </script>
   </body>
 </html>

@@ -19,7 +19,7 @@ for (const file of htmlFiles) {
   const name = relative(dist, file);
   if (!name.startsWith('projects/territories/') && !name.startsWith('demos/') && !name.startsWith('territories/')) {
     portfolioPages++;
-    if (/<script\b/i.test(html)) errors.push(`${name}: unexpected client script`);
+    if (/<script\b/i.test(html.replace(/<script\b[^>]*data-site-theme[^>]*>[\s\S]*?<\/script>/gi, ""))) errors.push(`${name}: unexpected client script`);
     if (/(?:supabase\.co|clerk\.|\.netlify\/functions|localhost:|127\.0\.0\.1:)/i.test(html)) errors.push(`${name}: backend or local review dependency`);
   }
   for (const match of html.matchAll(/\b(?:href|src|data)\s*=\s*["']([^"']+)["']/g)) {
@@ -68,7 +68,7 @@ assert.ok((await readFile(join(dist, 'index.html'), 'utf8')).includes('Territori
 assert.ok((await readFile(join(dist, 'media/index.html'), 'utf8')).includes('2026-09-04'), 'Case study date changed');
 assert.ok((await readFile(join(dist, 'media/index.html'), 'utf8')).includes('2026-05-13'), 'May talk missing');
 assert.equal(errors.length, 0, errors.join('\n'));
-console.log(`Verified ${portfolioPages} portfolio/redirect pages, ${localReferences} local references, ${paths.size} Territories gallery assets, local font files, and both résumé URLs. No client JavaScript or backend dependency in portfolio HTML; interactive replicas use local browser scripts.`);
+console.log(`Verified ${portfolioPages} portfolio/redirect pages, ${localReferences} local references, ${paths.size} Territories gallery assets, local font files, and both résumé URLs. Only the small appearance control script is allowed in portfolio HTML; no backend dependency; interactive replicas use local browser scripts.`);
 
 const emittedOriginals=files.filter(file=>relative(dist,file).startsWith('_astro/') && /\.(jpeg|jpg|avif)$/i.test(file));
 assert.equal(emittedOriginals.length,0,'Archival originals leaked into build');
