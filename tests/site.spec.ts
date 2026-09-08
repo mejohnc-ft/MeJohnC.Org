@@ -30,3 +30,14 @@ test('appearance choice persists and active navigation has no accent strip', asy
  await page.emulateMedia({colorScheme:'light'});
  await expect(page.locator('html')).toHaveCSS('background-color','rgb(248, 245, 237)');
 });
+test('homepage stays within its initial transfer budget', async ({page}) => {
+ const session=await page.context().newCDPSession(page);
+ await session.send('Network.enable');
+ let transferred=0;
+ session.on('Network.loadingFinished',event=>transferred+=event.encodedDataLength);
+ await page.goto('/');
+ await page.evaluate(()=>document.fonts.ready);
+ await expect(page.locator('img')).toHaveCount(3);
+ await expect(page.locator('iframe, object, video')).toHaveCount(0);
+ expect(transferred).toBeLessThan(150_000);
+});
